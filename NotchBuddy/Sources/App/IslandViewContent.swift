@@ -743,6 +743,11 @@ struct PromptView: View {
                                 withAnimation { proxy.scrollTo(last.id, anchor: .bottom) }
                             }
                         }
+                        .onChange(of: state.chatHistory.last?.content) { _, _ in
+                            if let last = state.chatHistory.last {
+                                proxy.scrollTo(last.id, anchor: .bottom)
+                            }
+                        }
                         .onChange(of: state.stateOverride) { _, v in
                             if v != nil { withAnimation { proxy.scrollTo("typing", anchor: .bottom) } }
                         }
@@ -2696,7 +2701,10 @@ struct SettingsIslandView: View {
     }
 
     private var apiConnected: Bool {
-        KeychainStore.shared.get("anthropic-api-key") != nil
+        switch state.chatEngine {
+        case .claudeCode: return ClaudeCodeChat.install != nil
+        case .apiKey:     return KeychainStore.shared.get("anthropic-api-key") != nil
+        }
     }
 
     var body: some View {
@@ -2746,7 +2754,7 @@ struct SettingsIslandView: View {
                 // Connection status
                 HStack(spacing: 14) {
                     StatusBadge(label: "Claude Code", ok: claudeConnected)
-                    StatusBadge(label: "API", ok: apiConnected)
+                    StatusBadge(label: "Chat", ok: apiConnected)
                     Spacer()
                     Button("Settings…") {
                         NotificationCenter.default.post(name: .openFullSettings, object: nil)

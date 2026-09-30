@@ -22,6 +22,8 @@ struct SettingsView: View {
         let m = AppState.shared.claudeModel
         return SettingsView.modelPresets.contains { $0.id == m } ? "" : m
     }()
+    @State private var claudeCodePath: String? = ClaudeCodeChat.install?.path
+    @State private var checkingClaudeCode = false
     @State private var launchAtStartup: Bool = (SMAppService.mainApp.status == .enabled)
     @State private var statusMessage: String = ""
     @State private var showDiff: Bool = false
@@ -67,15 +69,49 @@ struct SettingsView: View {
             VStack(alignment: .leading, spacing: 18) {
 
                 // MARK: API
-                GroupBox("Anthropic API") {
+                GroupBox("Chat") {
                     VStack(alignment: .leading, spacing: 8) {
-                        SecureField("API key (sk-ant-…)", text: $apiKey)
-                            .textFieldStyle(.roundedBorder)
-                        Button("Save") {
-                            KeychainStore.shared.set("anthropic-api-key", value: apiKey)
-                            statusMessage = "✓ Key saved."
+                        #if !APPSTORE
+                        Picker("Engine", selection: $state.chatEngine) {
+                            Text("Claude Code (subscription)").tag(ChatEngine.claudeCode)
+                            Text("Anthropic API key").tag(ChatEngine.apiKey)
                         }
-                        .buttonStyle(.borderedProminent)
+                        .pickerStyle(.segmented)
+                        #endif
+
+                        if state.chatEngine == .claudeCode {
+                            HStack(spacing: 6) {
+                                Circle()
+                                    .fill(claudeCodePath == nil ? Color.orange : Color.green)
+                                    .frame(width: 7, height: 7)
+                                Text(claudeCodePath.map { "Claude Code found: \($0)" }
+                                     ?? "Claude Code not found. Install it and sign in, then check again.")
+                                    .font(.system(size: 11))
+                                    .lineLimit(1)
+                                    .truncationMode(.middle)
+                                Spacer()
+                                Button(checkingClaudeCode ? "Checking…" : "Check again") {
+                                    checkingClaudeCode = true
+                                    Task {
+                                        claudeCodePath = await ClaudeCodeChat.locate(force: true)?.path
+                                        checkingClaudeCode = false
+                                    }
+                                }
+                                .disabled(checkingClaudeCode)
+                            }
+                            Text("Uses your Claude Code sign-in and plan limits — no API key needed. The chat can only search the web and read files you drop on the island.")
+                                .font(.system(size: 11))
+                                .foregroundColor(.secondary)
+                                .fixedSize(horizontal: false, vertical: true)
+                        } else {
+                            SecureField("API key (sk-ant-…)", text: $apiKey)
+                                .textFieldStyle(.roundedBorder)
+                            Button("Save") {
+                                KeychainStore.shared.set("anthropic-api-key", value: apiKey)
+                                statusMessage = "✓ Key saved."
+                            }
+                            .buttonStyle(.borderedProminent)
+                        }
 
                         Divider().padding(.vertical, 2)
 
@@ -99,7 +135,7 @@ struct SettingsView: View {
                                 .onChange(of: customModel) { _, value in applyCustomModel(value) }
                         }
 
-                        Text("Used by the chat and the search. Fable needs access on your API account.")
+                        Text("Used by the chat. Fable needs access on your plan or API account.")
                             .font(.system(size: 11))
                             .foregroundColor(.secondary)
                     }

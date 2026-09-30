@@ -690,6 +690,9 @@ private let nbHookScript = """
 import sys, json, os, socket
 
 def main():
+    # Coucou's own chat runs through Claude Code too; never report those sessions.
+    if os.environ.get('COUCOU_INTERNAL') == '1':
+        return
     try:
         raw = sys.stdin.buffer.read()
         if not raw:
@@ -782,6 +785,9 @@ private let nbHookScriptAppStore = """
 import sys, json, os, socket
 
 def main():
+    # Coucou's own chat runs through Claude Code too; never report those sessions.
+    if os.environ.get('COUCOU_INTERNAL') == '1':
+        return
     try:
         raw = sys.stdin.buffer.read()
         if not raw:
