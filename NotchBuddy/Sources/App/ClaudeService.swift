@@ -1,4 +1,5 @@
 import Foundation
+import OSLog
 import Security
 
 // MARK: - Keychain helpers
@@ -99,6 +100,9 @@ final class KeychainStore: @unchecked Sendable {
         if had { Keychain.delete(key: key) }
     }
 }
+
+/// Per-request token usage, readable with `scripts/measure-baseline.sh tokens`.
+private let claudeLog = Logger(subsystem: "fr.louisraille.NotchBuddy", category: "claude")
 
 // MARK: - Claude API
 
@@ -260,6 +264,7 @@ final class ClaudeService {
             await showError("Unexpected API response.", state: state)
             return
         }
+        logUsage(json, kind: "chat")
 
         // Store full content (includes tool_use/tool_result blocks) for correct multi-turn context
         conversationMessages.append(["role": "assistant", "content": content])
@@ -289,6 +294,7 @@ final class ClaudeService {
             await showError("Unexpected API response.", state: state)
             return
         }
+        logUsage(json, kind: "search")
 
         // Strip markdown code fences if present, then extract JSON object
         let cleanText: String
@@ -327,6 +333,17 @@ final class ClaudeService {
         state.stateOverride = nil
         state.view = .result
         NotificationCenter.default.post(name: .triggerEmote, object: BotEmote.proud)
+    }
+
+    private func logUsage(_ json: [String: Any], kind: String) {
+        guard let u = json["usage"] as? [String: Any] else { return }
+        let input  = u["input_tokens"] as? Int ?? 0
+        let output = u["output_tokens"] as? Int ?? 0
+        let cacheW = u["cache_creation_input_tokens"] as? Int ?? 0
+        let cacheR = u["cache_read_input_tokens"] as? Int ?? 0
+        let turn   = conversationMessages.count / 2
+        let model  = json["model"] as? String ?? self.model
+        claudeLog.info("usage kind=\(kind, privacy: .public) model=\(model, privacy: .public) turn=\(turn) input=\(input) cache_write=\(cacheW) cache_read=\(cacheR) output=\(output)")
     }
 
     private func showError(_ message: String, state: AppState) async {
