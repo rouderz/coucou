@@ -127,8 +127,8 @@ final class ClaudeService {
         conversationMessages = []
     }
 
-    private let systemPrompt = """
-    You are Mochi, Louis's personal AI assistant embedded in the notch of his Mac. \
+    static let systemPrompt = """
+    You are Mochi, a personal AI assistant living in the notch of the user's Mac. \
     You have web search access and can help with absolutely anything — research, coding, finding places, recommendations, tasks, questions. \
     Respond in the user's language. Be thorough and complete — use as much detail as the task requires. \
     No markdown formatting (no **, no ##, no bullet dashes). Use plain text with line breaks.
@@ -141,6 +141,10 @@ final class ClaudeService {
     // MARK: - Chat (multi-turn, natural text + web search)
 
     func chat(query: String, context: PromptContext?, state: AppState) async {
+        if state.chatEngine == .claudeCode {
+            await chatWithClaudeCode(query: query, context: context, state: state)
+            return
+        }
         guard let key = apiKey, !key.isEmpty else {
             await showError("API key missing. Open settings.", state: state)
             return
@@ -171,7 +175,7 @@ final class ClaudeService {
             "model": model,
             "max_tokens": 4096,
             "tools": webSearchTools,
-            "system": systemPrompt,
+            "system": Self.systemPrompt,
             "messages": conversationMessages,
         ]
 
@@ -181,6 +185,40 @@ final class ClaudeService {
         } catch {
             conversationMessages.removeLast()
             await showError("Network error: \(error.localizedDescription)", state: state)
+        }
+    }
+
+    // MARK: - Chat through the user's Claude Code (subscription)
+
+    private func chatWithClaudeCode(query: String, context: PromptContext?, state: AppState) async {
+        let engine = ClaudeCodeChat.shared
+        // The chat view only holds the new question: a fresh conversation.
+        if state.chatHistory.count <= 1 { engine.reset() }
+
+        var replyID: UUID?
+        func show(_ text: String) {
+            let clean = text.trimmingCharacters(in: .whitespacesAndNewlines)
+            guard !clean.isEmpty else { return }
+            if let id = replyID, let i = state.chatHistory.firstIndex(where: { $0.id == id }) {
+                state.chatHistory[i].content = clean
+            } else {
+                let msg = ChatMessage(role: .assistant, content: clean)
+                replyID = msg.id
+                state.chatHistory.append(msg)
+                state.stateOverride = nil  // hide the typing dots once text streams in
+            }
+        }
+
+        do {
+            let answer = try await engine.send(query: query, context: context, model: model,
+                                               systemPrompt: Self.systemPrompt) { partial in show(partial) }
+            show(answer)
+            state.stateOverride = nil
+            state.view = .prompt
+            NotificationCenter.default.post(name: .triggerEmote, object: BotEmote.happy)
+        } catch {
+            if let id = replyID { state.chatHistory.removeAll { $0.id == id } }
+            await showError(error.localizedDescription, state: state)
         }
     }
 

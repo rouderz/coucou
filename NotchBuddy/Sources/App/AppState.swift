@@ -73,6 +73,16 @@ final class AppState: ObservableObject {
         didSet { UserDefaults.standard.set(soundEnabled, forKey: "soundEnabled") }
     }
 
+    // Chat engine: the user's Claude Code sign-in (subscription) or an Anthropic API key — persisted
+    #if APPSTORE
+    static let defaultChatEngine: ChatEngine = .apiKey
+    #else
+    static let defaultChatEngine: ChatEngine = .claudeCode
+    #endif
+    @Published var chatEngine: ChatEngine = AppState.defaultChatEngine {
+        didSet { UserDefaults.standard.set(chatEngine.rawValue, forKey: "chatEngine") }
+    }
+
     // Claude model used by the chat and the search — persisted
     static let defaultClaudeModel = "claude-opus-5-5"
     @Published var claudeModel: String = AppState.defaultClaudeModel {
@@ -193,6 +203,9 @@ final class AppState: ObservableObject {
 
         if let v = ud.object(forKey: "soundEnabled") as? Bool   { soundEnabled = v }
         if let v = ud.object(forKey: "soundVolume")  as? Double { soundVolume  = v }
+        #if !APPSTORE
+        if let v = ud.string(forKey: "chatEngine"), let e = ChatEngine(rawValue: v) { chatEngine = e }
+        #endif
         if let v = ud.string(forKey: "claudeModel"),
            !v.trimmingCharacters(in: .whitespaces).isEmpty { claudeModel = v }
         // Migrate old 60s default → 15s
@@ -447,5 +460,10 @@ enum ChatRole { case user, assistant }
 struct ChatMessage: Identifiable {
     let id = UUID()
     let role: ChatRole
-    let content: String
+    var content: String
+}
+
+enum ChatEngine: String {
+    case claudeCode  // the user's own Claude Code CLI, signed in with their subscription
+    case apiKey      // Anthropic API with the key saved in the Keychain
 }
