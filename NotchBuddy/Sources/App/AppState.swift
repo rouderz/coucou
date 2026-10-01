@@ -134,6 +134,27 @@ final class AppState: ObservableObject {
         didSet { UserDefaults.standard.set(greetThresholdSeconds, forKey: "greetThreshold") }
     }
 
+    // Hotkey to ask Mochi about the file open in the editor (default ⌃⌥M).
+    // Global monitors can't swallow keys, so the default is a combo editors don't use.
+    @Published var assistantHotkeyEnabled: Bool = true {
+        didSet {
+            UserDefaults.standard.set(assistantHotkeyEnabled, forKey: "assistantHotkeyEnabled")
+            NotificationCenter.default.post(name: .assistantHotkeyChanged, object: nil)
+        }
+    }
+    var assistantHotkeyFlags: UInt = NSEvent.ModifierFlags([.control, .option]).rawValue {
+        didSet {
+            UserDefaults.standard.set(Int(assistantHotkeyFlags), forKey: "assistantHotkeyFlags")
+            NotificationCenter.default.post(name: .assistantHotkeyChanged, object: nil)
+        }
+    }
+    var assistantHotkeyCode: UInt16 = 46 {  // 'm'
+        didSet {
+            UserDefaults.standard.set(Int(assistantHotkeyCode), forKey: "assistantHotkeyCode")
+            NotificationCenter.default.post(name: .assistantHotkeyChanged, object: nil)
+        }
+    }
+
     // Hotkey to show island (e.g. ⌘⇧N)
     @Published var hotkeyEnabled: Bool = false {
         didSet { UserDefaults.standard.set(hotkeyEnabled, forKey: "hotkeyEnabled") }
@@ -233,6 +254,9 @@ final class AppState: ObservableObject {
         if let v = ud.object(forKey: "hotkeyEnabled") as? Bool  { hotkeyEnabled = v }
         if let v = ud.object(forKey: "hotkeyFlags")   as? Int   { hotkeyFlags = UInt(v) }
         if let v = ud.object(forKey: "hotkeyCode")    as? Int   { hotkeyCode = UInt16(v) }
+        if let v = ud.object(forKey: "assistantHotkeyEnabled") as? Bool { assistantHotkeyEnabled = v }
+        if let v = ud.object(forKey: "assistantHotkeyFlags")   as? Int  { assistantHotkeyFlags = UInt(v) }
+        if let v = ud.object(forKey: "assistantHotkeyCode")    as? Int  { assistantHotkeyCode = UInt16(v) }
         if let d = ud.data(forKey: "vercelProjectFilter"),
            let a = try? JSONDecoder().decode([String].self, from: d) { vercelProjectFilter = Set(a) }
         if let d = ud.data(forKey: "n8nWorkflowFilter"),
@@ -337,6 +361,7 @@ final class AppState: ObservableObject {
 enum PromptContext {
     case window(appName: String, title: String, url: String?)
     case file(name: String, fileURL: URL?)
+    case code(CodeContext)  // the file open in the user's editor (assistant mode)
 }
 
 struct DroppedFile {

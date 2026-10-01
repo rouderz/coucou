@@ -8,12 +8,16 @@ enum WindowContextCapture {
     /// Returns a PromptContext from the given app (typically the last app active before NotchBuddy).
     /// Uses AXUIElement for window title (requires Accessibility permission).
     /// Uses AppleScript for browser URL (Safari, Chrome, Arc, Firefox, Edge).
+    @MainActor
     static func captureActive(from app: NSRunningApplication? = NSWorkspace.shared.frontmostApplication) -> PromptContext? {
         #if APPSTORE
         // App Store: no Accessibility API, no screen capture
         return nil
         #else
         guard let app, let appName = app.localizedName else { return nil }
+
+        // An editor showing a file: attach the file itself (assistant mode).
+        if let code = CodeContextCapture.capture(from: app) { return .code(code) }
 
         let pid = app.processIdentifier
         let axApp = AXUIElementCreateApplication(pid)

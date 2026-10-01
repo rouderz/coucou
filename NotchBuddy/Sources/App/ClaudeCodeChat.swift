@@ -42,6 +42,8 @@ final class ClaudeCodeChat {
 
     private var sessionID: String?
     private var workDir: URL?
+    /// The user's project when the chat is about their code (never deleted by reset()).
+    private var projectDir: URL?
     private var running: Process?
 
     var hasSession: Bool { sessionID != nil }
@@ -83,6 +85,7 @@ final class ClaudeCodeChat {
         sessionID = nil
         if let dir = workDir { try? FileManager.default.removeItem(at: dir) }
         workDir = nil
+        projectDir = nil
     }
 
     /// Sends one user turn. `onText` receives the answer so far while it streams.
@@ -94,7 +97,13 @@ final class ClaudeCodeChat {
               onText: @escaping @MainActor (String) -> Void) async throws -> String {
         guard let install = await Self.locate() else { throw Failure.notInstalled }
 
-        let dir = try conversationDir()
+        if sessionID == nil, case .code(let code)? = context {
+            projectDir = URL(fileURLWithPath: code.project, isDirectory: true)
+        }
+        let dir = try projectDir ?? conversationDir()
+        // Reading and searching the project is fine; editing or running commands never is.
+        let tools = projectDir == nil ? "WebSearch,WebFetch,Read" : "WebSearch,WebFetch,Read,Grep,Glob"
+        let allowed = projectDir == nil ? "WebSearch,WebFetch" : "WebSearch,WebFetch,Read,Grep,Glob"
         var prompt = ""
         if sessionID == nil, let context {
             prompt = contextPreamble(context, in: dir)
@@ -105,8 +114,9 @@ final class ClaudeCodeChat {
             "-p",
             "--output-format", "stream-json", "--verbose", "--include-partial-messages",
             "--model", model,
-            "--tools", "WebSearch,WebFetch,Read",
-            "--allowedTools", "WebSearch,WebFetch",
+            "--tools", tools,
+            "--allowedTools", allowed,
+            "--disallowedTools", "Edit,Write,NotebookEdit,Bash",
             "--permission-mode", "dontAsk",
             "--strict-mcp-config",
             "--append-system-prompt", systemPrompt,
@@ -222,6 +232,8 @@ final class ClaudeCodeChat {
             } catch {
                 return "File: \(name) (it could not be copied, so it can't be read)\n\n"
             }
+        case .code(let code):
+            return code.promptPreamble
         }
     }
 
