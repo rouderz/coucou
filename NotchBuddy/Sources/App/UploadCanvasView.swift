@@ -11,7 +11,7 @@ struct UploadCanvasView: View {
     private var engine: UploadSequenceEngine { .shared }
 
     var body: some View {
-        TimelineView(.animation) { tl in
+        TimelineView(.animation(minimumInterval: FrameRate.main)) { tl in
             let f = engine.frame(at: tl.date)
             let wallTime = tl.date.timeIntervalSinceReferenceDate
 

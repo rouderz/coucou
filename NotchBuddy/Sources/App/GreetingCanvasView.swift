@@ -557,7 +557,7 @@ struct GreetingCanvasView: View {
     @State private var doneWork:   DispatchWorkItem? = nil
 
     var body: some View {
-        TimelineView(.animation) { timeline in
+        TimelineView(.animation(minimumInterval: FrameRate.main)) { timeline in
             let t = timeline.date.timeIntervalSince(startDate)
             Canvas { context, size in
                 context.withCGContext { cgCtx in

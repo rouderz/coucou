@@ -283,7 +283,7 @@ struct BotPlacement: View {
             // Normal: extra 40pt canvas at top for heart particles; position offset up by 20pt;
             // BotEngine compensates with cy = H/2 + particleOverhang/2 + oy*R + R*0.06.
             if isUploading {
-                TimelineView(.animation) { tl in
+                TimelineView(.animation(minimumInterval: FrameRate.main)) { tl in
                     let elapsed: Double = {
                         guard let start = state.uploadStartTime else { return 0 }
                         return tl.date.timeIntervalSince(start)
@@ -371,40 +371,50 @@ func botPosition(mode: IslandMode, view: IslandView, islandW: CGFloat, islandH: 
 struct CountdownBar: View {
     @ObservedObject var state: AppState
     let islandW: CGFloat
-    @State private var barWidth: CGFloat = 0
-    @State private var timer: Timer? = nil
+
+    /// Auto-close timing: the bar only exists during the last `window` seconds.
+    private var countdown: (start: Date, end: Date)? {
+        guard state.mode == .expanded && !state.isPinned else { return nil }
+        let autoClose = state.autoCloseInterval
+        let window = min(10.0, autoClose * 0.6)
+        let end = state.lastActivity.addingTimeInterval(autoClose)
+        return (end.addingTimeInterval(-window), end)
+    }
 
     var body: some View {
         GeometryReader { _ in
-            Rectangle()
-                .fill(Color.white.opacity(0.35))
-                .frame(width: barWidth, height: 2)
-                .cornerRadius(2)
-                .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .bottom)
+            if let countdown {
+                // Wakes the app only while the bar is shrinking (issue #6: no permanent 0.1 s timer).
+                TimelineView(CountdownSchedule(start: countdown.start, end: countdown.end)) { tl in
+                    let total = countdown.end.timeIntervalSince(countdown.start)
+                    let remaining = countdown.end.timeIntervalSince(tl.date)
+                    let width = tl.date < countdown.start ? 0 : max(0, CGFloat(remaining / total) * 160)
+                    Rectangle()
+                        .fill(Color.white.opacity(0.35))
+                        .frame(width: width, height: 2)
+                        .cornerRadius(2)
+                        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .bottom)
+                }
+            }
         }
-        .onAppear { startTimer() }
-        .onDisappear { timer?.invalidate() }
     }
+}
 
-    private func startTimer() {
-        timer = Timer.scheduledTimer(withTimeInterval: 0.1, repeats: true) { _ in
-            updateBar()
-        }
-    }
+/// Fires once when the countdown window opens, then at 30 fps until it ends — nothing before.
+private struct CountdownSchedule: TimelineSchedule {
+    let start: Date
+    let end: Date
 
-    private func updateBar() {
-        guard state.mode == .expanded && !state.isPinned else {
-            barWidth = 0
-            return
-        }
-        let autoClose = state.autoCloseInterval
-        let window = min(10.0, autoClose * 0.6)
-        let elapsed = Date.now.timeIntervalSince(state.lastActivity)
-        let remaining = autoClose - elapsed
-        if remaining < window {
-            barWidth = max(0, CGFloat(remaining / window) * 160)
-        } else {
-            barWidth = 0
+    func entries(from date: Date, mode: TimelineScheduleMode) -> AnyIterator<Date> {
+        var pending: Date? = date < start ? date : nil  // draw "no bar" now, then wait
+        var next = max(date, start)
+        let step = FrameRate.decor
+        let end = end
+        return AnyIterator {
+            if let now = pending { pending = nil; return now }
+            guard next <= end else { return nil }
+            defer { next = next.addingTimeInterval(step) }
+            return next
         }
     }
 }

@@ -191,12 +191,34 @@ final class IslandWindowController: NSWindowController {
 
     // MARK: - 60 Hz polling loop
 
-    private func startPolling() {
-        frameTimer = Timer.scheduledTimer(withTimeInterval: 1.0/60.0, repeats: true) { [weak self] _ in
-            guard let self else { return }
-            Task { @MainActor in self.pollFrame() }
+    /// 60 Hz while the island is visible or the pointer is near the notch; 10 Hz otherwise,
+    /// so the hidden island costs next to nothing but still peeks within ~100 ms.
+    private static let fastPoll: TimeInterval = 1.0 / 60
+    private static let slowPoll: TimeInterval = 1.0 / 10
+    /// Distance from the island's top edge (pt) at which polling speeds back up.
+    private static let wakeDistance: CGFloat = 120
+    private var pollInterval: TimeInterval = IslandWindowController.fastPoll
+
+    private func startPolling(interval: TimeInterval = IslandWindowController.fastPoll) {
+        frameTimer?.invalidate()
+        pollInterval = interval
+        let timer = Timer(timeInterval: interval, repeats: true) { [weak self] _ in
+            // The timer runs on the main run loop: call straight in, no Task per tick.
+            MainActor.assumeIsolated { self?.pollFrame() }
         }
-        RunLoop.main.add(frameTimer!, forMode: .common)
+        timer.tolerance = interval * 0.2
+        RunLoop.main.add(timer, forMode: .common)
+        frameTimer = timer
+    }
+
+    /// Picks the polling rate for the next ticks from what the island is doing.
+    private func adaptPollRate(mouse: NSPoint, panelFrame: NSRect) {
+        let nearNotch = mouse.y > panelFrame.maxY - Self.wakeDistance
+            && mouse.x > panelFrame.minX && mouse.x < panelFrame.maxX
+        let busy = state.mode != .hidden || nearNotch || wasInIsland
+            || inAttachDrag || attachDragStart != nil
+        let wanted = busy ? Self.fastPoll : Self.slowPoll
+        if wanted != pollInterval { startPolling(interval: wanted) }
     }
 
     private func pollFrame() {
@@ -206,6 +228,7 @@ final class IslandWindowController: NSWindowController {
 
         // Convert mouse to panel-local coords (macOS: origin bottom-left)
         let pf = panel.frame
+        defer { adaptPollRate(mouse: mouse, panelFrame: pf) }
         let local = CGPoint(x: mouse.x - pf.minX, y: mouse.y - pf.minY)
 
         // Island rect in panel coords
@@ -244,6 +267,7 @@ final class IslandWindowController: NSWindowController {
         if !inIsland && wasInIsland {
             fsm.mouseLeft()
         }
+        if inIsland != wasInIsland { state.pointerInIsland = inIsland }
         wasInIsland = inIsland
 
         // Bot-head hover (love emote)
