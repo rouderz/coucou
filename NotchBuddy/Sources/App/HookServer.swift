@@ -276,6 +276,18 @@ final class HookServer: @unchecked Sendable {
         case .live: isAlert = state.pendingApproval != nil
         default: isAlert = false
         }
+        // Do not disturb: never open the island; badge the pill. Approvals still show it, quietly.
+        if DoNotDisturb.shared.isActive {
+            switch view {
+            case .approval, .live where state.pendingApproval != nil:
+                setPillBadge(id: "integration_claude", badge: .approval)
+                if state.mode == .hidden { NotificationCenter.default.post(name: .hookReveal, object: nil) }
+            case .finished: setPillBadge(id: "integration_claude", badge: .finished)
+            case .error, .confused: setPillBadge(id: "integration_claude", badge: .error)
+            default: break
+            }
+            return
+        }
         if state.mode == .expanded {
             // Only force-switch view for alerts — leave user on their current view otherwise
             if isAlert { state.view = view }

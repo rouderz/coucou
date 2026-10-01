@@ -53,6 +53,7 @@ struct SettingsView: View {
     @State private var assistantFlags: UInt   = AppState.shared.assistantHotkeyFlags
     @State private var assistantCode: UInt16  = AppState.shared.assistantHotkeyCode
     @State private var language: AppLanguage  = AppLanguage.current
+    @State private var calendarAllowed: Bool  = DoNotDisturb.calendarAllowed
     @State private var voiceFlags: UInt       = AppState.shared.voiceHotkeyFlags
     @State private var voiceCode: UInt16      = AppState.shared.voiceHotkeyCode
     @State private var voiceAllowed: Bool     = VoiceInput.permissionsGranted
@@ -553,6 +554,41 @@ struct SettingsView: View {
                                 Button("Check") { voiceAllowed = VoiceInput.permissionsGranted }
                             }
                         }
+                    }
+                    .padding(6)
+                }
+
+                // MARK: Do not disturb
+                GroupBox("Do not disturb") {
+                    VStack(alignment: .leading, spacing: 8) {
+                        HStack {
+                            Toggle("Do not disturb", isOn: Binding(
+                                get: { state.dndUntil.map { $0 > .now } ?? false },
+                                set: { $0 ? DoNotDisturb.shared.turnOn(for: nil) : DoNotDisturb.shared.turnOff() }))
+                            Spacer()
+                            if let status = DoNotDisturb.shared.statusText {
+                                Text(status).font(.system(size: 11)).foregroundColor(.secondary)
+                            }
+                        }
+                        Toggle("Automatically during calendar events", isOn: $state.dndDuringMeetings)
+                        if state.dndDuringMeetings {
+                            HStack(spacing: 6) {
+                                Circle().fill(calendarAllowed ? Color.green : Color.orange).frame(width: 7, height: 7)
+                                Text(calendarAllowed ? "Calendar access granted"
+                                                     : "Coucou needs access to your calendars to see when you're in a meeting")
+                                    .font(.system(size: 11))
+                                Spacer()
+                                if !calendarAllowed {
+                                    Button("Allow calendar access…") {
+                                        Task { calendarAllowed = await DoNotDisturb.shared.requestCalendarAccess() }
+                                    }
+                                }
+                            }
+                        }
+                        Text("No sounds, and the island doesn't open by itself: finished, failed and approval events only badge the pill. Also in the 🌙 menu on the island.")
+                            .font(.system(size: 11))
+                            .foregroundColor(.secondary)
+                            .fixedSize(horizontal: false, vertical: true)
                     }
                     .padding(6)
                 }

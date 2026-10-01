@@ -75,6 +75,7 @@ targets:
         NSSupportsAutomaticGraphicsSwitching: YES
         NSAppleEventsUsageDescription: "To jump to your terminal and send emails."
         NSAccessibilityUsageDescription: "To read the active window and the file you're editing, and attach them as context."
+        NSCalendarsFullAccessUsageDescription: "Do not disturb: Coucou stays quiet while you're in a calendar event."
         NSMicrophoneUsageDescription: "Push-to-talk: Mochi listens only while you hold the shortcut."
         NSSpeechRecognitionUsageDescription: "Push-to-talk: your voice is transcribed on this Mac to ask Mochi."
     settings:
@@ -117,6 +118,7 @@ targets:
         NSSupportsAutomaticGraphicsSwitching: YES
         LSApplicationCategoryType: public.app-category.developer-tools
         ITSAppUsesNonExemptEncryption: NO
+        NSCalendarsFullAccessUsageDescription: "Do not disturb: Coucou stays quiet while you're in a calendar event."
         NSMicrophoneUsageDescription: "Push-to-talk: Mochi listens only while you hold the shortcut."
         NSSpeechRecognitionUsageDescription: "Push-to-talk: your voice is transcribed on this Mac to ask Mochi."
     settings:
