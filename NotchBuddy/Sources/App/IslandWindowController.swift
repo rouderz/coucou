@@ -482,6 +482,14 @@ final class IslandWindowController: NSWindowController {
             finishDrag()
         }
 
+        // Shortcut: ask Mochi about what's open in the frontmost app (assistant mode).
+        // A system hot key: works without Accessibility and doesn't leak the keystroke.
+        assistantHotKey = GlobalHotKey { [weak self] in self?.askAboutFrontmostApp() }
+        registerAssistantHotKey()
+        NotificationCenter.default.addObserver(forName: .assistantHotkeyChanged, object: nil, queue: .main) { [weak self] _ in
+            MainActor.assumeIsolated { self?.registerAssistantHotKey() }
+        }
+
         // Global hotkey to show island
         NSEvent.addGlobalMonitorForEvents(matching: .keyDown) { [weak self] event in
             Task { @MainActor in
@@ -655,6 +663,48 @@ final class IslandWindowController: NSWindowController {
             return (CGRect(x: x, y: screenMaxY - y - h, width: w, height: h), pid)
         }
         return nil
+    }
+
+    // MARK: - Assistant: ask about the frontmost app
+
+    private var assistantHotKey: GlobalHotKey?
+
+    private func registerAssistantHotKey() {
+        guard let hotKey = assistantHotKey else { return }
+        if state.assistantHotkeyEnabled {
+            hotKey.register(keyCode: state.assistantHotkeyCode, flags: state.assistantHotkeyFlags)
+        } else {
+            hotKey.unregister()
+        }
+    }
+
+    /// Attaches the file (or window) the user is looking at and opens a fresh chat.
+    func askAboutFrontmostApp() {
+        let app = NSWorkspace.shared.frontmostApplication
+        assistantLog.info("ask: frontmost=\(app?.bundleIdentifier ?? "nil", privacy: .public) trusted=\(AccessibilityAccess.isTrusted)")
+        guard app?.bundleIdentifier != Bundle.main.bundleIdentifier else { return }
+        // Reading the open file needs Accessibility: say so instead of failing silently.
+        guard AccessibilityAccess.isTrusted else {
+            state.stateOverride = .question
+            state.noteMessage = "Coucou needs Accessibility permission to read the file you're editing. Settings → Hotkey → Grant access."
+            expand(to: .note)
+            AccessibilityAccess.request()
+            return
+        }
+        guard let context = WindowContextCapture.captureActive(from: app) else {
+            assistantLog.info("ask: nothing captured")
+            NSSound.beep()
+            return
+        }
+        assistantLog.info("ask: captured \(String(describing: context), privacy: .public)")
+        // New question about new context: start a new conversation.
+        state.chatHistory = []
+        ClaudeService.shared.clearConversation()
+        ClaudeCodeChat.shared.reset()
+        state.promptContext = context
+        SoundEngine.shared.play("approve")
+        NotificationCenter.default.post(name: .triggerEmote, object: BotEmote.happy)
+        expand(to: .prompt)
     }
 
     // MARK: - Window context at screen point (for drag-attach)
@@ -867,6 +917,7 @@ extension Notification.Name {
     static let botMorphTo       = Notification.Name("notchBuddy.botMorphTo")
     static let islandAction     = Notification.Name("notchBuddy.islandAction")
     static let islandCollapse   = Notification.Name("notchBuddy.islandCollapse")
+    static let assistantHotkeyChanged = Notification.Name("notchBuddy.assistantHotkeyChanged")
     static let openFullSettings = Notification.Name("notchBuddy.openFullSettings")
     static let hookReveal       = Notification.Name("notchBuddy.hookReveal")
     // Greeting ↔ IslandWindowController

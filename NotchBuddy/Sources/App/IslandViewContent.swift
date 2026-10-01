@@ -867,6 +867,7 @@ struct SearchingView: View {
         switch state.promptContext {
         case .window(_, let title, _): return "Claude is reading \(title)…"
         case .file(let name, _): return "Claude is reading \(name)…"
+        case .code(let code): return "Claude is reading \(code.fileName)…"
         case nil: return "Claude is searching…"
         }
     }
@@ -2570,6 +2571,9 @@ struct ContextChip: View {
             if let url = url, let host = URL(string: url)?.host { return "\(app) · \(host)" }
             return app
         case .file(let name, _): return name
+        case .code(let code):
+            return code.selection == nil ? "📄 \(code.relativePath) · \(code.projectName)"
+                                         : "📄 \(code.relativePath) · selection"
         }
     }
 

@@ -49,6 +49,9 @@ struct SettingsView: View {
     // Hotkey
     @State private var hotkeyFlags: UInt    = AppState.shared.hotkeyFlags
     @State private var hotkeyCode: UInt16   = AppState.shared.hotkeyCode
+    @State private var axTrusted = AccessibilityAccess.isTrusted
+    @State private var assistantFlags: UInt   = AppState.shared.assistantHotkeyFlags
+    @State private var assistantCode: UInt16  = AppState.shared.assistantHotkeyCode
 
     // Vercel project filter
     @State private var vercelProjects: [String] = []
@@ -443,6 +446,36 @@ struct SettingsView: View {
                                 Text("presses this → island opens")
                                     .font(.system(size: 11))
                                     .foregroundColor(.secondary)
+                            }
+                        }
+
+                        Divider().padding(.vertical, 2)
+                        Toggle("Ask Mochi about the file you're editing", isOn: $state.assistantHotkeyEnabled)
+                        if state.assistantHotkeyEnabled {
+                            HStack(spacing: 8) {
+                                Text("Shortcut")
+                                    .frame(width: 70, alignment: .leading)
+                                ShortcutRecorderButton(flags: $assistantFlags, code: $assistantCode)
+                                    .onChange(of: assistantFlags) { _, v in state.assistantHotkeyFlags = v }
+                                    .onChange(of: assistantCode)  { _, v in state.assistantHotkeyCode  = v }
+                                Text("attaches the open file + selection")
+                                    .font(.system(size: 11))
+                                    .foregroundColor(.secondary)
+                            }
+                            Text("Mochi can read and search that project but never edits it.")
+                                .font(.system(size: 11))
+                                .foregroundColor(.secondary)
+                                .fixedSize(horizontal: false, vertical: true)
+                            HStack(spacing: 6) {
+                                Circle().fill(axTrusted ? Color.green : Color.orange).frame(width: 7, height: 7)
+                                Text(axTrusted ? "Accessibility access granted"
+                                               : "Accessibility access needed to read the open file")
+                                    .font(.system(size: 11))
+                                Spacer()
+                                if !axTrusted {
+                                    Button("Grant access…") { AccessibilityAccess.request() }
+                                }
+                                Button("Check") { axTrusted = AccessibilityAccess.isTrusted }
                             }
                         }
                     }

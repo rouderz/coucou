@@ -165,6 +165,11 @@ final class ClaudeService {
                     userContent.append(block)
                 }
                 userContent.append(["type": "text", "text": "File: \(name)"])
+            case .code(let code):
+                if let block = readFileAsBlock(url: URL(fileURLWithPath: code.file)) {
+                    userContent.append(block)
+                }
+                userContent.append(["type": "text", "text": code.inlinePreamble])
             }
         }
         userContent.append(["type": "text", "text": query])
@@ -242,6 +247,13 @@ final class ClaudeService {
                 userContent.append(fileBlock)
             }
             userContent.append(["type": "text", "text": "File: \(name)\n\nRequest: \(query)"])
+        case .code(let code):
+            if let block = readFileAsBlock(url: URL(fileURLWithPath: code.file)) {
+                userContent.append(block)
+            }
+            var text = "File: \(code.relativePath) (project \(code.projectName))"
+            if let sel = code.selection { text += "\nSelected text:\n\(sel)" }
+            userContent.append(["type": "text", "text": text + "\n\nRequest: \(query)"])
         case nil:
             userContent.append(["type": "text", "text": query])
         }
