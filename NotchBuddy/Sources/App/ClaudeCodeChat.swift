@@ -78,15 +78,31 @@ final class ClaudeCodeChat {
 
     // MARK: - Conversation
 
-    /// Forgets the current conversation and its temporary folder.
+    /// Forgets the current conversation. Its folder stays: the chat history may resume it.
     func reset() {
         running?.terminate()
         running = nil
         sessionID = nil
-        if let dir = workDir { try? FileManager.default.removeItem(at: dir) }
         workDir = nil
         projectDir = nil
-        AppState.shared.chatAllowEdits = false
+    }
+
+    /// What ChatStore keeps to resume this conversation later.
+    var snapshot: (sessionID: String?, workDir: String?) { (sessionID, workDir?.path) }
+
+    /// Continues a saved conversation: `claude --resume` must run in the folder it started in.
+    func restore(sessionID: String?, workDir: String?, projectDir: String?) {
+        reset()
+        self.sessionID = sessionID
+        if let projectDir, FileManager.default.fileExists(atPath: projectDir) {
+            self.projectDir = URL(fileURLWithPath: projectDir, isDirectory: true)
+        } else if let workDir {
+            let url = URL(fileURLWithPath: workDir, isDirectory: true)
+            try? FileManager.default.createDirectory(at: url, withIntermediateDirectories: true)
+            self.workDir = url
+        } else {
+            self.sessionID = nil  // nowhere to resume from: the next message starts over
+        }
     }
 
     /// Sends one user turn. `onText` receives the answer so far while it streams.
@@ -223,9 +239,8 @@ final class ClaudeCodeChat {
 
     private func conversationDir() throws -> URL {
         if let workDir { return workDir }
-        let dir = FileManager.default.temporaryDirectory
-            .appendingPathComponent("Coucou-chat", isDirectory: true)
-            .appendingPathComponent(UUID().uuidString, isDirectory: true)
+        // Kept with the chat history (not in /tmp) so `--resume` still finds the session later.
+        let dir = ChatStore.workDirsRoot.appendingPathComponent(UUID().uuidString, isDirectory: true)
         try FileManager.default.createDirectory(at: dir, withIntermediateDirectories: true)
         workDir = dir
         return dir

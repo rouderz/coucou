@@ -28,6 +28,10 @@
 	<true/>
 	<key>NSHighResolutionCapable</key>
 	<true/>
+	<key>NSMicrophoneUsageDescription</key>
+	<string>Push-to-talk: Mochi listens only while you hold the shortcut.</string>
+	<key>NSSpeechRecognitionUsageDescription</key>
+	<string>Push-to-talk: your voice is transcribed on this Mac to ask Mochi.</string>
 	<key>NSSupportsAutomaticGraphicsSwitching</key>
 	<true/>
 </dict>

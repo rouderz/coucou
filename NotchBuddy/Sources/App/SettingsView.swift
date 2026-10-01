@@ -52,6 +52,9 @@ struct SettingsView: View {
     @State private var axTrusted = AccessibilityAccess.isTrusted
     @State private var assistantFlags: UInt   = AppState.shared.assistantHotkeyFlags
     @State private var assistantCode: UInt16  = AppState.shared.assistantHotkeyCode
+    @State private var voiceFlags: UInt       = AppState.shared.voiceHotkeyFlags
+    @State private var voiceCode: UInt16      = AppState.shared.voiceHotkeyCode
+    @State private var voiceAllowed: Bool     = VoiceInput.permissionsGranted
 
     // Vercel project filter
     @State private var vercelProjects: [String] = []
@@ -476,6 +479,57 @@ struct SettingsView: View {
                                     Button("Grant access…") { AccessibilityAccess.request() }
                                 }
                                 Button("Check") { axTrusted = AccessibilityAccess.isTrusted }
+                            }
+                        }
+
+                        Divider().padding(.vertical, 2)
+                        Toggle("Push-to-talk: hold to talk to Mochi", isOn: $state.voiceEnabled)
+                        if state.voiceEnabled {
+                            HStack(spacing: 8) {
+                                Text("Shortcut")
+                                    .frame(width: 70, alignment: .leading)
+                                ShortcutRecorderButton(flags: $voiceFlags, code: $voiceCode)
+                                    .onChange(of: voiceFlags) { _, v in state.voiceHotkeyFlags = v }
+                                    .onChange(of: voiceCode)  { _, v in state.voiceHotkeyCode  = v }
+                                Text("hold, speak, let go → sent")
+                                    .font(.system(size: 11))
+                                    .foregroundColor(.secondary)
+                            }
+                            HStack(spacing: 8) {
+                                Text("Language")
+                                    .frame(width: 70, alignment: .leading)
+                                Picker("", selection: $state.voiceLanguage) {
+                                    Text("Same as the Mac").tag("auto")
+                                    Text("Español (España)").tag("es-ES")
+                                    Text("Español (México)").tag("es-MX")
+                                    Text("English (US)").tag("en-US")
+                                    Text("English (UK)").tag("en-GB")
+                                    Text("Français").tag("fr-FR")
+                                }
+                                .labelsHidden()
+                                .frame(width: 180)
+                            }
+                            Toggle("Read Mochi's answers aloud", isOn: $state.voiceSpeakReplies)
+                            Text("Speech is transcribed on this Mac when it supports it. Mochi only listens while you hold the shortcut.")
+                                .font(.system(size: 11))
+                                .foregroundColor(.secondary)
+                                .fixedSize(horizontal: false, vertical: true)
+                            HStack(spacing: 6) {
+                                Circle().fill(voiceAllowed ? Color.green : Color.orange).frame(width: 7, height: 7)
+                                Text(voiceAllowed ? "Microphone and Speech Recognition allowed"
+                                                  : "macOS asks for Microphone and Speech Recognition the first time")
+                                    .font(.system(size: 11))
+                                Spacer()
+                                if !voiceAllowed {
+                                    Button("Allow now…") {
+                                        Task {
+                                            _ = await VoiceInput.microphoneAllowed()
+                                            _ = await VoiceInput.speechAllowed()
+                                            voiceAllowed = VoiceInput.permissionsGranted
+                                        }
+                                    }
+                                }
+                                Button("Check") { voiceAllowed = VoiceInput.permissionsGranted }
                             }
                         }
                     }

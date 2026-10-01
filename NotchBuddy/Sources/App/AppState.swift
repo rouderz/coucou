@@ -167,6 +167,36 @@ final class AppState: ObservableObject {
         }
     }
 
+    // Push-to-talk: hold the shortcut (default ⌃⌥V), speak, let go → Mochi answers.
+    @Published var voiceEnabled: Bool = true {
+        didSet {
+            UserDefaults.standard.set(voiceEnabled, forKey: "voiceEnabled")
+            NotificationCenter.default.post(name: .voiceHotkeyChanged, object: nil)
+        }
+    }
+    var voiceHotkeyFlags: UInt = NSEvent.ModifierFlags([.control, .option]).rawValue {
+        didSet {
+            UserDefaults.standard.set(Int(voiceHotkeyFlags), forKey: "voiceHotkeyFlags")
+            NotificationCenter.default.post(name: .voiceHotkeyChanged, object: nil)
+        }
+    }
+    var voiceHotkeyCode: UInt16 = 9 {  // 'v' (⌃⌥Space is taken by input-source switching)
+        didSet {
+            UserDefaults.standard.set(Int(voiceHotkeyCode), forKey: "voiceHotkeyCode")
+            NotificationCenter.default.post(name: .voiceHotkeyChanged, object: nil)
+        }
+    }
+    /// "auto" (the Mac's language), or a locale such as "es-ES" / "en-US".
+    @Published var voiceLanguage: String = "auto" {
+        didSet { UserDefaults.standard.set(voiceLanguage, forKey: "voiceLanguage") }
+    }
+    @Published var voiceSpeakReplies: Bool = true {
+        didSet { UserDefaults.standard.set(voiceSpeakReplies, forKey: "voiceSpeakReplies") }
+    }
+    @Published var voicePhase: VoicePhase = .idle
+    @Published var voiceTranscript: String = ""
+    @Published var voiceSpeaking: Bool = false
+
     // Hotkey to show island (e.g. ⌘⇧N)
     @Published var hotkeyEnabled: Bool = false {
         didSet { UserDefaults.standard.set(hotkeyEnabled, forKey: "hotkeyEnabled") }
@@ -238,8 +268,9 @@ final class AppState: ObservableObject {
     @Published var notionLoaded: Bool = false
     @Published var notionError: String? = nil
 
-    // Chat conversation history
+    // Chat conversation on screen, and its entry in ChatStore once saved
     @Published var chatHistory: [ChatMessage] = []
+    @Published var currentChatID: UUID? = nil
 
     // Pending approval request from Claude Code hook
     @Published var pendingApproval: ApprovalInfo? = nil
@@ -269,6 +300,11 @@ final class AppState: ObservableObject {
         if let v = ud.object(forKey: "assistantHotkeyEnabled") as? Bool { assistantHotkeyEnabled = v }
         if let v = ud.object(forKey: "assistantHotkeyFlags")   as? Int  { assistantHotkeyFlags = UInt(v) }
         if let v = ud.object(forKey: "assistantHotkeyCode")    as? Int  { assistantHotkeyCode = UInt16(v) }
+        if let v = ud.object(forKey: "voiceEnabled")      as? Bool   { voiceEnabled = v }
+        if let v = ud.object(forKey: "voiceHotkeyFlags")  as? Int    { voiceHotkeyFlags = UInt(v) }
+        if let v = ud.object(forKey: "voiceHotkeyCode")   as? Int    { voiceHotkeyCode = UInt16(v) }
+        if let v = ud.object(forKey: "voiceLanguage")     as? String { voiceLanguage = v }
+        if let v = ud.object(forKey: "voiceSpeakReplies") as? Bool   { voiceSpeakReplies = v }
         if let d = ud.data(forKey: "vercelProjectFilter"),
            let a = try? JSONDecoder().decode([String].self, from: d) { vercelProjectFilter = Set(a) }
         if let d = ud.data(forKey: "n8nWorkflowFilter"),
