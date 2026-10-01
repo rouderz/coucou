@@ -203,7 +203,7 @@ ES = {
 "Posted to %@":"Publicado en %@","Posting…":"Publicando…","Post to %@":"Publicar en %@",
 "Add this timeline as a comment on %@ · %@":"Añadir esta cronología como comentario en %@ · %@",
 # inbox
-"Review requested":"Te pidieron review","Mentioned you":"Te mencionaron","Assigned to you":"Te lo asignaron","New comment":"Comentario nuevo","Update":"Novedad",
+"Review requested":"Te pidieron review","Mentioned you":"Te mencionaron","Assignment":"Asignación","New comment":"Comentario nuevo","Update":"Novedad",
 "Inbox: nothing waiting for you":"Bandeja: nada pendiente","Inbox: %lld waiting for you":"Bandeja: %lld pendientes","Inbox":"Bandeja",
 "Mark all read":"Marcar todo leído","Mark as read":"Marcar como leído",
 "Nothing waiting for you. Review requests, mentions and assignments from GitHub and Linear show up here.":"Nada pendiente. Aquí aparecen las peticiones de review, menciones y asignaciones de GitHub y Linear.",

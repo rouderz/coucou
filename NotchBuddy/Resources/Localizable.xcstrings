@@ -417,7 +417,7 @@
         "es": {
           "stringUnit": {
             "state": "translated",
-            "value": "Te lo asignaron"
+            "value": "Asignadas a ti"
           }
         }
       }
@@ -428,6 +428,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "Asignadas a ti · %lld"
+          }
+        }
+      }
+    },
+    "Assignment": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Asignación"
           }
         }
       }

@@ -23,7 +23,7 @@ struct InboxItem: Identifiable, Equatable, Sendable {
         switch kind {
         case .review: return L("Review requested")
         case .mention: return L("Mentioned you")
-        case .assigned: return L("Assigned to you")
+        case .assigned: return L("Assignment")
         case .comment: return L("New comment")
         case .other: return L("Update")
         }
