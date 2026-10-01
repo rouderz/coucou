@@ -158,16 +158,21 @@ struct RiskChip: View {
                 .font(.system(size: 10.5, weight: .medium))
                 .foregroundColor(risk.color)
                 .lineLimit(1)
+                .truncationMode(.tail)
         }
         .padding(.horizontal, 7).padding(.vertical, 2)
         .background(risk.color.opacity(0.12))
         .clipShape(Capsule())
+        .layoutPriority(-1)  // in a tight row, the chip shortens before the buttons do
+        .help(reason.isEmpty ? risk.title : "\(risk.title) · \(reason)")
     }
 }
 
 /// Deny / Allow / Always…, with a confirmation step that shows the exact rule "Always" saves.
 struct ApprovalControls: View {
     let approval: ApprovalInfo?
+    /// Tight spaces (the live view bar): the shortcut hint moves to the buttons' tooltips.
+    var compact: Bool = false
     @ObservedObject private var state = AppState.shared
     @State private var confirmingAlways = false
 
@@ -193,11 +198,13 @@ struct ApprovalControls: View {
             } else {
                 HStack(spacing: 8) {
                     SecondaryButton("Deny") { HookServer.shared.sendApprovalDecision("deny") }
+                        .help(state.approvalShortcutsEnabled ? "⌥⌫" : "")
                     PrimaryButton("Allow") { HookServer.shared.sendApprovalDecision("allow") }
+                        .help(state.approvalShortcutsEnabled && approval?.risk != .high ? "⌥⏎" : "")
                     if let approval, !approval.rules.isEmpty {
                         SecondaryButton("Always…") { confirmingAlways = true }
                     }
-                    if state.approvalShortcutsEnabled, let approval {
+                    if state.approvalShortcutsEnabled, !compact, let approval {
                         Text(approval.risk == .high ? "⌥⌫ deny" : "⌥⏎ allow · ⌥⌫ deny")
                             .font(.system(size: 10))
                             .foregroundColor(Color(hex: "#6B7079"))

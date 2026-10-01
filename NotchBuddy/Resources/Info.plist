@@ -3,7 +3,7 @@
 <plist version="1.0">
 <dict>
 	<key>CFBundleDevelopmentRegion</key>
-	<string>$(DEVELOPMENT_LANGUAGE)</string>
+	<string>en</string>
 	<key>CFBundleDisplayName</key>
 	<string>Coucou</string>
 	<key>CFBundleExecutable</key>
@@ -12,6 +12,11 @@
 	<string>fr.louisraille.NotchBuddy</string>
 	<key>CFBundleInfoDictionaryVersion</key>
 	<string>6.0</string>
+	<key>CFBundleLocalizations</key>
+	<array>
+		<string>en</string>
+		<string>es</string>
+	</array>
 	<key>CFBundleName</key>
 	<string>Coucou</string>
 	<key>CFBundlePackageType</key>
@@ -23,9 +28,9 @@
 	<key>LSUIElement</key>
 	<true/>
 	<key>NSAccessibilityUsageDescription</key>
-	<string>Pour lire le titre de la fenêtre active et l'attacher comme contexte.</string>
+	<string>To read the active window and the file you're editing, and attach them as context.</string>
 	<key>NSAppleEventsUsageDescription</key>
-	<string>Pour sauter au terminal et envoyer des mails.</string>
+	<string>To jump to your terminal and send emails.</string>
 	<key>NSHighResolutionCapable</key>
 	<true/>
 	<key>NSMicrophoneUsageDescription</key>

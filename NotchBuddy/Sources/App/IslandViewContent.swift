@@ -1156,15 +1156,19 @@ struct IntegrationCardView: View {
                     Circle()
                         .fill(Color(hex: task.color))
                         .frame(width: 7, height: 7)
-                    Text(task.name)
-                        .font(.system(size: 12, weight: .semibold))
-                        .foregroundColor(Color(hex: "#F5F6F8"))
-                        .lineLimit(1).truncationMode(.tail)
-                        .layoutPriority(1)
-                    Text("Claude Code")
-                        .font(.system(size: 11))
-                        .foregroundColor(Color(hex: "#8E939C"))
-                        .lineLimit(1).truncationMode(.tail)
+                    if task.id == "integration_claude" && appState.claudeSessions.count > 1 {
+                        SessionSwitcher()  // several Claude Code sessions: pick the one on the card
+                    } else {
+                        Text(task.name)
+                            .font(.system(size: 12, weight: .semibold))
+                            .foregroundColor(Color(hex: "#F5F6F8"))
+                            .lineLimit(1).truncationMode(.tail)
+                            .layoutPriority(1)
+                        Text("Claude Code")
+                            .font(.system(size: 11))
+                            .foregroundColor(Color(hex: "#8E939C"))
+                            .lineLimit(1).truncationMode(.tail)
+                    }
                     Spacer(minLength: 2)
                     if task.steps.count > 1 {
                         Text("\(min(task.stepIndex + 1, task.steps.count))/\(task.steps.count)")
@@ -2753,6 +2757,7 @@ struct PrimaryButton: View {
         Button(action: action) {
             HStack(spacing: 7) {
                 Text(LocalizedStringKey(title)).font(.system(size: 12.5, weight: .medium))
+                    .lineLimit(1)
                 if let k = kbd {
                     Text(k).font(.system(size: 10.5))
                         .padding(.horizontal, 4)
@@ -2761,6 +2766,7 @@ struct PrimaryButton: View {
                 }
             }
             .padding(.horizontal, 13).padding(.vertical, 7)
+            .fixedSize()
             .background(Color(hex: "#F5F6F8"))
             .foregroundColor(Color(hex: "#0B0C0E"))
             .clipShape(Capsule())
@@ -2782,6 +2788,7 @@ struct SecondaryButton: View {
         Button(action: action) {
             HStack(spacing: 7) {
                 Text(LocalizedStringKey(title)).font(.system(size: 12.5, weight: .medium))
+                    .lineLimit(1)
                 if let k = kbd {
                     Text(k).font(.system(size: 10.5))
                         .padding(.horizontal, 4)
@@ -2790,6 +2797,7 @@ struct SecondaryButton: View {
                 }
             }
             .padding(.horizontal, 13).padding(.vertical, 7)
+            .fixedSize()
             .background(Color.white.opacity(0.09))
             .foregroundColor(Color(hex: "#F1F2F4"))
             .clipShape(Capsule())
@@ -3191,5 +3199,76 @@ private struct VoiceListeningLabel: View {
                 .truncationMode(.head)
             Spacer(minLength: 0)
         }
+    }
+}
+
+
+// MARK: - Several Claude Code sessions (#24)
+
+/// One chip per running session, coloured by state; click to put it on the card.
+/// A dot marks sessions that finished, failed or asked something while off the card.
+struct SessionSwitcher: View {
+    @ObservedObject private var state = AppState.shared
+    private let maxChips = 3
+
+    var body: some View {
+        let sessions = state.claudeSessions
+        HStack(spacing: 4) {
+            ForEach(sessions.prefix(maxChips)) { session in
+                SessionChip(session: session, focused: session.id == state.focusedClaudeSession)
+            }
+            if sessions.count > maxChips {
+                Menu {
+                    ForEach(sessions.dropFirst(maxChips)) { session in
+                        Button(session.project) { HookServer.shared.focusSession(session.id) }
+                    }
+                } label: {
+                    Text("+\(sessions.count - maxChips)")
+                        .font(.system(size: 10.5, weight: .medium))
+                        .foregroundColor(Color(hex: "#8E939C"))
+                }
+                .menuStyle(.borderlessButton)
+                .fixedSize()
+            }
+        }
+    }
+}
+
+private struct SessionChip: View {
+    let session: ClaudeSession
+    let focused: Bool
+    @State private var hover = false
+
+    private var color: Color {
+        switch session.state {
+        case .working, .searching: return Color(hex: "#4C8DFF")
+        case .thinking:            return Color(hex: "#A78BFA")
+        case .approval, .question: return Color(hex: "#F5A524")
+        case .error, .ratelimit:   return Color(hex: "#F4505E")
+        case .finished:            return Color(hex: "#22C55E")
+        default:                   return Color(hex: "#6B7079")
+        }
+    }
+
+    var body: some View {
+        Button { HookServer.shared.focusSession(session.id) } label: {
+            HStack(spacing: 4) {
+                Circle().fill(color).frame(width: 6, height: 6)
+                Text(session.project)
+                    .font(.system(size: 11, weight: focused ? .semibold : .regular))
+                    .foregroundColor(Color(hex: focused ? "#F5F6F8" : "#A3A8B0"))
+                    .lineLimit(1)
+                    .frame(maxWidth: 90)
+                if session.unseen && !focused {
+                    Circle().fill(Color(hex: "#F5F6F8")).frame(width: 4, height: 4)
+                }
+            }
+            .padding(.horizontal, 7).padding(.vertical, 2)
+            .background(Color.white.opacity(focused ? 0.14 : hover ? 0.08 : 0.04))
+            .clipShape(Capsule())
+        }
+        .buttonStyle(.plain)
+        .onHover { hover = $0 }
+        .help(session.cwd)
     }
 }
