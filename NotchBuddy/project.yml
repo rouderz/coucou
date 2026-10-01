@@ -150,4 +150,7 @@ targets:
       base:
         PRODUCT_BUNDLE_IDENTIFIER: fr.louisraille.NotchBuddyTests
         GENERATE_INFOPLIST_FILE: YES
+        # The app's product is "Coucou", not the target name
+        TEST_HOST: "$(BUILT_PRODUCTS_DIR)/Coucou.app/Contents/MacOS/Coucou"
+        BUNDLE_LOADER: "$(TEST_HOST)"
         MACOSX_DEPLOYMENT_TARGET: "15.0"
