@@ -48,10 +48,10 @@ final class StripePoller: @unchecked Sendable {
             PollGate.shared.record("integration_stripe", response)
             if code != 200 {
                 let errMsg: String
-                if code == 401 { errMsg = "Invalid API key (401)" }
-                else if code == 403 { errMsg = "Use secret key (sk_live_… not pk_live_…)" }
+                if code == 401 { errMsg = L("Invalid API key (401)") }
+                else if code == 403 { errMsg = L("Use secret key (sk_live_… not pk_live_…)") }
                 else if code == 0   { errMsg = error?.localizedDescription ?? "No connection" }
-                else                { errMsg = "API error \(code)" }
+                else                { errMsg = L("API error \(code)") }
                 DispatchQueue.main.async { AppState.shared.stripeError = errMsg }
                 return
             }

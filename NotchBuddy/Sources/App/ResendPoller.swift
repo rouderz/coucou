@@ -41,7 +41,7 @@ final class ResendPoller: @unchecked Sendable {
                 IntegrationStatus.report("integration_resend", .error("Unexpected response from Resend"))
                 return
             }
-            IntegrationStatus.report("integration_resend", rawList.isEmpty ? .empty("Connected · no emails sent yet") : .ok)
+            IntegrationStatus.report("integration_resend", rawList.isEmpty ? .empty(L("Connected · no emails sent yet")) : .ok)
 
             let total = (json["total"] as? Int) ?? (json["count"] as? Int)
             let emails = rawList.compactMap { self.parseEmail($0) }

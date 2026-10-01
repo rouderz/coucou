@@ -298,7 +298,7 @@ struct FinishedView: View {
             CardBackground(wash: .green)
             VStack(alignment: .leading, spacing: 5) {
                 AgentWho(task: state.focusTask, label: "Claude Code finished")
-                Text(state.focusTask?.steps.last ?? "Session finished")
+                Text(state.focusTask?.steps.last ?? L("Session finished"))
                     .font(.system(size: 15, weight: .semibold))
                 HStack(spacing: 8) {
                     #if !APPSTORE
@@ -380,7 +380,7 @@ struct UploadView: View {
                     .foregroundColor(state.fileDragOver ? Color(hex: "#34D399") : Color(hex: "#D5D7DB"))
                 HStack(spacing: 6) {
                     ForEach(["PDF", "Images", "Code", "Docs"], id: \.self) { label in
-                        Text(label)
+                        Text(LocalizedStringKey(label))
                             .font(.system(size: 11))
                             .padding(.horizontal, 8).padding(.vertical, 3)
                             .background(Color.white.opacity(0.07))
@@ -596,7 +596,7 @@ struct MailView: View {
     }
 
     private func sendMail() {
-        guard !to.isEmpty else { statusMsg = "Missing recipient."; return }
+        guard !to.isEmpty else { statusMsg = L("Missing recipient."); return }
         let subj = subject.isEmpty ? (state.droppedFile?.name ?? "File") : subject
 
         // Prefer Resend if API key + sender address are configured
@@ -616,12 +616,12 @@ struct MailView: View {
                 await MainActor.run {
                     isSending = false
                     if ok { onSuccess(recipient: recipient) }
-                    else  { statusMsg = "Resend error — check API key & sender." }
+                    else  { statusMsg = L("Resend error — check API key & sender.") }
                 }
             }
         } else if apiKey != nil && fromAddr == nil {
             // API key set but no sender — guide user instead of silent fallback
-            statusMsg = "Set sender address in Settings."
+            statusMsg = L("Set sender address in Settings.")
         } else {
             // No Resend — fallback to Mail
             sendViaAppleMail(to: to, subject: subj)
@@ -664,7 +664,7 @@ struct MailView: View {
         #if APPSTORE
         // App Store: no AppleScript — use NSSharingService to compose (user sends manually)
         guard let service = NSSharingService(named: .composeEmail) else {
-            statusMsg = "Mail not available."
+            statusMsg = L("Mail not available.")
             return
         }
         var items: [Any] = [bodyText.isEmpty ? " " : bodyText]
@@ -717,7 +717,7 @@ struct MailView: View {
     private func onSuccess(recipient: String) {
         SoundEngine.shared.play("send")
         NotificationCenter.default.post(name: .triggerEmote, object: BotEmote.wink)
-        state.noteMessage = "Email sent to \(recipient)."
+        state.noteMessage = L("Email sent to \(recipient).")
         state.view = .note
         DispatchQueue.main.asyncAfter(deadline: .now() + 2) {
             NotificationCenter.default.post(name: .islandCollapse, object: nil)
@@ -757,20 +757,20 @@ struct PromptView: View {
                             }
                             .buttonStyle(.plain)
                             .help(state.chatAllowEdits
-                                  ? "Mochi can change files in this project. You approve every change in the island."
-                                  : "Mochi can only read this project. Click to let it propose edits.")
+                                  ? L("Mochi can change files in this project. You approve every change in the island.")
+                                  : L("Mochi can only read this project. Click to let it propose edits."))
                         }
                     }
                     Spacer(minLength: 4)
                     if state.voiceSpeaking {
-                        HeaderIconButton(symbol: "speaker.slash.fill", active: true, help: "Stop reading aloud") {
+                        HeaderIconButton(symbol: "speaker.slash.fill", active: true, help: L("Stop reading aloud")) {
                             VoiceOutput.shared.stop()
                         }
                     }
                     HeaderIconButton(symbol: "clock.arrow.circlepath", active: showHistory,
-                                     help: "Chat history") { showHistory.toggle() }
+                                     help: L("Chat history")) { showHistory.toggle() }
                     if !state.chatHistory.isEmpty || state.promptContext != nil {
-                        HeaderIconButton(symbol: "square.and.pencil", active: false, help: "New chat") {
+                        HeaderIconButton(symbol: "square.and.pencil", active: false, help: L("New chat")) {
                             ChatSession.startNew(state)
                             showHistory = false
                             focused = true
@@ -840,7 +840,7 @@ struct PromptView: View {
                                 .frame(width: 22, height: 22)
                         }
                         .buttonStyle(.plain)
-                        .help(state.voicePhase == .listening ? "Stop and send" : "Talk to Mochi (or hold the push-to-talk shortcut)")
+                        .help(state.voicePhase == .listening ? L("Stop and send") : L("Talk to Mochi (or hold the push-to-talk shortcut)"))
                     }
 
                     Button(action: sendMessage) {
@@ -931,10 +931,10 @@ struct SearchingView: View {
 
     var label: String {
         switch state.promptContext {
-        case .window(_, let title, _): return "Claude is reading \(title)…"
-        case .file(let name, _): return "Claude is reading \(name)…"
-        case .code(let code): return "Claude is reading \(code.fileName)…"
-        case nil: return "Claude is searching…"
+        case .window(_, let title, _): return L("Claude is reading \(title)…")
+        case .file(let name, _): return L("Claude is reading \(name)…")
+        case .code(let code): return L("Claude is reading \(code.fileName)…")
+        case nil: return L("Claude is searching…")
         }
     }
 
@@ -1057,8 +1057,8 @@ struct IntegrationCardView: View {
     /// Claude Code status line: whether Coucou's hooks are in ~/.claude/settings.json.
     private var claudeHookStatus: (text: String, color: Color) {
         isConfigured
-            ? ("Hooks installed", Color(hex: "#22C55E"))
-            : ("Hooks not installed · install them in Settings", Color(hex: "#F4505E"))
+            ? (L("Hooks installed"), Color(hex: "#22C55E"))
+            : (L("Hooks not installed · install them in Settings"), Color(hex: "#F4505E"))
     }
 
     private var openURL: URL? {
@@ -1204,7 +1204,7 @@ struct IntegrationCardView: View {
                 .padding(.leading, 108)
                 .padding(.trailing, 36)
 
-                // Claude Code with hooks installed: the plan usage bars say more than "Hooks installed".
+                // Claude Code with hooks installed: the plan usage bars say more than L("Hooks installed").
                 if task.id == "integration_claude" && isConfigured {
                     PlanUsageView(usage: appState.planUsage)
                         .padding(.leading, 108)
@@ -1219,7 +1219,7 @@ struct IntegrationCardView: View {
                         let dot = status.color
                         let label = status.text
                         Circle().fill(dot).frame(width: 5, height: 5)
-                        Text(label)
+                        Text(LocalizedStringKey(label))
                             .font(.system(size: 11))
                             .foregroundColor(Color(hex: "#6B7079"))
                     }
@@ -1603,8 +1603,8 @@ struct GitHubStatsCardView: View {
 
     private var connectionText: String {
         switch connection {
-        case .cli(let login): return login.map { "Connected via GitHub CLI · @\($0)" } ?? "Connected via GitHub CLI"
-        default:              return "Connected with token"
+        case .cli(let login): return login.map { L("Connected via GitHub CLI · @\($0)") } ?? L("Connected via GitHub CLI")
+        default:              return L("Connected with token")
         }
     }
 
@@ -1626,7 +1626,7 @@ private struct StatRow: View {
                 .font(.system(size: 10))
                 .foregroundColor(Color(hex: color))
                 .frame(width: 14)
-            Text(label)
+            Text(LocalizedStringKey(label))
                 .font(.system(size: 11))
                 .foregroundColor(Color(hex: "#6B7079"))
             Spacer()
@@ -2079,7 +2079,7 @@ struct NotionCardView: View {
                 NotionHint(dot: "#F4505E", text: error)
             } else if appState.notionPages.isEmpty {
                 NotionHint(dot: "#F5A524",
-                           text: "No pages shared with your integration yet. In Notion: page → ••• → Connections → add it, then ↻.")
+                           text: L("No pages shared with your integration yet. In Notion: page → ••• → Connections → add it, then ↻."))
             }
 
             // ~3 rows visible; scroll for the rest
@@ -2174,7 +2174,7 @@ struct N8nDetailView: View {
                 }
                 .frame(maxHeight: 88)
             } else {
-                Text(success ? "Completed successfully." : "No error details available.")
+                Text(success ? L("Completed successfully.") : L("No error details available."))
                     .font(.system(size: 11))
                     .foregroundColor(Color(hex: "#6B7079"))
             }
@@ -2616,7 +2616,7 @@ struct AgentWho: View {
                 Circle().fill(Color(hex: task.color)).frame(width: 8, height: 8)
                 Text(task.name).font(.system(size: 12, weight: .semibold)).foregroundColor(Color(hex: "#F5F6F8"))
             }
-            Text(label).font(.system(size: 12)).foregroundColor(Color(hex: "#8E939C"))
+            Text(LocalizedStringKey(label)).font(.system(size: 12)).foregroundColor(Color(hex: "#8E939C"))
         }
     }
 }
@@ -2656,7 +2656,7 @@ struct ContextChip: View {
             Circle()
                 .fill(LinearGradient(colors: [Color(hex: "#FF6B5B"), Color(hex: "#F7B32B"), Color(hex: "#2DD4A7"), Color(hex: "#38BDF8"), Color(hex: "#A78BFA")], startPoint: .topLeading, endPoint: .bottomTrailing))
                 .frame(width: 7, height: 7)
-            Text(label)
+            Text(LocalizedStringKey(label))
                 .font(.system(size: 11.5))
                 .foregroundColor(Color(hex: "#F1F2F4"))
         }
@@ -2681,7 +2681,7 @@ struct MailField: View {
 
     var body: some View {
         HStack(spacing: 8) {
-            Text(label)
+            Text(LocalizedStringKey(label))
                 .font(.system(size: 12.5))
                 .foregroundColor(Color(hex: "#80858E"))
                 .frame(width: 44, alignment: .leading)
@@ -2752,7 +2752,7 @@ struct PrimaryButton: View {
     var body: some View {
         Button(action: action) {
             HStack(spacing: 7) {
-                Text(title).font(.system(size: 12.5, weight: .medium))
+                Text(LocalizedStringKey(title)).font(.system(size: 12.5, weight: .medium))
                 if let k = kbd {
                     Text(k).font(.system(size: 10.5))
                         .padding(.horizontal, 4)
@@ -2781,7 +2781,7 @@ struct SecondaryButton: View {
     var body: some View {
         Button(action: action) {
             HStack(spacing: 7) {
-                Text(title).font(.system(size: 12.5, weight: .medium))
+                Text(LocalizedStringKey(title)).font(.system(size: 12.5, weight: .medium))
                 if let k = kbd {
                     Text(k).font(.system(size: 10.5))
                         .padding(.horizontal, 4)
@@ -2917,7 +2917,7 @@ struct StatusBadge: View {
             Circle()
                 .fill(ok ? Color(hex: "#22C55E") : Color(hex: "#F4505E"))
                 .frame(width: 6, height: 6)
-            Text(label)
+            Text(LocalizedStringKey(label))
                 .font(.system(size: 11))
                 .foregroundColor(Color(hex: "#8E939C"))
         }
@@ -2969,24 +2969,24 @@ struct PlanUsageView: View {
         if let usage, usage.fiveHour != nil || usage.sevenDay != nil {
             VStack(alignment: .leading, spacing: 3) {
                 if let w = usage.fiveHour {
-                    UsageBar(label: "5h", window: w, reset: "resets in " + Self.remaining(until: w.resetsAt))
+                    UsageBar(label: "5h", window: w, reset: L("resets in ") + Self.remaining(until: w.resetsAt))
                 }
                 if let w = usage.sevenDay {
-                    UsageBar(label: "Week", window: w, reset: "resets " + Self.dayTime(w.resetsAt))
+                    UsageBar(label: L("Week"), window: w, reset: L("resets ") + Self.dayTime(w.resetsAt))
                 }
                 // Context of the Claude Code session running now (stale after 15 min without updates).
                 if let pct = usage.contextPercent, let at = usage.contextUpdatedAt,
                    Date.now.timeIntervalSince(at) < 15 * 60 {
-                    UsageBar(label: "Context", window: .init(percent: pct, resetsAt: at),
-                             reset: pct >= 80 ? "/compact soon" : (usage.model ?? "this session"))
+                    UsageBar(label: L("Context"), window: .init(percent: pct, resetsAt: at),
+                             reset: pct >= 80 ? L("/compact soon") : (usage.model ?? L("this session")))
                 }
             }
         } else {
             HStack(spacing: 5) {
                 Circle().fill(Color(hex: "#22C55E")).frame(width: 5, height: 5)
                 Text(HookServer.statusLineInstalled()
-                     ? "Hooks installed · usage shows after your next Claude message"
-                     : "Hooks installed · update them in Settings to see plan usage")
+                     ? L("Hooks installed · usage shows after your next Claude message")
+                     : L("Hooks installed · update them in Settings to see plan usage"))
                     .font(.system(size: 11))
                     .foregroundColor(Color(hex: "#6B7079"))
                     .lineLimit(2)
@@ -3019,7 +3019,7 @@ private struct UsageBar: View {
 
     var body: some View {
         HStack(spacing: 7) {
-            Text(label)
+            Text(LocalizedStringKey(label))
                 .font(.system(size: 11, weight: .medium))
                 .foregroundColor(Color(hex: "#C5C8CD"))
                 .frame(width: 48, alignment: .leading)
@@ -3065,7 +3065,7 @@ private struct HeaderIconButton: View {
         }
         .buttonStyle(.plain)
         .onHover { hover = $0 }
-        .help(help)
+        .help(LocalizedStringKey(help))
     }
 }
 
@@ -3184,7 +3184,7 @@ private struct VoiceListeningLabel: View {
                 .opacity(phase == .listening ? 1 : 0.4)
                 .animation(.easeInOut(duration: 0.6).repeatForever(), value: pulse)
                 .onAppear { pulse = true }
-            Text(transcript.isEmpty ? (phase == .listening ? "Listening…" : "Transcribing…") : transcript)
+            Text(transcript.isEmpty ? (phase == .listening ? L("Listening…") : L("Transcribing…")) : transcript)
                 .font(.system(size: 13))
                 .foregroundColor(Color(hex: transcript.isEmpty ? "#8E939C" : "#F1F2F4"))
                 .lineLimit(1)

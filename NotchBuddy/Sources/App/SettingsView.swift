@@ -52,6 +52,7 @@ struct SettingsView: View {
     @State private var axTrusted = AccessibilityAccess.isTrusted
     @State private var assistantFlags: UInt   = AppState.shared.assistantHotkeyFlags
     @State private var assistantCode: UInt16  = AppState.shared.assistantHotkeyCode
+    @State private var language: AppLanguage  = AppLanguage.current
     @State private var voiceFlags: UInt       = AppState.shared.voiceHotkeyFlags
     @State private var voiceCode: UInt16      = AppState.shared.voiceHotkeyCode
     @State private var voiceAllowed: Bool     = VoiceInput.permissionsGranted
@@ -92,13 +93,13 @@ struct SettingsView: View {
                                 Circle()
                                     .fill(claudeCodePath == nil ? Color.orange : Color.green)
                                     .frame(width: 7, height: 7)
-                                Text(claudeCodePath.map { "Claude Code found: \($0)" }
-                                     ?? "Claude Code not found. Install it and sign in, then check again.")
+                                Text(claudeCodePath.map { L("Claude Code found: \($0)") }
+                                     ?? L("Claude Code not found. Install it and sign in, then check again."))
                                     .font(.system(size: 11))
                                     .lineLimit(1)
                                     .truncationMode(.middle)
                                 Spacer()
-                                Button(checkingClaudeCode ? "Checking…" : "Check again") {
+                                Button(checkingClaudeCode ? "Checking…" : L("Check again")) {
                                     checkingClaudeCode = true
                                     Task {
                                         claudeCodePath = await ClaudeCodeChat.locate(force: true)?.path
@@ -116,7 +117,7 @@ struct SettingsView: View {
                                 .textFieldStyle(.roundedBorder)
                             Button("Save") {
                                 KeychainStore.shared.set("anthropic-api-key", value: apiKey)
-                                statusMessage = "✓ Key saved."
+                                statusMessage = L("✓ Key saved.")
                             }
                             .buttonStyle(.borderedProminent)
                         }
@@ -320,13 +321,13 @@ struct SettingsView: View {
                                     .lineLimit(2)
                                     .fixedSize(horizontal: false, vertical: true)
                                 Spacer()
-                                Button(checkingGh ? "Testing…" : "Test connection") { checkGitHubCLI(force: true) }
+                                Button(checkingGh ? "Testing…" : L("Test connection")) { checkGitHubCLI(force: true) }
                                     .disabled(checkingGh)
                             }
                             #endif
                             SecureField(ghStatus == .signedIn
-                                        ? "Personal Access Token (not needed while gh is signed in)"
-                                        : "Personal Access Token",
+                                        ? L("Personal Access Token (not needed while gh is signed in)")
+                                        : L("Personal Access Token"),
                                         text: $githubToken)
                                 .textFieldStyle(.roundedBorder)
                         }
@@ -484,8 +485,8 @@ struct SettingsView: View {
                                 .fixedSize(horizontal: false, vertical: true)
                             HStack(spacing: 6) {
                                 Circle().fill(axTrusted ? Color.green : Color.orange).frame(width: 7, height: 7)
-                                Text(axTrusted ? "Accessibility access granted"
-                                               : "Accessibility access needed to read the open file")
+                                Text(axTrusted ? L("Accessibility access granted")
+                                               : L("Accessibility access needed to read the open file"))
                                     .font(.system(size: 11))
                                 Spacer()
                                 if !axTrusted {
@@ -536,8 +537,8 @@ struct SettingsView: View {
                                 .fixedSize(horizontal: false, vertical: true)
                             HStack(spacing: 6) {
                                 Circle().fill(voiceAllowed ? Color.green : Color.orange).frame(width: 7, height: 7)
-                                Text(voiceAllowed ? "Microphone and Speech Recognition allowed"
-                                                  : "macOS asks for Microphone and Speech Recognition the first time")
+                                Text(voiceAllowed ? L("Microphone and Speech Recognition allowed")
+                                                  : L("macOS asks for Microphone and Speech Recognition the first time"))
                                     .font(.system(size: 11))
                                 Spacer()
                                 if !voiceAllowed {
@@ -550,6 +551,26 @@ struct SettingsView: View {
                                     }
                                 }
                                 Button("Check") { voiceAllowed = VoiceInput.permissionsGranted }
+                            }
+                        }
+                    }
+                    .padding(6)
+                }
+
+                // MARK: Language
+                GroupBox("Language") {
+                    VStack(alignment: .leading, spacing: 8) {
+                        Picker("Interface", selection: $language) {
+                            ForEach(AppLanguage.allCases) { Text($0.title).tag($0) }
+                        }
+                        .onChange(of: language) { _, value in value.apply() }
+                        if language != AppLanguage.atLaunch {
+                            HStack {
+                                Text("Restart Coucou to apply the new language.")
+                                    .font(.system(size: 11))
+                                    .foregroundColor(.secondary)
+                                Spacer()
+                                Button("Restart now") { AppLanguage.relaunch() }
                             }
                         }
                     }
@@ -582,18 +603,18 @@ struct SettingsView: View {
 
     private var ghStatusText: String {
         switch state.githubConnection {
-        case .cli(let login): return login.map { "Connected via GitHub CLI — @\($0). No token needed." }
-                                     ?? "Connected via GitHub CLI. No token needed."
-        case .token:          return "Connected with your Personal Access Token."
+        case .cli(let login): return login.map { L("Connected via GitHub CLI — @\($0). No token needed.") }
+                                     ?? L("Connected via GitHub CLI. No token needed.")
+        case .token:          return L("Connected with your Personal Access Token.")
         case .failed(let why): return why
         default: break
         }
         switch ghStatus {
-        case nil:        return "Looking for the GitHub CLI…"
-        case .signedIn:  return state.githubCLILogin.map { "Using GitHub CLI — signed in as @\($0)" }
-                                ?? "Using GitHub CLI (signed in). No token needed."
-        case .signedOut: return "GitHub CLI found but signed out. Run `gh auth login`, or paste a token."
-        case .missing:   return "GitHub CLI not found. Install it (brew install gh) and sign in, or paste a token."
+        case nil:        return L("Looking for the GitHub CLI…")
+        case .signedIn:  return state.githubCLILogin.map { L("Using GitHub CLI — signed in as @\($0)") }
+                                ?? L("Using GitHub CLI (signed in). No token needed.")
+        case .signedOut: return L("GitHub CLI found but signed out. Run `gh auth login`, or paste a token.")
+        case .missing:   return L("GitHub CLI not found. Install it (brew install gh) and sign in, or paste a token.")
         }
     }
 
@@ -630,7 +651,7 @@ struct SettingsView: View {
     #if APPSTORE
     private func chooseClaudeFolder() {
         let panel = NSOpenPanel()
-        panel.message = "Choose your .claude folder so Coucou can add its hooks"
+        panel.message = L("Choose your .claude folder so Coucou can add its hooks")
         panel.prompt = "Choose"
         panel.canChooseFiles = false
         panel.canChooseDirectories = true
@@ -645,9 +666,9 @@ struct SettingsView: View {
                 )
                 UserDefaults.standard.set(data, forKey: "claudeDirectoryBookmark")
                 claudeAccessGranted = true
-                statusMessage = "✓ .claude folder access granted."
+                statusMessage = L("✓ .claude folder access granted.")
             } catch {
-                statusMessage = "❌ Bookmark error: \(error.localizedDescription)"
+                statusMessage = L("❌ Bookmark error: \(error.localizedDescription)")
             }
         }
     }
@@ -671,7 +692,7 @@ struct SettingsView: View {
     private func installHooksAppStore() {
         guard let claudeURL = resolveClaudeBookmark() else {
             claudeAccessGranted = false
-            statusMessage = "❌ .claude folder access lost — choose the folder again."
+            statusMessage = L("❌ .claude folder access lost — choose the folder again.")
             return
         }
         do {
@@ -679,7 +700,7 @@ struct SettingsView: View {
             defer { if accessing { claudeURL.stopAccessingSecurityScopedResource() } }
             pendingHookJSON = try HookServer.shared.previewClaudeHooksAppStore(claudeURL: claudeURL)
             showDiff = true
-            statusMessage = "Review the JSON below before confirming."
+            statusMessage = L("Review the JSON below before confirming.")
         } catch {
             statusMessage = "❌ \(error.localizedDescription)"
         }
@@ -688,29 +709,29 @@ struct SettingsView: View {
     private func confirmInstallAppStore() {
         guard let claudeURL = resolveClaudeBookmark() else {
             claudeAccessGranted = false
-            statusMessage = "❌ .claude folder access lost."
+            statusMessage = L("❌ .claude folder access lost.")
             return
         }
         do {
             try HookServer.shared.writeClaudeHooksAppStore(claudeURL: claudeURL)
             showDiff = false
-            statusMessage = "✓ Hooks installed in ~/.claude/settings.json"
+            statusMessage = L("✓ Hooks installed in ~/.claude/settings.json")
             pendingHookJSON = ""
             hookNeedsUpdate = false
         } catch {
-            statusMessage = "❌ Write error: \(error.localizedDescription)"
+            statusMessage = L("❌ Write error: \(error.localizedDescription)")
         }
     }
 
     private func uninstallHooksAppStore() {
         guard let claudeURL = resolveClaudeBookmark() else {
             claudeAccessGranted = false
-            statusMessage = "❌ .claude folder access lost."
+            statusMessage = L("❌ .claude folder access lost.")
             return
         }
         do {
             try HookServer.shared.uninstallClaudeHooksAppStore(claudeURL: claudeURL)
-            statusMessage = "✓ Hooks removed."
+            statusMessage = L("✓ Hooks removed.")
         } catch {
             statusMessage = "❌ \(error.localizedDescription)"
         }
@@ -721,7 +742,7 @@ struct SettingsView: View {
         do {
             pendingHookJSON = try HookServer.shared.previewClaudeHooks()
             showDiff = true
-            statusMessage = "Review the JSON below before confirming."
+            statusMessage = L("Review the JSON below before confirming.")
         } catch {
             statusMessage = "❌ \(error.localizedDescription)"
         }
@@ -731,18 +752,18 @@ struct SettingsView: View {
         do {
             try HookServer.shared.writeClaudeHooks()
             showDiff = false
-            statusMessage = "✓ Hooks installed in ~/.claude/settings.json"
+            statusMessage = L("✓ Hooks installed in ~/.claude/settings.json")
             pendingHookJSON = ""
             hookNeedsUpdate = false
         } catch {
-            statusMessage = "❌ Write error: \(error.localizedDescription)"
+            statusMessage = L("❌ Write error: \(error.localizedDescription)")
         }
     }
 
     private func uninstallHooks() {
         do {
             try HookServer.shared.uninstallClaudeHooks()
-            statusMessage = "✓ Hooks removed."
+            statusMessage = L("✓ Hooks removed.")
         } catch {
             statusMessage = "❌ \(error.localizedDescription)"
         }
@@ -759,7 +780,7 @@ struct SettingsView: View {
         saveKey("calcom-api-key",  value: calcomKey)
         saveKey("notion-api-key",  value: notionKey)
         IntegrationRefresher.refreshAll()  // show the result now instead of at the next poll
-        statusMessage = "✓ Integration keys saved."
+        statusMessage = L("✓ Integration keys saved.")
     }
 
     /// Saves non-empty value; removes only if key was previously set (explicit user clear).
@@ -775,7 +796,7 @@ struct SettingsView: View {
 
     private func loadVercelProjects() {
         guard let token = KeychainStore.shared.get("vercel-token") else {
-            statusMessage = "❌ Save Vercel token first."
+            statusMessage = L("❌ Save Vercel token first.")
             return
         }
         loadingVercel = true
@@ -794,7 +815,7 @@ struct SettingsView: View {
             DispatchQueue.main.async {
                 self.vercelProjects = names
                 self.loadingVercel = false
-                if names.isEmpty { self.statusMessage = "❌ No Vercel projects found." }
+                if names.isEmpty { self.statusMessage = L("❌ No Vercel projects found.") }
             }
         }.resume()
     }
@@ -804,7 +825,7 @@ struct SettingsView: View {
     private func loadN8nWorkflows() {
         guard let apiKey  = KeychainStore.shared.get("n8n-api-key"),
               let rawBase = KeychainStore.shared.get("n8n-url") else {
-            statusMessage = "❌ Save n8n URL and API key first."
+            statusMessage = L("❌ Save n8n URL and API key first.")
             return
         }
         loadingN8n = true
@@ -815,7 +836,7 @@ struct SettingsView: View {
 
     private func fetchN8nWorkflows(urls: [String], apiKey: String, idx: Int) {
         guard idx < urls.count, let url = URL(string: urls[idx]) else {
-            DispatchQueue.main.async { self.loadingN8n = false; self.statusMessage = "❌ No n8n workflows found." }
+            DispatchQueue.main.async { self.loadingN8n = false; self.statusMessage = L("❌ No n8n workflows found.") }
             return
         }
         var req = URLRequest(url: url, timeoutInterval: 10)
@@ -835,7 +856,7 @@ struct SettingsView: View {
             DispatchQueue.main.async {
                 self.n8nWorkflows = names
                 self.loadingN8n = false
-                if names.isEmpty { self.statusMessage = "❌ No n8n workflows found." }
+                if names.isEmpty { self.statusMessage = L("❌ No n8n workflows found.") }
             }
         }.resume()
     }
@@ -853,14 +874,14 @@ struct IntegrationFilterRow: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 4) {
             HStack(spacing: 6) {
-                Text(label)
+                Text(LocalizedStringKey(label))
                     .font(.system(size: 11))
                     .foregroundColor(.secondary)
                 Spacer()
                 if loading {
                     ProgressView().scaleEffect(0.6)
                 } else {
-                    Button(items.isEmpty ? "Load list" : "Refresh") { onLoad() }
+                    Button(items.isEmpty ? L("Load list") : "Refresh") { onLoad() }
                         .buttonStyle(.bordered)
                         .controlSize(.mini)
                 }
@@ -925,7 +946,7 @@ struct ShortcutRecorderButton: View {
                 return nil
             }
         } label: {
-            Text(isRecording ? "Press keys…" : shortcutLabel)
+            Text(isRecording ? L("Press keys…") : shortcutLabel)
                 .font(.system(size: 11, design: .monospaced))
                 .padding(.horizontal, 8).padding(.vertical, 3)
                 .background(isRecording ? Color.accentColor.opacity(0.12) : Color(NSColor.controlBackgroundColor))

@@ -64,11 +64,11 @@ final class VoiceInput {
         var errorDescription: String? {
             switch self {
             case .microphoneDenied:
-                return "Coucou needs the microphone for push-to-talk. System Settings → Privacy & Security → Microphone."
+                return L("Coucou needs the microphone for push-to-talk. System Settings → Privacy & Security → Microphone.")
             case .speechDenied:
-                return "Coucou needs Speech Recognition for push-to-talk. System Settings → Privacy & Security → Speech Recognition."
+                return L("Coucou needs Speech Recognition for push-to-talk. System Settings → Privacy & Security → Speech Recognition.")
             case .unavailable(let lang):
-                return "Speech recognition isn't available for \(lang) on this Mac."
+                return L("Speech recognition isn't available for \(lang) on this Mac.")
             }
         }
     }

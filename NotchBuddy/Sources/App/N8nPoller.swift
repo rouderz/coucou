@@ -86,7 +86,7 @@ final class N8nPoller: @unchecked Sendable {
                 IntegrationStatus.report("integration_n8n", .error("Unexpected response from n8n"))
                 return
             }
-            IntegrationStatus.report("integration_n8n", items.isEmpty ? .empty("Connected · no executions yet") : .ok)
+            IntegrationStatus.report("integration_n8n", items.isEmpty ? .empty(L("Connected · no executions yet")) : .ok)
 
             guard let first = items.first else { self.n8nLog("No executions found"); return }
 
