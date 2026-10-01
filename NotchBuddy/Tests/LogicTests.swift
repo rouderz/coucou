@@ -252,3 +252,13 @@ final class InboxTests: XCTestCase {
         XCTAssertNil(GitHubInbox.webURL(nil))
     }
 }
+
+final class DataPillsTests: XCTestCase {
+    func testBuildTimeFormatting() {
+        let d = VercelDeployment(id: "1", projectName: "web", url: "", state: "READY", createdAt: .now,
+                                 commitMessage: nil, branch: nil, buildSeconds: 72)
+        XCTAssertEqual(d.buildTime, "1m 12s")
+        XCTAssertNil(VercelDeployment(id: "2", projectName: "web", url: "", state: "READY", createdAt: .now,
+                                      commitMessage: nil, branch: nil).buildTime)
+    }
+}

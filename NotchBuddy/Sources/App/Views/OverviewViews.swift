@@ -421,14 +421,18 @@ struct AgentPill: View {
                             .padding(.leading, 8)
                         Spacer()
                     }
-                    Text(displayName)
-                        .font(.system(size: 10, weight: .semibold))
-                        .foregroundColor(isHovered
-                                         ? Color(hex: task.color).lighter(by: 0.3)
-                                         : Color(hex: "#6B7079"))
-                        .lineLimit(1)
-                        .truncationMode(.tail)
-                        .frame(maxWidth: .infinity, alignment: .center)
+                    HStack(spacing: 5) {
+                        Text(displayName)
+                            .font(.system(size: 10, weight: .semibold))
+                            .foregroundColor(isHovered
+                                             ? Color(hex: task.color).lighter(by: 0.3)
+                                             : Color(hex: "#6B7079"))
+                            .lineLimit(1)
+                            .truncationMode(.tail)
+                        PillData(task: task, state: state)  // #25: sparkline / build time
+                    }
+                    .padding(.leading, 26)
+                    .frame(maxWidth: .infinity, alignment: .center)
                 }
                 .frame(maxWidth: .infinity)
                 .frame(height: 28)
@@ -503,6 +507,61 @@ struct ColumnAgentsView: View {
                     .frame(width: 16, height: 16)
                     .position(x: 0, y: CGFloat(50 + idx * 24))
                     .animation(.spring(response: 0.5, dampingFraction: 0.72).delay(Double(idx) * 0.035), value: idx)
+            }
+        }
+    }
+}
+
+
+// MARK: - Data on the pills (#25)
+
+/// A little extra on some pills: Stripe's last 7 days, Vercel's last build time.
+struct PillData: View {
+    let task: AgentTask
+    @ObservedObject var state: AppState
+
+    var body: some View {
+        switch task.id {
+        case "integration_stripe" where state.stripeDaily.contains(where: { $0 > 0 }):
+            Sparkline(values: state.stripeDaily.map(Double.init), color: Color(hex: task.color))
+                .frame(width: 26, height: 10)
+                .help(L("Payments, last 7 days"))
+        case "integration_vercel":
+            if let last = state.vercelDeployments.first, let time = last.buildTime {
+                Text(time)
+                    .font(.system(size: 9, weight: .medium, design: .monospaced))
+                    .foregroundColor(last.isSuccess ? Color(hex: "#6B7079") : Color(hex: "#F4505E"))
+                    .fixedSize()
+                    .help(L("Last build: \(last.projectName) · \(time)"))
+            }
+        default:
+            EmptyView()
+        }
+    }
+}
+
+/// Minimal line chart: values left to right, scaled to the frame, last point marked.
+struct Sparkline: View {
+    let values: [Double]
+    let color: Color
+
+    var body: some View {
+        GeometryReader { geo in
+            let maxV = max(values.max() ?? 0, 1)
+            let step = values.count > 1 ? geo.size.width / CGFloat(values.count - 1) : 0
+            let points = values.enumerated().map { i, v in
+                CGPoint(x: CGFloat(i) * step, y: geo.size.height * (1 - CGFloat(v / maxV)) )
+            }
+            ZStack {
+                Path { p in
+                    guard let first = points.first else { return }
+                    p.move(to: first)
+                    points.dropFirst().forEach { p.addLine(to: $0) }
+                }
+                .stroke(color, style: StrokeStyle(lineWidth: 1.3, lineCap: .round, lineJoin: .round))
+                if let last = points.last {
+                    Circle().fill(color).frame(width: 3, height: 3).position(last)
+                }
             }
         }
     }

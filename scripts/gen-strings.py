@@ -211,6 +211,7 @@ ES = {
 "Reviews":"Reviews","Mentions":"Menciones","Assigned":"Asignaciones","Comments":"Comentarios","Other":"Otros",
 "Checked every minute. New items make Mochi peek out (only a badge in Do not disturb); the 🔔 in the island lists them. Opening or dismissing one marks it read on GitHub / Linear.":"Se revisa cada minuto. Lo nuevo hace que Mochi se asome (solo una marca en No molestar); la 🔔 de la isla lo lista. Abrir o descartar algo lo marca como leído en GitHub / Linear.",
 "%lld new notifications. Latest, %@":"%lld notificaciones nuevas. La última, %@","Mochi says it out loud":"Mochi lo dice en voz alta","Try it":"Probar",
+"Payments, last 7 days":"Pagos, últimos 7 días","Last build: %@ · %@":"Último build: %@ · %@","Build took %@":"El build tardó %@",
 }
 catalog = {"sourceLanguage": "en", "version": "1.0", "strings": {
     k: {"localizations": {"es": {"stringUnit": {"state": "translated", "value": v}}}} for k, v in sorted(ES.items())

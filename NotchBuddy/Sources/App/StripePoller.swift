@@ -32,6 +32,36 @@ final class StripePoller: @unchecked Sendable {
         guard let key = KeychainStore.shared.get("stripe-api-key") else { return }
         fetchBalance(key: key)
         fetchCharges(key: key)
+        if Date().timeIntervalSince(lastWeekFetch) > 600 { fetchWeek(key: key) }
+    }
+
+    // MARK: - Last 7 days (#25)
+
+    private var lastWeekFetch = Date.distantPast
+
+    /// Succeeded charges of the last 7 days, summed per local day, for the pill's sparkline.
+    private func fetchWeek(key: String) {
+        lastWeekFetch = Date()
+        let cal = Calendar.current
+        let startOfToday = cal.startOfDay(for: Date())
+        guard let since = cal.date(byAdding: .day, value: -6, to: startOfToday),
+              let url = URL(string: "https://api.stripe.com/v1/charges?limit=100&created[gte]=\(Int(since.timeIntervalSince1970))")
+        else { return }
+        var req = URLRequest(url: url, timeoutInterval: 15)
+        req.setValue("Basic \(Data("\(key):".utf8).base64EncodedString())", forHTTPHeaderField: "Authorization")
+        URLSession.shared.dataTask(with: req) { data, response, _ in
+            PollGate.shared.record("integration_stripe", response)
+            guard (response as? HTTPURLResponse)?.statusCode == 200, let data,
+                  let json = try? JSONSerialization.jsonObject(with: data) as? [String: Any],
+                  let list = json["data"] as? [[String: Any]] else { return }
+            var days = [Int](repeating: 0, count: 7)
+            for c in list where c["status"] as? String == "succeeded" && c["refunded"] as? Bool != true {
+                guard let amount = c["amount"] as? Int, let ts = c["created"] as? TimeInterval else { continue }
+                let day = cal.dateComponents([.day], from: since, to: Date(timeIntervalSince1970: ts)).day ?? -1
+                if (0..<7).contains(day) { days[day] += amount }
+            }
+            DispatchQueue.main.async { AppState.shared.stripeDaily = days }
+        }.resume()
     }
 
     // MARK: - Balance

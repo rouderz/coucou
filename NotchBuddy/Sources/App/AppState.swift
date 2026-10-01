@@ -270,6 +270,8 @@ final class AppState: ObservableObject {
 
     // Stripe (populated by StripePoller)
     @Published var stripePayments: [StripePayment] = []
+    /// Succeeded payments per day, oldest first, last 7 days (smallest currency unit) (#25).
+    @Published var stripeDaily: [Int] = []
     @Published var stripeBalance: Int = 0           // raw balance in cents
     @Published var stripeDisplayBalance: Int = 0    // animated balance target
     @Published var stripeCurrency: String = "eur"
@@ -532,8 +534,11 @@ struct VercelDeployment: Identifiable {
     let createdAt: Date
     let commitMessage: String?
     let branch: String?
+    /// Seconds from build start to ready/error (#25), when Vercel reports both.
+    var buildSeconds: Double? = nil
 
     var isSuccess: Bool { state == "READY" }
+    var buildTime: String? { buildSeconds.map { TimelineStore.format($0) } }
     var statusLabel: String { isSuccess ? "Ready" : (state == "CANCELED" ? "Canceled" : "Error") }
     var timeAgo: String {
         let diff = Date().timeIntervalSince(createdAt)

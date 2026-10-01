@@ -552,6 +552,16 @@
         }
       }
     },
+    "Build took %@": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "El build tardó %@"
+          }
+        }
+      }
+    },
     "Calendar access granted": {
       "localizations": {
         "es": {
@@ -1712,6 +1722,16 @@
         }
       }
     },
+    "Last build: %@ · %@": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Último build: %@ · %@"
+          }
+        }
+      }
+    },
     "Launch at Mac startup": {
       "localizations": {
         "es": {
@@ -2358,6 +2378,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "Pagos"
+          }
+        }
+      }
+    },
+    "Payments, last 7 days": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Pagos, últimos 7 días"
           }
         }
       }

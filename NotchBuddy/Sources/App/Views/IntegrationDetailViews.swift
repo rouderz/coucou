@@ -64,9 +64,10 @@ struct VercelDeploymentListView: View {
                             .foregroundColor(Color(hex: "#9398A1"))
                             .lineLimit(1).truncationMode(.tail)
                             .layoutPriority(1)
-                        Text(dep.timeAgo)
+                        Text(dep.buildTime.map { "\($0) · \(dep.timeAgo)" } ?? dep.timeAgo)
                             .font(.system(size: 10))
                             .foregroundColor(Color(hex: "#6B7079"))
+                            .help(dep.buildTime.map { L("Build took \($0)") } ?? "")
                     }
                     .padding(.horizontal, 8).padding(.vertical, 3)
                     .frame(maxWidth: .infinity, alignment: .leading)
@@ -368,7 +369,18 @@ struct StripeCardView: View {
                     .font(.system(size: 9, weight: .semibold))
                     .foregroundColor(Color(hex: "#6B7079"))
                     .padding(.bottom, 1)
+                // Last 7 days (#25)
+                if appState.stripeDaily.contains(where: { $0 > 0 }) {
+                    Spacer(minLength: 8)
+                    Sparkline(values: appState.stripeDaily.map(Double.init), color: Color(hex: "#635BFF"))
+                        .frame(width: 54, height: 14)
+                    Text(String(format: "%.0f", Double(appState.stripeDaily.reduce(0, +)) / 100) + " · 7d")
+                        .font(.system(size: 9.5, design: .monospaced))
+                        .foregroundColor(Color(hex: "#6B7079"))
+                        .fixedSize()
+                }
             }
+            .padding(.trailing, 16)
             .padding(.leading, 108)
             .padding(.top, 4)
 
