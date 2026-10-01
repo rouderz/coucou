@@ -171,6 +171,14 @@ ES = {
 "Coucou needs access to your calendars to see when you're in a meeting":"Coucou necesita acceso a tus calendarios para saber cuándo estás en una reunión",
 "Allow calendar access…":"Permitir acceso al calendario…",
 "No sounds, and the island doesn't open by itself: finished, failed and approval events only badge the pill. Also in the 🌙 menu on the island.":"Sin sonidos y la isla no se abre sola: lo terminado, los fallos y las aprobaciones solo marcan la pastilla. También en el menú 🌙 de la isla.",
+# session timeline
+"Timeline":"Cronología","Everything Claude did in this session, with times":"Todo lo que hizo Claude en esta sesión, con horas",
+"Session started":"Sesión iniciada","You asked":"Preguntaste","Turn finished":"Turno terminado","Turn failed":"El turno falló",
+"You allowed":"Permitiste","You always allowed":"Permitiste siempre","You denied":"Denegaste","Not answered in time":"Sin respuesta a tiempo",
+"%lld files read":"%lld archivos leídos","%lld edits":"%lld cambios","%lld commands":"%lld comandos","%lld approvals":"%lld aprobaciones",
+"Read":"Leyó","Edited":"Editó","Wrote":"Escribió","Ran":"Ejecutó","Searched":"Buscó","Searched the web":"Buscó en la web",
+"Opened":"Abrió","Subagent":"Subagente","Nothing yet. Claude Code's steps for this session show up here.":"Nada todavía. Aquí aparecen los pasos de Claude Code en esta sesión.",
+"Copied":"Copiado","Copy as Markdown":"Copiar como Markdown","Back to the diff":"Volver al diff",
 }
 catalog = {"sourceLanguage": "en", "version": "1.0", "strings": {
     k: {"localizations": {"es": {"stringUnit": {"state": "translated", "value": v}}}} for k, v in sorted(ES.items())

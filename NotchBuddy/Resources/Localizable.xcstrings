@@ -22,6 +22,46 @@
         }
       }
     },
+    "%lld approvals": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%lld aprobaciones"
+          }
+        }
+      }
+    },
+    "%lld commands": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%lld comandos"
+          }
+        }
+      }
+    },
+    "%lld edits": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%lld cambios"
+          }
+        }
+      }
+    },
+    "%lld files read": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%lld archivos leídos"
+          }
+        }
+      }
+    },
     "%lld saved · last %lld kept": {
       "localizations": {
         "es": {
@@ -348,6 +388,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "Volver"
+          }
+        }
+      }
+    },
+    "Back to the diff": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Volver al diff"
           }
         }
       }
@@ -842,12 +892,32 @@
         }
       }
     },
+    "Copied": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Copiado"
+          }
+        }
+      }
+    },
     "Copy": {
       "localizations": {
         "es": {
           "stringUnit": {
             "state": "translated",
             "value": "Copiar"
+          }
+        }
+      }
+    },
+    "Copy as Markdown": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Copiar como Markdown"
           }
         }
       }
@@ -1002,6 +1072,16 @@
         }
       }
     },
+    "Edited": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Editó"
+          }
+        }
+      }
+    },
     "Edits on": {
       "localizations": {
         "es": {
@@ -1048,6 +1128,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "Motor"
+          }
+        }
+      }
+    },
+    "Everything Claude did in this session, with times": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Todo lo que hizo Claude en esta sesión, con horas"
           }
         }
       }
@@ -1632,6 +1722,16 @@
         }
       }
     },
+    "Not answered in time": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sin respuesta a tiempo"
+          }
+        }
+      }
+    },
     "Not configured · add it in Settings": {
       "localizations": {
         "es": {
@@ -1648,6 +1748,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "No hay nada en marcha ahora mismo."
+          }
+        }
+      }
+    },
+    "Nothing yet. Claude Code's steps for this session show up here.": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nada todavía. Aquí aparecen los pasos de Claude Code en esta sesión."
           }
         }
       }
@@ -1772,6 +1882,16 @@
         }
       }
     },
+    "Opened": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Abrió"
+          }
+        }
+      }
+    },
     "Overview": {
       "localizations": {
         "es": {
@@ -1828,6 +1948,26 @@
           "stringUnit": {
             "state": "translated",
             "value": "Pulsar para hablar: mantén pulsado para hablar con Mochi"
+          }
+        }
+      }
+    },
+    "Ran": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ejecutó"
+          }
+        }
+      }
+    },
+    "Read": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Leyó"
           }
         }
       }
@@ -1992,6 +2132,26 @@
         }
       }
     },
+    "Searched": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Buscó"
+          }
+        }
+      }
+    },
+    "Searched the web": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Buscó en la web"
+          }
+        }
+      }
+    },
     "Secret key  (sk_live_… or sk_test_…)": {
       "localizations": {
         "es": {
@@ -2018,6 +2178,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "Sesión terminada"
+          }
+        }
+      }
+    },
+    "Session started": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sesión iniciada"
           }
         }
       }
@@ -2142,6 +2312,16 @@
         }
       }
     },
+    "Subagent": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Subagente"
+          }
+        }
+      }
+    },
     "Talk to Mochi (or hold the push-to-talk shortcut)": {
       "localizations": {
         "es": {
@@ -2182,6 +2362,16 @@
         }
       }
     },
+    "Timeline": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Cronología"
+          }
+        }
+      }
+    },
     "Token": {
       "localizations": {
         "es": {
@@ -2218,6 +2408,26 @@
           "stringUnit": {
             "state": "translated",
             "value": "Transcribiendo…"
+          }
+        }
+      }
+    },
+    "Turn failed": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "El turno falló"
+          }
+        }
+      }
+    },
+    "Turn finished": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Turno terminado"
           }
         }
       }
@@ -2428,6 +2638,56 @@
           "stringUnit": {
             "state": "translated",
             "value": "Trabajando…"
+          }
+        }
+      }
+    },
+    "Wrote": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Escribió"
+          }
+        }
+      }
+    },
+    "You allowed": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Permitiste"
+          }
+        }
+      }
+    },
+    "You always allowed": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Permitiste siempre"
+          }
+        }
+      }
+    },
+    "You asked": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Preguntaste"
+          }
+        }
+      }
+    },
+    "You denied": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Denegaste"
           }
         }
       }
