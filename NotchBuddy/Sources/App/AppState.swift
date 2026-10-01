@@ -6,7 +6,7 @@ import Combine
 extension AgentTask {
     /// All available integration pills. Claude is always active; others are opt-in (max 4).
     static let integrationAgents: [AgentTask] = [
-        AgentTask(id: "integration_claude",  name: "VS Code",   color: "#F5F6F8", state: .idle, steps: [], source: .claudeCode, isIntegration: true),
+        AgentTask(id: "integration_claude",  name: "Claude Code",   color: "#F5F6F8", state: .idle, steps: [], source: .claudeCode, isIntegration: true),
         AgentTask(id: "integration_resend",  name: "Resend",    color: "#22C55E", state: .idle, steps: [], source: .n8n, isIntegration: true),
         AgentTask(id: "integration_n8n",     name: "n8n",       color: "#F29B38", state: .idle, steps: [], source: .n8n, isIntegration: true),
         AgentTask(id: "integration_vercel",  name: "Vercel",    color: "#7C5CFF", state: .idle, steps: [], source: .n8n, isIntegration: true),
@@ -51,6 +51,11 @@ final class AppState: ObservableObject {
 
     // Mouse tracking
     var mousePosition: CGPoint = .zero
+    // Editor used to open Claude Code projects (Editor.id); nil = first installed
+    @Published var preferredEditor: String? = nil {
+        didSet { UserDefaults.standard.set(preferredEditor, forKey: "preferredEditor") }
+    }
+
     // How the GitHub integration is connected (set by GithubPoller)
     @Published var githubConnection: GitHubConnection = .checking
     var githubCLILogin: String? {
@@ -158,7 +163,7 @@ final class AppState: ObservableObject {
         }
     }
 
-    // Active integration pills (VS Code excluded — always on). Max 4.
+    // Active integration pills (Claude Code excluded — always on). Max 4.
     @Published var activeIntegrations: Set<String> = ["integration_resend", "integration_n8n", "integration_vercel", "integration_github"] {
         didSet {
             if let data = try? JSONEncoder().encode(Array(activeIntegrations)) {
@@ -195,6 +200,8 @@ final class AppState: ObservableObject {
 
     // Notion (populated by NotionPoller)
     @Published var notionPages: [NotionPage] = []
+    // Last poll result for integrations without their own error state (Vercel, Resend, n8n)
+    @Published var integrationHealth: [String: IntegrationHealth] = [:]
     @Published var notionLoaded: Bool = false
     @Published var notionError: String? = nil
 
@@ -214,6 +221,7 @@ final class AppState: ObservableObject {
         #if !APPSTORE
         if let v = ud.string(forKey: "chatEngine"), let e = ChatEngine(rawValue: v) { chatEngine = e }
         #endif
+        preferredEditor = ud.string(forKey: "preferredEditor")
         if let v = ud.string(forKey: "claudeModel"),
            !v.trimmingCharacters(in: .whitespaces).isEmpty { claudeModel = v }
         // Migrate old 60s default → 15s
@@ -292,7 +300,7 @@ final class AppState: ObservableObject {
         else if view == .overview && tasks.isEmpty { view = .empty }
     }
 
-    /// Load integration pills respecting activeIntegrations. VS Code always loads. Safe to call multiple times.
+    /// Load integration pills respecting activeIntegrations. Claude Code always loads. Safe to call multiple times.
     func loadIntegrationTasks() {
         for task in AgentTask.integrationAgents {
             let shouldLoad = task.id == "integration_claude" || activeIntegrations.contains(task.id)
@@ -304,7 +312,7 @@ final class AppState: ObservableObject {
         syncMode()
     }
 
-    /// Toggle an integration pill on/off. VS Code cannot be toggled. Max 4 active at once.
+    /// Toggle an integration pill on/off. Claude Code cannot be toggled. Max 4 active at once.
     func toggleIntegration(_ id: String) {
         guard id != "integration_claude" else { return }
         if activeIntegrations.contains(id) {
@@ -487,4 +495,117 @@ enum GitHubConnection: Equatable {
 enum ChatEngine: String {
     case claudeCode  // the user's own Claude Code CLI, signed in with their subscription
     case apiKey      // Anthropic API with the key saved in the Keychain
+}
+
+// MARK: - Integration refresh
+
+/// Re-polls integrations on demand (card refresh button, keys saved in Settings).
+enum IntegrationRefresher {
+    @MainActor
+    static func refresh(_ id: String) {
+        switch id {
+        case "integration_github":
+            AppState.shared.githubConnection = .checking
+            GithubPoller.shared.pollNow()
+        case "integration_notion":
+            AppState.shared.notionError = nil
+            NotionPoller.shared.pollNow()
+        case "integration_vercel":  VercelPoller.shared.pollNow()
+        case "integration_resend":  ResendPoller.shared.pollNow()
+        case "integration_n8n":     N8nPoller.shared.pollNow()
+        case "integration_stripe":  StripePoller.shared.pollNow()
+        case "integration_calcom":  CalcomPoller.shared.pollNow()
+        default: break
+        }
+    }
+
+    @MainActor
+    static func refreshAll() {
+        for id in ["integration_github", "integration_notion", "integration_vercel", "integration_resend",
+                   "integration_n8n", "integration_stripe", "integration_calcom"] {
+            refresh(id)
+        }
+    }
+}
+
+// MARK: - Integration status light
+
+enum IntegrationHealth: Equatable, Sendable {
+    case ok
+    case empty(String)   // connected, but nothing to show yet
+    case error(String)
+}
+
+/// The same green / amber / red / grey light on every integration card.
+struct IntegrationStatus {
+    let colorHex: String
+    let help: String
+
+    static let green = "#22C55E", amber = "#F5A524", red = "#F4505E", grey = "#6B7079"
+
+    /// Reports a poll result from any thread.
+    static func report(_ id: String, _ health: IntegrationHealth) {
+        DispatchQueue.main.async { AppState.shared.integrationHealth[id] = health }
+    }
+
+    @MainActor
+    static func of(_ id: String, _ s: AppState = .shared) -> IntegrationStatus {
+        func key(_ k: String) -> Bool { KeychainStore.shared.get(k).map { !$0.isEmpty } ?? false }
+        let notSet = IntegrationStatus(colorHex: red, help: "Not configured · add it in Settings")
+        let checking = IntegrationStatus(colorHex: grey, help: "Checking connection…")
+
+        switch id {
+        case "integration_github":
+            switch s.githubConnection {
+            case .cli(let login): return .init(colorHex: green, help: login.map { "Connected via GitHub CLI · @\($0)" } ?? "Connected via GitHub CLI")
+            case .token:          return .init(colorHex: green, help: "Connected with token")
+            case .checking:       return checking
+            case .ghSignedOut:    return .init(colorHex: red, help: "GitHub CLI signed out · run gh auth login")
+            case .notConfigured:  return notSet
+            case .failed(let w):  return .init(colorHex: red, help: w)
+            }
+        case "integration_notion":
+            guard key("notion-api-key") else { return notSet }
+            if let e = s.notionError { return .init(colorHex: red, help: e) }
+            guard s.notionLoaded else { return checking }
+            return s.notionPages.isEmpty
+                ? .init(colorHex: amber, help: "Connected, but no pages are shared with the integration")
+                : .init(colorHex: green, help: "Connected · \(s.notionPages.count) recent pages")
+        case "integration_stripe":
+            guard key("stripe-api-key") else { return notSet }
+            if let e = s.stripeError { return .init(colorHex: red, help: e) }
+            guard s.stripeLoaded else { return checking }
+            return s.stripePayments.isEmpty
+                ? .init(colorHex: amber, help: "Connected · no payments yet")
+                : .init(colorHex: green, help: "Connected")
+        case "integration_calcom":
+            guard key("calcom-api-key") else { return notSet }
+            if let e = s.calcomError { return .init(colorHex: red, help: e) }
+            guard s.calcomLoaded else { return checking }
+            return s.calcomBookings.isEmpty
+                ? .init(colorHex: amber, help: "Connected · no upcoming bookings")
+                : .init(colorHex: green, help: "Connected")
+        case "integration_vercel", "integration_resend", "integration_n8n":
+            let k = ["integration_vercel": "vercel-token", "integration_resend": "resend-api-key",
+                     "integration_n8n": "n8n-api-key"][id]!
+            guard key(k) else { return notSet }
+            switch s.integrationHealth[id] {
+            case .ok:             return .init(colorHex: green, help: "Connected")
+            case .empty(let w):   return .init(colorHex: amber, help: w)
+            case .error(let w):   return .init(colorHex: red, help: w)
+            case nil:             return checking
+            }
+        default:
+            return .init(colorHex: grey, help: "")
+        }
+    }
+
+    /// Error text for an HTTP failure, shared by the pollers.
+    static func httpError(_ service: String, code: Int, error: Error? = nil) -> String {
+        switch code {
+        case 401, 403: return "Invalid key or no access (\(code))"
+        case 0:        return error.map { "Can't reach \(service) · \($0.localizedDescription)" } ?? "Can't reach \(service)"
+        default:       return "\(service) error \(code)"
+        }
+    }
 }

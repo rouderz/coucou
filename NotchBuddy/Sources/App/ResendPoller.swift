@@ -14,6 +14,9 @@ final class ResendPoller: @unchecked Sendable {
         timer = t
     }
 
+    /// Polls right away (refresh button, keys just saved).
+    func pollNow() { DispatchQueue.global(qos: .utility).async { [weak self] in self?.poll() } }
+
     private func poll() {
         guard let apiKey = KeychainStore.shared.get("resend-api-key") else { return }
         guard let url = URL(string: "https://api.resend.com/emails?limit=100") else { return }
@@ -21,12 +24,20 @@ final class ResendPoller: @unchecked Sendable {
         req.setValue("Bearer \(apiKey)", forHTTPHeaderField: "Authorization")
         req.setValue("application/json", forHTTPHeaderField: "Accept")
 
-        URLSession.shared.dataTask(with: req) { [weak self] data, response, _ in
+        URLSession.shared.dataTask(with: req) { [weak self] data, response, error in
             guard let self else { return }
             let code = (response as? HTTPURLResponse)?.statusCode ?? 0
-            guard let data, code == 200 else { return }
+            guard let data, code == 200 else {
+                IntegrationStatus.report("integration_resend",
+                                         .error(IntegrationStatus.httpError("Resend", code: code, error: error)))
+                return
+            }
             guard let json = try? JSONSerialization.jsonObject(with: data) as? [String: Any],
-                  let rawList = json["data"] as? [[String: Any]] else { return }
+                  let rawList = json["data"] as? [[String: Any]] else {
+                IntegrationStatus.report("integration_resend", .error("Unexpected response from Resend"))
+                return
+            }
+            IntegrationStatus.report("integration_resend", rawList.isEmpty ? .empty("Connected · no emails sent yet") : .ok)
 
             let total = (json["total"] as? Int) ?? (json["count"] as? Int)
             let emails = rawList.compactMap { self.parseEmail($0) }

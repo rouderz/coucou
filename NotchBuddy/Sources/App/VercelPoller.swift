@@ -22,6 +22,9 @@ final class VercelPoller: @unchecked Sendable {
 
     // MARK: - Poll
 
+    /// Polls right away (refresh button, keys just saved).
+    func pollNow() { DispatchQueue.global(qos: .utility).async { [weak self] in self?.poll() } }
+
     private func poll() {
         guard let token = KeychainStore.shared.get("vercel-token") else { return }
 
@@ -34,9 +37,17 @@ final class VercelPoller: @unchecked Sendable {
         URLSession.shared.dataTask(with: req) { [weak self] data, response, error in
             guard let self else { return }
             let code = (response as? HTTPURLResponse)?.statusCode ?? 0
-            guard let data, code == 200 else { return }
+            guard let data, code == 200 else {
+                IntegrationStatus.report("integration_vercel",
+                                         .error(IntegrationStatus.httpError("Vercel", code: code, error: error)))
+                return
+            }
             guard let json = try? JSONSerialization.jsonObject(with: data) as? [String: Any],
-                  let rawList = json["deployments"] as? [[String: Any]] else { return }
+                  let rawList = json["deployments"] as? [[String: Any]] else {
+                IntegrationStatus.report("integration_vercel", .error("Unexpected response from Vercel"))
+                return
+            }
+            IntegrationStatus.report("integration_vercel", rawList.isEmpty ? .empty("Connected · no deployments yet") : .ok)
 
             // Only terminal deployments (READY, ERROR, CANCELED)
             let terminal = ["READY", "ERROR", "CANCELED"]
