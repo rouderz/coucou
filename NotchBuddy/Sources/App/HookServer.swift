@@ -315,7 +315,13 @@ final class HookServer: @unchecked Sendable {
             upsertTask(projectName: projectName, cwd: cwd)
             state.updateTask(id: "integration_claude", state: .approval)
         }
-        state.pendingApproval = ApprovalInfo(sessionId: sessionId, tool: tool, command: command)
+        let toolInput = payload["tool_input"] as? [String: Any] ?? [:]
+        let (risk, reason) = ApprovalRiskClassifier.classify(tool: tool, input: toolInput, cwd: cwd)
+        let rules = ApprovalRules.describe(payload["permission_suggestions"] as? [[String: Any]] ?? [])
+        let approval = ApprovalInfo(sessionId: sessionId, tool: tool, command: command,
+                                    risk: risk, riskReason: reason, rules: rules)
+        state.pendingApproval = approval
+        ApprovalShortcuts.shared.arm(for: approval)
         // File edits get the live view: the diff with Allow / Deny under it.
         let editPreview = EditPreviewBuilder.build(tool: tool, input: payload["tool_input"] as? [String: Any] ?? [:],
                                                    cwd: cwd)
@@ -366,6 +372,7 @@ final class HookServer: @unchecked Sendable {
 
         let state = AppState.shared
         state.pendingApproval = nil
+        ApprovalShortcuts.shared.disarm()
         state.isPinned = false
         if approvalFromChat {
             approvalFromChat = false
