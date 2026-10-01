@@ -11,6 +11,20 @@ struct CodeContext: Equatable, Sendable, Codable {
     let project: String
     /// Selected text, when the editor exposes it (trimmed to a sane size).
     let selection: String?
+    /// From the Coucou editor extension (#58): the cursor line and the file's problems.
+    var cursorLine: Int? = nil
+    var problems: [String]? = nil
+
+    /// Cursor line and the editor's errors/warnings, for both preambles.
+    private var editorDetails: String {
+        var text = ""
+        if let cursorLine { text += "\n\nThe cursor is on line \(cursorLine)." }
+        if let problems, !problems.isEmpty {
+            text += "\n\nThe editor reports these problems in the file:\n" +
+                    problems.map { "- \($0)" }.joined(separator: "\n")
+        }
+        return text
+    }
 
     var fileName: String { (file as NSString).lastPathComponent }
     var projectName: String { (project as NSString).lastPathComponent }
@@ -26,7 +40,7 @@ struct CodeContext: Equatable, Sendable, Codable {
         if let selection {
             text += "\n\nThe user selected this text in the file:\n```\n\(selection)\n```"
         }
-        return text + "\n\n"
+        return text + editorDetails + "\n\n"
     }
 
     /// Same, for the API-key engine, where the file is attached inline instead.
@@ -36,7 +50,7 @@ struct CodeContext: Equatable, Sendable, Codable {
         if let selection {
             text += "\n\nThe user selected this text in the file:\n```\n\(selection)\n```"
         }
-        return text + "\n\n"
+        return text + editorDetails + "\n\n"
     }
 
     /// File path relative to the project, for prompts and the context chip.
@@ -56,6 +70,10 @@ enum CodeContextCapture {
         return nil
         #else
         guard let app, let appName = app.localizedName else { return nil }
+
+        // The editor extension knows exactly: prefer it when it spoke recently for this app.
+        if let fromExtension = EditorBridge.shared.context(for: app) { return fromExtension }
+
         let axApp = AXUIElementCreateApplication(app.processIdentifier)
 
         var windowRef: CFTypeRef?

@@ -186,3 +186,21 @@ final class TimelineTests: XCTestCase {
         XCTAssertTrue(store.markdown(s, project: "p").contains("npm test"))
     }
 }
+
+final class EditorContextPreambleTests: XCTestCase {
+    func testExtensionDetailsReachThePrompt() {
+        let context = CodeContext(appName: "Cursor", file: "/p/src/cart.ts", project: "/p", selection: nil,
+                                  cursorLine: 42, problems: ["line 42 · error (ts): Cannot find name 'totl'"])
+        XCTAssertTrue(context.promptPreamble.contains("line 42"))
+        XCTAssertTrue(context.promptPreamble.contains("Cannot find name"))
+        XCTAssertTrue(context.inlinePreamble.contains("Cannot find name"))
+        XCTAssertEqual(context.relativePath, "src/cart.ts")
+    }
+
+    func testOldSavedChatsWithoutTheNewFieldsStillLoad() throws {
+        let json = #"{"appName":"VS Code","file":"/p/a.ts","project":"/p"}"#
+        let context = try JSONDecoder().decode(CodeContext.self, from: Data(json.utf8))
+        XCTAssertNil(context.cursorLine)
+        XCTAssertNil(context.problems)
+    }
+}
