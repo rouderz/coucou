@@ -161,3 +161,28 @@ final class EditorContextTests: XCTestCase {
         XCTAssertTrue(lines.contains { $0.kind == .added && $0.text.contains("0.20") })
     }
 }
+
+@MainActor
+final class TimelineTests: XCTestCase {
+    func testRecordsStepsWithDurationsAndApprovals() {
+        let s = "test-\(UUID().uuidString)"
+        let store = TimelineStore.shared
+        store.record(event: "UserPromptSubmit", sessionId: s, payload: ["prompt": "fix the tests"])
+        store.record(event: "PreToolUse", sessionId: s, payload: ["tool_name": "Read", "tool_use_id": "1",
+                                                                   "tool_input": ["file_path": "/p/a.ts"]])
+        store.record(event: "PostToolUse", sessionId: s, payload: ["tool_name": "Read", "tool_use_id": "1"])
+        store.record(event: "PreToolUse", sessionId: s, payload: ["tool_name": "Bash", "tool_use_id": "2",
+                                                                   "tool_input": ["command": "npm test"]])
+        store.record(event: "PostToolUseFailure", sessionId: s, payload: ["tool_name": "Bash", "tool_use_id": "2"])
+        store.recordApproval(ApprovalInfo(sessionId: s, tool: "Bash", command: "rm -rf build"), decision: "deny")
+        store.record(event: "Stop", sessionId: s, payload: [:])
+
+        let list = store.entries[s] ?? []
+        XCTAssertEqual(list.map(\.kind), [.prompt, .read, .command, .approval, .done])
+        XCTAssertNotNil(list[1].duration)
+        XCTAssertEqual(list[1].detail, "a.ts")
+        XCTAssertTrue(list[2].failed)
+        XCTAssertTrue(list[3].failed, "a denial is marked")
+        XCTAssertTrue(store.markdown(s, project: "p").contains("npm test"))
+    }
+}
