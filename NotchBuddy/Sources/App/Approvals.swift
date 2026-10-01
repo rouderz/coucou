@@ -20,9 +20,9 @@ enum ApprovalRisk: Int, Sendable, Comparable {
 
     var title: String {
         switch self {
-        case .low: return "Low risk"
-        case .medium: return "Medium risk"
-        case .high: return "High risk"
+        case .low: return L("Low risk")
+        case .medium: return L("Medium risk")
+        case .high: return L("High risk")
         }
     }
 }
@@ -32,15 +32,15 @@ enum ApprovalRiskClassifier {
     static func classify(tool: String, input: [String: Any], cwd: String) -> (ApprovalRisk, String) {
         switch tool {
         case "Read", "Grep", "Glob", "LS", "WebSearch", "WebFetch", "TodoWrite":
-            return (.low, "read only")
+            return (.low, L("read only"))
         case "Edit", "MultiEdit", "Write", "NotebookEdit":
             let path = (input["file_path"] ?? input["notebook_path"]) as? String ?? ""
             return classifyWrite(path: path, cwd: cwd)
         case "Bash":
             return classifyCommand(input["command"] as? String ?? "")
         default:
-            if tool.hasPrefix("mcp__") { return (.medium, "external tool") }
-            return (.medium, "unknown tool")
+            if tool.hasPrefix("mcp__") { return (.medium, L("external tool")) }
+            return (.medium, L("unknown tool"))
         }
     }
 
@@ -48,37 +48,37 @@ enum ApprovalRiskClassifier {
         let home = FileManager.default.homeDirectoryForCurrentUser.path
         let sensitive = [".env", ".ssh/", ".aws/", ".gnupg/", "id_rsa", ".netrc", ".npmrc", ".zshrc", ".bashrc",
                          "/etc/", "/usr/", "/System/", "/Library/", "Keychains"]
-        if sensitive.contains(where: { path.contains($0) }) { return (.high, "sensitive file") }
+        if sensitive.contains(where: { path.contains($0) }) { return (.high, L("sensitive file")) }
         if !cwd.isEmpty, !path.isEmpty, !path.hasPrefix(cwd + "/"), path.hasPrefix("/") {
-            return (.high, path.hasPrefix(home) ? "outside the project" : "outside your home folder")
+            return (.high, path.hasPrefix(home) ? L("outside the project") : L("outside your home folder"))
         }
-        return (.medium, "changes a file")
+        return (.medium, L("changes a file"))
     }
 
     private static let high: [(String, String)] = [
-        (#"\brm\s+(-[a-z]*[rf][a-z]*\s+)+"#, "deletes files recursively"),
-        (#"\bsudo\b"#, "runs as administrator"),
-        (#"\bgit\s+push\b.*(--force\b|-f\b|--force-with-lease)"#, "force-pushes"),
-        (#"\bgit\s+reset\s+--hard\b"#, "discards changes"),
-        (#"\bgit\s+clean\s+-[a-z]*f"#, "deletes untracked files"),
-        (#"\bgit\s+(branch\s+-D|checkout\s+--\s|restore\s)"#, "discards work"),
-        (#"(curl|wget)\b[^|]*\|\s*(sudo\s+)?(sh|bash|zsh|python3?)\b"#, "runs a downloaded script"),
-        (#"\bchmod\s+(-R\s+)?777\b"#, "opens permissions to everyone"),
-        (#"\b(mkfs|diskutil\s+erase|dd\s+if=)"#, "writes a disk"),
-        (#">\s*/dev/(disk|sd)"#, "writes a disk"),
-        (#"\b(drop\s+(table|database)|truncate\s+table)\b"#, "deletes data"),
-        (#"\b(kubectl\s+delete|terraform\s+(destroy|apply)|docker\s+system\s+prune)\b"#, "changes infrastructure"),
-        (#"\b(npm|yarn|pnpm)\s+publish\b|\bgh\s+release\s+create\b"#, "publishes"),
-        (#"\b(killall|pkill|kill\s+-9)\b"#, "kills processes"),
-        (#"\bfind\b.*\s-(delete|exec\s+rm)\b"#, "deletes files"),
+        (#"\brm\s+(-[a-z]*[rf][a-z]*\s+)+"#, L("deletes files recursively")),
+        (#"\bsudo\b"#, L("runs as administrator")),
+        (#"\bgit\s+push\b.*(--force\b|-f\b|--force-with-lease)"#, L("force-pushes")),
+        (#"\bgit\s+reset\s+--hard\b"#, L("discards changes")),
+        (#"\bgit\s+clean\s+-[a-z]*f"#, L("deletes untracked files")),
+        (#"\bgit\s+(branch\s+-D|checkout\s+--\s|restore\s)"#, L("discards work")),
+        (#"(curl|wget)\b[^|]*\|\s*(sudo\s+)?(sh|bash|zsh|python3?)\b"#, L("runs a downloaded script")),
+        (#"\bchmod\s+(-R\s+)?777\b"#, L("opens permissions to everyone")),
+        (#"\b(mkfs|diskutil\s+erase|dd\s+if=)"#, L("writes a disk")),
+        (#">\s*/dev/(disk|sd)"#, L("writes a disk")),
+        (#"\b(drop\s+(table|database)|truncate\s+table)\b"#, L("deletes data")),
+        (#"\b(kubectl\s+delete|terraform\s+(destroy|apply)|docker\s+system\s+prune)\b"#, L("changes infrastructure")),
+        (#"\b(npm|yarn|pnpm)\s+publish\b|\bgh\s+release\s+create\b"#, L("publishes")),
+        (#"\b(killall|pkill|kill\s+-9)\b"#, L("kills processes")),
+        (#"\bfind\b.*\s-(delete|exec\s+rm)\b"#, L("deletes files")),
     ]
     private static let medium: [(String, String)] = [
-        (#"\b(npm|yarn|pnpm|bun)\s+(i|install|add|remove|uninstall)\b|\b(pip3?|brew|gem|cargo)\s+(install|uninstall)\b"#, "installs packages"),
-        (#"\bgit\s+(push|commit|merge|rebase|checkout|switch|tag|stash)\b"#, "changes the repository"),
-        (#"\b(rm|mv|cp|mkdir|touch|ln|chmod|chown)\b"#, "changes files"),
-        (#"(^|[^>2&])>{1,2}\s*[^&\s]"#, "writes a file"),
-        (#"\b(curl|wget|ssh|scp|rsync|nc)\b"#, "uses the network"),
-        (#"\b(docker|kubectl|terraform|gh|aws|gcloud|vercel)\b"#, "talks to a service"),
+        (#"\b(npm|yarn|pnpm|bun)\s+(i|install|add|remove|uninstall)\b|\b(pip3?|brew|gem|cargo)\s+(install|uninstall)\b"#, L("installs packages")),
+        (#"\bgit\s+(push|commit|merge|rebase|checkout|switch|tag|stash)\b"#, L("changes the repository")),
+        (#"\b(rm|mv|cp|mkdir|touch|ln|chmod|chown)\b"#, L("changes files")),
+        (#"(^|[^>2&])>{1,2}\s*[^&\s]"#, L("writes a file")),
+        (#"\b(curl|wget|ssh|scp|rsync|nc)\b"#, L("uses the network")),
+        (#"\b(docker|kubectl|terraform|gh|aws|gcloud|vercel)\b"#, L("talks to a service")),
     ]
     private static let readOnly = ["ls", "cat", "head", "tail", "wc", "grep", "rg", "find", "pwd", "echo", "which",
                                    "file", "stat", "du", "df", "tree", "diff", "sort", "uniq", "jq", "env", "date",
@@ -89,20 +89,20 @@ enum ApprovalRiskClassifier {
         for (pattern, why) in high where cmd.range(of: pattern, options: .regularExpression) != nil {
             return (.high, why)
         }
-        if cmd.range(of: #"\bsed\s+-i"#, options: .regularExpression) != nil { return (.medium, "edits files") }
+        if cmd.range(of: #"\bsed\s+-i"#, options: .regularExpression) != nil { return (.medium, L("edits files")) }
         for (pattern, why) in medium where cmd.range(of: pattern, options: .regularExpression) != nil {
             return (.medium, why)
         }
         if cmd.range(of: #"^\s*git\s+(status|diff|log|show|branch|remote|blame)\b"#, options: .regularExpression) != nil {
-            return (.low, "reads the repository")
+            return (.low, L("reads the repository"))
         }
         let first = cmd.split(whereSeparator: { " ;|&\n".contains($0) }).first.map(String.init) ?? ""
-        if readOnly.contains(first) { return (.low, "read only") }
+        if readOnly.contains(first) { return (.low, L("read only")) }
         if cmd.range(of: #"\b(npm|yarn|pnpm|bun)\s+(run\s+)?(test|lint|build|typecheck|check)\b|\b(swift|cargo|go)\s+(build|test)\b|\bxcodebuild\b"#,
                      options: .regularExpression) != nil {
-            return (.low, "builds or tests")
+            return (.low, L("builds or tests"))
         }
-        return (.medium, "runs a command")
+        return (.medium, L("runs a command"))
     }
 }
 
@@ -136,11 +136,11 @@ enum ApprovalRules {
 
     private static func destination(_ d: String?) -> String {
         switch d {
-        case "localSettings":   return "this project, only you"
-        case "projectSettings": return "this project, shared with the repo"
-        case "userSettings":    return "all your projects"
-        case "session":         return "this session"
-        default:                return d ?? "Claude Code settings"
+        case "localSettings":   return L("this project, only you")
+        case "projectSettings": return L("this project, shared with the repo")
+        case "userSettings":    return L("all your projects")
+        case "session":         return L("this session")
+        default:                return d ?? L("Claude Code settings")
         }
     }
 }

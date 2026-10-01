@@ -60,7 +60,7 @@ struct EditPreview: Identifiable, Equatable, Sendable {
     let relativePath: String
     let language: CodeLanguage
     let lines: [Line]
-    let note: String?        // "new file", "+2 more edits"…
+    let note: String?        // L("new file"), "+2 more edits"…
 
     var fileName: String { (file as NSString).lastPathComponent }
 }
@@ -88,7 +88,8 @@ enum EditPreviewBuilder {
             guard let edits = input["edits"] as? [[String: Any]], let first = edits.first,
                   let old = first["old_string"] as? String,
                   let new = first["new_string"] as? String else { return nil }
-            let more = edits.count > 1 ? "+\(edits.count - 1) more edit\(edits.count > 2 ? "s" : "")" : nil
+            let more = edits.count > 2 ? L("+\(edits.count - 1) more edits")
+                     : edits.count == 2 ? L("+1 more edit") : nil
             return edit(file: file, rel: rel, lang: lang, old: old, new: new, note: more)
 
         case "Write":
@@ -100,7 +101,7 @@ enum EditPreviewBuilder {
             }
             let extra = " · \(all.count) line\(all.count == 1 ? "" : "s")"
             return EditPreview(file: file, relativePath: rel, language: lang, lines: Array(lines),
-                               note: (exists ? "rewrite" : "new file") + extra)
+                               note: (exists ? "rewrite" : L("new file")) + extra)
 
         default:
             return nil
@@ -176,7 +177,7 @@ enum EditPreviewBuilder {
         }
 
         let truncated = oldLines.count > maxChanged || newLines.count > maxChanged
-        let notes = [note, truncated ? "diff truncated" : nil].compactMap { $0 }
+        let notes = [note, truncated ? L("diff truncated") : nil].compactMap { $0 }
         return EditPreview(file: file, relativePath: rel, language: lang, lines: lines,
                            note: notes.isEmpty ? nil : notes.joined(separator: " · "))
     }
@@ -525,7 +526,7 @@ private struct CodePanel: View {
             if finished {
                 Image(systemName: "checkmark.circle.fill")
                     .font(.system(size: 11)).foregroundColor(Color(hex: "#22C55E"))
-                Text("Done · \(state.liveActivities.count - 1) step\(state.liveActivities.count == 2 ? "" : "s")")
+                Text(state.liveActivities.count == 2 ? L("Done · 1 step") : L("Done · \(state.liveActivities.count - 1) steps"))
                     .font(.system(size: 11)).foregroundColor(Color(hex: "#8E939C"))
             } else {
                 ProgressView().controlSize(.mini)
@@ -597,7 +598,7 @@ private struct ChipButton: View {
         Button(action: action) {
             HStack(spacing: 4) {
                 Image(systemName: icon).font(.system(size: 9, weight: .semibold))
-                Text(title).font(.system(size: 11, weight: .medium))
+                Text(LocalizedStringKey(title)).font(.system(size: 11, weight: .medium))
             }
             .foregroundColor(Color(hex: "#C5C8CD"))
             .padding(.horizontal, 8).padding(.vertical, 4)

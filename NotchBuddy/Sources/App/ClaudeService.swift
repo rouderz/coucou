@@ -157,7 +157,7 @@ final class ClaudeService {
             return
         }
         guard let key = apiKey, !key.isEmpty else {
-            await showError("API key missing. Open settings.", state: state)
+            await showError(L("API key missing. Open settings."), state: state)
             return
         }
 
@@ -245,7 +245,7 @@ final class ClaudeService {
         let answer = Self.text(of: content).trimmingCharacters(in: .whitespacesAndNewlines)
         guard !answer.isEmpty else {
             if let id = replyID { state.chatHistory.removeAll { $0.id == id } }
-            throw APIError(message: "Claude didn't write an answer. Try asking again.")
+            throw APIError(message: L("Claude didn't write an answer. Try asking again."))
         }
         // Full content (tool use + search results) keeps the next turns grounded.
         conversationMessages.append(["role": "assistant", "content": content])
@@ -299,7 +299,7 @@ final class ClaudeService {
 
     func search(query: String, context: PromptContext?, state: AppState) async {
         guard let key = apiKey, !key.isEmpty else {
-            await showError("Anthropic API key missing. Open settings to configure it.", state: state)
+            await showError(L("Anthropic API key missing. Open settings to configure it."), state: state)
             return
         }
 
@@ -507,7 +507,7 @@ final class ClaudeService {
         guard let json = try? JSONSerialization.jsonObject(with: data) as? [String: Any],
               let content = json["content"] as? [[String: Any]],
               case let text = Self.text(of: content), !text.isEmpty else {
-            await showError("Unexpected API response.", state: state)
+            await showError(L("Unexpected API response."), state: state)
             return
         }
         logUsage(json, kind: "search")
@@ -616,21 +616,21 @@ struct APIError: LocalizedError {
         let lower = raw.lowercased()
         switch (type, status) {
         case ("authentication_error", _), (_, 401):
-            return "Your Anthropic API key was rejected. Check it in Settings → Claude, or switch the chat to your Claude Code subscription."
+            return L("Your Anthropic API key was rejected. Check it in Settings → Claude, or switch the chat to your Claude Code subscription.")
         case ("not_found_error", _) where lower.contains("model"), (_, 404):
-            return "Your API key can't use the model \u{201C}\(model)\u{201D}. Pick another one in Settings → Model, or switch the chat to your Claude Code subscription."
+            return L("Your API key can't use the model \u{201C}\(model)\u{201D}. Pick another one in Settings → Model, or switch the chat to your Claude Code subscription.")
         case ("permission_error", _), (_, 403):
             return "Your API key doesn't have permission for this (\(raw.isEmpty ? "forbidden" : raw)). Check the key's workspace in the Anthropic Console."
         case (_, 400) where lower.contains("credit balance"):
-            return "Your Anthropic API credit balance is too low. Add credits in the Anthropic Console, or switch the chat to your Claude Code subscription."
+            return L("Your Anthropic API credit balance is too low. Add credits in the Anthropic Console, or switch the chat to your Claude Code subscription.")
         case ("rate_limit_error", _), (_, 429):
-            return "The API is rate limiting this key. Wait a moment and try again."
+            return L("The API is rate limiting this key. Wait a moment and try again.")
         case ("overloaded_error", _), (_, 529):
-            return "Claude is overloaded right now. Try again in a minute."
+            return L("Claude is overloaded right now. Try again in a minute.")
         case (_, 500...599), ("api_error", _):
-            return "Anthropic's API had a problem (\(status)). Try again in a minute."
+            return L("Anthropic's API had a problem (\(status)). Try again in a minute.")
         default:
-            return raw.isEmpty ? "The API answered with an error (\(status))." : raw
+            return raw.isEmpty ? L("The API answered with an error (\(status)).") : raw
         }
     }
 
@@ -640,12 +640,12 @@ struct APIError: LocalizedError {
         if let url = error as? URLError {
             switch url.code {
             case .notConnectedToInternet, .networkConnectionLost:
-                return "No internet connection. Check your network and try again."
+                return L("No internet connection. Check your network and try again.")
             case .timedOut:
-                return "Claude took too long to answer. Try again, or ask for something shorter."
+                return L("Claude took too long to answer. Try again, or ask for something shorter.")
             default: break
             }
         }
-        return "Network error: \(error.localizedDescription)"
+        return L("Network error: \(error.localizedDescription)")
     }
 }

@@ -26,7 +26,7 @@ final class GithubPoller: @unchecked Sendable {
             switch ghStatus {
             case .signedOut: state = .ghSignedOut
             case .missing:   state = .notConfigured
-            case .signedIn:  state = .failed("GitHub CLI request failed · check your connection")
+            case .signedIn:  state = .failed(L("GitHub CLI request failed · check your connection"))
             }
             publish(state, stats: nil)
             return
@@ -80,9 +80,9 @@ final class GithubPoller: @unchecked Sendable {
             let (data, code) = Self.resolve(url, data: data, response: response)
             guard let data, code == 200,
                   let json = try? JSONSerialization.jsonObject(with: data) as? [String: Any] else {
-                self.publish(.failed(code == 401 ? "Token rejected · check it in Settings"
-                                     : code == 0 ? "Can't reach GitHub"
-                                     : "GitHub error \(code)"), stats: nil)
+                self.publish(.failed(code == 401 ? L("Token rejected · check it in Settings")
+                                     : code == 0 ? L("Can't reach GitHub")
+                                     : L("GitHub error \(code)")), stats: nil)
                 return
             }
 

@@ -719,7 +719,7 @@ final class IslandWindowController: NSWindowController {
         // Reading the open file needs Accessibility: say so instead of failing silently.
         guard AccessibilityAccess.isTrusted else {
             state.stateOverride = .question
-            state.noteMessage = "Coucou needs Accessibility permission to read the file you're editing. Settings → Hotkey → Grant access."
+            state.noteMessage = L("Coucou needs Accessibility permission to read the file you're editing. Settings → Hotkey → Grant access.")
             expand(to: .note)
             AccessibilityAccess.request()
             return

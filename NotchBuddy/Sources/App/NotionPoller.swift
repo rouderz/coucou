@@ -39,9 +39,9 @@ final class NotionPoller: @unchecked Sendable {
             PollGate.shared.record("integration_notion", response)
             if code != 200 {
                 let msg: String
-                if code == 401 { msg = "Invalid API key (401)" }
+                if code == 401 { msg = L("Invalid API key (401)") }
                 else if code == 0 { msg = error?.localizedDescription ?? "No connection" }
-                else { msg = "API error \(code)" }
+                else { msg = L("API error \(code)") }
                 DispatchQueue.main.async { AppState.shared.notionError = msg }
                 return
             }

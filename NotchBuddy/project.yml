@@ -5,6 +5,7 @@ options:
     macOS: "15.0"
   xcodeVersion: "27.0"
   createIntermediateGroups: true
+  developmentLanguage: en
 
 settings:
   base:
@@ -54,6 +55,10 @@ targets:
       - path: Resources/sounds
         buildPhase: resources
         type: folder
+      - path: Resources/Localizable.xcstrings
+        buildPhase: resources
+      - path: Resources/InfoPlist.xcstrings
+        buildPhase: resources
     info:
       path: Resources/Info.plist
       properties:
@@ -63,11 +68,13 @@ targets:
         CFBundleVersion: "2"
         CFBundleShortVersionString: "0.1.1"
         CFBundlePackageType: APPL
+        CFBundleDevelopmentRegion: en
+        CFBundleLocalizations: [en, es]
         LSUIElement: YES
         NSHighResolutionCapable: YES
         NSSupportsAutomaticGraphicsSwitching: YES
-        NSAppleEventsUsageDescription: "Pour sauter au terminal et envoyer des mails."
-        NSAccessibilityUsageDescription: "Pour lire le titre de la fenêtre active et l'attacher comme contexte."
+        NSAppleEventsUsageDescription: "To jump to your terminal and send emails."
+        NSAccessibilityUsageDescription: "To read the active window and the file you're editing, and attach them as context."
         NSMicrophoneUsageDescription: "Push-to-talk: Mochi listens only while you hold the shortcut."
         NSSpeechRecognitionUsageDescription: "Push-to-talk: your voice is transcribed on this Mac to ask Mochi."
     settings:
@@ -90,6 +97,10 @@ targets:
       - path: Resources/sounds
         buildPhase: resources
         type: folder
+      - path: Resources/Localizable.xcstrings
+        buildPhase: resources
+      - path: Resources/InfoPlist.xcstrings
+        buildPhase: resources
     info:
       path: Resources/InfoAppStore.plist
       properties:
@@ -99,6 +110,8 @@ targets:
         CFBundleVersion: "2"
         CFBundleShortVersionString: "1.0"
         CFBundlePackageType: APPL
+        CFBundleDevelopmentRegion: en
+        CFBundleLocalizations: [en, es]
         LSUIElement: YES
         NSHighResolutionCapable: YES
         NSSupportsAutomaticGraphicsSwitching: YES

@@ -51,7 +51,7 @@ final class VercelPoller: @unchecked Sendable {
                 IntegrationStatus.report("integration_vercel", .error("Unexpected response from Vercel"))
                 return
             }
-            IntegrationStatus.report("integration_vercel", rawList.isEmpty ? .empty("Connected · no deployments yet") : .ok)
+            IntegrationStatus.report("integration_vercel", rawList.isEmpty ? .empty(L("Connected · no deployments yet")) : .ok)
 
             // Only terminal deployments (READY, ERROR, CANCELED)
             let terminal = ["READY", "ERROR", "CANCELED"]

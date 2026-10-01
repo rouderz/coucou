@@ -248,7 +248,7 @@ final class HookServer: @unchecked Sendable {
             appendStep(id: "integration_claude", step: "+ subagent")
 
         case "SubagentStop":
-            appendStep(id: "integration_claude", step: "• subagent done")
+            appendStep(id: "integration_claude", step: L("• subagent done"))
 
         default:
             break

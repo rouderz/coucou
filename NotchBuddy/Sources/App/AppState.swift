@@ -465,7 +465,7 @@ struct VercelDeployment: Identifiable {
     var statusLabel: String { isSuccess ? "Ready" : (state == "CANCELED" ? "Canceled" : "Error") }
     var timeAgo: String {
         let diff = Date().timeIntervalSince(createdAt)
-        if diff < 60    { return "just now" }
+        if diff < 60    { return L("just now") }
         if diff < 3600  { return "\(Int(diff/60))m" }
         if diff < 86400 { return "\(Int(diff/3600))h" }
         return "\(Int(diff/86400))d"
@@ -487,7 +487,7 @@ struct ResendEmail: Identifiable {
     }
     var timeAgo: String {
         let diff = Date().timeIntervalSince(createdAt)
-        if diff < 60    { return "just now" }
+        if diff < 60    { return L("just now") }
         if diff < 3600  { return "\(Int(diff/60))m" }
         if diff < 86400 { return "\(Int(diff/3600))h" }
         return "\(Int(diff/86400))d"
@@ -516,7 +516,7 @@ struct StripePayment: Identifiable, Equatable {
     var isSuccess: Bool { status == "succeeded" }
     var timeAgo: String {
         let diff = Date().timeIntervalSince(createdAt)
-        if diff < 60    { return "just now" }
+        if diff < 60    { return L("just now") }
         if diff < 3600  { return "\(Int(diff/60))m" }
         if diff < 86400 { return "\(Int(diff/3600))h" }
         return "\(Int(diff/86400))d"
@@ -648,16 +648,16 @@ struct IntegrationStatus {
     @MainActor
     static func of(_ id: String, _ s: AppState = .shared) -> IntegrationStatus {
         func key(_ k: String) -> Bool { KeychainStore.shared.get(k).map { !$0.isEmpty } ?? false }
-        let notSet = IntegrationStatus(colorHex: red, help: "Not configured · add it in Settings")
-        let checking = IntegrationStatus(colorHex: grey, help: "Checking connection…")
+        let notSet = IntegrationStatus(colorHex: red, help: L("Not configured · add it in Settings"))
+        let checking = IntegrationStatus(colorHex: grey, help: L("Checking connection…"))
 
         switch id {
         case "integration_github":
             switch s.githubConnection {
-            case .cli(let login): return .init(colorHex: green, help: login.map { "Connected via GitHub CLI · @\($0)" } ?? "Connected via GitHub CLI")
-            case .token:          return .init(colorHex: green, help: "Connected with token")
+            case .cli(let login): return .init(colorHex: green, help: login.map { L("Connected via GitHub CLI · @\($0)") } ?? L("Connected via GitHub CLI"))
+            case .token:          return .init(colorHex: green, help: L("Connected with token"))
             case .checking:       return checking
-            case .ghSignedOut:    return .init(colorHex: red, help: "GitHub CLI signed out · run gh auth login")
+            case .ghSignedOut:    return .init(colorHex: red, help: L("GitHub CLI signed out · run gh auth login"))
             case .notConfigured:  return notSet
             case .failed(let w):  return .init(colorHex: red, help: w)
             }
@@ -666,21 +666,21 @@ struct IntegrationStatus {
             if let e = s.notionError { return .init(colorHex: red, help: e) }
             guard s.notionLoaded else { return checking }
             return s.notionPages.isEmpty
-                ? .init(colorHex: amber, help: "Connected, but no pages are shared with the integration")
-                : .init(colorHex: green, help: "Connected · \(s.notionPages.count) recent pages")
+                ? .init(colorHex: amber, help: L("Connected, but no pages are shared with the integration"))
+                : .init(colorHex: green, help: L("Connected · \(s.notionPages.count) recent pages"))
         case "integration_stripe":
             guard key("stripe-api-key") else { return notSet }
             if let e = s.stripeError { return .init(colorHex: red, help: e) }
             guard s.stripeLoaded else { return checking }
             return s.stripePayments.isEmpty
-                ? .init(colorHex: amber, help: "Connected · no payments yet")
+                ? .init(colorHex: amber, help: L("Connected · no payments yet"))
                 : .init(colorHex: green, help: "Connected")
         case "integration_calcom":
             guard key("calcom-api-key") else { return notSet }
             if let e = s.calcomError { return .init(colorHex: red, help: e) }
             guard s.calcomLoaded else { return checking }
             return s.calcomBookings.isEmpty
-                ? .init(colorHex: amber, help: "Connected · no upcoming bookings")
+                ? .init(colorHex: amber, help: L("Connected · no upcoming bookings"))
                 : .init(colorHex: green, help: "Connected")
         case "integration_vercel", "integration_resend", "integration_n8n":
             let k = ["integration_vercel": "vercel-token", "integration_resend": "resend-api-key",
@@ -700,8 +700,8 @@ struct IntegrationStatus {
     /// Error text for an HTTP failure, shared by the pollers.
     static func httpError(_ service: String, code: Int, error: Error? = nil) -> String {
         switch code {
-        case 401, 403: return "Invalid key or no access (\(code))"
-        case 0:        return error.map { "Can't reach \(service) · \($0.localizedDescription)" } ?? "Can't reach \(service)"
+        case 401, 403: return L("Invalid key or no access (\(code))")
+        case 0:        return error.map { L("Can't reach \(service) · \($0.localizedDescription)") } ?? L("Can't reach \(service)")
         default:       return "\(service) error \(code)"
         }
     }
