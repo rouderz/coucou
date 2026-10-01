@@ -202,6 +202,14 @@ ES = {
 "Linear → Settings → Security & access → Personal API keys. Shows your open issues and links each Claude Code session to the issue in its branch name.":"Linear → Settings → Security & access → Personal API keys. Muestra tus issues abiertas y vincula cada sesión de Claude Code con la issue de su rama.",
 "Posted to %@":"Publicado en %@","Posting…":"Publicando…","Post to %@":"Publicar en %@",
 "Add this timeline as a comment on %@ · %@":"Añadir esta cronología como comentario en %@ · %@",
+# inbox
+"Review requested":"Te pidieron review","Mentioned you":"Te mencionaron","Assigned to you":"Te lo asignaron","New comment":"Comentario nuevo","Update":"Novedad",
+"Inbox: nothing waiting for you":"Bandeja: nada pendiente","Inbox: %lld waiting for you":"Bandeja: %lld pendientes","Inbox":"Bandeja",
+"Mark all read":"Marcar todo leído","Mark as read":"Marcar como leído",
+"Nothing waiting for you. Review requests, mentions and assignments from GitHub and Linear show up here.":"Nada pendiente. Aquí aparecen las peticiones de review, menciones y asignaciones de GitHub y Linear.",
+"Mochi tells me when someone needs me":"Mochi me avisa cuando alguien me necesita","GitHub (through gh)":"GitHub (con gh)",
+"Reviews":"Reviews","Mentions":"Menciones","Assigned":"Asignaciones","Comments":"Comentarios","Other":"Otros",
+"Checked every minute. New items make Mochi peek out (only a badge in Do not disturb); the 🔔 in the island lists them. Opening or dismissing one marks it read on GitHub / Linear.":"Se revisa cada minuto. Lo nuevo hace que Mochi se asome (solo una marca en No molestar); la 🔔 de la isla lo lista. Abrir o descartar algo lo marca como leído en GitHub / Linear.",
 }
 catalog = {"sourceLanguage": "en", "version": "1.0", "strings": {
     k: {"localizations": {"es": {"stringUnit": {"state": "translated", "value": v}}}} for k, v in sorted(ES.items())

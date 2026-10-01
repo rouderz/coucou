@@ -485,6 +485,7 @@ struct IslandHeader: View {
 
             // Right: action icons
             HStack(spacing: 14) {
+                InboxButton()
                 DoNotDisturbButton()
 
                 Button(action: {

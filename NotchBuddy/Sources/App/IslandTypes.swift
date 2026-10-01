@@ -14,6 +14,7 @@ enum IslandView: String, CaseIterable {
     case confused, upload, uploading, choose, mail, prompt
     case searching, result, note, settings, greeting
     case live      // what Claude Code is doing right now: file, diff and steps
+    case inbox     // reviews, mentions and assignments from GitHub and Linear
 }
 
 // MARK: - Bot State
@@ -115,6 +116,7 @@ enum IslandConst {
         .note:      ViewLayout(height: 160, botX: 60,  botY: nil, botDiameter: 50, agentMode: .column),
         .settings:  ViewLayout(height: 160, botX: 54,  botY: nil, botDiameter: 46, agentMode: .none),
         .live:      ViewLayout(height: 280, botX: 78,  botY: 96,  botDiameter: 52, agentMode: .none),
+        .inbox:     ViewLayout(height: 160, botX: 58,  botY: nil, botDiameter: 48, agentMode: .none),
         // Greeting: bot drawn by GreetingCanvasView; no BotPlacement needed
         .greeting:  ViewLayout(height: 150, botX: 320, botY: 90,  botDiameter: 0,  agentMode: .none),
     ]
