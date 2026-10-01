@@ -16,11 +16,23 @@ ev '"hook_event_name":"UserPromptSubmit","prompt":"Update VAT to 20%"'
 ev '"hook_event_name":"PreToolUse","tool_name":"Read","tool_input":{"file_path":"'$F'"},"tool_use_id":"t1"'
 ev '"hook_event_name":"PostToolUse","tool_name":"Read","tool_use_id":"t1"'
 edit='"tool_name":"Edit","tool_input":{"file_path":"'$F'","old_string":"const TVA = 0.196","new_string":"const TVA = 0.20"}'
+ev '"hook_event_name":"PreToolUse",'"$edit"',"tool_use_id":"t2"' 1
 if [ "${1:-}" = "--approve" ]; then
+  # Like Claude Code: wait for the island's answer and respect it.
   echo "Waiting for Allow / Deny in the island…"
-  ev '"hook_event_name":"PermissionRequest",'"$edit" 0
+  answer=$(echo "{\"hook_event_name\":\"PermissionRequest\",$edit,$base}" | "$H" || true)
+  case "$answer" in
+    *'"behavior": "allow"'*|*'"behavior":"allow"'*) echo "→ Allowed" ;;
+    *'"behavior": "deny"'*|*'"behavior":"deny"'*)
+      echo "→ Denied: the file is left as it was."
+      ev '"hook_event_name":"PostToolUseFailure","tool_name":"Edit","tool_use_id":"t2"' 1
+      ev '"hook_event_name":"Stop","message":"Edit denied"' 0
+      exit 0 ;;
+    *) echo "→ No answer (timed out): Claude Code would ask in the terminal."; exit 0 ;;
+  esac
 fi
-ev '"hook_event_name":"PreToolUse",'"$edit"',"tool_use_id":"t2"' 2
+# Allowed (or no approval asked): really make the change, as Claude Code would.
+sed -i '' 's/const TVA = 0.196/const TVA = 0.20/' "$F"
 ev '"hook_event_name":"PostToolUse","tool_name":"Edit","tool_use_id":"t2"'
 ev '"hook_event_name":"Stop"' 0
-echo "Done."
+echo "Done. $(grep TVA "$F" | head -1)"
