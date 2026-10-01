@@ -56,6 +56,11 @@ final class AppState: ObservableObject {
         didSet { UserDefaults.standard.set(preferredEditor, forKey: "preferredEditor") }
     }
 
+    // Live view of the current Claude Code turn (fed by HookServer)
+    @Published var liveActivities: [ToolActivity] = []
+    @Published var liveEdit: EditPreview? = nil
+    @Published var liveProject: String? = nil
+
     // How the GitHub integration is connected (set by GithubPoller)
     @Published var githubConnection: GitHubConnection = .checking
     var githubCLILogin: String? {

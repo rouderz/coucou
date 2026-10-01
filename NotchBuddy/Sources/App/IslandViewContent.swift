@@ -25,6 +25,7 @@ struct IslandViewContent: View {
         case .note:      NoteView(state: state)
         case .settings:  SettingsIslandView(state: state)
         case .greeting:  EmptyView()  // GreetingCanvasView overlaid in IslandRootView
+        case .live:      LiveSessionView(state: state)
         }
     }
 }
@@ -93,6 +94,18 @@ struct OverviewView: View {
                         // ↻ refresh — integrations only (Claude Code is live through its hooks)
                         if let agent, agent.isIntegration, agent.id != "integration_claude" {
                             RefreshButton(id: agent.id)
+                        }
+                        if let agent, agent.id == "integration_claude", !state.liveActivities.isEmpty {
+                            Button { state.view = .live } label: {
+                                Image(systemName: "rectangle.and.pencil.and.ellipsis")
+                                    .font(.system(size: 8, weight: .medium))
+                                    .foregroundColor(Color(hex: "#5F646D"))
+                                    .frame(width: 16, height: 16)
+                                    .background(Color.white.opacity(0.07))
+                                    .clipShape(Circle())
+                            }
+                            .buttonStyle(.plain)
+                            .help("Live view")
                         }
                         Button(action: { openAgentTarget(agent) }) {
                             Image(systemName: "arrow.up.right")
@@ -1109,7 +1122,7 @@ struct IntegrationCardView: View {
                 }
                 .padding(.top, 6)
                 .padding(.leading, 108)
-                .padding(.trailing, 36)
+                .padding(.trailing, 62)  // room for the ✎ and ↗ buttons
 
                 TickerView(task: task)
                     .frame(height: 44)

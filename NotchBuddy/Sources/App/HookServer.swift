@@ -120,14 +120,7 @@ final class HookServer: @unchecked Sendable {
         let rawName = URL(fileURLWithPath: cwd).lastPathComponent
         let projectName = aliasProjectName(rawName.isEmpty ? "Session" : rawName)
 
-        let termProgram = payload["term_program"] as? String ?? ""
-        let bundleId    = payload["bundle_id"]    as? String ?? ""
-        let isVSCode = termProgram.lowercased().contains("vscode") ||
-                       bundleId.lowercased().contains("vscode")
-        guard isVSCode else {
-            nbLog("Ignored \(name) from \(termProgram.isEmpty ? bundleId : termProgram) (\(projectName))")
-            return
-        }
+        // Sessions from any terminal count (VS Code, Cursor, iTerm, Terminal, Ghostty, Warp…).
 
         let focused = state.focusId == "integration_claude"
 
@@ -143,6 +136,9 @@ final class HookServer: @unchecked Sendable {
         case "UserPromptSubmit":
             activeSessionId = sessionId
             upsertTask(projectName: projectName, cwd: cwd)
+            state.liveActivities = []
+            state.liveEdit = nil
+            state.liveProject = projectName
             state.updateTask(id: "integration_claude", state: .thinking)
             if let prompt = payload["prompt"] as? String, !prompt.isEmpty {
                 appendStep(id: "integration_claude", step: String(prompt.prefix(60)))
@@ -158,13 +154,17 @@ final class HookServer: @unchecked Sendable {
             let step = frenchStep(tool: tool, input: input)
             appendStep(id: "integration_claude", step: step)
             nbLog("PreToolUse \(step)")
+            liveStart(tool: tool, input: input, toolUseID: payload["tool_use_id"] as? String,
+                      cwd: cwd, project: projectName)
 
         case "PostToolUse":
             state.updateTask(id: "integration_claude", state: .working)
+            liveFinish(payload, status: .done)
 
         case "PostToolUseFailure":
             state.updateTask(id: "integration_claude", state: .working)
             appendStep(id: "integration_claude", step: "⚠ failed")
+            liveFinish(payload, status: .failed)
 
         case "Notification":
             let message = payload["message"] as? String ?? ""
@@ -179,6 +179,12 @@ final class HookServer: @unchecked Sendable {
 
         case "Stop":
             state.updateTask(id: "integration_claude", state: .finished)
+            for i in state.liveActivities.indices where state.liveActivities[i].status == .running {
+                state.liveActivities[i].status = .done
+            }
+            if !state.liveActivities.isEmpty {
+                state.liveActivities.append(ToolActivity(tool: "Done", detail: nil, toolUseID: nil, status: .done))
+            }
             if let message = payload["message"] as? String, !message.isEmpty {
                 appendStep(id: "integration_claude", step: String(message.prefix(60)))
             }
@@ -226,6 +232,7 @@ final class HookServer: @unchecked Sendable {
         let isAlert: Bool
         switch view {
         case .approval, .finished, .error, .confused: isAlert = true
+        case .live: isAlert = state.pendingApproval != nil
         default: isAlert = false
         }
         if state.mode == .expanded {
@@ -251,17 +258,6 @@ final class HookServer: @unchecked Sendable {
         let rawName   = URL(fileURLWithPath: cwd).lastPathComponent
         let projectName = aliasProjectName(rawName.isEmpty ? "Session" : rawName)
 
-        let termProgram = payload["term_program"] as? String ?? ""
-        let bundleId    = payload["bundle_id"]    as? String ?? ""
-        let isVSCode = termProgram.lowercased().contains("vscode") ||
-                       bundleId.lowercased().contains("vscode")
-        guard isVSCode else {
-            Task.detached { [weak self] in
-                self?.sendLine(fd: fd, text: #"{"permissionDecision":"ask"}"#)
-                close(fd)
-            }
-            return
-        }
 
         let tool = payload["tool_name"] as? String ?? "Tool"
         var command = tool
@@ -284,12 +280,19 @@ final class HookServer: @unchecked Sendable {
         upsertTask(projectName: projectName, cwd: cwd)
         state.updateTask(id: "integration_claude", state: .approval)
         state.pendingApproval = ApprovalInfo(sessionId: sessionId, tool: tool, command: command)
+        // File edits get the live view: the diff with Allow / Deny under it.
+        let editPreview = EditPreviewBuilder.build(tool: tool, input: payload["tool_input"] as? [String: Any] ?? [:],
+                                                   cwd: cwd)
+        if let editPreview {
+            state.liveEdit = editPreview
+            state.liveProject = projectName
+        }
         state.isPinned = true
         SoundEngine.shared.play("approval")
 
         // Approval always forces the island open — user must be able to respond
         state.focusId = "integration_claude"
-        expandIfNeeded(to: .approval)
+        expandIfNeeded(to: editPreview != nil ? .live : .approval)
 
         let captured = fd
         DispatchQueue.main.asyncAfter(deadline: .now() + 115) { [weak self] in
@@ -364,6 +367,50 @@ final class HookServer: @unchecked Sendable {
         state.tasks[idx].pillBadge = nil
     }
 
+    // MARK: - Live view feed
+
+    @MainActor
+    private func liveStart(tool: String, input: [String: Any], toolUseID: String?, cwd: String, project: String) {
+        let state = AppState.shared
+        state.liveProject = project
+        for i in state.liveActivities.indices where state.liveActivities[i].status == .running {
+            state.liveActivities[i].status = .done
+        }
+        state.liveActivities.append(ToolActivity(tool: tool, detail: liveDetail(tool: tool, input: input),
+                                                 toolUseID: toolUseID))
+        if state.liveActivities.count > 30 { state.liveActivities.removeFirst(state.liveActivities.count - 30) }
+
+        if let preview = EditPreviewBuilder.build(tool: tool, input: input, cwd: cwd) {
+            state.liveEdit = preview
+        }
+        // Never force the island open for this; if it's already showing Claude Code, go live.
+        if state.mode == .expanded && state.focusId == "integration_claude" && state.view == .overview {
+            state.view = .live
+        }
+    }
+
+    @MainActor
+    private func liveFinish(_ payload: [String: Any], status: ToolActivity.Status) {
+        let state = AppState.shared
+        let id = payload["tool_use_id"] as? String
+        let tool = payload["tool_name"] as? String
+        if let idx = state.liveActivities.lastIndex(where: {
+            $0.status == .running && (id != nil ? $0.toolUseID == id : $0.tool == tool)
+        }) {
+            state.liveActivities[idx].status = status
+        }
+    }
+
+    private func liveDetail(tool: String, input: [String: Any]) -> String? {
+        if let cmd = input["command"] as? String { return String(cmd.prefix(120)) }
+        if let file = input["file_path"] as? String { return (file as NSString).lastPathComponent }
+        if let path = input["path"] as? String { return (path as NSString).lastPathComponent }
+        if let pattern = input["pattern"] as? String { return pattern }
+        if let query = input["query"] as? String { return String(query.prefix(80)) }
+        if let url = input["url"] as? String { return url }
+        return nil
+    }
+
     @MainActor
     private func appendStep(id: String, step: String) {
         let state = AppState.shared
@@ -388,18 +435,18 @@ final class HookServer: @unchecked Sendable {
 
     private func frenchStep(tool: String, input: [String: Any]) -> String {
         let labels: [String: String] = [
-            "Bash":       "Exécute",
-            "Read":       "Lit",
-            "Write":      "Écrit",
-            "Edit":       "Modifie",
-            "Glob":       "Cherche",
-            "Grep":       "Recherche",
-            "WebSearch":  "Recherche web",
-            "WebFetch":   "Récupère",
-            "TodoWrite":  "Tâches",
+            "Bash":       "Run",
+            "Read":       "Read",
+            "Write":      "Write",
+            "Edit":       "Edit",
+            "Glob":       "Find",
+            "Grep":       "Search",
+            "WebSearch":  "Web search",
+            "WebFetch":   "Fetch",
+            "TodoWrite":  "Plan",
             "Task":       "Agent",
-            "LS":         "Liste",
-            "MultiEdit":  "Modifie",
+            "LS":         "List",
+            "MultiEdit":  "Edit",
             "NotebookEdit": "Notebook",
         ]
         let label = labels[tool] ?? tool
