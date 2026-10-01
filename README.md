@@ -12,6 +12,7 @@ using your Claude Code subscription, no API key needed.
 ![Swift 6](https://img.shields.io/badge/Swift-6-F05138?logo=swift&logoColor=white)
 ![SwiftUI](https://img.shields.io/badge/SwiftUI-native-0A84FF)
 ![License: MIT](https://img.shields.io/badge/code-MIT-green)
+[![Build and test](https://github.com/rouderz/coucou/actions/workflows/build.yml/badge.svg)](https://github.com/rouderz/coucou/actions/workflows/build.yml)
 
 <img src="docs/media/demo.gif" width="760" alt="Coucou in action">
 
@@ -62,6 +63,7 @@ open "$(xcodebuild -scheme NotchBuddy -configuration Debug -showBuildSettings | 
 ```
 
 Run `xcodegen` again whenever files are added. Tests: `xcodebuild test -scheme NotchBuddy -destination 'platform=macOS'`.
+GitHub Actions builds (Debug and Release) and runs the tests on every PR to `main`.
 
 ## Setup
 
