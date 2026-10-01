@@ -17,6 +17,7 @@
 		0DFCE791B85982CB3CE8EADA /* Voice.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4A4DA9640D4CD3307049E864 /* Voice.swift */; };
 		0E83C1DD4D20E7FB7A904450 /* VercelPoller.swift in Sources */ = {isa = PBXBuildFile; fileRef = 71718D1B87A39A4879DD2A9D /* VercelPoller.swift */; };
 		0E9CE475EC53C67DAB00F8E5 /* BotEngine.swift in Sources */ = {isa = PBXBuildFile; fileRef = D4540F630F8BA04AFFFA3979 /* BotEngine.swift */; };
+		0ED1C6EF01800EE3E03FDE5E /* PhoneAlerts.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1E0A10428FF6A769490C4210 /* PhoneAlerts.swift */; };
 		118FC4AE0AC74D84B4A134D8 /* VercelPoller.swift in Sources */ = {isa = PBXBuildFile; fileRef = 71718D1B87A39A4879DD2A9D /* VercelPoller.swift */; };
 		141F7A090A7D5337390C567F /* Approvals.swift in Sources */ = {isa = PBXBuildFile; fileRef = B9087B9BF23C41A12137D3AA /* Approvals.swift */; };
 		1558BB00C530B721172F6E65 /* StripePoller.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2EF78999D68D56ADE4CEFBE2 /* StripePoller.swift */; };
@@ -86,6 +87,7 @@
 		C18227D148D99FE6EE3CC51A /* GithubPoller.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8CB8B6E5E9DA6164F979E88F /* GithubPoller.swift */; };
 		C23C8C39A077E6B1246D7D91 /* DoNotDisturb.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5AD0B231AAC0458C7D4E35CF /* DoNotDisturb.swift */; };
 		C24D863967D8D32D828ED4B1 /* BotEngine.swift in Sources */ = {isa = PBXBuildFile; fileRef = D4540F630F8BA04AFFFA3979 /* BotEngine.swift */; };
+		C496D036EC19BACB32C9238F /* PhoneAlerts.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1E0A10428FF6A769490C4210 /* PhoneAlerts.swift */; };
 		C57D010A9D5E2826ACC164D4 /* OverviewViews.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4E89D474AA5E467048534EA9 /* OverviewViews.swift */; };
 		C61DDE2EC5FDDB39E4AA3B34 /* IslandWindowController.swift in Sources */ = {isa = PBXBuildFile; fileRef = D710BD7834228045869D0184 /* IslandWindowController.swift */; };
 		C808B654C84D9F71DBF8493A /* GithubPoller.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8CB8B6E5E9DA6164F979E88F /* GithubPoller.swift */; };
@@ -96,6 +98,7 @@
 		CD8DECA66B9E09C97E469DB9 /* BotCanvasView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A29F4C0B02BE91654D02AA0C /* BotCanvasView.swift */; };
 		D04BA8B6F3C809CAC2DE2C04 /* DoNotDisturb.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5AD0B231AAC0458C7D4E35CF /* DoNotDisturb.swift */; };
 		D3178E6AFEF9AB2C3AE98F4A /* ChatViews.swift in Sources */ = {isa = PBXBuildFile; fileRef = 37C4FC2A2F214EACFA47351E /* ChatViews.swift */; };
+		D3D69287377CD85F807D2985 /* AutoApprove.swift in Sources */ = {isa = PBXBuildFile; fileRef = EC73547483E5895C0A7034F8 /* AutoApprove.swift */; };
 		D82E93014C8087AE81511E40 /* IslandTypes.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8D3CE3617E9D336DDBA10F7A /* IslandTypes.swift */; };
 		DC5284D98CDEDA2242135EB2 /* UploadAndMailViews.swift in Sources */ = {isa = PBXBuildFile; fileRef = 689547B540F266DF1E6E01E1 /* UploadAndMailViews.swift */; };
 		DCAC390FF9EC65B945A15B24 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 506824380E9C80B9BC6DCE72 /* Assets.xcassets */; };
@@ -108,6 +111,7 @@
 		E4B9986674F4D425826F15A8 /* StripePoller.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2EF78999D68D56ADE4CEFBE2 /* StripePoller.swift */; };
 		E776C7D1DE5C62EA8D4BA3E3 /* FileDropView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3232F258523DD8D09B670363 /* FileDropView.swift */; };
 		EB23ED9F1C12EA8B54A76A91 /* ResendPoller.swift in Sources */ = {isa = PBXBuildFile; fileRef = 61B5FDDE03F5F711146937E2 /* ResendPoller.swift */; };
+		EBE2578D8114FECEE319FA5A /* AutoApprove.swift in Sources */ = {isa = PBXBuildFile; fileRef = EC73547483E5895C0A7034F8 /* AutoApprove.swift */; };
 		ECECA2F225E82B7C951658D7 /* UploadSequenceEngine.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6FD65943C32E150F1CD65C31 /* UploadSequenceEngine.swift */; };
 		F06EE0A97CB77096A337AA8B /* sounds in Resources */ = {isa = PBXBuildFile; fileRef = C066E2B991AA4F56B2724263 /* sounds */; };
 		F5A19AD336BE126A9B4B80E0 /* PollGate.swift in Sources */ = {isa = PBXBuildFile; fileRef = DE9F3AFD05F3365E7AD4D9F8 /* PollGate.swift */; };
@@ -132,6 +136,7 @@
 		15A1A8206F73376F4CAF2057 /* IslandRootView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = IslandRootView.swift; sourceTree = "<group>"; };
 		192844E7299DEED5C2372067 /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
 		1BE21C2B315D37AA70ED45E9 /* SoundEngine.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SoundEngine.swift; sourceTree = "<group>"; };
+		1E0A10428FF6A769490C4210 /* PhoneAlerts.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PhoneAlerts.swift; sourceTree = "<group>"; };
 		2EF78999D68D56ADE4CEFBE2 /* StripePoller.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StripePoller.swift; sourceTree = "<group>"; };
 		2F5F8BEA2F1BDCF26F6383DC /* CLITools.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CLITools.swift; sourceTree = "<group>"; };
 		3104222B3F17BA5E8DEA5277 /* CalcomPoller.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CalcomPoller.swift; sourceTree = "<group>"; };
@@ -182,6 +187,7 @@
 		D84D7CB7196217FC59839DE9 /* NotchBuddyTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = NotchBuddyTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		DE9F3AFD05F3365E7AD4D9F8 /* PollGate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PollGate.swift; sourceTree = "<group>"; };
 		E91B733ADC638E14E9BB6EFA /* WindowContextCapture.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WindowContextCapture.swift; sourceTree = "<group>"; };
+		EC73547483E5895C0A7034F8 /* AutoApprove.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AutoApprove.swift; sourceTree = "<group>"; };
 		F1BD8F3CAA60CF37640759E1 /* NotchBuddyApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NotchBuddyApp.swift; sourceTree = "<group>"; };
 		F6F52ACCA00DD43BBFE481DE /* LogicTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LogicTests.swift; sourceTree = "<group>"; };
 		FA02B08886939FF6FE0475DD /* IslandViewContent.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = IslandViewContent.swift; sourceTree = "<group>"; };
@@ -195,6 +201,7 @@
 				192844E7299DEED5C2372067 /* AppDelegate.swift */,
 				B9087B9BF23C41A12137D3AA /* Approvals.swift */,
 				C2E4F18AA940EFF7E047B9F7 /* AppState.swift */,
+				EC73547483E5895C0A7034F8 /* AutoApprove.swift */,
 				A29F4C0B02BE91654D02AA0C /* BotCanvasView.swift */,
 				D4540F630F8BA04AFFFA3979 /* BotEngine.swift */,
 				3104222B3F17BA5E8DEA5277 /* CalcomPoller.swift */,
@@ -221,6 +228,7 @@
 				B89DA1A0C21AE3535A1760BB /* N8nPoller.swift */,
 				F1BD8F3CAA60CF37640759E1 /* NotchBuddyApp.swift */,
 				BE03E03D1804B0B92C5C2DAD /* NotionPoller.swift */,
+				1E0A10428FF6A769490C4210 /* PhoneAlerts.swift */,
 				0472D6224C260A9BAA00AAD8 /* PlanUsagePoller.swift */,
 				DE9F3AFD05F3365E7AD4D9F8 /* PollGate.swift */,
 				61B5FDDE03F5F711146937E2 /* ResendPoller.swift */,
@@ -434,6 +442,7 @@
 				C940B651C6CA952D99388E04 /* AppDelegate.swift in Sources */,
 				1F11EC4E6F604C612A1ADAD1 /* AppState.swift in Sources */,
 				DF805924DEFA7D8878B75675 /* Approvals.swift in Sources */,
+				EBE2578D8114FECEE319FA5A /* AutoApprove.swift in Sources */,
 				CD8DECA66B9E09C97E469DB9 /* BotCanvasView.swift in Sources */,
 				C24D863967D8D32D828ED4B1 /* BotEngine.swift in Sources */,
 				0CD72ED49048755285B349C8 /* CLITools.swift in Sources */,
@@ -464,6 +473,7 @@
 				06BF5FD95E03010CAFDBF2D0 /* NotchBuddyApp.swift in Sources */,
 				2F36E3C6C073E968A682AFA4 /* NotionPoller.swift in Sources */,
 				76361364CB29B16B6F2F065D /* OverviewViews.swift in Sources */,
+				0ED1C6EF01800EE3E03FDE5E /* PhoneAlerts.swift in Sources */,
 				44A4051CF41137D8146F5EC7 /* PlanUsagePoller.swift in Sources */,
 				1E6A3E1BF6AA904EBEB3E4E2 /* PollGate.swift in Sources */,
 				967B525F7D3837F31D740D18 /* ResendPoller.swift in Sources */,
@@ -499,6 +509,7 @@
 				878924960FC0F2B3524D48AC /* AppDelegate.swift in Sources */,
 				61F73B27A7E3AFF584B2CC22 /* AppState.swift in Sources */,
 				141F7A090A7D5337390C567F /* Approvals.swift in Sources */,
+				D3D69287377CD85F807D2985 /* AutoApprove.swift in Sources */,
 				651FA3F09608DE5D02D61CCE /* BotCanvasView.swift in Sources */,
 				0E9CE475EC53C67DAB00F8E5 /* BotEngine.swift in Sources */,
 				E30F10A02625A013D890C09F /* CLITools.swift in Sources */,
@@ -529,6 +540,7 @@
 				DE05D09A32117582AC93A24A /* NotchBuddyApp.swift in Sources */,
 				78FCEDC8F78B683AB10E6529 /* NotionPoller.swift in Sources */,
 				C57D010A9D5E2826ACC164D4 /* OverviewViews.swift in Sources */,
+				C496D036EC19BACB32C9238F /* PhoneAlerts.swift in Sources */,
 				A07373551CD3632C64DDB053 /* PlanUsagePoller.swift in Sources */,
 				F5A19AD336BE126A9B4B80E0 /* PollGate.swift in Sources */,
 				EB23ED9F1C12EA8B54A76A91 /* ResendPoller.swift in Sources */,

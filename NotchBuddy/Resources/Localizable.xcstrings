@@ -352,12 +352,72 @@
         }
       }
     },
+    "Ask every time": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Preguntar siempre"
+          }
+        }
+      }
+    },
     "Ask me anything…": {
       "localizations": {
         "es": {
           "stringUnit": {
             "state": "translated",
             "value": "Pregúntame lo que quieras…"
+          }
+        }
+      }
+    },
+    "Auto-allow low and medium risk": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Permitir riesgo bajo y medio"
+          }
+        }
+      }
+    },
+    "Auto-allow low risk": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Permitir solo el riesgo bajo"
+          }
+        }
+      }
+    },
+    "Auto-allowed": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Permitido automáticamente"
+          }
+        }
+      }
+    },
+    "Auto-approve (Claude Code)": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Aprobación automática (Claude Code)"
+          }
+        }
+      }
+    },
+    "Auto-approve in this project (never high risk)": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Aprobar automáticamente en este proyecto (nunca riesgo alto)"
           }
         }
       }
@@ -598,6 +658,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "Claude Code está haciendo una pregunta"
+          }
+        }
+      }
+    },
+    "Claude Code needs you · %@": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Claude Code te necesita · %@"
           }
         }
       }
@@ -918,6 +988,26 @@
           "stringUnit": {
             "state": "translated",
             "value": "Copiar como Markdown"
+          }
+        }
+      }
+    },
+    "Coucou can answer Allow for you, per project. High-risk requests always ask. Auto-allowed steps show in the session timeline.": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Coucou puede responder Permitir por ti, por proyecto. Las peticiones de riesgo alto siempre preguntan. Lo permitido automáticamente aparece en la cronología."
+          }
+        }
+      }
+    },
+    "Coucou is connected": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Coucou está conectado"
           }
         }
       }
@@ -1322,12 +1412,32 @@
         }
       }
     },
+    "In %@": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "En %@"
+          }
+        }
+      }
+    },
     "Install hooks": {
       "localizations": {
         "es": {
           "stringUnit": {
             "state": "translated",
             "value": "Instalar hooks"
+          }
+        }
+      }
+    },
+    "Install the free ntfy app (iOS / Android), tap + and subscribe to this topic. The alert includes the project and the command: keep the topic private, or use your own ntfy server.": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Instala la app gratuita ntfy (iOS / Android), pulsa + y suscríbete a este tema. El aviso incluye el proyecto y el comando: mantén el tema en privado o usa tu propio servidor ntfy."
           }
         }
       }
@@ -1612,6 +1722,16 @@
         }
       }
     },
+    "New": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nuevo"
+          }
+        }
+      }
+    },
     "New chat": {
       "localizations": {
         "es": {
@@ -1812,6 +1932,16 @@
         }
       }
     },
+    "Only when I'm away (screen locked or 2 min idle)": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Solo cuando no estoy (pantalla bloqueada o 2 min sin actividad)"
+          }
+        }
+      }
+    },
     "Open": {
       "localizations": {
         "es": {
@@ -1932,12 +2062,32 @@
         }
       }
     },
+    "Phone alerts": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Avisos al móvil"
+          }
+        }
+      }
+    },
     "Press keys…": {
       "localizations": {
         "es": {
           "stringUnit": {
             "state": "translated",
             "value": "Pulsa las teclas…"
+          }
+        }
+      }
+    },
+    "Projects appear here once Claude Code runs in them (or set it from ⚡ on an approval).": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Los proyectos aparecen aquí cuando Claude Code trabaja en ellos (o configúralo desde ⚡ en una aprobación)."
           }
         }
       }
@@ -2162,12 +2312,42 @@
         }
       }
     },
+    "Send approvals that wait 20 s to my phone": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Enviar al móvil las aprobaciones que esperan 20 s"
+          }
+        }
+      }
+    },
     "Send by email": {
       "localizations": {
         "es": {
           "stringUnit": {
             "state": "translated",
             "value": "Enviar por correo"
+          }
+        }
+      }
+    },
+    "Send test": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Enviar prueba"
+          }
+        }
+      }
+    },
+    "Server": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Servidor"
           }
         }
       }
@@ -2398,6 +2578,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "Demasiados golpes a la vez."
+          }
+        }
+      }
+    },
+    "Topic": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tema"
           }
         }
       }
@@ -2688,6 +2878,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "Denegaste"
+          }
+        }
+      }
+    },
+    "You'll get approvals here when you're away from the Mac.": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Aquí recibirás las aprobaciones cuando no estés en el Mac."
           }
         }
       }

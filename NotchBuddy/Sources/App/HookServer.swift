@@ -330,6 +330,21 @@ final class HookServer: @unchecked Sendable {
         let fromChat = payload["coucou_internal"] as? Bool == true
         nbLog("PermissionRequest \(tool): \(command)\(fromChat ? " (chat)" : "")")
 
+        // Auto-approval for this project (#29): answer at once, no island, logged in the timeline.
+        do {
+            let input = payload["tool_input"] as? [String: Any] ?? [:]
+            let (risk, reason) = ApprovalRiskClassifier.classify(tool: tool, input: input, cwd: cwd)
+            if AutoApprove.shouldAllow(risk: risk, cwd: cwd, fromChat: fromChat) {
+                Task.detached { [weak self] in
+                    self?.sendLine(fd: fd, text: #"{"permissionDecision":"allow"}"#)
+                    close(fd)
+                }
+                TimelineStore.shared.recordAutoApproval(sessionId: sessionId, tool: tool, command: command,
+                                                        reason: "\(risk.title) · \(reason)")
+                return
+            }
+        }
+
         // Another request is on screen: wait in line (shown right after the current decision).
         if pendingApprovalFD >= 0 {
             queueApproval(fd: fd, payload: payload)
@@ -350,9 +365,10 @@ final class HookServer: @unchecked Sendable {
         let (risk, reason) = ApprovalRiskClassifier.classify(tool: tool, input: toolInput, cwd: cwd)
         let rules = ApprovalRules.describe(payload["permission_suggestions"] as? [[String: Any]] ?? [])
         let approval = ApprovalInfo(sessionId: sessionId, tool: tool, command: command,
-                                    risk: risk, riskReason: reason, rules: rules)
+                                    risk: risk, riskReason: reason, rules: rules, cwd: cwd)
         state.pendingApproval = approval
         ApprovalShortcuts.shared.arm(for: approval)
+        if !fromChat { PhoneAlerts.shared.approvalPending(approval, project: projectName) }
         // File edits get the live view: the diff with Allow / Deny under it.
         let editPreview = EditPreviewBuilder.build(tool: tool, input: payload["tool_input"] as? [String: Any] ?? [:],
                                                    cwd: cwd)

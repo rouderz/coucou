@@ -179,6 +179,19 @@ ES = {
 "Read":"Leyó","Edited":"Editó","Wrote":"Escribió","Ran":"Ejecutó","Searched":"Buscó","Searched the web":"Buscó en la web",
 "Opened":"Abrió","Subagent":"Subagente","Nothing yet. Claude Code's steps for this session show up here.":"Nada todavía. Aquí aparecen los pasos de Claude Code en esta sesión.",
 "Copied":"Copiado","Copy as Markdown":"Copiar como Markdown","Back to the diff":"Volver al diff",
+# auto-approve
+"Ask every time":"Preguntar siempre","Auto-allow low risk":"Permitir solo el riesgo bajo","Auto-allow low and medium risk":"Permitir riesgo bajo y medio",
+"Auto-allowed":"Permitido automáticamente","In %@":"En %@","Auto-approve in this project (never high risk)":"Aprobar automáticamente en este proyecto (nunca riesgo alto)",
+"Auto-approve (Claude Code)":"Aprobación automática (Claude Code)",
+"Coucou can answer Allow for you, per project. High-risk requests always ask. Auto-allowed steps show in the session timeline.":"Coucou puede responder Permitir por ti, por proyecto. Las peticiones de riesgo alto siempre preguntan. Lo permitido automáticamente aparece en la cronología.",
+"Projects appear here once Claude Code runs in them (or set it from ⚡ on an approval).":"Los proyectos aparecen aquí cuando Claude Code trabaja en ellos (o configúralo desde ⚡ en una aprobación).",
+# phone alerts
+"Phone alerts":"Avisos al móvil","Send approvals that wait 20 s to my phone":"Enviar al móvil las aprobaciones que esperan 20 s",
+"Only when I'm away (screen locked or 2 min idle)":"Solo cuando no estoy (pantalla bloqueada o 2 min sin actividad)",
+"Topic":"Tema","New":"Nuevo","Server":"Servidor","Send test":"Enviar prueba",
+"Install the free ntfy app (iOS / Android), tap + and subscribe to this topic. The alert includes the project and the command: keep the topic private, or use your own ntfy server.":"Instala la app gratuita ntfy (iOS / Android), pulsa + y suscríbete a este tema. El aviso incluye el proyecto y el comando: mantén el tema en privado o usa tu propio servidor ntfy.",
+"Claude Code needs you · %@":"Claude Code te necesita · %@","Coucou is connected":"Coucou está conectado",
+"You'll get approvals here when you're away from the Mac.":"Aquí recibirás las aprobaciones cuando no estés en el Mac.",
 }
 catalog = {"sourceLanguage": "en", "version": "1.0", "strings": {
     k: {"localizations": {"es": {"stringUnit": {"state": "translated", "value": v}}}} for k, v in sorted(ES.items())

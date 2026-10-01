@@ -204,3 +204,20 @@ final class EditorContextPreambleTests: XCTestCase {
         XCTAssertNil(context.problems)
     }
 }
+
+final class AutoApproveTests: XCTestCase {
+    func testLevelsNeverAllowHighRisk() {
+        XCTAssertFalse(AutoApproveLevel.ask.allows(.low))
+        XCTAssertTrue(AutoApproveLevel.low.allows(.low))
+        XCTAssertFalse(AutoApproveLevel.low.allows(.medium))
+        XCTAssertTrue(AutoApproveLevel.medium.allows(.medium))
+        for level in AutoApproveLevel.allCases { XCTAssertFalse(level.allows(.high)) }
+    }
+
+    @MainActor
+    func testHighRiskAndChatAlwaysAsk() {
+        XCTAssertFalse(AutoApprove.shouldAllow(risk: .high, cwd: "/any", fromChat: false))
+        XCTAssertFalse(AutoApprove.shouldAllow(risk: .low, cwd: "/any", fromChat: true))
+        XCTAssertFalse(AutoApprove.shouldAllow(risk: .low, cwd: "", fromChat: false))
+    }
+}
