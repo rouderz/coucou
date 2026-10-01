@@ -56,6 +56,10 @@ final class AppState: ObservableObject {
         didSet { UserDefaults.standard.set(preferredEditor, forKey: "preferredEditor") }
     }
 
+    // Mochi's chat may edit the attached project (each change approved in the island).
+    // Per conversation: reset when a new chat starts.
+    @Published var chatAllowEdits: Bool = false
+
     // Live view of the current Claude Code turn (fed by HookServer)
     @Published var liveActivities: [ToolActivity] = []
     @Published var liveEdit: EditPreview? = nil

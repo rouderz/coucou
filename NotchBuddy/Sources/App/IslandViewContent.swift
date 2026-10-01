@@ -738,7 +738,29 @@ struct PromptView: View {
 
             VStack(alignment: .leading, spacing: 6) {
                 if let ctx = state.promptContext {
-                    ContextChip(context: ctx).padding(.top, 4)
+                    HStack(spacing: 6) {
+                        ContextChip(context: ctx)
+                        // Code context: let Mochi change files, each change approved in the island
+                        if case .code = ctx, state.chatEngine == .claudeCode {
+                            Button { state.chatAllowEdits.toggle() } label: {
+                                HStack(spacing: 4) {
+                                    Image(systemName: state.chatAllowEdits ? "pencil.circle.fill" : "pencil.slash")
+                                        .font(.system(size: 10, weight: .semibold))
+                                    Text(state.chatAllowEdits ? "Edits on" : "Read-only")
+                                        .font(.system(size: 11, weight: .medium))
+                                }
+                                .foregroundColor(state.chatAllowEdits ? Color(hex: "#22C55E") : Color(hex: "#8E939C"))
+                                .padding(.horizontal, 9).padding(.vertical, 4)
+                                .background((state.chatAllowEdits ? Color(hex: "#22C55E") : Color.white).opacity(0.1))
+                                .clipShape(Capsule())
+                            }
+                            .buttonStyle(.plain)
+                            .help(state.chatAllowEdits
+                                  ? "Mochi can change files in this project. You approve every change in the island."
+                                  : "Mochi can only read this project. Click to let it propose edits.")
+                        }
+                    }
+                    .padding(.top, 4)
                 }
 
                 if !state.chatHistory.isEmpty {
