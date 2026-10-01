@@ -1,29 +1,63 @@
-name: Build
+name: Build and test
 
+# Every PR to main and every push to main: generate the project, build (Debug, like day to day,
+# and Release, like a DMG) and run the unit tests. A red check means: don't merge yet.
 on:
   push:
     branches: [main]
+    paths: ["NotchBuddy/**", ".github/workflows/build.yml"]
   pull_request:
     branches: [main]
+    paths: ["NotchBuddy/**", ".github/workflows/build.yml"]
+  workflow_dispatch:
+
+concurrency:
+  group: build-${{ github.ref }}
+  cancel-in-progress: true
 
 jobs:
-  build:
+  macos:
     runs-on: macos-latest
+    timeout-minutes: 30
     steps:
       - uses: actions/checkout@v4
+
+      - name: Use the newest Xcode on the runner
+        uses: maxim-lobanov/setup-xcode@v1
+        with:
+          xcode-version: latest-stable
 
       - name: Install XcodeGen
         run: brew install xcodegen
 
       - name: Generate project
-        run: cd NotchBuddy && xcodegen
+        working-directory: NotchBuddy
+        run: xcodegen
 
-      - name: Build
+      - name: Unit tests (Debug)
+        working-directory: NotchBuddy
         run: |
-          xcodebuild \
-            -project NotchBuddy/NotchBuddy.xcodeproj \
+          set -o pipefail
+          xcodebuild test \
+            -scheme NotchBuddy \
+            -destination 'platform=macOS' \
+            CODE_SIGNING_ALLOWED=NO CODE_SIGNING_REQUIRED=NO \
+            | tee test.log | grep -E "error:|warning: .*Sendable|Test Case .* failed|Executed .* tests|TEST (SUCCEEDED|FAILED)"
+
+      - name: Build Release
+        working-directory: NotchBuddy
+        run: |
+          set -o pipefail
+          xcodebuild build \
             -scheme NotchBuddy \
             -configuration Release \
-            build \
-            CODE_SIGNING_ALLOWED=NO \
-            CODE_SIGNING_REQUIRED=NO
+            CODE_SIGNING_ALLOWED=NO CODE_SIGNING_REQUIRED=NO \
+            | tee release.log | grep -E "error:|BUILD (SUCCEEDED|FAILED)"
+
+      - name: Keep the logs when something fails
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: xcodebuild-logs
+          path: NotchBuddy/*.log
+          retention-days: 7
