@@ -9,7 +9,10 @@ final class NotionPoller: @unchecked Sendable {
         guard timer == nil else { return }
         let t = DispatchSource.makeTimerSource(queue: .global(qos: .background))
         t.schedule(deadline: .now() + 9, repeating: 300)
-        t.setEventHandler { [weak self] in self?.poll() }
+        t.setEventHandler { [weak self] in
+            guard PollGate.shared.allow("integration_notion", every: 300) else { return }
+            self?.poll()
+        }
         t.resume()
         timer = t
     }
@@ -33,6 +36,7 @@ final class NotionPoller: @unchecked Sendable {
         URLSession.shared.dataTask(with: req) { [weak self] data, response, error in
             guard let self else { return }
             let code = (response as? HTTPURLResponse)?.statusCode ?? 0
+            PollGate.shared.record("integration_notion", response)
             if code != 200 {
                 let msg: String
                 if code == 401 { msg = "Invalid API key (401)" }

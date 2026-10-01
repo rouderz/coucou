@@ -20,7 +20,10 @@ final class PlanUsagePoller: @unchecked Sendable {
         guard timer == nil else { return }
         let t = DispatchSource.makeTimerSource(queue: .global(qos: .utility))
         t.schedule(deadline: .now() + 3, repeating: 120)
-        t.setEventHandler { [weak self] in self?.poll(manual: false) }
+        t.setEventHandler { [weak self] in
+            guard PollGate.shared.allow("integration_claude", every: 120) else { return }
+            self?.poll(manual: false)
+        }
         t.resume()
         timer = t
         #endif
@@ -47,6 +50,7 @@ final class PlanUsagePoller: @unchecked Sendable {
 
         URLSession.shared.dataTask(with: req) { [log] data, response, error in
             let status = (response as? HTTPURLResponse)?.statusCode ?? 0
+            PollGate.shared.record("integration_claude", response)
             guard error == nil, status == 200, let data,
                   let json = try? JSONSerialization.jsonObject(with: data) as? [String: Any] else {
                 log.error("plan usage: HTTP \(status) \(error?.localizedDescription ?? "", privacy: .public)")

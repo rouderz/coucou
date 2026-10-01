@@ -9,7 +9,10 @@ final class GithubPoller: @unchecked Sendable {
         guard timer == nil else { return }
         let t = DispatchSource.makeTimerSource(queue: .global(qos: .background))
         t.schedule(deadline: .now() + 2, repeating: 300)  // every 5 minutes
-        t.setEventHandler { [weak self] in self?.poll() }
+        t.setEventHandler { [weak self] in
+            guard PollGate.shared.allow("integration_github", every: 300) else { return }
+            self?.poll()
+        }
         t.resume()
         timer = t
     }
@@ -42,13 +45,13 @@ final class GithubPoller: @unchecked Sendable {
     /// Fetches the stats through `gh api`. Returns false when gh is missing,
     /// signed out or the request failed, so the token path can take over.
     private func pollWithCLI() -> Bool {
-        guard let user = GitHubCLI.api("user") as? [String: Any] else { return false }
+        guard let user = GitHubCLI.apiCached("user") as? [String: Any] else { return false }
         let login = user["login"] as? String
         let publicRepos  = (user["public_repos"] as? Int) ?? 0
         let privateOwned = (user["owned_private_repos"] as? Int)
                         ?? (user["total_private_repos"] as? Int)
                         ?? 0
-        guard let repos = GitHubCLI.api("user/repos?per_page=100&affiliation=owner&sort=pushed") as? [[String: Any]]
+        guard let repos = GitHubCLI.apiCached("user/repos?per_page=100&affiliation=owner&sort=pushed") as? [[String: Any]]
         else { return false }
         let totalStars = repos.reduce(0) { $0 + (($1["stargazers_count"] as? Int) ?? 0) }
 
@@ -69,10 +72,12 @@ final class GithubPoller: @unchecked Sendable {
         var req = URLRequest(url: url, timeoutInterval: 10)
         req.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
         req.setValue("application/vnd.github+json", forHTTPHeaderField: "Accept")
+        Self.conditional(&req)
 
         URLSession.shared.dataTask(with: req) { [weak self] data, response, _ in
             guard let self else { return }
-            let code = (response as? HTTPURLResponse)?.statusCode ?? 0
+            PollGate.shared.record("integration_github", response)
+            let (data, code) = Self.resolve(url, data: data, response: response)
             guard let data, code == 200,
                   let json = try? JSONSerialization.jsonObject(with: data) as? [String: Any] else {
                 self.publish(.failed(code == 401 ? "Token rejected · check it in Settings"
@@ -96,10 +101,12 @@ final class GithubPoller: @unchecked Sendable {
         var req = URLRequest(url: url, timeoutInterval: 15)
         req.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
         req.setValue("application/vnd.github+json", forHTTPHeaderField: "Accept")
+        Self.conditional(&req)
 
         URLSession.shared.dataTask(with: req) { [weak self] data, response, _ in
             guard let self else { return }
-            let code = (response as? HTTPURLResponse)?.statusCode ?? 0
+            PollGate.shared.record("integration_github", response)
+            let (data, code) = Self.resolve(url, data: data, response: response)
             guard let data, code == 200,
                   let repos = try? JSONSerialization.jsonObject(with: data) as? [[String: Any]] else { return }
 
@@ -107,5 +114,29 @@ final class GithubPoller: @unchecked Sendable {
 
             self.publish(.token, stats: GitHubStats(totalRepos: totalRepos, totalStars: totalStars))
         }.resume()
+    }
+
+    // MARK: ETag (#8): 304 Not Modified doesn't count against the rate limit
+
+    private static let etagLock = NSLock()
+    nonisolated(unsafe) private static var etags: [URL: (etag: String, body: Data)] = [:]
+
+    private static func conditional(_ req: inout URLRequest) {
+        req.cachePolicy = .reloadIgnoringLocalCacheData  // we handle caching ourselves
+        guard let url = req.url else { return }
+        etagLock.lock(); let cached = etags[url]; etagLock.unlock()
+        if let cached { req.setValue(cached.etag, forHTTPHeaderField: "If-None-Match") }
+    }
+
+    /// 304 → the cached body as a 200; 200 → remember its ETag.
+    private static func resolve(_ url: URL, data: Data?, response: URLResponse?) -> (Data?, Int) {
+        let http = response as? HTTPURLResponse
+        let code = http?.statusCode ?? 0
+        etagLock.lock(); defer { etagLock.unlock() }
+        if code == 304, let cached = etags[url] { return (cached.body, 200) }
+        if code == 200, let data, let etag = http?.value(forHTTPHeaderField: "ETag") {
+            etags[url] = (etag, data)
+        }
+        return (data, code)
     }
 }

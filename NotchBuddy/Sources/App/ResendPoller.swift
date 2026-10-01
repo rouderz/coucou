@@ -9,7 +9,10 @@ final class ResendPoller: @unchecked Sendable {
         guard timer == nil else { return }
         let t = DispatchSource.makeTimerSource(queue: .global(qos: .background))
         t.schedule(deadline: .now() + 6, repeating: 60)
-        t.setEventHandler { [weak self] in self?.poll() }
+        t.setEventHandler { [weak self] in
+            guard PollGate.shared.allow("integration_resend", every: 60) else { return }
+            self?.poll()
+        }
         t.resume()
         timer = t
     }
@@ -27,6 +30,7 @@ final class ResendPoller: @unchecked Sendable {
         URLSession.shared.dataTask(with: req) { [weak self] data, response, error in
             guard let self else { return }
             let code = (response as? HTTPURLResponse)?.statusCode ?? 0
+            PollGate.shared.record("integration_resend", response)
             guard let data, code == 200 else {
                 IntegrationStatus.report("integration_resend",
                                          .error(IntegrationStatus.httpError("Resend", code: code, error: error)))

@@ -16,7 +16,10 @@ final class N8nPoller: @unchecked Sendable {
         guard timer == nil else { return }
         let t = DispatchSource.makeTimerSource(queue: .global(qos: .background))
         t.schedule(deadline: .now() + 3, repeating: 15)
-        t.setEventHandler { [weak self] in self?.poll() }
+        t.setEventHandler { [weak self] in
+            guard PollGate.shared.allow("integration_n8n", every: 15) else { return }
+            self?.poll()
+        }
         t.resume()
         timer = t
     }
@@ -54,6 +57,7 @@ final class N8nPoller: @unchecked Sendable {
         URLSession.shared.dataTask(with: req) { [weak self] data, response, error in
             guard let self else { return }
             let code = (response as? HTTPURLResponse)?.statusCode ?? 0
+            PollGate.shared.record("integration_n8n", response)
             if let error {
                 self.n8nLog("Network error: \(error.localizedDescription)")
                 self.tryList(urls, apiKey: apiKey, base: base, idx: idx + 1)
@@ -134,6 +138,7 @@ final class N8nPoller: @unchecked Sendable {
         URLSession.shared.dataTask(with: req) { [weak self] data, response, _ in
             guard let self else { return }
             let code = (response as? HTTPURLResponse)?.statusCode ?? 0
+            PollGate.shared.record("integration_n8n", response)
             guard let data, code == 200 else {
                 self.n8nLog("Detail HTTP \(code) for \(url.absoluteString)")
                 self.fetchDetail(urls, apiKey: apiKey, success: success, idx: idx + 1)

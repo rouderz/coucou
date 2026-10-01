@@ -86,6 +86,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         islandController = IslandWindowController()
         islandController?.showWindow(nil)
         islandController?.fsm.launch()
+        PollGate.shared.start()
         HookServer.shared.start()
         N8nPoller.shared.start()
         VercelPoller.shared.start()

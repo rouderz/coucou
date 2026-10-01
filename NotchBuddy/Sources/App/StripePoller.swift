@@ -16,7 +16,10 @@ final class StripePoller: @unchecked Sendable {
         guard timer == nil else { return }
         let t = DispatchSource.makeTimerSource(queue: .global(qos: .background))
         t.schedule(deadline: .now() + 6, repeating: 30)
-        t.setEventHandler { [weak self] in self?.poll() }
+        t.setEventHandler { [weak self] in
+            guard PollGate.shared.allow("integration_stripe", every: 30) else { return }
+            self?.poll()
+        }
         t.resume()
         timer = t
     }
@@ -42,6 +45,7 @@ final class StripePoller: @unchecked Sendable {
 
         URLSession.shared.dataTask(with: req) { data, response, error in
             let code = (response as? HTTPURLResponse)?.statusCode ?? 0
+            PollGate.shared.record("integration_stripe", response)
             if code != 200 {
                 let errMsg: String
                 if code == 401 { errMsg = "Invalid API key (401)" }
@@ -87,6 +91,7 @@ final class StripePoller: @unchecked Sendable {
         URLSession.shared.dataTask(with: req) { [weak self] data, response, _ in
             guard let self else { return }
             let code = (response as? HTTPURLResponse)?.statusCode ?? 0
+            PollGate.shared.record("integration_stripe", response)
             guard let data, code == 200 else { return }
             guard let json = try? JSONSerialization.jsonObject(with: data) as? [String: Any],
                   let rawList = json["data"] as? [[String: Any]] else { return }

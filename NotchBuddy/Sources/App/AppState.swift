@@ -29,7 +29,14 @@ final class AppState: ObservableObject {
     static let shared = AppState()
 
     // Island state
-    @Published var mode: IslandMode = .hidden
+    @Published var mode: IslandMode = .hidden {
+        didSet {
+            guard mode != oldValue else { return }
+            PollGate.shared.setIslandHidden(mode == .hidden)
+            // Opening the island refreshes integrations whose data went stale while it was away.
+            if mode == .expanded { PollGate.shared.catchUp() }
+        }
+    }
     @Published var view: IslandView = .overview
 
     // Tasks
@@ -580,10 +587,12 @@ enum ChatEngine: String {
 /// Re-polls integrations on demand (card refresh button, keys saved in Settings).
 enum IntegrationRefresher {
     @MainActor
-    static func refresh(_ id: String) {
+    static func refresh(_ id: String, fromUser: Bool = true) {
+        // A click on refresh (or a saved key) always polls and clears any error backoff.
+        if fromUser { PollGate.shared.manual(id) }
         switch id {
         case "integration_github":
-            AppState.shared.githubConnection = .checking
+            if fromUser { AppState.shared.githubConnection = .checking }
             GithubPoller.shared.pollNow()
         case "integration_notion":
             AppState.shared.notionError = nil
