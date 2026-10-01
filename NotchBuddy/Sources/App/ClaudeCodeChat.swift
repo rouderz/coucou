@@ -35,11 +35,7 @@ final class ClaudeCodeChat {
         }
     }
 
-    /// Where `claude` lives and the PATH it needs (from the user's login shell).
-    struct Install: Sendable {
-        let path: String
-        let pathEnv: String
-    }
+    typealias Install = CLITool.Install
 
     private(set) static var install: Install?
     private static var lookupDone = false
@@ -67,57 +63,15 @@ final class ClaudeCodeChat {
     }
 
     nonisolated private static func lookup() -> Install? {
-        let fm = FileManager.default
-        let home = fm.homeDirectoryForCurrentUser.path
-        var pathEnv = ProcessInfo.processInfo.environment["PATH"] ?? "/usr/bin:/bin:/usr/sbin:/sbin"
-
-        // 1. Ask the user's shell, so nvm / Homebrew / custom PATHs are honoured.
-        let shell = ProcessInfo.processInfo.environment["SHELL"] ?? "/bin/zsh"
-        let marker = "__COUCOU__"
-        if let out = run(shell, ["-ilc", "printf '\(marker)%s\\n\(marker)%s\\n' \"$(command -v claude)\" \"$PATH\""],
-                         timeout: 6) {
-            let values = out.components(separatedBy: "\n")
-                .filter { $0.hasPrefix(marker) }
-                .map { String($0.dropFirst(marker.count)) }
-            if values.count == 2 {
-                if !values[1].isEmpty { pathEnv = values[1] }
-                if values[0].hasPrefix("/"), fm.isExecutableFile(atPath: values[0]) {
-                    return Install(path: values[0], pathEnv: pathEnv)
-                }
-            }
-        }
-
-        // 2. Usual install locations.
-        let candidates = [
+        let home = FileManager.default.homeDirectoryForCurrentUser.path
+        return CLITool.locate("claude", fallbacks: [
             "\(home)/.claude/local/claude",
             "\(home)/.local/bin/claude",
             "/opt/homebrew/bin/claude",
             "/usr/local/bin/claude",
             "\(home)/.npm-global/bin/claude",
             "\(home)/.bun/bin/claude",
-        ]
-        for path in candidates where fm.isExecutableFile(atPath: path) {
-            let dir = (path as NSString).deletingLastPathComponent
-            return Install(path: path, pathEnv: "\(dir):\(pathEnv)")
-        }
-        return nil
-    }
-
-    /// Runs a short command and returns its stdout, or nil on failure / timeout.
-    nonisolated private static func run(_ exe: String, _ args: [String], timeout: TimeInterval) -> String? {
-        let p = Process()
-        p.executableURL = URL(fileURLWithPath: exe)
-        p.arguments = args
-        let out = Pipe()
-        p.standardOutput = out
-        p.standardError = FileHandle.nullDevice
-        p.standardInput = FileHandle.nullDevice
-        do { try p.run() } catch { return nil }
-        let deadline = Date().addingTimeInterval(timeout)
-        while p.isRunning && Date() < deadline { Thread.sleep(forTimeInterval: 0.05) }
-        if p.isRunning { p.terminate(); return nil }
-        let data = out.fileHandleForReading.readDataToEndOfFile()
-        return String(data: data, encoding: .utf8)
+        ])
     }
 
     // MARK: - Conversation

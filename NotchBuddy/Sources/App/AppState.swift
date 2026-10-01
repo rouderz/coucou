@@ -51,6 +51,12 @@ final class AppState: ObservableObject {
 
     // Mouse tracking
     var mousePosition: CGPoint = .zero
+    // How the GitHub integration is connected (set by GithubPoller)
+    @Published var githubConnection: GitHubConnection = .checking
+    var githubCLILogin: String? {
+        if case .cli(let login) = githubConnection { return login }
+        return nil
+    }
     // Pointer over the island — published on enter/leave only; drives Mochi's frame rate
     @Published var pointerInIsland: Bool = false
     var lastMouseMove: Date = .now
@@ -463,6 +469,19 @@ struct ChatMessage: Identifiable {
     let id = UUID()
     let role: ChatRole
     var content: String
+}
+
+enum GitHubConnection: Equatable {
+    case checking
+    case cli(login: String?)   // signed-in GitHub CLI
+    case token                 // Personal Access Token from Settings
+    case ghSignedOut           // gh installed but not signed in, and no token
+    case notConfigured         // no gh, no token
+    case failed(String)
+
+    var isConnected: Bool {
+        switch self { case .cli, .token: return true; default: return false }
+    }
 }
 
 enum ChatEngine: String {

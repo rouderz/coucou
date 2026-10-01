@@ -22,6 +22,8 @@ struct SettingsView: View {
         let m = AppState.shared.claudeModel
         return SettingsView.modelPresets.contains { $0.id == m } ? "" : m
     }()
+    @State private var ghStatus: GitHubCLI.Status? = nil
+    @State private var checkingGh = false
     @State private var claudeCodePath: String? = ClaudeCodeChat.install?.path
     @State private var checkingClaudeCode = false
     @State private var launchAtStartup: Bool = (SMAppService.mainApp.status == .enabled)
@@ -273,7 +275,25 @@ struct SettingsView: View {
                                 Circle().fill(Color(hex: "#F4505E")).frame(width: 8, height: 8)
                                 Text("GitHub").font(.system(size: 12, weight: .semibold))
                             }
-                            SecureField("Personal Access Token", text: $githubToken)
+                            #if !APPSTORE
+                            HStack(spacing: 6) {
+                                Circle()
+                                    .fill(state.githubConnection.isConnected ? Color.green
+                                          : checkingGh ? Color.gray : Color.orange)
+                                    .frame(width: 7, height: 7)
+                                Text(ghStatusText)
+                                    .font(.system(size: 11))
+                                    .lineLimit(2)
+                                    .fixedSize(horizontal: false, vertical: true)
+                                Spacer()
+                                Button(checkingGh ? "Testing…" : "Test connection") { checkGitHubCLI(force: true) }
+                                    .disabled(checkingGh)
+                            }
+                            #endif
+                            SecureField(ghStatus == .signedIn
+                                        ? "Personal Access Token (not needed while gh is signed in)"
+                                        : "Personal Access Token",
+                                        text: $githubToken)
                                 .textFieldStyle(.roundedBorder)
                         }
 
@@ -433,9 +453,40 @@ struct SettingsView: View {
             .padding(20)
         }
         .frame(width: 480, height: 720)
+        .onAppear { checkGitHubCLI(force: false) }
     }
 
     // MARK: - Actions
+
+    private var ghStatusText: String {
+        switch state.githubConnection {
+        case .cli(let login): return login.map { "Connected via GitHub CLI — @\($0). No token needed." }
+                                     ?? "Connected via GitHub CLI. No token needed."
+        case .token:          return "Connected with your Personal Access Token."
+        case .failed(let why): return why
+        default: break
+        }
+        switch ghStatus {
+        case nil:        return "Looking for the GitHub CLI…"
+        case .signedIn:  return state.githubCLILogin.map { "Using GitHub CLI — signed in as @\($0)" }
+                                ?? "Using GitHub CLI (signed in). No token needed."
+        case .signedOut: return "GitHub CLI found but signed out. Run `gh auth login`, or paste a token."
+        case .missing:   return "GitHub CLI not found. Install it (brew install gh) and sign in, or paste a token."
+        }
+    }
+
+    private func checkGitHubCLI(force: Bool) {
+        checkingGh = true
+        Task {
+            let status = await Task.detached(priority: .utility) { GitHubCLI.status(force: force) }.value
+            ghStatus = status
+            // Re-poll so the island and this line show the real result, not just gh's sign-in.
+            state.githubConnection = .checking
+            GithubPoller.shared.refresh()
+            try? await Task.sleep(for: .seconds(3))
+            checkingGh = false
+        }
+    }
 
     private func applyCustomModel(_ value: String) {
         let id = value.trimmingCharacters(in: .whitespacesAndNewlines)
@@ -582,6 +633,7 @@ struct SettingsView: View {
         saveKey("n8n-api-key",     value: n8nKey)
         saveKey("vercel-token",    value: vercelToken)
         saveKey("github-token",    value: githubToken)
+        GithubPoller.shared.refresh()
         saveKey("stripe-api-key",  value: stripeKey)
         saveKey("calcom-api-key",  value: calcomKey)
         saveKey("notion-api-key",  value: notionKey)
