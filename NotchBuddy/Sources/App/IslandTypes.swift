@@ -33,9 +33,14 @@ enum BotEmote: String, CaseIterable {
 // MARK: - Approval info (pending PermissionRequest from Claude Code)
 
 struct ApprovalInfo: Sendable {
+    let id = UUID()
     var sessionId: String
     var tool: String
     var command: String
+    var risk: ApprovalRisk = .medium
+    var riskReason: String = ""
+    /// What "Always" would save, in plain words (from Claude Code's permission_suggestions).
+    var rules: [String] = []
 }
 
 // MARK: - Pill badge (shown on pill edge when non-focused task has an alert)

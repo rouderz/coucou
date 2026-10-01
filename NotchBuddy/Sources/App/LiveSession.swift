@@ -571,13 +571,11 @@ private struct CodePanel: View {
 
     private var approvalBar: some View {
         HStack(spacing: 8) {
-            Text("Claude wants to make this change")
-                .font(.system(size: 11))
-                .foregroundColor(Color(hex: "#F5A524"))
-            Spacer()
-            SecondaryButton("Deny")   { HookServer.shared.sendApprovalDecision("deny") }
-            PrimaryButton("Allow")    { HookServer.shared.sendApprovalDecision("allow") }
-            SecondaryButton("Always") { HookServer.shared.sendApprovalDecision("always") }
+            if let approval = state.pendingApproval {
+                RiskChip(risk: approval.risk, reason: approval.riskReason)
+            }
+            Spacer(minLength: 4)
+            ApprovalControls(approval: state.pendingApproval)
         }
         .padding(8)
         .background(Color.white.opacity(0.03))

@@ -496,6 +496,13 @@ struct SettingsView: View {
                         }
 
                         Divider().padding(.vertical, 2)
+                        Toggle("Approve from the keyboard: ⌥⏎ Allow · ⌥⌫ Deny", isOn: $state.approvalShortcutsEnabled)
+                        Text("Only active while Claude Code is waiting for you. High-risk requests need a click on Allow.")
+                            .font(.system(size: 11))
+                            .foregroundColor(.secondary)
+                            .fixedSize(horizontal: false, vertical: true)
+
+                        Divider().padding(.vertical, 2)
                         Toggle("Push-to-talk: hold to talk to Mochi", isOn: $state.voiceEnabled)
                         if state.voiceEnabled {
                             HStack(spacing: 8) {

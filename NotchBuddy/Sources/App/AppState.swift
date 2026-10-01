@@ -178,6 +178,14 @@ final class AppState: ObservableObject {
         }
     }
 
+    // ⌥⏎ Allow / ⌥⌫ Deny while an approval is waiting.
+    @Published var approvalShortcutsEnabled: Bool = true {
+        didSet {
+            UserDefaults.standard.set(approvalShortcutsEnabled, forKey: "approvalShortcutsEnabled")
+            if !approvalShortcutsEnabled { ApprovalShortcuts.shared.disarm() }
+        }
+    }
+
     // Push-to-talk: hold the shortcut (default ⌃⌥V), speak, let go → Mochi answers.
     @Published var voiceEnabled: Bool = true {
         didSet {
@@ -312,6 +320,7 @@ final class AppState: ObservableObject {
         if let v = ud.object(forKey: "assistantHotkeyEnabled") as? Bool { assistantHotkeyEnabled = v }
         if let v = ud.object(forKey: "assistantHotkeyFlags")   as? Int  { assistantHotkeyFlags = UInt(v) }
         if let v = ud.object(forKey: "assistantHotkeyCode")    as? Int  { assistantHotkeyCode = UInt16(v) }
+        if let v = ud.object(forKey: "approvalShortcutsEnabled") as? Bool { approvalShortcutsEnabled = v }
         if let v = ud.object(forKey: "voiceEnabled")      as? Bool   { voiceEnabled = v }
         if let v = ud.object(forKey: "voiceHotkeyFlags")  as? Int    { voiceHotkeyFlags = UInt(v) }
         if let v = ud.object(forKey: "voiceHotkeyCode")   as? Int    { voiceHotkeyCode = UInt16(v) }

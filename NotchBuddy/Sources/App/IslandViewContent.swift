@@ -212,19 +212,19 @@ struct ApprovalView: View {
         ZStack {
             CardBackground(wash: .amber)
             VStack(alignment: .leading, spacing: 5) {
-                AgentWho(task: state.focusTask, label: "needs permission")
-                CodeBlock(text: approval?.command ?? approval?.tool ?? "…")
                 HStack(spacing: 8) {
-                    SecondaryButton("Deny") {
-                        HookServer.shared.sendApprovalDecision("deny")
-                    }
-                    PrimaryButton("Allow") {
-                        HookServer.shared.sendApprovalDecision("allow")
-                    }
-                    SecondaryButton("Always") {
-                        HookServer.shared.sendApprovalDecision("always")
-                    }
+                    AgentWho(task: state.focusTask, label: "needs permission")
+                    if let approval { RiskChip(risk: approval.risk, reason: approval.riskReason) }
                 }
+                CodeBlock(text: approval?.command ?? approval?.tool ?? "…")
+                    .lineLimit(2)
+                    .overlay(alignment: .leading) {
+                        // Risk colour as a left edge on the command
+                        if let approval {
+                            Capsule().fill(approval.risk.color).frame(width: 3).padding(.vertical, 4)
+                        }
+                    }
+                ApprovalControls(approval: approval)
             }
             .padding(.leading, 116)
             .padding(.trailing, 16)
