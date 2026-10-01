@@ -1,3 +1,4 @@
+import AppKit
 import Foundation
 import SwiftUI
 
@@ -67,8 +68,8 @@ struct EditPreview: Identifiable, Equatable, Sendable {
 // MARK: - Building a preview from a hook's tool_input
 
 enum EditPreviewBuilder {
-    private static let context = 3
-    private static let maxChanged = 8          // per side, to fit the island
+    private static let context = 2
+    private static let maxChanged = 200        // per side; the diff scrolls
     private static let maxFileBytes = 2_000_000
 
     /// Edit / MultiEdit / Write → preview; nil for other tools.
@@ -94,10 +95,10 @@ enum EditPreviewBuilder {
             let content = input["content"] as? String ?? ""
             let exists = FileManager.default.fileExists(atPath: file)
             let all = content.components(separatedBy: "\n")
-            let lines = all.prefix(context * 2 + maxChanged).enumerated().map {
+            let lines = all.prefix(400).enumerated().map {
                 EditPreview.Line(kind: .added, number: $0.offset + 1, text: $0.element)
             }
-            let extra = all.count > lines.count ? " · \(all.count) lines" : ""
+            let extra = " · \(all.count) line\(all.count == 1 ? "" : "s")"
             return EditPreview(file: file, relativePath: rel, language: lang, lines: Array(lines),
                                note: (exists ? "rewrite" : "new file") + extra)
 
@@ -324,7 +325,7 @@ enum SyntaxHighlighter {
 struct LiveSessionView: View {
     @ObservedObject var state: AppState
 
-    private var steps: [ToolActivity] { Array(state.liveActivities.suffix(4)) }
+    private var steps: [ToolActivity] { Array(state.liveActivities.suffix(3)) }
 
     var body: some View {
         ZStack(alignment: .topLeading) {
@@ -332,7 +333,7 @@ struct LiveSessionView: View {
             HStack(alignment: .top, spacing: 14) {
                 // Left: Mochi (drawn by BotPlacement above this spacer), project, steps
                 VStack(alignment: .leading, spacing: 0) {
-                    Spacer().frame(height: 96)
+                    Spacer().frame(height: 88)
                     Text(state.liveProject ?? "Session")
                         .font(.system(size: 15, weight: .semibold))
                         .foregroundColor(Color(hex: "#F5F6F8"))
@@ -340,10 +341,10 @@ struct LiveSessionView: View {
                     Text("Claude Code")
                         .font(.system(size: 12))
                         .foregroundColor(Color(hex: "#8E939C"))
-                    VStack(alignment: .leading, spacing: 8) {
+                    VStack(alignment: .leading, spacing: 7) {
                         ForEach(steps) { StepRow(activity: $0) }
                     }
-                    .padding(.top, 12)
+                    .padding(.top, 10)
                 }
                 .frame(width: 128, alignment: .leading)
 
@@ -353,6 +354,7 @@ struct LiveSessionView: View {
             .padding(.trailing, 14)
             .padding(.vertical, 12)
         }
+        .clipped()  // never spill over the island header
     }
 }
 
@@ -392,9 +394,12 @@ private struct CodePanel: View {
         VStack(alignment: .leading, spacing: 0) {
             if let edit = state.liveEdit {
                 header(edit)
-                diff(edit)
+                // Scrolls inside the panel: a long change never stretches the island.
+                ScrollView(.vertical, showsIndicators: true) { diff(edit) }
+                    .frame(maxHeight: .infinity)
                     .task(id: edit.id) {
-                        // Typing reveal of the added lines (cosmetic, ~0.6 s).
+                        // Typing reveal of the added lines (cosmetic, ~0.6 s), short changes only.
+                        guard edit.lines.count <= 30 else { reveal = 1; return }
                         reveal = 0
                         for step in 1...24 {
                             try? await Task.sleep(for: .milliseconds(25))
@@ -405,7 +410,7 @@ private struct CodePanel: View {
                 idle
             }
             Spacer(minLength: 0)
-            if state.pendingApproval != nil { approvalBar }
+            if state.pendingApproval != nil { approvalBar } else { actionBar }
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
         .background(Color(hex: "#0E0F12"))
@@ -512,6 +517,60 @@ private struct CodePanel: View {
         .padding(12)
     }
 
+    private var finished: Bool { state.liveActivities.last?.tool == "Done" }
+
+    /// Status + what you can do with the change: ask about it, open it, or go back.
+    private var actionBar: some View {
+        HStack(spacing: 6) {
+            if finished {
+                Image(systemName: "checkmark.circle.fill")
+                    .font(.system(size: 11)).foregroundColor(Color(hex: "#22C55E"))
+                Text("Done · \(state.liveActivities.count - 1) step\(state.liveActivities.count == 2 ? "" : "s")")
+                    .font(.system(size: 11)).foregroundColor(Color(hex: "#8E939C"))
+            } else {
+                ProgressView().controlSize(.mini)
+                Text("Working…").font(.system(size: 11)).foregroundColor(Color(hex: "#8E939C"))
+            }
+            Spacer()
+            if let edit = state.liveEdit {
+                ChipButton("Ask Mochi", icon: "bubble.left") { askMochi(about: edit) }
+                    .help("Ask about this change in the chat")
+                ChipButton("Open", icon: "pencil") {
+                    if let editor = Editor.preferred(state.preferredEditor) {
+                        editor.open(folder: edit.file)
+                    } else {
+                        NSWorkspace.shared.open(URL(fileURLWithPath: edit.file))
+                    }
+                }
+                .help("Open the file in your editor")
+            }
+            ChipButton("Back", icon: "chevron.left") {
+                state.view = state.tasks.isEmpty ? .empty : .overview
+            }
+        }
+        .padding(.horizontal, 10)
+        .padding(.vertical, 7)
+        .background(Color.white.opacity(0.03))
+    }
+
+    /// Opens a fresh chat with the file and this change attached (read-only assistant).
+    private func askMochi(about edit: EditPreview) {
+        let session = state.tasks.first { $0.id == "integration_claude" }?.sessionCwd
+        let change = edit.lines.filter { $0.kind != .context }
+            .map { ($0.kind == .removed ? "- " : "+ ") + $0.text }
+            .joined(separator: "\n")
+        let context = CodeContext(
+            appName: "Claude Code",
+            file: edit.file,
+            project: CodeContextCapture.projectRoot(for: edit.file, sessionFolder: session),
+            selection: "Change Claude Code just made (- removed, + added):\n" + change)
+        state.chatHistory = []
+        ClaudeService.shared.clearConversation()
+        ClaudeCodeChat.shared.reset()
+        state.promptContext = .code(context)
+        state.view = .prompt
+    }
+
     private var approvalBar: some View {
         HStack(spacing: 8) {
             Text("Claude wants to make this change")
@@ -524,5 +583,31 @@ private struct CodePanel: View {
         }
         .padding(8)
         .background(Color.white.opacity(0.03))
+    }
+}
+
+
+/// Small capsule button used in the live view's action bar.
+private struct ChipButton: View {
+    let title: String
+    let icon: String
+    let action: () -> Void
+
+    init(_ title: String, icon: String, action: @escaping () -> Void) {
+        self.title = title; self.icon = icon; self.action = action
+    }
+
+    var body: some View {
+        Button(action: action) {
+            HStack(spacing: 4) {
+                Image(systemName: icon).font(.system(size: 9, weight: .semibold))
+                Text(title).font(.system(size: 11, weight: .medium))
+            }
+            .foregroundColor(Color(hex: "#C5C8CD"))
+            .padding(.horizontal, 8).padding(.vertical, 4)
+            .background(Color.white.opacity(0.08))
+            .clipShape(Capsule())
+        }
+        .buttonStyle(.plain)
     }
 }

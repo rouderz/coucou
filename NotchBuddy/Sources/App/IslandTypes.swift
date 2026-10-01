@@ -107,7 +107,7 @@ enum IslandConst {
         .result:    ViewLayout(height: 160, botX: 52,  botY: nil, botDiameter: 44, agentMode: .column),
         .note:      ViewLayout(height: 160, botX: 60,  botY: nil, botDiameter: 50, agentMode: .column),
         .settings:  ViewLayout(height: 160, botX: 54,  botY: nil, botDiameter: 46, agentMode: .none),
-        .live:      ViewLayout(height: 250, botX: 78,  botY: 92,  botDiameter: 52, agentMode: .none),
+        .live:      ViewLayout(height: 280, botX: 78,  botY: 96,  botDiameter: 52, agentMode: .none),
         // Greeting: bot drawn by GreetingCanvasView; no BotPlacement needed
         .greeting:  ViewLayout(height: 150, botX: 320, botY: 90,  botDiameter: 0,  agentMode: .none),
     ]

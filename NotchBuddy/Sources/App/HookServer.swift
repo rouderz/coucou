@@ -29,6 +29,8 @@ final class HookServer: @unchecked Sendable {
 
     private var serverFD: Int32 = -1
     private var pendingApprovalFD: Int32 = -1   // held open while user decides
+    /// The pending approval came from Mochi's own chat (Allow edits), not a terminal session.
+    private var approvalFromChat = false
     private var activeSessionId: String? = nil  // current Claude Code session
 
     private init() {}
@@ -187,6 +189,8 @@ final class HookServer: @unchecked Sendable {
             }
             if let message = payload["message"] as? String, !message.isEmpty {
                 appendStep(id: "integration_claude", step: String(message.prefix(60)))
+            } else {
+                appendStep(id: "integration_claude", step: "Done")
             }
             SoundEngine.shared.play("finish")
             if focused {
@@ -264,7 +268,10 @@ final class HookServer: @unchecked Sendable {
         if let input = payload["tool_input"] as? [String: Any] {
             command = input["command"] as? String ?? tool
         }
-        nbLog("PermissionRequest \(tool): \(command)")
+        // Mochi's own chat asking to edit a file (Allow edits on): approve from the island,
+        // without touching the Claude Code session card.
+        let fromChat = payload["coucou_internal"] as? Bool == true
+        nbLog("PermissionRequest \(tool): \(command)\(fromChat ? " (chat)" : "")")
 
         if pendingApprovalFD >= 0 {
             let old = pendingApprovalFD
@@ -275,10 +282,12 @@ final class HookServer: @unchecked Sendable {
             }
         }
         pendingApprovalFD = fd
-        activeSessionId = sessionId
-
-        upsertTask(projectName: projectName, cwd: cwd)
-        state.updateTask(id: "integration_claude", state: .approval)
+        approvalFromChat = fromChat
+        if !fromChat {
+            activeSessionId = sessionId
+            upsertTask(projectName: projectName, cwd: cwd)
+            state.updateTask(id: "integration_claude", state: .approval)
+        }
         state.pendingApproval = ApprovalInfo(sessionId: sessionId, tool: tool, command: command)
         // File edits get the live view: the diff with Allow / Deny under it.
         let editPreview = EditPreviewBuilder.build(tool: tool, input: payload["tool_input"] as? [String: Any] ?? [:],
@@ -291,8 +300,13 @@ final class HookServer: @unchecked Sendable {
         SoundEngine.shared.play("approval")
 
         // Approval always forces the island open — user must be able to respond
-        state.focusId = "integration_claude"
-        expandIfNeeded(to: editPreview != nil ? .live : .approval)
+        if fromChat {
+            state.view = editPreview != nil ? .live : .approval
+            NotificationCenter.default.post(name: .hookExpand, object: state.view)
+        } else {
+            state.focusId = "integration_claude"
+            expandIfNeeded(to: editPreview != nil ? .live : .approval)
+        }
 
         let captured = fd
         DispatchQueue.main.asyncAfter(deadline: .now() + 115) { [weak self] in
@@ -326,6 +340,11 @@ final class HookServer: @unchecked Sendable {
         let state = AppState.shared
         state.pendingApproval = nil
         state.isPinned = false
+        if approvalFromChat {
+            approvalFromChat = false
+            state.view = .prompt  // back to the chat, Claude carries on
+            return
+        }
         state.updateTask(id: "integration_claude", state: .working)
         clearPillBadge(id: "integration_claude")
         state.view = state.tasks.isEmpty ? .empty : .overview
@@ -737,9 +756,9 @@ private let nbHookScript = """
 import sys, json, os, socket
 
 def main():
-    # Coucou's own chat runs through Claude Code too; never report those sessions.
-    if os.environ.get('COUCOU_INTERNAL') == '1':
-        return
+    # Coucou's own chat runs through Claude Code too: never report its activity,
+    # only bring its file-edit approvals back to the island.
+    internal = os.environ.get('COUCOU_INTERNAL') == '1'
     try:
         raw = sys.stdin.buffer.read()
         if not raw:
@@ -747,6 +766,10 @@ def main():
         payload = json.loads(raw)
     except Exception:
         return
+    if internal:
+        if payload.get('hook_event_name') != 'PermissionRequest':
+            return
+        payload['coucou_internal'] = True
 
     # Enrich with terminal context
     env = os.environ
@@ -832,9 +855,9 @@ private let nbHookScriptAppStore = """
 import sys, json, os, socket
 
 def main():
-    # Coucou's own chat runs through Claude Code too; never report those sessions.
-    if os.environ.get('COUCOU_INTERNAL') == '1':
-        return
+    # Coucou's own chat runs through Claude Code too: never report its activity,
+    # only bring its file-edit approvals back to the island.
+    internal = os.environ.get('COUCOU_INTERNAL') == '1'
     try:
         raw = sys.stdin.buffer.read()
         if not raw:
@@ -842,6 +865,10 @@ def main():
         payload = json.loads(raw)
     except Exception:
         return
+    if internal:
+        if payload.get('hook_event_name') != 'PermissionRequest':
+            return
+        payload['coucou_internal'] = True
 
     env = os.environ
     payload.setdefault('term_program', env.get('TERM_PROGRAM', ''))
