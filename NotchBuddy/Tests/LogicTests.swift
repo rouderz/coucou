@@ -263,6 +263,7 @@ final class DataPillsTests: XCTestCase {
     }
 }
 
+@MainActor
 final class ProviderTests: XCTestCase {
     func testPresetsAreComplete() {
         let ids = ProviderPreset.all.map(\.id)
