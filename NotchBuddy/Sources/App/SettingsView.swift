@@ -612,6 +612,17 @@ struct SettingsView: View {
                                 Toggle("GitHub (through gh)", isOn: $state.inboxGitHub)
                                 Toggle("Linear", isOn: $state.inboxLinear)
                             }
+                            HStack(spacing: 8) {
+                                Toggle("Mochi says it out loud", isOn: $state.inboxSpeak)
+                                Button("Try it") {
+                                    let sample = InboxItem(id: "sample", remoteID: "", source: .github, kind: .review,
+                                                           title: "Fix the cart total", subtitle: "rouderz/coucou #80",
+                                                           actor: nil, url: "", date: .now)
+                                    SoundEngine.shared.play("question")
+                                    VoiceOutput.shared.say(InboxStore.spoken(sample, count: 1),
+                                                           locale: VoiceSession.locale(for: state))
+                                }
+                            }
                             HStack(spacing: 12) {
                                 ForEach(InboxItem.Kind.allCases, id: \.self) { kind in
                                     Toggle(Self.inboxKindTitle(kind), isOn: Binding(

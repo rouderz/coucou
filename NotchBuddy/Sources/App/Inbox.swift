@@ -176,6 +176,14 @@ final class InboxStore: ObservableObject {
 
     func dismissAll() { items.forEach(dismiss) }
 
+    /// "GitHub. Review requested: Fix cart" (or "3 new notifications. Latest, GitHub…").
+    static func spoken(_ item: InboxItem, count: Int) -> String {
+        let source = item.source == .github ? "GitHub" : "Linear"
+        let title = item.title.count > 80 ? String(item.title.prefix(80)) : item.title
+        let line = "\(source). \(item.kindLabel): \(title)"
+        return count > 1 ? L("\(count) new notifications. Latest, \(line)") : line
+    }
+
     /// New since last time: Mochi peeks out with the newest one (badge only in Do not disturb).
     private func announceNew() {
         let fresh = items.filter { !announced.contains($0.id) }
@@ -185,8 +193,13 @@ final class InboxStore: ObservableObject {
         guard !firstRun, let newest = fresh.first else { return }   // no burst at launch
         log.info("new: \(fresh.count) (\(newest.kind.rawValue, privacy: .public))")
         if DoNotDisturb.shared.isActive { return }
-        SoundEngine.shared.play("approval")
+        // Its own sound (not the approval one), a surprised Mochi, and optionally a spoken notice.
+        SoundEngine.shared.play(newest.kind == .review || newest.kind == .mention ? "question" : "pop")
+        NotificationCenter.default.post(name: .triggerEmote, object: BotEmote.surprised)
         NotificationCenter.default.post(name: .hookExpand, object: IslandView.inbox)
+        if AppState.shared.inboxSpeak {
+            VoiceOutput.shared.say(Self.spoken(newest, count: fresh.count), locale: VoiceSession.locale(for: AppState.shared))
+        }
     }
 }
 

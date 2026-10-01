@@ -303,6 +303,10 @@ final class AppState: ObservableObject {
     @Published var inboxLinear: Bool = true {
         didSet { UserDefaults.standard.set(inboxLinear, forKey: "inboxLinear") }
     }
+    /// Mochi says new inbox items out loud (push-to-talk voice and language).
+    @Published var inboxSpeak: Bool = false {
+        didSet { UserDefaults.standard.set(inboxSpeak, forKey: "inboxSpeak") }
+    }
     /// InboxItem.Kind raw values that count (comments and other updates are off by default).
     @Published var inboxKinds: Set<String> = ["review", "mention", "assigned"] {
         didSet { UserDefaults.standard.set(Array(inboxKinds), forKey: "inboxKinds") }
@@ -383,6 +387,7 @@ final class AppState: ObservableObject {
         if let v = ud.object(forKey: "inboxEnabled") as? Bool { inboxEnabled = v }
         if let v = ud.object(forKey: "inboxGitHub") as? Bool { inboxGitHub = v }
         if let v = ud.object(forKey: "inboxLinear") as? Bool { inboxLinear = v }
+        if let v = ud.object(forKey: "inboxSpeak") as? Bool { inboxSpeak = v }
         if let v = ud.stringArray(forKey: "inboxKinds") { inboxKinds = Set(v) }
         if let v = ud.string(forKey: "phoneAlertsTopic") { phoneAlertsTopic = v }
         if let v = ud.string(forKey: "phoneAlertsServer"), !v.isEmpty { phoneAlertsServer = v }
