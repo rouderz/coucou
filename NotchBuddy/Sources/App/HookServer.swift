@@ -145,8 +145,10 @@ final class HookServer: @unchecked Sendable {
             // Limits appear only after the session's first reply: keep the last known ones meanwhile.
             if usage.fiveHour == nil, let old = state.planUsage?.fiveHour, old.resetsAt > .now { usage.fiveHour = old }
             if usage.sevenDay == nil, let old = state.planUsage?.sevenDay, old.resetsAt > .now { usage.sevenDay = old }
-            if let ctx = payload["context_window"] as? [String: Any] {
-                usage.contextPercent = (ctx["used_percentage"] as? NSNumber)?.doubleValue
+            if let ctx = payload["context_window"] as? [String: Any],
+               let pct = (ctx["used_percentage"] as? NSNumber)?.doubleValue {
+                usage.contextPercent = pct
+                usage.contextUpdatedAt = .now
             }
             usage.model = (payload["model"] as? [String: Any])?["display_name"] as? String
             usage.plan = state.planUsage?.plan

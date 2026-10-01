@@ -2967,12 +2967,18 @@ struct PlanUsageView: View {
 
     var body: some View {
         if let usage, usage.fiveHour != nil || usage.sevenDay != nil {
-            VStack(alignment: .leading, spacing: 5) {
+            VStack(alignment: .leading, spacing: 3) {
                 if let w = usage.fiveHour {
                     UsageBar(label: "5h", window: w, reset: "resets in " + Self.remaining(until: w.resetsAt))
                 }
                 if let w = usage.sevenDay {
                     UsageBar(label: "Week", window: w, reset: "resets " + Self.dayTime(w.resetsAt))
+                }
+                // Context of the Claude Code session running now (stale after 15 min without updates).
+                if let pct = usage.contextPercent, let at = usage.contextUpdatedAt,
+                   Date.now.timeIntervalSince(at) < 15 * 60 {
+                    UsageBar(label: "Context", window: .init(percent: pct, resetsAt: at),
+                             reset: pct >= 80 ? "/compact soon" : (usage.model ?? "this session"))
                 }
             }
         } else {
@@ -3016,7 +3022,7 @@ private struct UsageBar: View {
             Text(label)
                 .font(.system(size: 11, weight: .medium))
                 .foregroundColor(Color(hex: "#C5C8CD"))
-                .frame(width: 34, alignment: .leading)
+                .frame(width: 48, alignment: .leading)
             GeometryReader { geo in
                 ZStack(alignment: .leading) {
                     Capsule().fill(Color.white.opacity(0.08))

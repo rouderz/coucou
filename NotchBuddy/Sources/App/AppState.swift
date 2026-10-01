@@ -695,6 +695,8 @@ struct PlanUsage: Equatable {
     var fiveHour: Window? = nil
     var sevenDay: Window? = nil
     var contextPercent: Double? = nil
+    /// When the context % last arrived (it belongs to the session that's running right now).
+    var contextUpdatedAt: Date? = nil
     var model: String? = nil
     /// "Pro", "Max"… from the Claude Code login.
     var plan: String? = nil
