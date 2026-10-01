@@ -172,6 +172,16 @@
         }
       }
     },
+    "Allow calendar access…": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Permitir acceso al calendario…"
+          }
+        }
+      }
+    },
     "Allow now…": {
       "localizations": {
         "es": {
@@ -322,6 +332,16 @@
         }
       }
     },
+    "Automatically during calendar events": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Automáticamente durante eventos del calendario"
+          }
+        }
+      }
+    },
     "Back": {
       "localizations": {
         "es": {
@@ -338,6 +358,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "Comportamiento"
+          }
+        }
+      }
+    },
+    "Calendar access granted": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Acceso al calendario concedido"
           }
         }
       }
@@ -842,6 +872,16 @@
         }
       }
     },
+    "Coucou needs access to your calendars to see when you're in a meeting": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Coucou necesita acceso a tus calendarios para saber cuándo estás en una reunión"
+          }
+        }
+      }
+    },
     "Coucou needs the microphone for push-to-talk. System Settings → Privacy & Security → Microphone.": {
       "localizations": {
         "es": {
@@ -892,6 +932,26 @@
         }
       }
     },
+    "Do not disturb": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No molestar"
+          }
+        }
+      }
+    },
+    "Do not disturb: no sounds, the island doesn't open by itself": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No molestar: sin sonidos y la isla no se abre sola"
+          }
+        }
+      }
+    },
     "Done · %lld steps": {
       "localizations": {
         "es": {
@@ -928,6 +988,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "Suelta tus archivos aquí"
+          }
+        }
+      }
+    },
+    "During calendar events": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Durante eventos del calendario"
           }
         }
       }
@@ -978,6 +1048,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "Motor"
+          }
+        }
+      }
+    },
+    "For 1 hour": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Durante 1 hora"
           }
         }
       }
@@ -1532,6 +1612,16 @@
         }
       }
     },
+    "No sounds, and the island doesn't open by itself: finished, failed and approval events only badge the pill. Also in the 🌙 menu on the island.": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sin sonidos y la isla no se abre sola: lo terminado, los fallos y las aprobaciones solo marcan la pastilla. También en el menú 🌙 de la isla."
+          }
+        }
+      }
+    },
     "No supported editor found. Projects open in Finder.": {
       "localizations": {
         "es": {
@@ -1568,6 +1658,36 @@
           "stringUnit": {
             "state": "translated",
             "value": "OK"
+          }
+        }
+      }
+    },
+    "On during your calendar event": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Activado durante tu evento del calendario"
+          }
+        }
+      }
+    },
+    "On until %@": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Activado hasta las %@"
+          }
+        }
+      }
+    },
+    "On until you turn it off": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Activado hasta que lo desactives"
           }
         }
       }
@@ -2102,6 +2222,16 @@
         }
       }
     },
+    "Turn off Do not disturb": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Desactivar No molestar"
+          }
+        }
+      }
+    },
     "Unexpected API response.": {
       "localizations": {
         "es": {
@@ -2118,6 +2248,26 @@
           "stringUnit": {
             "state": "translated",
             "value": "Desinstalar"
+          }
+        }
+      }
+    },
+    "Until I turn it off": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Hasta que lo desactive"
+          }
+        }
+      }
+    },
+    "Until tomorrow morning": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Hasta mañana por la mañana"
           }
         }
       }

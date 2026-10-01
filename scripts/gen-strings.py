@@ -160,6 +160,17 @@ ES = {
 "Coucou needs the microphone for push-to-talk. System Settings → Privacy & Security → Microphone.":"Coucou necesita el micrófono para hablar. Ajustes del Sistema → Privacidad y seguridad → Micrófono.",
 "Coucou needs Speech Recognition for push-to-talk. System Settings → Privacy & Security → Speech Recognition.":"Coucou necesita Reconocimiento de voz para hablar. Ajustes del Sistema → Privacidad y seguridad → Reconocimiento de voz.",
 "Speech recognition isn't available for %@ on this Mac.":"El reconocimiento de voz no está disponible para %@ en este Mac.",
+# do not disturb
+"Do not disturb":"No molestar","Turn off Do not disturb":"Desactivar No molestar","For 1 hour":"Durante 1 hora",
+"Until tomorrow morning":"Hasta mañana por la mañana","Until I turn it off":"Hasta que lo desactive",
+"During calendar events":"Durante eventos del calendario","On until you turn it off":"Activado hasta que lo desactives",
+"On until %@":"Activado hasta las %@","On during your calendar event":"Activado durante tu evento del calendario",
+"Do not disturb: no sounds, the island doesn't open by itself":"No molestar: sin sonidos y la isla no se abre sola",
+"Automatically during calendar events":"Automáticamente durante eventos del calendario",
+"Calendar access granted":"Acceso al calendario concedido",
+"Coucou needs access to your calendars to see when you're in a meeting":"Coucou necesita acceso a tus calendarios para saber cuándo estás en una reunión",
+"Allow calendar access…":"Permitir acceso al calendario…",
+"No sounds, and the island doesn't open by itself: finished, failed and approval events only badge the pill. Also in the 🌙 menu on the island.":"Sin sonidos y la isla no se abre sola: lo terminado, los fallos y las aprobaciones solo marcan la pastilla. También en el menú 🌙 de la isla.",
 }
 catalog = {"sourceLanguage": "en", "version": "1.0", "strings": {
     k: {"localizations": {"es": {"stringUnit": {"state": "translated", "value": v}}}} for k, v in sorted(ES.items())

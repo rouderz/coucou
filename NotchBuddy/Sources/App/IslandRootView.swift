@@ -485,6 +485,8 @@ struct IslandHeader: View {
 
             // Right: action icons
             HStack(spacing: 14) {
+                DoNotDisturbButton()
+
                 Button(action: {
                     withAnimation(.spring(response: 0.3, dampingFraction: 0.8)) {
                         state.view = .settings

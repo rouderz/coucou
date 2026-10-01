@@ -287,6 +287,20 @@ final class AppState: ObservableObject {
     @Published var notionLoaded: Bool = false
     @Published var notionError: String? = nil
 
+    // Do not disturb (#30)
+    @Published var dndUntil: Date? = nil {
+        didSet { UserDefaults.standard.set(dndUntil, forKey: "dndUntil") }
+    }
+    @Published var dndDuringMeetings: Bool = false {
+        didSet {
+            UserDefaults.standard.set(dndDuringMeetings, forKey: "dndDuringMeetings")
+            if dndDuringMeetings != oldValue { DoNotDisturb.shared.refresh() }
+        }
+    }
+    @Published var dndInMeeting: Bool = false
+    var dndMeetingEnd: Date? = nil
+    var dndSkippedMeetingEnd: Date? = nil
+
     // Claude Code sessions running at the same time (#24). The card shows the focused one.
     @Published var claudeSessions: [ClaudeSession] = []
     @Published var focusedClaudeSession: String? = nil
@@ -325,6 +339,8 @@ final class AppState: ObservableObject {
         if let v = ud.object(forKey: "assistantHotkeyFlags")   as? Int  { assistantHotkeyFlags = UInt(v) }
         if let v = ud.object(forKey: "assistantHotkeyCode")    as? Int  { assistantHotkeyCode = UInt16(v) }
         if let v = ud.object(forKey: "approvalShortcutsEnabled") as? Bool { approvalShortcutsEnabled = v }
+        if let v = ud.object(forKey: "dndUntil") as? Date, v > .now { dndUntil = v }
+        if let v = ud.object(forKey: "dndDuringMeetings") as? Bool { dndDuringMeetings = v }
         if let v = ud.object(forKey: "voiceEnabled")      as? Bool   { voiceEnabled = v }
         if let v = ud.object(forKey: "voiceHotkeyFlags")  as? Int    { voiceHotkeyFlags = UInt(v) }
         if let v = ud.object(forKey: "voiceHotkeyCode")   as? Int    { voiceHotkeyCode = UInt16(v) }
