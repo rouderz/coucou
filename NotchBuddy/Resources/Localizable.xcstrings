@@ -822,6 +822,16 @@
         }
       }
     },
+    "Claude Code sessions, approvals and plan usage are connected to Coucou.": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Las sesiones de Claude Code, las aprobaciones y el uso del plan están conectados a Coucou."
+          }
+        }
+      }
+    },
     "Claude Code settings": {
       "localizations": {
         "es": {
@@ -1242,6 +1252,16 @@
         }
       }
     },
+    "Coucou will write this to ~/.claude/settings.json (your current file is backed up first). Review it, then confirm.": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Coucou escribirá esto en ~/.claude/settings.json (antes guarda una copia del archivo actual). Revísalo y confirma."
+          }
+        }
+      }
+    },
     "Custom…": {
       "localizations": {
         "es": {
@@ -1582,12 +1602,32 @@
         }
       }
     },
+    "Hooks installed, but out of date": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Hooks instalados, pero desactualizados"
+          }
+        }
+      }
+    },
     "Hooks need an update (approvals timeout / plan usage bars)": {
       "localizations": {
         "es": {
           "stringUnit": {
             "state": "translated",
             "value": "Los hooks necesitan una actualización (tiempo de aprobaciones / barras de uso del plan)"
+          }
+        }
+      }
+    },
+    "Hooks not installed": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Hooks sin instalar"
           }
         }
       }
@@ -1668,6 +1708,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "Instala la app gratuita ntfy (iOS / Android), pulsa + y suscríbete a este tema. El aviso incluye el proyecto y el comando: mantén el tema en privado o usa tu propio servidor ntfy."
+          }
+        }
+      }
+    },
+    "Install them so Coucou sees your Claude Code sessions and can approve from the island. Claude Code is never blocked if Coucou isn't running.": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Instálalos para que Coucou vea tus sesiones de Claude Code y puedas aprobar desde la isla. Claude Code nunca se bloquea si Coucou no está abierto."
           }
         }
       }
@@ -2672,6 +2722,16 @@
         }
       }
     },
+    "Reinstall…": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Reinstalar…"
+          }
+        }
+      }
+    },
     "Resend error — check API key & sender.": {
       "localizations": {
         "es": {
@@ -3298,6 +3358,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "Actualizar hooks"
+          }
+        }
+      }
+    },
+    "Update them to get the latest: approvals that don't time out, plan usage bars.": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Actualízalos para tener lo último: aprobaciones sin tiempo agotado y barras de uso del plan."
           }
         }
       }

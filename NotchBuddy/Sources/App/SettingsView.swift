@@ -55,6 +55,7 @@ struct SettingsView: View {
     @State private var assistantCode: UInt16  = AppState.shared.assistantHotkeyCode
     @State private var language: AppLanguage  = AppLanguage.current
     @State private var calendarAllowed: Bool  = DoNotDisturb.calendarAllowed
+    @State private var hookStatus: HookServer.HookInstallState = HookServer.installState()
     @State private var voiceFlags: UInt       = AppState.shared.voiceHotkeyFlags
     @State private var voiceCode: UInt16      = AppState.shared.voiceHotkeyCode
     @State private var voiceAllowed: Bool     = VoiceInput.permissionsGranted
@@ -174,6 +175,7 @@ struct SettingsView: View {
                 // MARK: Hooks
                 GroupBox("Claude Code Hooks") {
                     VStack(alignment: .leading, spacing: 10) {
+                        #if APPSTORE
                         if hookNeedsUpdate {
                             HStack(spacing: 6) {
                                 Image(systemName: "exclamationmark.triangle.fill")
@@ -182,12 +184,9 @@ struct SettingsView: View {
                                     .font(.system(size: 11))
                                     .foregroundColor(.orange)
                             }
-                            #if APPSTORE
                             Button("Update hooks") { installHooksAppStore() }
-                            #else
-                            Button("Update hooks") { installHooks() }
-                            #endif
                         }
+                        #endif
                         #if APPSTORE
                         if claudeAccessGranted {
                             Text("~/.claude/coucou/nb-hook")
@@ -207,18 +206,31 @@ struct SettingsView: View {
                                 .buttonStyle(.borderedProminent)
                         }
                         #else
-                        Text("nb-hook : \(HookServer.hookScriptPath)")
-                            .font(.system(size: 11, design: .monospaced))
-                            .foregroundColor(.secondary)
+                        HookStatusRow(status: hookStatus, path: HookServer.hookScriptPath)
                         HStack(spacing: 10) {
-                            Button("Install hooks") { installHooks() }
-                                .buttonStyle(.borderedProminent)
-                            Button("Uninstall") { uninstallHooks() }
-                                .buttonStyle(.bordered)
+                            switch hookStatus {
+                            case .installed:
+                                Button("Reinstall…") { installHooks() }
+                                    .buttonStyle(.bordered)
+                                Button("Uninstall") { uninstallHooks() }
+                                    .buttonStyle(.bordered)
+                            case .needsUpdate:
+                                Button("Update hooks") { installHooks() }
+                                    .buttonStyle(.borderedProminent)
+                                Button("Uninstall") { uninstallHooks() }
+                                    .buttonStyle(.bordered)
+                            case .notInstalled:
+                                Button("Install hooks") { installHooks() }
+                                    .buttonStyle(.borderedProminent)
+                            }
                         }
                         #endif
 
                         if showDiff {
+                            Text("Coucou will write this to ~/.claude/settings.json (your current file is backed up first). Review it, then confirm.")
+                                .font(.system(size: 11))
+                                .foregroundColor(.secondary)
+                                .fixedSize(horizontal: false, vertical: true)
                             ScrollView {
                                 Text(pendingHookJSON)
                                     .font(.system(size: 10, design: .monospaced))
@@ -902,7 +914,7 @@ struct SettingsView: View {
         do {
             pendingHookJSON = try HookServer.shared.previewClaudeHooks()
             showDiff = true
-            statusMessage = L("Review the JSON below before confirming.")
+            statusMessage = ""
         } catch {
             statusMessage = "❌ \(error.localizedDescription)"
         }
@@ -915,6 +927,7 @@ struct SettingsView: View {
             statusMessage = L("✓ Hooks installed in ~/.claude/settings.json")
             pendingHookJSON = ""
             hookNeedsUpdate = false
+            hookStatus = HookServer.installState()
         } catch {
             statusMessage = L("❌ Write error: \(error.localizedDescription)")
         }
@@ -924,6 +937,8 @@ struct SettingsView: View {
         do {
             try HookServer.shared.uninstallClaudeHooks()
             statusMessage = L("✓ Hooks removed.")
+            hookStatus = HookServer.installState()
+            showDiff = false
         } catch {
             statusMessage = "❌ \(error.localizedDescription)"
         }
@@ -1221,5 +1236,36 @@ struct ProviderSettingsSection: View {
                 .fixedSize(horizontal: false, vertical: true)
         }
         .onAppear { key = KeychainStore.shared.get(preset.keychainKey) ?? "" }
+    }
+}
+
+
+/// Hook status at a glance: green installed, orange needs an update, grey not installed.
+struct HookStatusRow: View {
+    let status: HookServer.HookInstallState
+    let path: String
+
+    var body: some View {
+        HStack(alignment: .top, spacing: 8) {
+            Circle()
+                .fill(status == .installed ? Color.green : status == .needsUpdate ? Color.orange : Color.gray)
+                .frame(width: 8, height: 8)
+                .padding(.top, 4)
+            VStack(alignment: .leading, spacing: 2) {
+                Text(status == .installed ? "Hooks installed"
+                     : status == .needsUpdate ? "Hooks installed, but out of date"
+                     : "Hooks not installed")
+                    .font(.system(size: 12.5, weight: .semibold))
+                Text(status == .installed
+                     ? "Claude Code sessions, approvals and plan usage are connected to Coucou."
+                     : status == .needsUpdate
+                     ? "Update them to get the latest: approvals that don't time out, plan usage bars."
+                     : "Install them so Coucou sees your Claude Code sessions and can approve from the island. Claude Code is never blocked if Coucou isn't running.")
+                    .font(.system(size: 11))
+                    .foregroundColor(.secondary)
+                    .fixedSize(horizontal: false, vertical: true)
+            }
+        }
+        .help(path)
     }
 }

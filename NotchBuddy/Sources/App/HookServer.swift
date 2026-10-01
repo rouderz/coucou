@@ -779,6 +779,23 @@ final class HookServer: @unchecked Sendable {
     /// The status line command the user had before Coucou's, run after ours so it still shows.
     static var previousStatusLinePath: URL { supportDir.appendingPathComponent("statusline-previous") }
 
+    enum HookInstallState: Equatable { case notInstalled, needsUpdate, installed }
+
+    /// Whether Coucou's hooks are in ~/.claude/settings.json, and up to date.
+    static func installState() -> HookInstallState {
+        let url = FileManager.default.homeDirectoryForCurrentUser.appendingPathComponent(".claude/settings.json")
+        guard let data = try? Data(contentsOf: url),
+              let settings = try? JSONSerialization.jsonObject(with: data) as? [String: Any],
+              let hooks = settings["hooks"] as? [String: Any] else { return .notInstalled }
+        let ours = hooks.values.contains { matchers in
+            (matchers as? [[String: Any]])?.contains { m in
+                (m["hooks"] as? [[String: Any]])?.contains { ($0["command"] as? String)?.contains("nb-hook") == true } == true
+            } == true
+        }
+        guard ours else { return .notInstalled }
+        return hooksNeedUpdate() ? .needsUpdate : .installed
+    }
+
     /// Whether ~/.claude/settings.json uses Coucou's status line (needed for the plan usage bars).
     static func statusLineInstalled() -> Bool {
         let url = FileManager.default.homeDirectoryForCurrentUser.appendingPathComponent(".claude/settings.json")
