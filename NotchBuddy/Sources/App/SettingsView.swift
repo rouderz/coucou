@@ -86,6 +86,7 @@ struct SettingsView: View {
                         Picker("Engine", selection: $state.chatEngine) {
                             Text("Claude Code (subscription)").tag(ChatEngine.claudeCode)
                             Text("Anthropic API key").tag(ChatEngine.apiKey)
+                            Text("Other provider").tag(ChatEngine.provider)
                         }
                         .pickerStyle(.segmented)
                         #endif
@@ -114,6 +115,8 @@ struct SettingsView: View {
                                 .font(.system(size: 11))
                                 .foregroundColor(.secondary)
                                 .fixedSize(horizontal: false, vertical: true)
+                        } else if state.chatEngine == .provider {
+                            ProviderSettingsSection(state: state, statusMessage: $statusMessage)
                         } else {
                             SecureField("API key (sk-ant-…)", text: $apiKey)
                                 .textFieldStyle(.roundedBorder)
@@ -124,6 +127,7 @@ struct SettingsView: View {
                             .buttonStyle(.borderedProminent)
                         }
 
+                        if state.chatEngine != .provider {
                         Divider().padding(.vertical, 2)
 
                         Picker("Model", selection: $modelChoice) {
@@ -149,6 +153,7 @@ struct SettingsView: View {
                         Text("Used by the chat. Fable needs access on your plan or API account.")
                             .font(.system(size: 11))
                             .foregroundColor(.secondary)
+                        }
 
                         if state.chatEngine == .apiKey {
                             Picker("Longest answer", selection: $state.apiMaxTokens) {
@@ -1141,5 +1146,80 @@ struct ShortcutRecorderButton: View {
             34:"I", 37:"L", 38:"J", 40:"K", 45:"N", 46:"M", 49:"Space", 50:"`", 27:"-"
         ]
         return map[c] ?? "·"
+    }
+}
+
+
+// MARK: - Other provider (#43)
+
+/// OpenAI, Gemini, OpenRouter, Ollama, LM Studio or any OpenAI-compatible server.
+struct ProviderSettingsSection: View {
+    @ObservedObject var state: AppState
+    @Binding var statusMessage: String
+    @State private var key: String = ""
+    @State private var models: [String] = []
+    @State private var loading = false
+
+    private var preset: ProviderPreset { ProviderPreset.find(state.providerID) }
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 8) {
+            Picker("Provider", selection: $state.providerID) {
+                ForEach(ProviderPreset.all) { Text($0.name).tag($0.id) }
+            }
+            .onChange(of: state.providerID) { _, _ in
+                state.providerModel = ""
+                state.providerBaseURL = ""
+                models = []
+                key = KeychainStore.shared.get(preset.keychainKey) ?? ""
+            }
+
+            TextField(preset.baseURL.isEmpty ? "https://your-server/v1" : preset.baseURL, text: $state.providerBaseURL)
+                .textFieldStyle(.roundedBorder)
+                .help("Server address. Leave empty to use the default shown in grey.")
+
+            if preset.needsKey || preset.id == "custom" {
+                HStack {
+                    SecureField(preset.keyHint.isEmpty ? "API key" : "API key (\(preset.keyHint))", text: $key)
+                        .textFieldStyle(.roundedBorder)
+                    Button("Save") {
+                        KeychainStore.shared.set(preset.keychainKey, value: key)
+                        statusMessage = L("✓ Key saved.")
+                    }
+                }
+            }
+
+            HStack {
+                TextField(preset.defaultModel.isEmpty ? "Model" : "Model (\(preset.defaultModel))", text: $state.providerModel)
+                    .textFieldStyle(.roundedBorder)
+                if !models.isEmpty {
+                    Menu("Pick") {
+                        ForEach(models, id: \.self) { m in Button(m) { state.providerModel = m } }
+                    }
+                    .fixedSize()
+                }
+                Button(loading ? "Loading…" : "Load models") {
+                    loading = true
+                    Task {
+                        do {
+                            models = try await ProviderSettings.listModels()
+                            statusMessage = models.isEmpty ? L("The server returned no models.") : ""
+                        } catch {
+                            statusMessage = "❌ " + APIError.describe(error)
+                        }
+                        loading = false
+                    }
+                }
+                .disabled(loading)
+            }
+
+            Text(preset.needsKey
+                 ? "Mochi's chat goes to \(preset.name) with your key. Files and the code you're on are sent as text; edits and web search stay with the Claude engines."
+                 : "Runs on your Mac: nothing leaves it. Start \(preset.name) first, then Load models.")
+                .font(.system(size: 11))
+                .foregroundColor(.secondary)
+                .fixedSize(horizontal: false, vertical: true)
+        }
+        .onAppear { key = KeychainStore.shared.get(preset.keychainKey) ?? "" }
     }
 }

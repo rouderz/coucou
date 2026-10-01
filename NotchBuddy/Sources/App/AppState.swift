@@ -115,6 +115,16 @@ final class AppState: ObservableObject {
     @Published var chatEngine: ChatEngine = AppState.defaultChatEngine {
         didSet { UserDefaults.standard.set(chatEngine.rawValue, forKey: "chatEngine") }
     }
+    // "Other provider" engine (#43): preset, optional server override, model
+    @Published var providerID: String = "openai" {
+        didSet { UserDefaults.standard.set(providerID, forKey: "providerID") }
+    }
+    @Published var providerBaseURL: String = "" {
+        didSet { UserDefaults.standard.set(providerBaseURL, forKey: "providerBaseURL") }
+    }
+    @Published var providerModel: String = "" {
+        didSet { UserDefaults.standard.set(providerModel, forKey: "providerModel") }
+    }
 
     // Claude model used by the chat and the search — persisted
     static let defaultClaudeModel = "claude-opus-5-5"
@@ -366,6 +376,9 @@ final class AppState: ObservableObject {
         if let v = ud.object(forKey: "soundVolume")  as? Double { soundVolume  = v }
         #if !APPSTORE
         if let v = ud.string(forKey: "chatEngine"), let e = ChatEngine(rawValue: v) { chatEngine = e }
+        if let v = ud.string(forKey: "providerID") { providerID = v }
+        if let v = ud.string(forKey: "providerBaseURL") { providerBaseURL = v }
+        if let v = ud.string(forKey: "providerModel") { providerModel = v }
         #endif
         preferredEditor = ud.string(forKey: "preferredEditor")
         if let v = ud.object(forKey: "apiMaxTokens") as? Int, v >= 256 { apiMaxTokens = v }
@@ -682,6 +695,7 @@ enum GitHubConnection: Equatable {
 enum ChatEngine: String {
     case claudeCode  // the user's own Claude Code CLI, signed in with their subscription
     case apiKey      // Anthropic API with the key saved in the Keychain
+    case provider    // another provider: OpenAI, Gemini, OpenRouter, Ollama… (#42)
 }
 
 // MARK: - Integration refresh

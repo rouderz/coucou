@@ -71,6 +71,8 @@ final class KeychainStore: @unchecked Sendable {
         "calcom-api-key",
         "notion-api-key",
         "linear-api-key",
+        "provider-key-openai", "provider-key-gemini", "provider-key-openrouter",
+        "provider-key-ollama", "provider-key-lmstudio", "provider-key-custom",
     ]
 
     private init() {
@@ -155,6 +157,10 @@ final class ClaudeService {
     func chat(query: String, context: PromptContext?, state: AppState) async {
         if state.chatEngine == .claudeCode {
             await chatWithClaudeCode(query: query, context: context, state: state)
+            return
+        }
+        if state.chatEngine == .provider {
+            await chatWithProvider(OpenAICompatibleChat.shared, query: query, context: context, state: state)
             return
         }
         guard let key = apiKey, !key.isEmpty else {
@@ -293,6 +299,39 @@ final class ClaudeService {
             if let id = replyID { state.chatHistory.removeAll { $0.id == id } }
             VoiceOutput.shared.stop()
             await showError(error.localizedDescription, state: state)
+        }
+    }
+
+    // MARK: - Chat through another provider (#42)
+
+    private func chatWithProvider(_ provider: any ChatProvider, query: String, context: PromptContext?, state: AppState) async {
+        if state.chatHistory.count <= 1 { provider.reset() }
+        var replyID: UUID?
+        func show(_ text: String) {
+            let clean = text.trimmingCharacters(in: .whitespacesAndNewlines)
+            guard !clean.isEmpty else { return }
+            if let id = replyID, let i = state.chatHistory.firstIndex(where: { $0.id == id }) {
+                state.chatHistory[i].content = clean
+            } else {
+                let msg = ChatMessage(role: .assistant, content: clean)
+                replyID = msg.id
+                state.chatHistory.append(msg)
+                state.stateOverride = nil
+            }
+            VoiceOutput.shared.feed(clean)
+        }
+        do {
+            let answer = try await provider.send(query: query, context: context, systemPrompt: Self.systemPrompt) { show($0) }
+            show(answer)
+            VoiceOutput.shared.finish(answer)
+            ChatStore.shared.saveCurrent(state)
+            state.stateOverride = nil
+            state.view = .prompt
+            NotificationCenter.default.post(name: .triggerEmote, object: BotEmote.happy)
+        } catch {
+            if let id = replyID { state.chatHistory.removeAll { $0.id == id } }
+            VoiceOutput.shared.stop()
+            await showError(APIError.describe(error), state: state)
         }
     }
 

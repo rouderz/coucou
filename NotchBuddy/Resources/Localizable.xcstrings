@@ -22,6 +22,16 @@
         }
       }
     },
+    "%@ isn't answering at %@. Is it running?": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@ no responde en %@. ¿Está abierto?"
+          }
+        }
+      }
+    },
     "%lld approvals": {
       "localizations": {
         "es": {
@@ -172,6 +182,16 @@
         }
       }
     },
+    "API key (%@)": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Clave de API (%@)"
+          }
+        }
+      }
+    },
     "API key (sk-ant-…)": {
       "localizations": {
         "es": {
@@ -228,6 +248,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "Añadir esta cronología como comentario en %@ · %@"
+          }
+        }
+      }
+    },
+    "Add your %@ API key in Settings → Chat.": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Añade tu clave de API de %@ en Ajustes → Chat."
           }
         }
       }
@@ -1712,6 +1742,16 @@
         }
       }
     },
+    "Invalid server address": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Dirección del servidor no válida"
+          }
+        }
+      }
+    },
     "Language": {
       "localizations": {
         "es": {
@@ -1788,6 +1828,26 @@
           "stringUnit": {
             "state": "translated",
             "value": "Cargar lista"
+          }
+        }
+      }
+    },
+    "Load models": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Cargar modelos"
+          }
+        }
+      }
+    },
+    "Loading…": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Cargando…"
           }
         }
       }
@@ -1982,12 +2042,32 @@
         }
       }
     },
+    "Mochi's chat goes to %@ with your key. Files and the code you're on are sent as text; edits and web search stay with the Claude engines.": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "El chat de Mochi va a %@ con tu clave. Los archivos y el código se envían como texto; la edición y la búsqueda web siguen siendo de los motores de Claude."
+          }
+        }
+      }
+    },
     "Model": {
       "localizations": {
         "es": {
           "stringUnit": {
             "state": "translated",
             "value": "Modelo"
+          }
+        }
+      }
+    },
+    "Model (%@)": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Modelo (%@)"
           }
         }
       }
@@ -2362,6 +2442,16 @@
         }
       }
     },
+    "Other provider": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Otro proveedor"
+          }
+        }
+      }
+    },
     "Overview": {
       "localizations": {
         "es": {
@@ -2432,6 +2522,16 @@
         }
       }
     },
+    "Pick": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Elegir"
+          }
+        }
+      }
+    },
     "Post to %@": {
       "localizations": {
         "es": {
@@ -2478,6 +2578,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "Los proyectos aparecen aquí cuando Claude Code trabaja en ellos (o configúralo desde ⚡ en una aprobación)."
+          }
+        }
+      }
+    },
+    "Provider": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Proveedor"
           }
         }
       }
@@ -2632,6 +2742,16 @@
         }
       }
     },
+    "Runs on your Mac: nothing leaves it. Start %@ first, then Load models.": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Funciona en tu Mac: nada sale de él. Abre primero %@ y luego Cargar modelos."
+          }
+        }
+      }
+    },
     "Same as the Mac": {
       "localizations": {
         "es": {
@@ -2758,6 +2878,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "Servidor"
+          }
+        }
+      }
+    },
+    "Server address. Leave empty to use the default shown in grey.": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Dirección del servidor. Déjala vacía para usar la de gris."
           }
         }
       }
@@ -2948,6 +3078,66 @@
           "stringUnit": {
             "state": "translated",
             "value": "La API está limitando esta clave. Espera un momento y vuelve a intentarlo."
+          }
+        }
+      }
+    },
+    "The provider answered with an error (%lld).": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "El proveedor respondió con un error (%lld)."
+          }
+        }
+      }
+    },
+    "The provider answered with an error.": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "El proveedor respondió con un error."
+          }
+        }
+      }
+    },
+    "The provider doesn't know the model “%@”. Pick another in Settings → Chat (Load models).": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "El proveedor no conoce el modelo “%@”. Elige otro en Ajustes → Chat (Cargar modelos)."
+          }
+        }
+      }
+    },
+    "The provider is rate limiting this key. Wait a moment and try again.": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "El proveedor está limitando esta clave. Espera un momento y vuelve a intentarlo."
+          }
+        }
+      }
+    },
+    "The provider rejected the API key. Check it in Settings → Chat.": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "El proveedor rechazó la clave de API. Revísala en Ajustes → Chat."
+          }
+        }
+      }
+    },
+    "The server returned no models.": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "El servidor no devolvió modelos."
           }
         }
       }
