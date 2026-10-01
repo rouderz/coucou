@@ -287,6 +287,20 @@ final class AppState: ObservableObject {
     @Published var notionLoaded: Bool = false
     @Published var notionError: String? = nil
 
+    // Phone alerts for approvals nobody answered (#31)
+    @Published var phoneAlertsEnabled: Bool = false {
+        didSet { UserDefaults.standard.set(phoneAlertsEnabled, forKey: "phoneAlertsEnabled") }
+    }
+    @Published var phoneAlertsTopic: String = "" {
+        didSet { UserDefaults.standard.set(phoneAlertsTopic, forKey: "phoneAlertsTopic") }
+    }
+    @Published var phoneAlertsServer: String = "https://ntfy.sh" {
+        didSet { UserDefaults.standard.set(phoneAlertsServer, forKey: "phoneAlertsServer") }
+    }
+    @Published var phoneAlertsOnlyWhenAway: Bool = true {
+        didSet { UserDefaults.standard.set(phoneAlertsOnlyWhenAway, forKey: "phoneAlertsOnlyWhenAway") }
+    }
+
     // Do not disturb (#30)
     @Published var dndUntil: Date? = nil {
         didSet { UserDefaults.standard.set(dndUntil, forKey: "dndUntil") }
@@ -342,6 +356,10 @@ final class AppState: ObservableObject {
         if let v = ud.object(forKey: "assistantHotkeyCode")    as? Int  { assistantHotkeyCode = UInt16(v) }
         if let v = ud.object(forKey: "approvalShortcutsEnabled") as? Bool { approvalShortcutsEnabled = v }
         if let v = ud.object(forKey: "dndUntil") as? Date, v > .now { dndUntil = v }
+        if let v = ud.object(forKey: "phoneAlertsEnabled") as? Bool { phoneAlertsEnabled = v }
+        if let v = ud.string(forKey: "phoneAlertsTopic") { phoneAlertsTopic = v }
+        if let v = ud.string(forKey: "phoneAlertsServer"), !v.isEmpty { phoneAlertsServer = v }
+        if let v = ud.object(forKey: "phoneAlertsOnlyWhenAway") as? Bool { phoneAlertsOnlyWhenAway = v }
         if let v = ud.object(forKey: "dndDuringMeetings") as? Bool { dndDuringMeetings = v }
         if let v = ud.object(forKey: "voiceEnabled")      as? Bool   { voiceEnabled = v }
         if let v = ud.object(forKey: "voiceHotkeyFlags")  as? Int    { voiceHotkeyFlags = UInt(v) }

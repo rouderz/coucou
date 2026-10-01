@@ -204,6 +204,9 @@ struct ApprovalControls: View {
                     if let approval, !approval.rules.isEmpty {
                         SecondaryButton("Always…") { confirmingAlways = true }
                     }
+                    if let approval, !compact, approval.risk != .high, !approval.cwd.isEmpty {
+                        AutoApproveMenu(project: approval.cwd)
+                    }
                     if state.approvalShortcutsEnabled, !compact, let approval {
                         Text(approval.risk == .high ? "⌥⌫ deny" : "⌥⏎ allow · ⌥⌫ deny")
                             .font(.system(size: 10))
@@ -240,5 +243,35 @@ final class ApprovalShortcuts {
     func disarm() {
         allowKey.unregister()
         denyKey.unregister()
+    }
+}
+
+
+/// ⚡ on the approval card: auto-allow requests like this one in this project from now on (#29).
+struct AutoApproveMenu: View {
+    let project: String
+    @ObservedObject private var state = AppState.shared
+
+    var body: some View {
+        let current = AutoApprove.level(for: project)
+        Menu {
+            Section(L("In \((project as NSString).lastPathComponent)")) {
+                ForEach(AutoApproveLevel.allCases) { level in
+                    Button {
+                        AutoApprove.set(level, for: project)
+                    } label: {
+                        Text(level == current ? "✓ \(level.title)" : level.title)
+                    }
+                }
+            }
+        } label: {
+            Image(systemName: current == .ask ? "bolt" : "bolt.fill")
+                .font(.system(size: 12, weight: .semibold))
+                .foregroundColor(current == .ask ? Color(hex: "#8E939C") : Color(hex: "#F5A524"))
+        }
+        .menuStyle(.borderlessButton)
+        .menuIndicator(.hidden)
+        .fixedSize()
+        .help("Auto-approve in this project (never high risk)")
     }
 }

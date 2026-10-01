@@ -558,6 +558,72 @@ struct SettingsView: View {
                     .padding(6)
                 }
 
+                // MARK: Auto-approve
+                GroupBox("Auto-approve (Claude Code)") {
+                    VStack(alignment: .leading, spacing: 8) {
+                        Text("Coucou can answer Allow for you, per project. High-risk requests always ask. Auto-allowed steps show in the session timeline.")
+                            .font(.system(size: 11))
+                            .foregroundColor(.secondary)
+                            .fixedSize(horizontal: false, vertical: true)
+                        let projects = AutoApprove.knownProjects
+                        if projects.isEmpty {
+                            Text("Projects appear here once Claude Code runs in them (or set it from ⚡ on an approval).")
+                                .font(.system(size: 11))
+                                .foregroundColor(.secondary)
+                        }
+                        ForEach(projects, id: \.self) { project in
+                            HStack {
+                                Text((project as NSString).lastPathComponent)
+                                    .help(project)
+                                Spacer()
+                                Picker("", selection: Binding(
+                                    get: { AutoApprove.rules[project] ?? .ask },
+                                    set: { AutoApprove.set($0, for: project) })) {
+                                    ForEach(AutoApproveLevel.allCases) { Text($0.title).tag($0) }
+                                }
+                                .labelsHidden()
+                                .frame(width: 230)
+                            }
+                        }
+                    }
+                    .padding(6)
+                }
+
+                // MARK: Phone alerts
+                GroupBox("Phone alerts") {
+                    VStack(alignment: .leading, spacing: 8) {
+                        Toggle("Send approvals that wait 20 s to my phone", isOn: $state.phoneAlertsEnabled)
+                            .onChange(of: state.phoneAlertsEnabled) { _, on in
+                                if on && state.phoneAlertsTopic.isEmpty { state.phoneAlertsTopic = PhoneAlerts.newTopic() }
+                            }
+                        if state.phoneAlertsEnabled {
+                            Toggle("Only when I'm away (screen locked or 2 min idle)", isOn: $state.phoneAlertsOnlyWhenAway)
+                            HStack(spacing: 8) {
+                                Text("Topic").frame(width: 50, alignment: .leading)
+                                TextField("coucou-…", text: $state.phoneAlertsTopic)
+                                    .textFieldStyle(.roundedBorder)
+                                    .font(.system(size: 12, design: .monospaced))
+                                Button("New") { state.phoneAlertsTopic = PhoneAlerts.newTopic() }
+                                Button("Copy") {
+                                    NSPasteboard.general.clearContents()
+                                    NSPasteboard.general.setString(state.phoneAlertsTopic, forType: .string)
+                                }
+                            }
+                            HStack(spacing: 8) {
+                                Text("Server").frame(width: 50, alignment: .leading)
+                                TextField("https://ntfy.sh", text: $state.phoneAlertsServer)
+                                    .textFieldStyle(.roundedBorder)
+                                Button("Send test") { PhoneAlerts.shared.sendTest() }
+                            }
+                            Text("Install the free ntfy app (iOS / Android), tap + and subscribe to this topic. The alert includes the project and the command: keep the topic private, or use your own ntfy server.")
+                                .font(.system(size: 11))
+                                .foregroundColor(.secondary)
+                                .fixedSize(horizontal: false, vertical: true)
+                        }
+                    }
+                    .padding(6)
+                }
+
                 // MARK: Do not disturb
                 GroupBox("Do not disturb") {
                     VStack(alignment: .leading, spacing: 8) {

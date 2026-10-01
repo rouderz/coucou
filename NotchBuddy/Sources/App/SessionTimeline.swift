@@ -78,6 +78,12 @@ final class TimelineStore: ObservableObject {
                                                  toolUseID: nil, tool: decision))
     }
 
+    func recordAutoApproval(sessionId: String, tool: String, command: String, reason: String) {
+        append(sessionId, TimelineEntry(kind: .approval, title: L("Auto-allowed"),
+                                        detail: "\(tool): \(command) · \(reason)".prefix(200).description,
+                                        start: .now, end: .now, toolUseID: nil, tool: "auto"))
+    }
+
     // MARK: Summary and export
 
     func summary(_ id: String) -> String {

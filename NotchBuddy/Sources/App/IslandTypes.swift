@@ -41,6 +41,8 @@ struct ApprovalInfo: Sendable {
     var riskReason: String = ""
     /// What "Always" would save, in plain words (from Claude Code's permission_suggestions).
     var rules: [String] = []
+    /// The session's folder, for per-project auto-approval (#29).
+    var cwd: String = ""
 }
 
 // MARK: - Pill badge (shown on pill edge when non-focused task has an alert)
