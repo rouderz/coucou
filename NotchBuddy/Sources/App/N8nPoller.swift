@@ -23,6 +23,9 @@ final class N8nPoller: @unchecked Sendable {
 
     // MARK: - Poll list endpoint
 
+    /// Polls right away (refresh button, keys just saved).
+    func pollNow() { DispatchQueue.global(qos: .utility).async { [weak self] in self?.poll() } }
+
     private func poll() {
         guard let apiKey  = KeychainStore.shared.get("n8n-api-key"),
               let rawBase = KeychainStore.shared.get("n8n-url") else {
@@ -40,6 +43,7 @@ final class N8nPoller: @unchecked Sendable {
     private func tryList(_ urls: [String], apiKey: String, base: String, idx: Int) {
         guard idx < urls.count, let url = URL(string: urls[idx]) else {
             n8nLog("All list endpoints failed")
+            IntegrationStatus.report("integration_n8n", .error("Can't reach n8n · check the URL and API key"))
             return
         }
         var req = URLRequest(url: url, timeoutInterval: 10)
@@ -75,8 +79,10 @@ final class N8nPoller: @unchecked Sendable {
                 items = arr
             } else {
                 self.n8nLog("Unexpected response shape")
+                IntegrationStatus.report("integration_n8n", .error("Unexpected response from n8n"))
                 return
             }
+            IntegrationStatus.report("integration_n8n", items.isEmpty ? .empty("Connected · no executions yet") : .ok)
 
             guard let first = items.first else { self.n8nLog("No executions found"); return }
 

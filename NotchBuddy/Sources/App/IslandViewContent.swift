@@ -89,15 +89,21 @@ struct OverviewView: View {
 
                 // ↗ jump button — last in ZStack so it renders on top; hidden while any detail is open
                 if !showingN8nDetail {
-                    Button(action: { openAgentTarget(agent) }) {
-                        Image(systemName: "arrow.up.right")
-                            .font(.system(size: 8, weight: .medium))
-                            .foregroundColor(Color(hex: "#5F646D"))
-                            .frame(width: 16, height: 16)
-                            .background(Color.white.opacity(0.07))
-                            .clipShape(Circle())
+                    HStack(spacing: 6) {
+                        // ↻ refresh — integrations only (Claude Code is live through its hooks)
+                        if let agent, agent.isIntegration, agent.id != "integration_claude" {
+                            RefreshButton(id: agent.id)
+                        }
+                        Button(action: { openAgentTarget(agent) }) {
+                            Image(systemName: "arrow.up.right")
+                                .font(.system(size: 8, weight: .medium))
+                                .foregroundColor(Color(hex: "#5F646D"))
+                                .frame(width: 16, height: 16)
+                                .background(Color.white.opacity(0.07))
+                                .clipShape(Circle())
+                        }
+                        .buttonStyle(.plain)
                     }
-                    .buttonStyle(.plain)
                     .padding(.top, 8)
                     .padding(.trailing, 10)
                     .frame(maxWidth: .infinity, alignment: .trailing)
@@ -988,20 +994,6 @@ struct IntegrationCardView: View {
             : ("Hooks not installed · install them in Settings", Color(hex: "#F4505E"))
     }
 
-    /// GitHub-specific status line: says how it's connected instead of "Key not configured".
-    private var githubStatus: (text: String, color: Color) {
-        let green = Color(hex: "#22C55E"), red = Color(hex: "#F4505E"), grey = Color(hex: "#6B7079")
-        switch appState.githubConnection {
-        case .checking:          return ("Checking connection…", grey)
-        case .cli(let login):    return (login.map { "Connected via GitHub CLI · @\($0) · loading…" }
-                                         ?? "Connected via GitHub CLI · loading…", green)
-        case .token:             return ("Connected with token · loading…", green)
-        case .ghSignedOut:       return ("GitHub CLI signed out · run gh auth login", red)
-        case .notConfigured:     return ("Not connected · install gh or add a token", red)
-        case .failed(let why):   return (why, red)
-        }
-    }
-
     private var openURL: URL? {
         switch task.id {
         case "integration_claude":  return nil  // uses terminal button below
@@ -1056,7 +1048,7 @@ struct IntegrationCardView: View {
 
     // Notion: show pages as soon as first poll completes
     private var notionHasData: Bool {
-        task.id == "integration_notion" && appState.notionLoaded
+        task.id == "integration_notion" && (appState.notionLoaded || appState.notionError != nil)
     }
 
     var body: some View {
@@ -1146,17 +1138,12 @@ struct IntegrationCardView: View {
                 .padding(.trailing, 36)
 
                 HStack(spacing: 5) {
-                    let stripeErr = task.id == "integration_stripe" ? appState.stripeError
-                                  : task.id == "integration_calcom"  ? appState.calcomError
-                                  : nil
-                    let github = task.id == "integration_github" ? githubStatus
-                               : task.id == "integration_claude" ? claudeHookStatus : nil
-                    let dot = github?.color
-                            ?? (stripeErr != nil ? Color(hex: "#F4505E")
-                            : isConfigured    ? Color(hex: "#22C55E")
-                            :                   Color(hex: "#F4505E"))
-                    let label = github?.text
-                            ?? stripeErr ?? (isConfigured ? "Connected · loading…" : "Key not configured")
+                    let status: (text: String, color: Color) = task.id == "integration_claude"
+                        ? claudeHookStatus
+                        : { let st = IntegrationStatus.of(task.id, appState)
+                            return (st.help, Color(hex: st.colorHex)) }()
+                    let dot = status.color
+                    let label = status.text
                     Circle().fill(dot).frame(width: 5, height: 5)
                     Text(label)
                         .font(.system(size: 11))
@@ -1253,9 +1240,7 @@ struct VercelDeploymentListView: View {
         VStack(alignment: .leading, spacing: 0) {
             // Header
             HStack(spacing: 6) {
-                Circle()
-                    .fill(Color(hex: "#7C5CFF"))
-                    .frame(width: 7, height: 7)
+                StatusDot(id: "integration_vercel")
                 Text("Vercel")
                     .font(.system(size: 12, weight: .semibold))
                     .foregroundColor(Color(hex: "#F5F6F8"))
@@ -1422,9 +1407,7 @@ struct ResendCardView: View {
         VStack(alignment: .leading, spacing: 0) {
             // Header
             HStack(spacing: 6) {
-                Circle()
-                    .fill(Color(hex: "#22C55E"))
-                    .frame(width: 7, height: 7)
+                StatusDot(id: "integration_resend")
                 Text("Resend")
                     .font(.system(size: 12, weight: .semibold))
                     .foregroundColor(Color(hex: "#F5F6F8"))
@@ -1506,9 +1489,7 @@ struct GitHubStatsCardView: View {
         VStack(alignment: .leading, spacing: 0) {
             // Header
             HStack(spacing: 6) {
-                Circle()
-                    .fill(Color(hex: "#F4505E"))
-                    .frame(width: 7, height: 7)
+                StatusDot(id: "integration_github")
                 Text("GitHub")
                     .font(.system(size: 12, weight: .semibold))
                     .foregroundColor(Color(hex: "#F5F6F8"))
@@ -1592,9 +1573,7 @@ struct StripeCardView: View {
         VStack(alignment: .leading, spacing: 0) {
             // Header
             HStack(spacing: 6) {
-                Circle()
-                    .fill(Color(hex: "#0570DE"))
-                    .frame(width: 7, height: 7)
+                StatusDot(id: "integration_stripe")
                 Text("Stripe")
                     .font(.system(size: 12, weight: .semibold))
                     .foregroundColor(Color(hex: "#F5F6F8"))
@@ -1968,20 +1947,70 @@ private struct CalcomDetailRow: View {
 
 // MARK: - Notion Card View
 
+/// Small ↻ button that re-polls one integration and spins for a moment.
+/// The integration's status light: green connected, amber nothing to show yet,
+/// red error / not configured, grey checking. Hover for details.
+struct StatusDot: View {
+    let id: String
+    @ObservedObject private var appState = AppState.shared
+
+    var body: some View {
+        let status = IntegrationStatus.of(id, appState)
+        Circle()
+            .fill(Color(hex: status.colorHex))
+            .frame(width: 7, height: 7)
+            .help(status.help)
+    }
+}
+
+struct RefreshButton: View {
+    let id: String
+    @State private var spins = 0
+
+    var body: some View {
+        Button {
+            spins += 1
+            IntegrationRefresher.refresh(id)
+        } label: {
+            Image(systemName: "arrow.clockwise")
+                .font(.system(size: 8, weight: .medium))
+                .foregroundColor(Color(hex: "#5F646D"))
+                .rotationEffect(.degrees(Double(spins) * 360))
+                .animation(.easeInOut(duration: 0.8), value: spins)
+                .frame(width: 16, height: 16)
+                .background(Color.white.opacity(0.07))
+                .clipShape(Circle())
+        }
+        .buttonStyle(.plain)
+        .help("Refresh")
+    }
+}
+
 struct NotionCardView: View {
     @ObservedObject private var appState = AppState.shared
 
     var body: some View {
         VStack(alignment: .leading, spacing: 0) {
             HStack(spacing: 6) {
-                Circle().fill(Color(hex: "#E8E8E8")).frame(width: 7, height: 7)
+                // Connection light: green = pages, amber = connected but nothing shared, red = error
+                StatusDot(id: "integration_notion")
                 Text("Notion").font(.system(size: 12, weight: .semibold)).foregroundColor(Color(hex: "#F5F6F8"))
-                Text("Recent").font(.system(size: 11)).foregroundColor(Color(hex: "#8E939C"))
+                Text(appState.notionPages.count > 3 ? "Recent · \(appState.notionPages.count)" : "Recent")
+                    .font(.system(size: 11)).foregroundColor(Color(hex: "#8E939C"))
             }
             .padding(.top, 6).padding(.leading, 108).padding(.trailing, 36)
 
+            if let error = appState.notionError {
+                NotionHint(dot: "#F4505E", text: error)
+            } else if appState.notionPages.isEmpty {
+                NotionHint(dot: "#F5A524",
+                           text: "No pages shared with your integration yet. In Notion: page → ••• → Connections → add it, then ↻.")
+            }
+
+            // ~3 rows visible; scroll for the rest
+            ScrollView(.vertical, showsIndicators: false) {
             VStack(alignment: .leading, spacing: 2) {
-                ForEach(appState.notionPages.prefix(3)) { page in
+                ForEach(appState.notionPages) { page in
                     Button {
                         if let url = URL(string: page.url) { NSWorkspace.shared.open(url) }
                     } label: {
@@ -1998,6 +2027,7 @@ struct NotionCardView: View {
                             Spacer(minLength: 4)
                             Text(page.timeAgo).font(.system(size: 9))
                                 .foregroundColor(Color(hex: "#4B5563"))
+                                .fixedSize()  // never truncated by a long title
                         }
                         .padding(.horizontal, 6).padding(.vertical, 4)
                         .contentShape(Rectangle())
@@ -2005,6 +2035,8 @@ struct NotionCardView: View {
                     .buttonStyle(.plain)
                 }
             }
+            }
+            .frame(maxHeight: 76)
             .padding(.leading, 102).padding(.trailing, 12).padding(.top, 5)
         }
         .frame(maxWidth: .infinity, alignment: .topLeading).padding(.top, 4)
@@ -2824,5 +2856,26 @@ extension Color {
             green: min(1, Double(components.greenComponent) + amount),
             blue: min(1, Double(components.blueComponent) + amount)
         )
+    }
+}
+
+
+/// One-line status under the Notion header (error, or how to share pages).
+private struct NotionHint: View {
+    let dot: String
+    let text: String
+
+    var body: some View {
+        HStack(alignment: .top, spacing: 5) {
+            Circle().fill(Color(hex: dot)).frame(width: 5, height: 5).padding(.top, 4)
+            Text(text)
+                .font(.system(size: 11))
+                .foregroundColor(Color(hex: "#8E939C"))
+                .fixedSize(horizontal: false, vertical: true)
+                .lineLimit(3)
+        }
+        .padding(.top, 8)
+        .padding(.leading, 108)
+        .padding(.trailing, 16)
     }
 }

@@ -648,10 +648,10 @@ struct SettingsView: View {
         saveKey("n8n-api-key",     value: n8nKey)
         saveKey("vercel-token",    value: vercelToken)
         saveKey("github-token",    value: githubToken)
-        GithubPoller.shared.refresh()
         saveKey("stripe-api-key",  value: stripeKey)
         saveKey("calcom-api-key",  value: calcomKey)
         saveKey("notion-api-key",  value: notionKey)
+        IntegrationRefresher.refreshAll()  // show the result now instead of at the next poll
         statusMessage = "✓ Integration keys saved."
     }
 

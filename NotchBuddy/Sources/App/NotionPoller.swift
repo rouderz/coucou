@@ -26,7 +26,7 @@ final class NotionPoller: @unchecked Sendable {
         req.setValue("application/json", forHTTPHeaderField: "Content-Type")
         let body: [String: Any] = [
             "sort": ["direction": "descending", "timestamp": "last_edited_time"],
-            "page_size": 3
+            "page_size": 20  // the card shows ~3 and scrolls for the rest
         ]
         req.httpBody = try? JSONSerialization.data(withJSONObject: body)
 

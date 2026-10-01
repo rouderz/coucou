@@ -58,6 +58,8 @@ final class GithubPoller: @unchecked Sendable {
     }
 
     /// Re-polls now (e.g. right after the user signs in to gh or saves a token).
+    func pollNow() { refresh() }
+
     func refresh() {
         DispatchQueue.global(qos: .utility).async { [weak self] in self?.poll() }
     }
