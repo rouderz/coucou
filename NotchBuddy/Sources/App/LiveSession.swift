@@ -564,9 +564,7 @@ private struct CodePanel: View {
             file: edit.file,
             project: CodeContextCapture.projectRoot(for: edit.file, sessionFolder: session),
             selection: "Change Claude Code just made (- removed, + added):\n" + change)
-        state.chatHistory = []
-        ClaudeService.shared.clearConversation()
-        ClaudeCodeChat.shared.reset()
+        ChatSession.startNew(state)
         state.promptContext = .code(context)
         state.view = .prompt
     }

@@ -14,16 +14,19 @@ final class GlobalHotKey {
     private var ref: EventHotKeyRef?
     private let id: UInt32
     private let action: @MainActor () -> Void
+    /// Called when the shortcut is let go (hold-to-talk). Nil for plain shortcuts.
+    private let onRelease: (@MainActor () -> Void)?
 
     private static var registry: [UInt32: GlobalHotKey] = [:]
     private static var nextID: UInt32 = 1
     private static var handlerInstalled = false
     private static let signature: OSType = 0x434F_5543  // 'COUC'
 
-    init(action: @escaping @MainActor () -> Void) {
+    init(action: @escaping @MainActor () -> Void, onRelease: (@MainActor () -> Void)? = nil) {
         id = Self.nextID
         Self.nextID += 1
         self.action = action
+        self.onRelease = onRelease
         Self.installHandler()
         Self.registry[id] = self
     }
@@ -57,20 +60,25 @@ final class GlobalHotKey {
     private static func installHandler() {
         guard !handlerInstalled else { return }
         handlerInstalled = true
-        var spec = EventTypeSpec(eventClass: OSType(kEventClassKeyboard),
-                                 eventKind: UInt32(kEventHotKeyPressed))
+        var specs = [
+            EventTypeSpec(eventClass: OSType(kEventClassKeyboard), eventKind: UInt32(kEventHotKeyPressed)),
+            EventTypeSpec(eventClass: OSType(kEventClassKeyboard), eventKind: UInt32(kEventHotKeyReleased)),
+        ]
         InstallEventHandler(GetEventDispatcherTarget(), { _, event, _ in
             var hotKeyID = EventHotKeyID()
             GetEventParameter(event, EventParamName(kEventParamDirectObject),
                               EventParamType(typeEventHotKeyID), nil,
                               MemoryLayout<EventHotKeyID>.size, nil, &hotKeyID)
             let id = hotKeyID.id
-            assistantLog.info("hotkey pressed id=\(id)")
+            let released = GetEventKind(event) == UInt32(kEventHotKeyReleased)
             DispatchQueue.main.async {
-                MainActor.assumeIsolated { GlobalHotKey.registry[id]?.action() }
+                MainActor.assumeIsolated {
+                    guard let key = GlobalHotKey.registry[id] else { return }
+                    if released { key.onRelease?() } else { key.action() }
+                }
             }
             return noErr
-        }, 1, &spec, nil, nil)
+        }, specs.count, &specs, nil, nil)
     }
 }
 

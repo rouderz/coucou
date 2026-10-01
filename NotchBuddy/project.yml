@@ -68,6 +68,8 @@ targets:
         NSSupportsAutomaticGraphicsSwitching: YES
         NSAppleEventsUsageDescription: "Pour sauter au terminal et envoyer des mails."
         NSAccessibilityUsageDescription: "Pour lire le titre de la fenêtre active et l'attacher comme contexte."
+        NSMicrophoneUsageDescription: "Push-to-talk: Mochi listens only while you hold the shortcut."
+        NSSpeechRecognitionUsageDescription: "Push-to-talk: your voice is transcribed on this Mac to ask Mochi."
     settings:
       base:
         PRODUCT_BUNDLE_IDENTIFIER: fr.louisraille.NotchBuddy
@@ -102,6 +104,8 @@ targets:
         NSSupportsAutomaticGraphicsSwitching: YES
         LSApplicationCategoryType: public.app-category.developer-tools
         ITSAppUsesNonExemptEncryption: NO
+        NSMicrophoneUsageDescription: "Push-to-talk: Mochi listens only while you hold the shortcut."
+        NSSpeechRecognitionUsageDescription: "Push-to-talk: your voice is transcribed on this Mac to ask Mochi."
     settings:
       base:
         PRODUCT_BUNDLE_IDENTIFIER: fr.louisraille.Coucou

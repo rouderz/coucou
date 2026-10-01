@@ -2,7 +2,7 @@ import AppKit
 import ApplicationServices
 
 /// What the user is working on in their editor: the file, its project and the selection.
-struct CodeContext: Equatable, Sendable {
+struct CodeContext: Equatable, Sendable, Codable {
     let appName: String
     /// Absolute path of the file in the focused editor window.
     let file: String

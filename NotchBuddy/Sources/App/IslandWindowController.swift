@@ -490,6 +490,14 @@ final class IslandWindowController: NSWindowController {
             MainActor.assumeIsolated { self?.registerAssistantHotKey() }
         }
 
+        // Push-to-talk: hold to listen, let go to send.
+        voiceHotKey = GlobalHotKey(action: { [weak self] in self?.startTalking() },
+                                   onRelease: { [weak self] in self?.stopTalking() })
+        registerVoiceHotKey()
+        NotificationCenter.default.addObserver(forName: .voiceHotkeyChanged, object: nil, queue: .main) { [weak self] _ in
+            MainActor.assumeIsolated { self?.registerVoiceHotKey() }
+        }
+
         // Global hotkey to show island
         NSEvent.addGlobalMonitorForEvents(matching: .keyDown) { [weak self] event in
             Task { @MainActor in
@@ -665,6 +673,31 @@ final class IslandWindowController: NSWindowController {
         return nil
     }
 
+    // MARK: - Push-to-talk
+
+    private var voiceHotKey: GlobalHotKey?
+
+    private func registerVoiceHotKey() {
+        guard let hotKey = voiceHotKey else { return }
+        if state.voiceEnabled {
+            let ok = hotKey.register(keyCode: state.voiceHotkeyCode, flags: state.voiceHotkeyFlags)
+            voiceLog.info("voice: shortcut registered=\(ok)")
+        } else {
+            hotKey.unregister()
+        }
+    }
+
+    private func startTalking() {
+        if state.view != .prompt || state.mode == .hidden || state.mode == .compact {
+            expand(to: .prompt)
+        }
+        VoiceSession.begin(state)
+    }
+
+    private func stopTalking() {
+        VoiceSession.end(state)
+    }
+
     // MARK: - Assistant: ask about the frontmost app
 
     private var assistantHotKey: GlobalHotKey?
@@ -698,9 +731,7 @@ final class IslandWindowController: NSWindowController {
         }
         assistantLog.info("ask: captured \(String(describing: context), privacy: .public)")
         // New question about new context: start a new conversation.
-        state.chatHistory = []
-        ClaudeService.shared.clearConversation()
-        ClaudeCodeChat.shared.reset()
+        ChatSession.startNew(state)
         state.promptContext = context
         SoundEngine.shared.play("approve")
         NotificationCenter.default.post(name: .triggerEmote, object: BotEmote.happy)
@@ -924,6 +955,7 @@ extension Notification.Name {
     static let islandAction     = Notification.Name("notchBuddy.islandAction")
     static let islandCollapse   = Notification.Name("notchBuddy.islandCollapse")
     static let assistantHotkeyChanged = Notification.Name("notchBuddy.assistantHotkeyChanged")
+    static let voiceHotkeyChanged = Notification.Name("notchBuddy.voiceHotkeyChanged")
     static let openFullSettings = Notification.Name("notchBuddy.openFullSettings")
     static let hookReveal       = Notification.Name("notchBuddy.hookReveal")
     // Greeting ↔ IslandWindowController

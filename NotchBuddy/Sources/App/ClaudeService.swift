@@ -127,6 +127,17 @@ final class ClaudeService {
         conversationMessages = []
     }
 
+    /// API engine: continues a saved conversation from its text (attachments aren't kept).
+    func restoreConversation(_ messages: [SavedChat.Message]) {
+        conversationMessages = messages.map { m -> [String: Any] in
+            ["role": m.user ? "user" : "assistant", "content": [["type": "text", "text": m.text]]]
+        }
+        // The API needs user/assistant turns to alternate and to end on an answer.
+        while let last = conversationMessages.last, last["role"] as? String == "user" {
+            conversationMessages.removeLast()
+        }
+    }
+
     static let systemPrompt = """
     You are Mochi, a personal AI assistant living in the notch of the user's Mac. \
     You have web search access and can help with absolutely anything — research, coding, finding places, recommendations, tasks, questions. \
@@ -206,6 +217,7 @@ final class ClaudeService {
             guard !clean.isEmpty else { return }
             if let id = replyID, let i = state.chatHistory.firstIndex(where: { $0.id == id }) {
                 state.chatHistory[i].content = clean
+                VoiceOutput.shared.feed(clean)
             } else {
                 let msg = ChatMessage(role: .assistant, content: clean)
                 replyID = msg.id
@@ -218,11 +230,14 @@ final class ClaudeService {
             let answer = try await engine.send(query: query, context: context, model: model,
                                                systemPrompt: Self.systemPrompt) { partial in show(partial) }
             show(answer)
+            VoiceOutput.shared.finish(answer.trimmingCharacters(in: .whitespacesAndNewlines))
             state.stateOverride = nil
             state.view = .prompt
+            ChatStore.shared.saveCurrent(state)
             NotificationCenter.default.post(name: .triggerEmote, object: BotEmote.happy)
         } catch {
             if let id = replyID { state.chatHistory.removeAll { $0.id == id } }
+            VoiceOutput.shared.stop()
             await showError(error.localizedDescription, state: state)
         }
     }
@@ -327,6 +342,8 @@ final class ClaudeService {
 
         // Add to display history
         state.chatHistory.append(ChatMessage(role: .assistant, content: text.trimmingCharacters(in: .whitespacesAndNewlines)))
+        ChatStore.shared.saveCurrent(state)
+        VoiceOutput.shared.finish(text.trimmingCharacters(in: .whitespacesAndNewlines))
 
         state.stateOverride = nil
         state.view = .prompt
