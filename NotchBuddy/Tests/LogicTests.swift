@@ -252,3 +252,30 @@ final class InboxTests: XCTestCase {
         XCTAssertNil(GitHubInbox.webURL(nil))
     }
 }
+
+final class DataPillsTests: XCTestCase {
+    func testBuildTimeFormatting() {
+        let d = VercelDeployment(id: "1", projectName: "web", url: "", state: "READY", createdAt: .now,
+                                 commitMessage: nil, branch: nil, buildSeconds: 72)
+        XCTAssertEqual(d.buildTime, "1m 12s")
+        XCTAssertNil(VercelDeployment(id: "2", projectName: "web", url: "", state: "READY", createdAt: .now,
+                                      commitMessage: nil, branch: nil).buildTime)
+    }
+}
+
+final class ProviderTests: XCTestCase {
+    func testPresetsAreComplete() {
+        let ids = ProviderPreset.all.map(\.id)
+        XCTAssertEqual(Set(ids).count, ids.count)
+        XCTAssertTrue(ids.contains("ollama"))
+        XCTAssertFalse(ProviderPreset.find("ollama").needsKey)
+        XCTAssertEqual(ProviderPreset.find("nope").id, "openai", "unknown ids fall back to the first preset")
+    }
+
+    func testErrorsAreExplained() {
+        XCTAssertTrue(OpenAICompatibleChat.error(code: 401, data: Data(), model: "m").message.contains("API key"))
+        XCTAssertTrue(OpenAICompatibleChat.error(code: 404, data: Data(), model: "gpt-x").message.contains("gpt-x"))
+        let body = Data(#"{"error":{"message":"context too long"}}"#.utf8)
+        XCTAssertEqual(OpenAICompatibleChat.error(code: 400, data: body, model: "m").message, "context too long")
+    }
+}

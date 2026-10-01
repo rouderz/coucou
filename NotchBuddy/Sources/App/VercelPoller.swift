@@ -81,8 +81,13 @@ final class VercelPoller: @unchecked Sendable {
                   ?? meta?["gitlabCommitRef"] as? String
                   ?? meta?["bitbucketBranch"] as? String
 
+        // Build time: buildingAt → ready (ms). Older deployments may lack buildingAt.
+        let start = (d["buildingAt"] as? Double) ?? createdAtMs
+        let build = (d["ready"] as? Double).map { ($0 - start) / 1000 }.flatMap { $0 > 0 && $0 < 7200 ? $0 : nil }
+
         return VercelDeployment(id: uid, projectName: name, url: url, state: state,
-                                 createdAt: createdAt, commitMessage: commitMessage, branch: branch)
+                                 createdAt: createdAt, commitMessage: commitMessage, branch: branch,
+                                 buildSeconds: build)
     }
 
     @MainActor

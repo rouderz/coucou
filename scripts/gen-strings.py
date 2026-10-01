@@ -211,6 +211,21 @@ ES = {
 "Reviews":"Reviews","Mentions":"Menciones","Assigned":"Asignaciones","Comments":"Comentarios","Other":"Otros",
 "Checked every minute. New items make Mochi peek out (only a badge in Do not disturb); the 🔔 in the island lists them. Opening or dismissing one marks it read on GitHub / Linear.":"Se revisa cada minuto. Lo nuevo hace que Mochi se asome (solo una marca en No molestar); la 🔔 de la isla lo lista. Abrir o descartar algo lo marca como leído en GitHub / Linear.",
 "%lld new notifications. Latest, %@":"%lld notificaciones nuevas. La última, %@","Mochi says it out loud":"Mochi lo dice en voz alta","Try it":"Probar",
+"Payments, last 7 days":"Pagos, últimos 7 días","Last build: %@ · %@":"Último build: %@ · %@","Build took %@":"El build tardó %@",
+# other providers
+"Other provider":"Otro proveedor","Provider":"Proveedor","Invalid server address":"Dirección del servidor no válida",
+"Add your %@ API key in Settings → Chat.":"Añade tu clave de API de %@ en Ajustes → Chat.",
+"The provider answered with an error.":"El proveedor respondió con un error.",
+"%@ isn't answering at %@. Is it running?":"%@ no responde en %@. ¿Está abierto?",
+"The provider rejected the API key. Check it in Settings → Chat.":"El proveedor rechazó la clave de API. Revísala en Ajustes → Chat.",
+"The provider doesn't know the model “%@”. Pick another in Settings → Chat (Load models).":"El proveedor no conoce el modelo “%@”. Elige otro en Ajustes → Chat (Cargar modelos).",
+"The provider is rate limiting this key. Wait a moment and try again.":"El proveedor está limitando esta clave. Espera un momento y vuelve a intentarlo.",
+"The provider answered with an error (%lld).":"El proveedor respondió con un error (%lld).",
+"Server address. Leave empty to use the default shown in grey.":"Dirección del servidor. Déjala vacía para usar la de gris.",
+"API key":"Clave de API","API key (%@)":"Clave de API (%@)","Model (%@)":"Modelo (%@)","Pick":"Elegir","Loading…":"Cargando…","Load models":"Cargar modelos",
+"The server returned no models.":"El servidor no devolvió modelos.",
+"Mochi's chat goes to %@ with your key. Files and the code you're on are sent as text; edits and web search stay with the Claude engines.":"El chat de Mochi va a %@ con tu clave. Los archivos y el código se envían como texto; la edición y la búsqueda web siguen siendo de los motores de Claude.",
+"Runs on your Mac: nothing leaves it. Start %@ first, then Load models.":"Funciona en tu Mac: nada sale de él. Abre primero %@ y luego Cargar modelos.",
 }
 catalog = {"sourceLanguage": "en", "version": "1.0", "strings": {
     k: {"localizations": {"es": {"stringUnit": {"state": "translated", "value": v}}}} for k, v in sorted(ES.items())

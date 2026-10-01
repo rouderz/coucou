@@ -7,6 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		0154DA8B691DFFD5F93F0E04 /* ChatProviders.swift in Sources */ = {isa = PBXBuildFile; fileRef = E9BD0EED8A227075C96B6552 /* ChatProviders.swift */; };
 		0329E76BA4A8FEEA8A6D76E7 /* ClaudeService.swift in Sources */ = {isa = PBXBuildFile; fileRef = A83D5410BD030B243ADDCFF4 /* ClaudeService.swift */; };
 		065FCE817315454DE3F85F25 /* IslandViewContent.swift in Sources */ = {isa = PBXBuildFile; fileRef = FA02B08886939FF6FE0475DD /* IslandViewContent.swift */; };
 		06BF5FD95E03010CAFDBF2D0 /* NotchBuddyApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = F1BD8F3CAA60CF37640759E1 /* NotchBuddyApp.swift */; };
@@ -28,6 +29,7 @@
 		1C5C1130ABBB68E425F97A9B /* Editors.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9CCAB6A62C2295B08987AE80 /* Editors.swift */; };
 		1E6A3E1BF6AA904EBEB3E4E2 /* PollGate.swift in Sources */ = {isa = PBXBuildFile; fileRef = DE9F3AFD05F3365E7AD4D9F8 /* PollGate.swift */; };
 		1F11EC4E6F604C612A1ADAD1 /* AppState.swift in Sources */ = {isa = PBXBuildFile; fileRef = C2E4F18AA940EFF7E047B9F7 /* AppState.swift */; };
+		1F204756633B578DC3432536 /* ChatProviders.swift in Sources */ = {isa = PBXBuildFile; fileRef = E9BD0EED8A227075C96B6552 /* ChatProviders.swift */; };
 		2132477000FD77F7EB234DAA /* FileDropView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3232F258523DD8D09B670363 /* FileDropView.swift */; };
 		2679D8930B2796B95EE3B9B1 /* Localization.swift in Sources */ = {isa = PBXBuildFile; fileRef = 54C2F1398292E39F8D2341B1 /* Localization.swift */; };
 		26C3447EE37458ABF238E7C5 /* EditorBridge.swift in Sources */ = {isa = PBXBuildFile; fileRef = 319E22E82C6E8500CA1AB4D6 /* EditorBridge.swift */; };
@@ -195,6 +197,7 @@
 		D84D7CB7196217FC59839DE9 /* NotchBuddyTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = NotchBuddyTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		DE9F3AFD05F3365E7AD4D9F8 /* PollGate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PollGate.swift; sourceTree = "<group>"; };
 		E91B733ADC638E14E9BB6EFA /* WindowContextCapture.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WindowContextCapture.swift; sourceTree = "<group>"; };
+		E9BD0EED8A227075C96B6552 /* ChatProviders.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ChatProviders.swift; sourceTree = "<group>"; };
 		EC73547483E5895C0A7034F8 /* AutoApprove.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AutoApprove.swift; sourceTree = "<group>"; };
 		F1BD8F3CAA60CF37640759E1 /* NotchBuddyApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NotchBuddyApp.swift; sourceTree = "<group>"; };
 		F66B8E32CDC045AD62BCC19A /* Linear.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Linear.swift; sourceTree = "<group>"; };
@@ -215,6 +218,7 @@
 				A29F4C0B02BE91654D02AA0C /* BotCanvasView.swift */,
 				D4540F630F8BA04AFFFA3979 /* BotEngine.swift */,
 				3104222B3F17BA5E8DEA5277 /* CalcomPoller.swift */,
+				E9BD0EED8A227075C96B6552 /* ChatProviders.swift */,
 				828C4F9C123E3820C3C5BAC6 /* ChatStore.swift */,
 				CBB947B5DDC815EFB1A038B6 /* ClaudeCodeChat.swift */,
 				A83D5410BD030B243ADDCFF4 /* ClaudeService.swift */,
@@ -460,6 +464,7 @@
 				C24D863967D8D32D828ED4B1 /* BotEngine.swift in Sources */,
 				0CD72ED49048755285B349C8 /* CLITools.swift in Sources */,
 				4F1E0B3C838DA3CD6F864BC0 /* CalcomPoller.swift in Sources */,
+				1F204756633B578DC3432536 /* ChatProviders.swift in Sources */,
 				8A811118670161B1B7CBC90D /* ChatStore.swift in Sources */,
 				D3178E6AFEF9AB2C3AE98F4A /* ChatViews.swift in Sources */,
 				BBE5DD310255C21A38FC459D /* ClaudeCodeChat.swift in Sources */,
@@ -530,6 +535,7 @@
 				0E9CE475EC53C67DAB00F8E5 /* BotEngine.swift in Sources */,
 				E30F10A02625A013D890C09F /* CLITools.swift in Sources */,
 				1969590AFEE6CB21404346F1 /* CalcomPoller.swift in Sources */,
+				0154DA8B691DFFD5F93F0E04 /* ChatProviders.swift in Sources */,
 				51671591713177F17C835ADF /* ChatStore.swift in Sources */,
 				78F33561BF3007B239C7B69D /* ChatViews.swift in Sources */,
 				19DFB4A4824BBF88ED98D2AE /* ClaudeCodeChat.swift in Sources */,
