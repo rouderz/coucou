@@ -743,7 +743,7 @@ struct NotionCardView: View {
             VStack(alignment: .leading, spacing: 2) {
                 ForEach(appState.notionPages) { page in
                     Button {
-                        if let url = URL(string: page.url) { NSWorkspace.shared.open(url) }
+                        AppLinks.open(page.url)
                     } label: {
                         HStack(spacing: 6) {
                             if let emoji = page.emoji {
@@ -887,7 +887,7 @@ private struct LinearIssueRow: View {
 
     var body: some View {
         Button {
-            if let url = URL(string: issue.url) { NSWorkspace.shared.open(url) }
+            AppLinks.open(issue.url)
         } label: {
             HStack(spacing: 6) {
                 Circle().fill(Color(hex: issue.stateColor)).frame(width: 7, height: 7)
@@ -911,7 +911,7 @@ private struct LinearIssueRow: View {
         }
         .buttonStyle(.plain)
         .contextMenu {
-            Button("Open in Linear") { if let url = URL(string: issue.url) { NSWorkspace.shared.open(url) } }
+            Button("Open in Linear") { AppLinks.open(issue.url) }
             if let branch = issue.branchName {
                 Button("Copy branch name") {
                     NSPasteboard.general.clearContents()
@@ -932,7 +932,7 @@ struct LinearIssueChip: View {
 
     var body: some View {
         Button {
-            if let url = URL(string: issue.url) { NSWorkspace.shared.open(url) }
+            AppLinks.open(issue.url)
         } label: {
             HStack(spacing: 4) {
                 Circle().fill(Color(hex: issue.stateColor)).frame(width: 5, height: 5)

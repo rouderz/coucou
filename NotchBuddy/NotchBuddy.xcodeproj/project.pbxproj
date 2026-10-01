@@ -40,6 +40,7 @@
 		2F36E3C6C073E968A682AFA4 /* NotionPoller.swift in Sources */ = {isa = PBXBuildFile; fileRef = BE03E03D1804B0B92C5C2DAD /* NotionPoller.swift */; };
 		36453DD896A721316FDA2118 /* EditorBridge.swift in Sources */ = {isa = PBXBuildFile; fileRef = 319E22E82C6E8500CA1AB4D6 /* EditorBridge.swift */; };
 		3756B7E1A55D9CEC8C4D34A4 /* IslandStateMachine.swift in Sources */ = {isa = PBXBuildFile; fileRef = D8212018F09EA1E96FBD63CD /* IslandStateMachine.swift */; };
+		3D9AD12F399C6454B6453504 /* Linear.swift in Sources */ = {isa = PBXBuildFile; fileRef = F66B8E32CDC045AD62BCC19A /* Linear.swift */; };
 		3F19756A396F125EC711247F /* IslandTypes.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8D3CE3617E9D336DDBA10F7A /* IslandTypes.swift */; };
 		406F116610429F3D5F1ECA73 /* GlobalHotKey.swift in Sources */ = {isa = PBXBuildFile; fileRef = BBC275D7EEB69B427687D00B /* GlobalHotKey.swift */; };
 		40EABDF49622244BD7CF096B /* SessionTimeline.swift in Sources */ = {isa = PBXBuildFile; fileRef = A3205452AED397F4671B61BD /* SessionTimeline.swift */; };
@@ -77,6 +78,7 @@
 		A07373551CD3632C64DDB053 /* PlanUsagePoller.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0472D6224C260A9BAA00AAD8 /* PlanUsagePoller.swift */; };
 		A62648C9263FE6C2CA6680C0 /* IntegrationCardView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C95931F60F2D47A652E1A32F /* IntegrationCardView.swift */; };
 		A6812FF3480E8B9010B9FDD7 /* InfoPlist.xcstrings in Resources */ = {isa = PBXBuildFile; fileRef = C71C1697FF12A9C595F365FA /* InfoPlist.xcstrings */; };
+		B0437E6ADE001DAA5408634A /* Linear.swift in Sources */ = {isa = PBXBuildFile; fileRef = F66B8E32CDC045AD62BCC19A /* Linear.swift */; };
 		B3EC9CF3C8BD629C3530E8F1 /* sounds in Resources */ = {isa = PBXBuildFile; fileRef = C066E2B991AA4F56B2724263 /* sounds */; };
 		B5DEDA89F416624C766F2C72 /* IntegrationCardView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C95931F60F2D47A652E1A32F /* IntegrationCardView.swift */; };
 		B605F976F4141435F27CF266 /* IslandRootView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 15A1A8206F73376F4CAF2057 /* IslandRootView.swift */; };
@@ -189,6 +191,7 @@
 		E91B733ADC638E14E9BB6EFA /* WindowContextCapture.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WindowContextCapture.swift; sourceTree = "<group>"; };
 		EC73547483E5895C0A7034F8 /* AutoApprove.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AutoApprove.swift; sourceTree = "<group>"; };
 		F1BD8F3CAA60CF37640759E1 /* NotchBuddyApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NotchBuddyApp.swift; sourceTree = "<group>"; };
+		F66B8E32CDC045AD62BCC19A /* Linear.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Linear.swift; sourceTree = "<group>"; };
 		F6F52ACCA00DD43BBFE481DE /* LogicTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LogicTests.swift; sourceTree = "<group>"; };
 		FA02B08886939FF6FE0475DD /* IslandViewContent.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = IslandViewContent.swift; sourceTree = "<group>"; };
 		FFD4DC70ACDB12740C627D8A /* LiveSession.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LiveSession.swift; sourceTree = "<group>"; };
@@ -223,6 +226,7 @@
 				8D3CE3617E9D336DDBA10F7A /* IslandTypes.swift */,
 				FA02B08886939FF6FE0475DD /* IslandViewContent.swift */,
 				D710BD7834228045869D0184 /* IslandWindowController.swift */,
+				F66B8E32CDC045AD62BCC19A /* Linear.swift */,
 				FFD4DC70ACDB12740C627D8A /* LiveSession.swift */,
 				54C2F1398292E39F8D2341B1 /* Localization.swift */,
 				B89DA1A0C21AE3535A1760BB /* N8nPoller.swift */,
@@ -467,6 +471,7 @@
 				3F19756A396F125EC711247F /* IslandTypes.swift in Sources */,
 				065FCE817315454DE3F85F25 /* IslandViewContent.swift in Sources */,
 				091EC3B2F1060D7EE1317E4E /* IslandWindowController.swift in Sources */,
+				B0437E6ADE001DAA5408634A /* Linear.swift in Sources */,
 				6EFE45214D10926591B5FAAF /* LiveSession.swift in Sources */,
 				2679D8930B2796B95EE3B9B1 /* Localization.swift in Sources */,
 				0A267EE2955C7AD8E02A296C /* N8nPoller.swift in Sources */,
@@ -534,6 +539,7 @@
 				D82E93014C8087AE81511E40 /* IslandTypes.swift in Sources */,
 				68A950E3C23FD612639D9776 /* IslandViewContent.swift in Sources */,
 				C61DDE2EC5FDDB39E4AA3B34 /* IslandWindowController.swift in Sources */,
+				3D9AD12F399C6454B6453504 /* Linear.swift in Sources */,
 				F6CBEBEDCEEC0B45EDA65599 /* LiveSession.swift in Sources */,
 				971B6C1654C44AA824BE189C /* Localization.swift in Sources */,
 				160EDB9D06275E2607DA5151 /* N8nPoller.swift in Sources */,

@@ -50,7 +50,7 @@ struct IntegrationCardView: View {
         case "integration_vercel":  return URL(string: "https://vercel.com/dashboard")
         case "integration_github":  return URL(string: "https://github.com")
         case "integration_stripe":  return URL(string: "https://dashboard.stripe.com/payments")
-        case "integration_notion":  return URL(string: "https://notion.so")
+        case "integration_notion":  return URL(string: "https://www.notion.so")
         case "integration_calcom":  return URL(string: "https://app.cal.com/bookings")
         case "integration_linear":  return URL(string: "https://linear.app")
         default: return nil
@@ -257,7 +257,7 @@ struct IntegrationCardView: View {
                         }
                         .buttonStyle(.plain)
                     } else if let url = openURL {
-                        Button("Open \(task.name)") { NSWorkspace.shared.open(url) }
+                        Button("Open \(task.name)") { AppLinks.open(url) }
                             .font(.system(size: 11, weight: .medium))
                             .foregroundColor(Color(hex: task.color).opacity(0.85))
                             .buttonStyle(.plain)
