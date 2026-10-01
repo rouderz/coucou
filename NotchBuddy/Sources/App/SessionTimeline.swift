@@ -113,7 +113,7 @@ final class TimelineStore: ObservableObject {
         return out
     }
 
-    static func format(_ seconds: TimeInterval) -> String {
+    nonisolated static func format(_ seconds: TimeInterval) -> String {
         if seconds < 1 { return String(format: "%.1fs", seconds) }
         if seconds < 60 { return "\(Int(seconds.rounded()))s" }
         let m = Int(seconds) / 60, s = Int(seconds) % 60
