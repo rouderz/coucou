@@ -487,6 +487,11 @@ final class HookServer: @unchecked Sendable {
         } else {
             state.claudeSessions.append(ClaudeSession(id: id, project: project, cwd: cwd))
         }
+        // Linear (#27): the issue named by the session's branch (re-checked when a turn starts).
+        let turnStart = ["SessionStart", "UserPromptSubmit"].contains(event)
+        if turnStart || state.claudeSessions.first(where: { $0.id == id })?.branch == nil {
+            LinearLink.refresh(sessionId: id, cwd: cwd, force: turnStart)
+        }
 
         guard let focused = state.focusedClaudeSession,
               let current = state.claudeSessions.first(where: { $0.id == focused }) else {

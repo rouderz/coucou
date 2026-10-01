@@ -45,6 +45,7 @@ struct SettingsView: View {
     @State private var stripeKey: String    = KeychainStore.shared.get("stripe-api-key")  ?? ""
     @State private var calcomKey: String    = KeychainStore.shared.get("calcom-api-key")  ?? ""
     @State private var notionKey: String    = KeychainStore.shared.get("notion-api-key")  ?? ""
+    @State private var linearKey: String    = KeychainStore.shared.get("linear-api-key")  ?? ""
 
     // Hotkey
     @State private var hotkeyFlags: UInt    = AppState.shared.hotkeyFlags
@@ -361,6 +362,19 @@ struct SettingsView: View {
                             }
                             SecureField("Integration token  (secret_…)", text: $notionKey)
                                 .textFieldStyle(.roundedBorder)
+                        }
+
+                        // Linear
+                        VStack(alignment: .leading, spacing: 5) {
+                            HStack(spacing: 6) {
+                                Circle().fill(Color(hex: "#5E6AD2")).frame(width: 8, height: 8)
+                                Text("Linear").font(.system(size: 12, weight: .semibold))
+                            }
+                            SecureField("Personal API key  (lin_api_…)", text: $linearKey)
+                                .textFieldStyle(.roundedBorder)
+                            Text("Linear → Settings → Security & access → Personal API keys. Shows your open issues and links each Claude Code session to the issue in its branch name.")
+                                .font(.system(size: 11)).foregroundColor(.secondary)
+                                .fixedSize(horizontal: false, vertical: true)
                         }
 
                         Button("Save integrations") { saveIntegrations() }
@@ -881,6 +895,8 @@ struct SettingsView: View {
         saveKey("stripe-api-key",  value: stripeKey)
         saveKey("calcom-api-key",  value: calcomKey)
         saveKey("notion-api-key",  value: notionKey)
+        saveKey("linear-api-key",  value: linearKey)
+        IntegrationRefresher.refresh("integration_linear")
         IntegrationRefresher.refreshAll()  // show the result now instead of at the next poll
         statusMessage = L("✓ Integration keys saved.")
     }

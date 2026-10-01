@@ -112,6 +112,16 @@
         }
       }
     },
+    "A Claude Code session is working on it": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Una sesión de Claude Code está trabajando en ella"
+          }
+        }
+      }
+    },
     "API error %lld": {
       "localizations": {
         "es": {
@@ -198,6 +208,26 @@
           "stringUnit": {
             "state": "translated",
             "value": "Pastillas activas"
+          }
+        }
+      }
+    },
+    "Add this timeline as a comment on %@ · %@": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Añadir esta cronología como comentario en %@ · %@"
+          }
+        }
+      }
+    },
+    "Add your Linear API key in Settings": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Añade tu clave de API de Linear en Ajustes"
           }
         }
       }
@@ -372,6 +402,26 @@
         }
       }
     },
+    "Assigned to you": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Asignadas a ti"
+          }
+        }
+      }
+    },
+    "Assigned to you · %lld": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Asignadas a ti · %lld"
+          }
+        }
+      }
+    },
     "Auto-allow low and medium risk": {
       "localizations": {
         "es": {
@@ -508,6 +558,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "No se puede conectar con GitHub"
+          }
+        }
+      }
+    },
+    "Can't reach Linear": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No se puede conectar con Linear"
           }
         }
       }
@@ -862,6 +922,16 @@
         }
       }
     },
+    "Connected · %lld open issues": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Conectado · %lld issues abiertas"
+          }
+        }
+      }
+    },
     "Connected · %lld recent pages": {
       "localizations": {
         "es": {
@@ -918,6 +988,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "Conectado · no hay reservas próximas"
+          }
+        }
+      }
+    },
+    "Connected · nothing assigned to you": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Conectado · no tienes nada asignado"
           }
         }
       }
@@ -988,6 +1068,26 @@
           "stringUnit": {
             "state": "translated",
             "value": "Copiar como Markdown"
+          }
+        }
+      }
+    },
+    "Copy branch name": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Copiar nombre de la rama"
+          }
+        }
+      }
+    },
+    "Copy identifier": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Copiar identificador"
           }
         }
       }
@@ -1532,6 +1632,26 @@
         }
       }
     },
+    "Linear didn't accept the comment": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Linear no aceptó el comentario"
+          }
+        }
+      }
+    },
+    "Linear → Settings → Security & access → Personal API keys. Shows your open issues and links each Claude Code session to the issue in its branch name.": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Linear → Settings → Security & access → Personal API keys. Muestra tus issues abiertas y vincula cada sesión de Claude Code con la issue de su rama."
+          }
+        }
+      }
+    },
     "Listening…": {
       "localizations": {
         "es": {
@@ -1862,6 +1982,16 @@
         }
       }
     },
+    "Nothing open is assigned to you.": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No tienes nada abierto asignado."
+          }
+        }
+      }
+    },
     "Nothing running right now.": {
       "localizations": {
         "es": {
@@ -1972,6 +2102,16 @@
         }
       }
     },
+    "Open in Linear": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Abrir en Linear"
+          }
+        }
+      }
+    },
     "Open in n8n": {
       "localizations": {
         "es": {
@@ -2042,6 +2182,16 @@
         }
       }
     },
+    "Personal API key  (lin_api_…)": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Clave de API personal  (lin_api_…)"
+          }
+        }
+      }
+    },
     "Personal Access Token": {
       "localizations": {
         "es": {
@@ -2068,6 +2218,36 @@
           "stringUnit": {
             "state": "translated",
             "value": "Avisos al móvil"
+          }
+        }
+      }
+    },
+    "Post to %@": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Publicar en %@"
+          }
+        }
+      }
+    },
+    "Posted to %@": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Publicado en %@"
+          }
+        }
+      }
+    },
+    "Posting…": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Publicando…"
           }
         }
       }

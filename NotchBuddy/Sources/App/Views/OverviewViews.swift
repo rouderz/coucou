@@ -123,6 +123,8 @@ struct OverviewView: View {
             NSWorkspace.shared.open(URL(string: "https://dashboard.stripe.com/payments")!)
         case "integration_notion":
             NSWorkspace.shared.open(URL(string: "https://notion.so")!)
+        case "integration_linear":
+            NSWorkspace.shared.open(URL(string: "https://linear.app")!)
         case "integration_calcom":
             NSWorkspace.shared.open(URL(string: "https://app.cal.com/bookings")!)
         default:

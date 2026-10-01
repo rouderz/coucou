@@ -842,3 +842,110 @@ struct N8nDetailView: View {
         .contentShape(Rectangle())   // prevent taps falling through transparent areas
     }
 }
+
+
+// MARK: - Linear (#26)
+
+struct LinearCardView: View {
+    @ObservedObject private var appState = AppState.shared
+
+    private var linkedIDs: Set<String> { Set(appState.claudeSessions.compactMap { $0.linear?.identifier }) }
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 0) {
+            HStack(spacing: 6) {
+                StatusDot(id: "integration_linear")
+                Text("Linear").font(.system(size: 12, weight: .semibold)).foregroundColor(Color(hex: "#F5F6F8"))
+                Text(appState.linearIssues.isEmpty ? "Assigned to you" : "Assigned to you · \(appState.linearIssues.count)")
+                    .font(.system(size: 11)).foregroundColor(Color(hex: "#8E939C"))
+            }
+            .padding(.top, 6).padding(.leading, 108).padding(.trailing, 36)
+
+            if let error = appState.linearError {
+                NotionHint(dot: "#F4505E", text: error)
+            } else if appState.linearIssues.isEmpty {
+                NotionHint(dot: "#F5A524", text: L("Nothing open is assigned to you."))
+            }
+
+            ScrollView(.vertical, showsIndicators: false) {
+                VStack(alignment: .leading, spacing: 2) {
+                    ForEach(appState.linearIssues) { issue in
+                        LinearIssueRow(issue: issue, linked: linkedIDs.contains(issue.identifier))
+                    }
+                }
+            }
+            .frame(maxHeight: 76)
+            .padding(.leading, 102).padding(.trailing, 12).padding(.top, 5)
+        }
+        .frame(maxWidth: .infinity, alignment: .topLeading).padding(.top, 4)
+    }
+}
+
+private struct LinearIssueRow: View {
+    let issue: LinearIssue
+    let linked: Bool
+
+    var body: some View {
+        Button {
+            if let url = URL(string: issue.url) { NSWorkspace.shared.open(url) }
+        } label: {
+            HStack(spacing: 6) {
+                Circle().fill(Color(hex: issue.stateColor)).frame(width: 7, height: 7)
+                    .help(issue.stateName)
+                Text(issue.identifier)
+                    .font(.system(size: 10.5, design: .monospaced))
+                    .foregroundColor(Color(hex: "#8E939C"))
+                    .fixedSize()
+                Text(issue.title).font(.system(size: 11))
+                    .foregroundColor(Color(hex: "#C5C8CD"))
+                    .lineLimit(1).truncationMode(.tail).layoutPriority(1)
+                Spacer(minLength: 4)
+                if linked {
+                    Image(systemName: "terminal").font(.system(size: 9))
+                        .foregroundColor(Color(hex: "#5E6AD2"))
+                        .help("A Claude Code session is working on it")
+                }
+            }
+            .padding(.horizontal, 6).padding(.vertical, 4)
+            .contentShape(Rectangle())
+        }
+        .buttonStyle(.plain)
+        .contextMenu {
+            Button("Open in Linear") { if let url = URL(string: issue.url) { NSWorkspace.shared.open(url) } }
+            if let branch = issue.branchName {
+                Button("Copy branch name") {
+                    NSPasteboard.general.clearContents()
+                    NSPasteboard.general.setString(branch, forType: .string)
+                }
+            }
+            Button("Copy identifier") {
+                NSPasteboard.general.clearContents()
+                NSPasteboard.general.setString(issue.identifier, forType: .string)
+            }
+        }
+    }
+}
+
+/// "SHO-123" chip next to a Claude Code session's name; click opens the issue (#27).
+struct LinearIssueChip: View {
+    let issue: LinearIssue
+
+    var body: some View {
+        Button {
+            if let url = URL(string: issue.url) { NSWorkspace.shared.open(url) }
+        } label: {
+            HStack(spacing: 4) {
+                Circle().fill(Color(hex: issue.stateColor)).frame(width: 5, height: 5)
+                Text(issue.identifier)
+                    .font(.system(size: 10.5, weight: .medium, design: .monospaced))
+                    .foregroundColor(Color(hex: "#B4BAF5"))
+            }
+            .padding(.horizontal, 6).padding(.vertical, 1.5)
+            .background(Color(hex: "#5E6AD2").opacity(0.18))
+            .clipShape(Capsule())
+        }
+        .buttonStyle(.plain)
+        .fixedSize()
+        .help("\(issue.identifier) · \(issue.title) · \(issue.stateName)")
+    }
+}

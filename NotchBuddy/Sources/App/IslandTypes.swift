@@ -149,6 +149,7 @@ enum IslandConst {
         .init(id: "integration_notion",  name: "Notion",  color: "#8C8C8C"),
         .init(id: "integration_calcom",  name: "Cal.com", color: "#C9956A"),
         .init(id: "integration_stripe",  name: "Stripe",  color: "#0570DE"),
+        .init(id: "integration_linear",  name: "Linear",  color: "#5E6AD2"),
     ]
 
     /// Returns the fixed project color for a display name, or a stable fallback.

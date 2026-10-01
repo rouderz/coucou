@@ -221,3 +221,24 @@ final class AutoApproveTests: XCTestCase {
         XCTAssertFalse(AutoApprove.shouldAllow(risk: .low, cwd: "", fromChat: false))
     }
 }
+
+final class LinearTests: XCTestCase {
+    func testIssueIdentifiersFromBranchNames() {
+        XCTAssertEqual(LinearLink.identifiers(inBranch: "wolfgang/sho-123-fix-cart"), ["SHO-123"])
+        XCTAssertEqual(LinearLink.identifiers(inBranch: "SHO-42"), ["SHO-42"])
+        XCTAssertEqual(LinearLink.identifiers(inBranch: "feature/eng-7_new-login"), ["ENG-7"])
+        XCTAssertEqual(LinearLink.identifiers(inBranch: "main"), [])
+        XCTAssertEqual(LinearLink.identifiers(inBranch: "release/2026-10"), [], "a year isn't an issue")
+    }
+
+    func testParsesAnIssueNode() throws {
+        let issue = try XCTUnwrap(LinearIssue([
+            "id": "uuid", "identifier": "SHO-123", "title": "Fix cart", "url": "https://linear.app/x/issue/SHO-123",
+            "branchName": "wolfgang/sho-123-fix-cart", "priority": 2, "updatedAt": "2026-10-01T12:00:00.000Z",
+            "state": ["name": "In Progress", "type": "started", "color": "#f2c94c"],
+        ]))
+        XCTAssertEqual(issue.identifier, "SHO-123")
+        XCTAssertEqual(issue.stateType, "started")
+        XCTAssertNotNil(issue.updatedAt)
+    }
+}
