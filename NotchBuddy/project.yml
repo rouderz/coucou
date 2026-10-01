@@ -30,8 +30,13 @@ schemes:
     build:
       targets:
         NotchBuddy: all
+        NotchBuddyTests: [test]
     run:
       config: Debug
+    test:
+      config: Debug
+      targets:
+        - NotchBuddyTests
     archive:
       config: Release
   CoucouAppStore:
@@ -133,3 +138,19 @@ targets:
         CODE_SIGN_ENTITLEMENTS: Resources/CoucouAppStore.entitlements
         DEVELOPMENT_TEAM: 256AUJ9555
         SWIFT_ACTIVE_COMPILATION_CONDITIONS: APPSTORE
+
+  NotchBuddyTests:
+    type: bundle.unit-test
+    platform: macOS
+    sources:
+      - path: Tests
+    dependencies:
+      - target: NotchBuddy
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: fr.louisraille.NotchBuddyTests
+        GENERATE_INFOPLIST_FILE: YES
+        # The app's product is "Coucou", not the target name
+        TEST_HOST: "$(BUILT_PRODUCTS_DIR)/Coucou.app/Contents/MacOS/Coucou"
+        BUNDLE_LOADER: "$(TEST_HOST)"
+        MACOSX_DEPLOYMENT_TARGET: "15.0"
