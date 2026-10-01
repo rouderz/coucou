@@ -192,6 +192,16 @@ ES = {
 "Install the free ntfy app (iOS / Android), tap + and subscribe to this topic. The alert includes the project and the command: keep the topic private, or use your own ntfy server.":"Instala la app gratuita ntfy (iOS / Android), pulsa + y suscríbete a este tema. El aviso incluye el proyecto y el comando: mantén el tema en privado o usa tu propio servidor ntfy.",
 "Claude Code needs you · %@":"Claude Code te necesita · %@","Coucou is connected":"Coucou está conectado",
 "You'll get approvals here when you're away from the Mac.":"Aquí recibirás las aprobaciones cuando no estés en el Mac.",
+# linear
+"Add your Linear API key in Settings":"Añade tu clave de API de Linear en Ajustes","Can't reach Linear":"No se puede conectar con Linear",
+"Linear didn't accept the comment":"Linear no aceptó el comentario","Connected · nothing assigned to you":"Conectado · no tienes nada asignado",
+"Connected · %lld open issues":"Conectado · %lld issues abiertas","Assigned to you":"Asignadas a ti","Assigned to you · %lld":"Asignadas a ti · %lld",
+"Nothing open is assigned to you.":"No tienes nada abierto asignado.","A Claude Code session is working on it":"Una sesión de Claude Code está trabajando en ella",
+"Open in Linear":"Abrir en Linear","Copy branch name":"Copiar nombre de la rama","Copy identifier":"Copiar identificador",
+"Personal API key  (lin_api_…)":"Clave de API personal  (lin_api_…)",
+"Linear → Settings → Security & access → Personal API keys. Shows your open issues and links each Claude Code session to the issue in its branch name.":"Linear → Settings → Security & access → Personal API keys. Muestra tus issues abiertas y vincula cada sesión de Claude Code con la issue de su rama.",
+"Posted to %@":"Publicado en %@","Posting…":"Publicando…","Post to %@":"Publicar en %@",
+"Add this timeline as a comment on %@ · %@":"Añadir esta cronología como comentario en %@ · %@",
 }
 catalog = {"sourceLanguage": "en", "version": "1.0", "strings": {
     k: {"localizations": {"es": {"stringUnit": {"state": "translated", "value": v}}}} for k, v in sorted(ES.items())

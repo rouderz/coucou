@@ -28,6 +28,7 @@ struct IntegrationCardView: View {
         case "integration_stripe":  return KeychainStore.shared.get("stripe-api-key") != nil
         case "integration_notion":  return KeychainStore.shared.get("notion-api-key") != nil
         case "integration_calcom":  return KeychainStore.shared.get("calcom-api-key") != nil
+        case "integration_linear":  return LinearAPI.hasKey
         default: return false
         }
     }
@@ -49,8 +50,9 @@ struct IntegrationCardView: View {
         case "integration_vercel":  return URL(string: "https://vercel.com/dashboard")
         case "integration_github":  return URL(string: "https://github.com")
         case "integration_stripe":  return URL(string: "https://dashboard.stripe.com/payments")
-        case "integration_notion":  return URL(string: "https://notion.so")
+        case "integration_notion":  return URL(string: "https://www.notion.so")
         case "integration_calcom":  return URL(string: "https://app.cal.com/bookings")
+        case "integration_linear":  return URL(string: "https://linear.app")
         default: return nil
         }
     }
@@ -127,6 +129,9 @@ struct IntegrationCardView: View {
         } else if notionHasData {
             NotionCardView()
                 .transition(.opacity)
+        } else if task.id == "integration_linear" && (appState.linearLoaded || appState.linearError != nil) {
+            LinearCardView()
+                .transition(.opacity)
         } else if vsCodeSessionActive {
             // Active session view — reuse overview layout
             VStack(alignment: .leading, spacing: 0) {
@@ -142,10 +147,14 @@ struct IntegrationCardView: View {
                             .foregroundColor(Color(hex: "#F5F6F8"))
                             .lineLimit(1).truncationMode(.tail)
                             .layoutPriority(1)
-                        Text("Claude Code")
-                            .font(.system(size: 11))
-                            .foregroundColor(Color(hex: "#8E939C"))
-                            .lineLimit(1).truncationMode(.tail)
+                        if let issue = appState.claudeSessions.first(where: { $0.id == appState.focusedClaudeSession })?.linear {
+                            LinearIssueChip(issue: issue)
+                        } else {
+                            Text("Claude Code")
+                                .font(.system(size: 11))
+                                .foregroundColor(Color(hex: "#8E939C"))
+                                .lineLimit(1).truncationMode(.tail)
+                        }
                     }
                     Spacer(minLength: 2)
                     if task.steps.count > 1 {
@@ -248,7 +257,7 @@ struct IntegrationCardView: View {
                         }
                         .buttonStyle(.plain)
                     } else if let url = openURL {
-                        Button("Open \(task.name)") { NSWorkspace.shared.open(url) }
+                        Button("Open \(task.name)") { AppLinks.open(url) }
                             .font(.system(size: 11, weight: .medium))
                             .foregroundColor(Color(hex: task.color).opacity(0.85))
                             .buttonStyle(.plain)

@@ -172,6 +172,12 @@ struct TimelinePanel: View {
     @ObservedObject var state: AppState
     @ObservedObject private var store = TimelineStore.shared
     @State private var copied = false
+    @State private var posting: PostState = .idle
+    private enum PostState: Equatable { case idle, sending, done, failed(String) }
+
+    private var linkedIssue: LinearIssue? {
+        state.claudeSessions.first { $0.id == state.focusedClaudeSession }?.linear
+    }
 
     private var sessionID: String? { state.focusedClaudeSession }
     private var list: [TimelineEntry] { sessionID.flatMap { store.entries[$0] } ?? [] }
@@ -210,7 +216,28 @@ struct TimelinePanel: View {
             }
 
             HStack(spacing: 6) {
+                if case .failed(let message) = posting {
+                    Text(message).font(.system(size: 10.5)).foregroundColor(Color(hex: "#F4505E")).lineLimit(1)
+                }
                 Spacer()
+                if let issue = linkedIssue {
+                    SecondaryButton(posting == .done ? L("Posted to \(issue.identifier)")
+                                    : posting == .sending ? L("Posting…") : L("Post to \(issue.identifier)")) {
+                        guard let id = sessionID, posting != .sending else { return }
+                        let body = store.markdown(id, project: state.liveProject ?? "Session")
+                        posting = .sending
+                        Task {
+                            do {
+                                try await LinearAPI.comment(on: issue.id, body: body)
+                                posting = .done
+                            } catch {
+                                posting = .failed(error.localizedDescription)
+                            }
+                        }
+                    }
+                    .disabled(list.isEmpty)
+                    .help("Add this timeline as a comment on \(issue.identifier) · \(issue.title)")
+                }
                 SecondaryButton(copied ? "Copied" : "Copy as Markdown") {
                     guard let id = sessionID else { return }
                     NSPasteboard.general.clearContents()

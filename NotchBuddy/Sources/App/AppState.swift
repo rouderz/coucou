@@ -14,12 +14,13 @@ extension AgentTask {
         AgentTask(id: "integration_notion",  name: "Notion",    color: "#8C8C8C", state: .idle, steps: [], source: .n8n, isIntegration: true),
         AgentTask(id: "integration_calcom",  name: "Cal.com",   color: "#C9956A", state: .idle, steps: [], source: .n8n, isIntegration: true),
         AgentTask(id: "integration_stripe",  name: "Stripe",    color: "#0570DE", state: .idle, steps: [], source: .n8n, isIntegration: true),
+        AgentTask(id: "integration_linear",  name: "Linear",    color: "#5E6AD2", state: .idle, steps: [], source: .n8n, isIntegration: true),
     ]
 
     /// IDs that can be toggled (VS Code is always on and excluded from this list)
     static let toggleableIntegrationIds: [String] = [
         "integration_resend", "integration_n8n", "integration_vercel", "integration_github",
-        "integration_notion", "integration_calcom", "integration_stripe",
+        "integration_notion", "integration_calcom", "integration_stripe", "integration_linear",
     ]
 
 }
@@ -279,6 +280,11 @@ final class AppState: ObservableObject {
     @Published var calcomBookings: [CalcomBooking] = []
     @Published var calcomLoaded: Bool = false
     @Published var calcomError: String? = nil
+
+    // Linear (#26): your open assigned issues
+    @Published var linearIssues: [LinearIssue] = []
+    @Published var linearLoaded: Bool = false
+    @Published var linearError: String? = nil
 
     // Notion (populated by NotionPoller)
     @Published var notionPages: [NotionPage] = []
@@ -616,6 +622,9 @@ struct ClaudeSession: Identifiable, Equatable {
     var updatedAt: Date = .now
     /// Something happened here while another session was on the card.
     var unseen: Bool = false
+    /// Git branch and the Linear issue it names (#27).
+    var branch: String? = nil
+    var linear: LinearIssue? = nil
 }
 
 // MARK: - Chat
@@ -661,6 +670,8 @@ enum IntegrationRefresher {
         case "integration_notion":
             AppState.shared.notionError = nil
             NotionPoller.shared.pollNow()
+        case "integration_linear":
+            LinearPoller.shared.pollNow()
         case "integration_vercel":  VercelPoller.shared.pollNow()
         case "integration_resend":  ResendPoller.shared.pollNow()
         case "integration_n8n":     N8nPoller.shared.pollNow()
@@ -673,7 +684,7 @@ enum IntegrationRefresher {
 
     @MainActor
     static func refreshAll() {
-        for id in ["integration_github", "integration_notion", "integration_vercel", "integration_resend",
+        for id in ["integration_github", "integration_notion", "integration_linear", "integration_vercel", "integration_resend",
                    "integration_n8n", "integration_stripe", "integration_calcom", "integration_claude"] {
             refresh(id)
         }
@@ -716,6 +727,13 @@ struct IntegrationStatus {
             case .notConfigured:  return notSet
             case .failed(let w):  return .init(colorHex: red, help: w)
             }
+        case "integration_linear":
+            guard key(LinearAPI.keychainKey) else { return notSet }
+            if let e = s.linearError { return .init(colorHex: red, help: e) }
+            guard s.linearLoaded else { return checking }
+            return .init(colorHex: s.linearIssues.isEmpty ? amber : green,
+                         help: s.linearIssues.isEmpty ? L("Connected · nothing assigned to you")
+                                                      : L("Connected · \(s.linearIssues.count) open issues"))
         case "integration_notion":
             guard key("notion-api-key") else { return notSet }
             if let e = s.notionError { return .init(colorHex: red, help: e) }
