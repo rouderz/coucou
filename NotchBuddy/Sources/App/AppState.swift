@@ -113,6 +113,10 @@ final class AppState: ObservableObject {
     @Published var claudeModel: String = AppState.defaultClaudeModel {
         didSet { UserDefaults.standard.set(claudeModel, forKey: "claudeModel") }
     }
+    /// Longest answer the API-key engine may write (tokens). Higher = longer answers, slower and pricier.
+    @Published var apiMaxTokens: Int = 4096 {
+        didSet { UserDefaults.standard.set(apiMaxTokens, forKey: "apiMaxTokens") }
+    }
 
     // Sound volume (0–0.2) — persisted, synced to SoundEngine
     @Published var soundVolume: Double = 0.12 {
@@ -286,6 +290,7 @@ final class AppState: ObservableObject {
         if let v = ud.string(forKey: "chatEngine"), let e = ChatEngine(rawValue: v) { chatEngine = e }
         #endif
         preferredEditor = ud.string(forKey: "preferredEditor")
+        if let v = ud.object(forKey: "apiMaxTokens") as? Int, v >= 256 { apiMaxTokens = v }
         if let v = ud.string(forKey: "claudeModel"),
            !v.trimmingCharacters(in: .whitespaces).isEmpty { claudeModel = v }
         // Migrate old 60s default → 15s
@@ -695,6 +700,8 @@ struct PlanUsage: Equatable {
     var fiveHour: Window? = nil
     var sevenDay: Window? = nil
     var contextPercent: Double? = nil
+    /// When the context % last arrived (it belongs to the session that's running right now).
+    var contextUpdatedAt: Date? = nil
     var model: String? = nil
     /// "Pro", "Max"… from the Claude Code login.
     var plan: String? = nil
