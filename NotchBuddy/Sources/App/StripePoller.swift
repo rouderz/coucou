@@ -126,12 +126,12 @@ final class StripePoller: @unchecked Sendable {
             guard let json = try? JSONSerialization.jsonObject(with: data) as? [String: Any],
                   let rawList = json["data"] as? [[String: Any]] else { return }
 
-            let parsed = rawList.compactMap { self.parseCharge($0) }
+            let parsed = rawList.compactMap { Self.parseCharge($0) }
             DispatchQueue.main.async { self.handleCharges(parsed) }
         }.resume()
     }
 
-    private func parseCharge(_ c: [String: Any]) -> StripePayment? {
+    static func parseCharge(_ c: [String: Any]) -> StripePayment? {
         guard let id       = c["id"]       as? String,
               let amount   = c["amount"]   as? Int,
               let currency = c["currency"] as? String,

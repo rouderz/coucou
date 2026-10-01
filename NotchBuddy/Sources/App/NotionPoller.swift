@@ -49,7 +49,7 @@ final class NotionPoller: @unchecked Sendable {
                   let json = try? JSONSerialization.jsonObject(with: data) as? [String: Any],
                   let results = json["results"] as? [[String: Any]] else { return }
 
-            let pages = results.compactMap { self.parsePage($0) }
+            let pages = results.compactMap { Self.parsePage($0) }
             DispatchQueue.main.async {
                 AppState.shared.notionError = nil
                 AppState.shared.notionPages = pages
@@ -58,7 +58,7 @@ final class NotionPoller: @unchecked Sendable {
         }.resume()
     }
 
-    private func parsePage(_ obj: [String: Any]) -> NotionPage? {
+    static func parsePage(_ obj: [String: Any]) -> NotionPage? {
         guard let id = obj["id"] as? String else { return nil }
         let objType = obj["object"] as? String ?? "page"
 
