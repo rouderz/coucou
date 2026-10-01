@@ -1,0 +1,58 @@
+{
+  "name": "coucou-context",
+  "displayName": "Coucou: Ask Mochi",
+  "description": "Tells Coucou (the Mac notch companion) which file you're in, the cursor, the selection and the editor's problems, so Mochi answers with exact context.",
+  "version": "0.1.0",
+  "publisher": "rouderz",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/rouderz/coucou"
+  },
+  "engines": {
+    "vscode": "^1.80.0"
+  },
+  "categories": [
+    "Other"
+  ],
+  "os": [
+    "darwin"
+  ],
+  "activationEvents": [
+    "onStartupFinished"
+  ],
+  "main": "./extension.js",
+  "contributes": {
+    "commands": [
+      {
+        "command": "coucou.ask",
+        "title": "Ask Mochi about this",
+        "category": "Coucou",
+        "icon": "$(comment-discussion)"
+      }
+    ],
+    "menus": {
+      "editor/context": [
+        {
+          "command": "coucou.ask",
+          "group": "navigation@99"
+        }
+      ]
+    },
+    "configuration": {
+      "title": "Coucou",
+      "properties": {
+        "coucou.shareContext": {
+          "type": "boolean",
+          "default": true,
+          "description": "Keep Coucou updated with the active file, cursor, selection and problems (stays on this Mac, over a local socket)."
+        },
+        "coucou.showStatusBar": {
+          "type": "boolean",
+          "default": true,
+          "description": "Show the \"Mochi\" button in the status bar."
+        }
+      }
+    }
+  }
+}

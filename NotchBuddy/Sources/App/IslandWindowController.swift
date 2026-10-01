@@ -490,6 +490,18 @@ final class IslandWindowController: NSWindowController {
             MainActor.assumeIsolated { self?.registerAssistantHotKey() }
         }
 
+        // The editor extension's "Ask Mochi": open the chat with its exact context (#58).
+        NotificationCenter.default.addObserver(forName: .askWithEditorContext, object: nil, queue: .main) { [weak self] note in
+            guard let context = note.userInfo?["context"] as? CodeContext else { return }
+            MainActor.assumeIsolated {
+                guard let self else { return }
+                ChatSession.startNew(self.state)
+                self.state.promptContext = .code(context)
+                SoundEngine.shared.play("approve")
+                self.expand(to: .prompt)
+            }
+        }
+
         // Push-to-talk: hold to listen, let go to send.
         voiceHotKey = GlobalHotKey(action: { [weak self] in self?.startTalking() },
                                    onRelease: { [weak self] in self?.stopTalking() })

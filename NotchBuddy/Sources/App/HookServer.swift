@@ -140,6 +140,11 @@ final class HookServer: @unchecked Sendable {
 
         switch name {
 
+        case "EditorContext", "EditorAsk":
+            // Not a hook: the Coucou editor extension (#58).
+            EditorBridge.shared.handle(event: name, payload: payload)
+            return
+
         case "StatusLine":
             // Not a hook: Coucou's status line forwarding Claude Code's status data.
             var usage = PlanUsage()
