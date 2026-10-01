@@ -13,6 +13,7 @@ let voiceLog = Logger(subsystem: "fr.louisraille.NotchBuddy", category: "voice")
 enum VoiceSession {
     static func begin(_ state: AppState) {
         VoiceOutput.shared.stop()
+        WakeWord.shared.yieldMicrophone()
         guard state.voicePhase == .idle else { return }
         state.voicePhase = .listening
         state.voiceTranscript = ""

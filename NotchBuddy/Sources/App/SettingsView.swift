@@ -563,6 +563,14 @@ struct SettingsView: View {
                                 .frame(width: 180)
                             }
                             Toggle("Read Mochi's answers aloud", isOn: $state.voiceSpeakReplies)
+                            Toggle("Hey Mochi: start by voice, without the shortcut", isOn: $state.wakeWordEnabled)
+                            if state.wakeWordEnabled {
+                                Toggle("Only when the Mac is plugged in", isOn: $state.wakeWordOnlyOnPower)
+                                Text(WakeWord.shared.blocker ?? L("Listening for \u{201C}Hey Mochi\u{201D} (or \u{201C}Oye Mochi\u{201D}) on this Mac only. macOS shows the orange microphone dot while it listens."))
+                                    .font(.system(size: 11))
+                                    .foregroundColor(WakeWord.shared.blocker == nil ? .secondary : .orange)
+                                    .fixedSize(horizontal: false, vertical: true)
+                            }
                             Text("Speech is transcribed on this Mac when it supports it. Mochi only listens while you hold the shortcut.")
                                 .font(.system(size: 11))
                                 .foregroundColor(.secondary)

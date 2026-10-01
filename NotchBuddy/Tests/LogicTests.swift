@@ -279,3 +279,12 @@ final class ProviderTests: XCTestCase {
         XCTAssertEqual(OpenAICompatibleChat.error(code: 400, data: body, model: "m").message, "context too long")
     }
 }
+
+final class WakeWordTests: XCTestCase {
+    func testWakePhrasesAndCleanup() {
+        XCTAssertTrue(WakeWord.phrases.contains("hey mochi"))
+        XCTAssertTrue(WakeWord.phrases.contains("oye mochi"))
+        XCTAssertEqual(WakeWord.clean(", what's on my calendar? "), "what's on my calendar")
+        XCTAssertEqual(WakeWord.clean("  "), "")
+    }
+}

@@ -1552,6 +1552,16 @@
         }
       }
     },
+    "Hey Mochi: start by voice, without the shortcut": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Oye Mochi: empezar con la voz, sin el atajo"
+          }
+        }
+      }
+    },
     "Hide after": {
       "localizations": {
         "es": {
@@ -1852,6 +1862,16 @@
         }
       }
     },
+    "Listening for “Hey Mochi” (or “Oye Mochi”) on this Mac only. macOS shows the orange microphone dot while it listens.": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Escuchando “Oye Mochi” (o “Hey Mochi”) solo en este Mac. macOS muestra el punto naranja del micrófono mientras escucha."
+          }
+        }
+      }
+    },
     "Listening…": {
       "localizations": {
         "es": {
@@ -2132,6 +2152,16 @@
         }
       }
     },
+    "Needs Microphone and Speech Recognition (Allow now… above)": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Necesita Micrófono y Reconocimiento de voz (Permitir ahora… arriba)"
+          }
+        }
+      }
+    },
     "Network error: %@": {
       "localizations": {
         "es": {
@@ -2392,6 +2422,16 @@
         }
       }
     },
+    "Only when the Mac is plugged in": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Solo con el Mac enchufado"
+          }
+        }
+      }
+    },
     "Open": {
       "localizations": {
         "es": {
@@ -2508,6 +2548,36 @@
           "stringUnit": {
             "state": "translated",
             "value": "Resumen"
+          }
+        }
+      }
+    },
+    "Paused: Do not disturb": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "En pausa: No molestar"
+          }
+        }
+      }
+    },
+    "Paused: on battery": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "En pausa: con batería"
+          }
+        }
+      }
+    },
+    "Paused: screen locked": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "En pausa: pantalla bloqueada"
           }
         }
       }
@@ -3198,6 +3268,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "El servidor no devolvió modelos."
+          }
+        }
+      }
+    },
+    "This Mac can't recognize speech on-device in this language, so it stays off": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Este Mac no puede reconocer voz en el propio equipo en este idioma, así que queda desactivado"
           }
         }
       }
