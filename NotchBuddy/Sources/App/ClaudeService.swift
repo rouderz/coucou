@@ -421,7 +421,8 @@ final class ClaudeService {
                 switch delta["type"] as? String {
                 case "text_delta":
                     let piece = delta["text"] as? String ?? ""
-                    blocks[index]?["text"] = (blocks[index]?["text"] as? String ?? "") + piece
+                    let current = blocks[index]?["text"] as? String ?? ""
+                    blocks[index]?["text"] = current + piece
                     onText(Self.text(of: Self.ordered(blocks)))
                 case "input_json_delta":
                     toolInput[index, default: ""] += delta["partial_json"] as? String ?? ""
