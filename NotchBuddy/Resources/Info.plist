@@ -29,6 +29,11 @@
 	<true/>
 	<key>NSAccessibilityUsageDescription</key>
 	<string>To read the active window and the file you're editing, and attach them as context.</string>
+	<key>NSAppTransportSecurity</key>
+	<dict>
+		<key>NSAllowsLocalNetworking</key>
+		<true/>
+	</dict>
 	<key>NSAppleEventsUsageDescription</key>
 	<string>To jump to your terminal and send emails.</string>
 	<key>NSCalendarsFullAccessUsageDescription</key>
