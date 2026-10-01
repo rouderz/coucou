@@ -3,11 +3,13 @@
 # live view without a real session. Open the island on the Claude Code card first.
 #   bash scripts/simulate-claude-edit.sh          # full turn
 #   bash scripts/simulate-claude-edit.sh --approve  # the edit asks for permission
+#   SESSION=two PROJECT_DIR=/tmp/other bash scripts/simulate-claude-edit.sh   # a second session
 set -euo pipefail
 H="$HOME/Library/Application Support/NotchBuddy/nb-hook"
 F=/tmp/invoice.ts
 printf 'import { Item } from "./types"\n\nconst TVA = 0.196\n\nexport function total(items: Item[]) {\n  const sum = items.reduce((s, i) => s + i.price, 0)\n  return sum * (1 + TVA)\n}\n' > "$F"
-base='"cwd":"/tmp","session_id":"demo","term_program":"vscode"'
+# Several sessions at once: SESSION=a PROJECT_DIR=/tmp/api bash scripts/simulate-claude-edit.sh
+base="\"cwd\":\"${PROJECT_DIR:-/tmp}\",\"session_id\":\"${SESSION:-demo}\",\"term_program\":\"vscode\""
 ev() { echo "{$1,$base}" | "$H" > /dev/null; sleep "${2:-1}"; }
 
 ev '"hook_event_name":"UserPromptSubmit","prompt":"Update VAT to 20%"'

@@ -126,6 +126,15 @@ final class HookServer: @unchecked Sendable {
 
         let focused = state.focusId == "integration_claude"
 
+        // Several sessions (#24): only the focused one drives the card; the others update their record.
+        if name != "StatusLine", sessionId != "unknown" {
+            if !routeSession(sessionId, project: projectName, cwd: cwd, event: name) {
+                updateBackgroundSession(sessionId, event: name, payload: payload)
+                return
+            }
+        }
+        defer { if name != "StatusLine" { syncFocusedSession() } }
+
         switch name {
 
         case "StatusLine":
@@ -243,6 +252,7 @@ final class HookServer: @unchecked Sendable {
             activeSessionId = nil
             state.updateTask(id: "integration_claude", state: .idle)
             clearSession()
+            endSession(sessionId)
 
         case "SubagentStart":
             appendStep(id: "integration_claude", step: "+ subagent")
@@ -300,20 +310,21 @@ final class HookServer: @unchecked Sendable {
         let fromChat = payload["coucou_internal"] as? Bool == true
         nbLog("PermissionRequest \(tool): \(command)\(fromChat ? " (chat)" : "")")
 
+        // Another request is on screen: wait in line (shown right after the current decision).
         if pendingApprovalFD >= 0 {
-            let old = pendingApprovalFD
-            Task.detached { [weak self] in
-                // "ask" → nb-hook outputs nothing → Claude Code re-asks
-                self?.sendLine(fd: old, text: #"{"permissionDecision":"ask"}"#)
-                close(old)
-            }
+            queueApproval(fd: fd, payload: payload)
+            return
         }
         pendingApprovalFD = fd
         approvalFromChat = fromChat
         if !fromChat {
+            // Bring the asking session onto the card.
+            _ = routeSession(sessionId, project: projectName, cwd: cwd, event: "PermissionRequest")
+            if state.focusedClaudeSession != sessionId { focusSession(sessionId) }
             activeSessionId = sessionId
             upsertTask(projectName: projectName, cwd: cwd)
             state.updateTask(id: "integration_claude", state: .approval)
+            syncFocusedSession()
         }
         let toolInput = payload["tool_input"] as? [String: Any] ?? [:]
         let (risk, reason) = ApprovalRiskClassifier.classify(tool: tool, input: toolInput, cwd: cwd)
@@ -374,12 +385,14 @@ final class HookServer: @unchecked Sendable {
         state.pendingApproval = nil
         ApprovalShortcuts.shared.disarm()
         state.isPinned = false
+        defer { showNextQueuedApproval() }
         if approvalFromChat {
             approvalFromChat = false
             state.view = .prompt  // back to the chat, Claude carries on
             return
         }
         state.updateTask(id: "integration_claude", state: .working)
+        syncFocusedSession()
         clearPillBadge(id: "integration_claude")
         state.view = state.tasks.isEmpty ? .empty : .overview
     }
@@ -418,6 +431,168 @@ final class HookServer: @unchecked Sendable {
         state.tasks[idx].stepIndex = 0
         state.tasks[idx].name = "Claude Code"
         state.tasks[idx].pillBadge = nil
+    }
+
+    // MARK: - Sessions (#24)
+
+    /// Records the session and decides whether this event drives the card. The focused session
+    /// does; another session takes over when the focused one is idle and it starts working.
+    @MainActor
+    private func routeSession(_ id: String, project: String, cwd: String, event: String) -> Bool {
+        let state = AppState.shared
+        pruneSessions()
+        if let i = state.claudeSessions.firstIndex(where: { $0.id == id }) {
+            state.claudeSessions[i].project = project
+            if !cwd.isEmpty { state.claudeSessions[i].cwd = cwd }
+            state.claudeSessions[i].updatedAt = .now
+        } else {
+            state.claudeSessions.append(ClaudeSession(id: id, project: project, cwd: cwd))
+        }
+
+        guard let focused = state.focusedClaudeSession,
+              let current = state.claudeSessions.first(where: { $0.id == focused }) else {
+            focusSession(id)
+            return true
+        }
+        if focused == id { return true }
+        let starting = ["SessionStart", "UserPromptSubmit", "PreToolUse"].contains(event)
+        let focusedQuiet = ([.idle, .finished, .error] as [BotState]).contains(current.state)
+                           && Date.now.timeIntervalSince(current.updatedAt) > 3
+        if starting && focusedQuiet && state.pendingApproval == nil {
+            focusSession(id)
+            return true
+        }
+        return false
+    }
+
+    /// Puts a session on the card (from the chips, an approval, or automatically).
+    @MainActor
+    func focusSession(_ id: String) {
+        let state = AppState.shared
+        guard let session = state.claudeSessions.first(where: { $0.id == id }) else { return }
+        syncFocusedSession()
+        state.focusedClaudeSession = id
+        activeSessionId = id
+        if let i = state.claudeSessions.firstIndex(where: { $0.id == id }) { state.claudeSessions[i].unseen = false }
+        upsertTask(projectName: session.project, cwd: session.cwd)
+        if let t = state.tasks.firstIndex(where: { $0.id == "integration_claude" }) {
+            state.tasks[t].steps = session.steps
+            state.tasks[t].stepIndex = max(0, session.steps.count - 1)
+            state.tasks[t].state = session.state
+        }
+        state.liveActivities = []
+        state.liveEdit = nil
+        state.liveProject = session.project
+    }
+
+    /// Copies the card (steps, state) back into the focused session's record.
+    @MainActor
+    private func syncFocusedSession() {
+        let state = AppState.shared
+        guard let id = state.focusedClaudeSession,
+              let i = state.claudeSessions.firstIndex(where: { $0.id == id }),
+              let task = state.tasks.first(where: { $0.id == "integration_claude" }) else { return }
+        state.claudeSessions[i].steps = task.steps
+        state.claudeSessions[i].state = task.state
+    }
+
+    /// Events from a session that isn't on the card: keep its record current, flag what matters.
+    @MainActor
+    private func updateBackgroundSession(_ id: String, event: String, payload: [String: Any]) {
+        let state = AppState.shared
+        guard let i = state.claudeSessions.firstIndex(where: { $0.id == id }) else { return }
+        func step(_ text: String) {
+            state.claudeSessions[i].steps.append(text)
+            if state.claudeSessions[i].steps.count > 20 { state.claudeSessions[i].steps.removeFirst() }
+        }
+        switch event {
+        case "UserPromptSubmit":
+            state.claudeSessions[i].state = .thinking
+            if let prompt = payload["prompt"] as? String, !prompt.isEmpty { step(String(prompt.prefix(60))) }
+        case "PreToolUse":
+            state.claudeSessions[i].state = .working
+            step(frenchStep(tool: payload["tool_name"] as? String ?? "Tool",
+                            input: payload["tool_input"] as? [String: Any] ?? [:]))
+        case "PostToolUse", "PostToolUseFailure":
+            state.claudeSessions[i].state = .working
+        case "Stop":
+            state.claudeSessions[i].state = .finished
+            state.claudeSessions[i].unseen = true
+            step((payload["message"] as? String).map { String($0.prefix(60)) } ?? "Done")
+            SoundEngine.shared.play("finish")
+            setPillBadge(id: "integration_claude", badge: .finished)
+        case "StopFailure":
+            state.claudeSessions[i].state = .error
+            state.claudeSessions[i].unseen = true
+            SoundEngine.shared.play("error")
+            setPillBadge(id: "integration_claude", badge: .error)
+        case "Notification":
+            let message = payload["message"] as? String ?? ""
+            if message.hasSuffix("?") {
+                state.claudeSessions[i].state = .question
+                state.claudeSessions[i].unseen = true
+                step(message)
+            }
+        case "SessionEnd":
+            endSession(id)
+        default:
+            break
+        }
+    }
+
+    /// A session closed: forget it; if it was on the card, show another live one.
+    @MainActor
+    private func endSession(_ id: String) {
+        let state = AppState.shared
+        state.claudeSessions.removeAll { $0.id == id }
+        guard state.focusedClaudeSession == id else { return }
+        state.focusedClaudeSession = nil
+        if let next = state.claudeSessions.max(by: { $0.updatedAt < $1.updatedAt }) {
+            focusSession(next.id)
+        }
+    }
+
+    /// Sessions that ended without SessionEnd (terminal closed): drop after 30 min of silence.
+    @MainActor
+    private func pruneSessions() {
+        let state = AppState.shared
+        let stale = state.claudeSessions.filter {
+            $0.id != state.focusedClaudeSession && Date.now.timeIntervalSince($0.updatedAt) > 30 * 60
+        }
+        for s in stale { state.claudeSessions.removeAll { $0.id == s.id } }
+    }
+
+    // MARK: - Approval queue (several sessions can ask at once)
+
+    private struct QueuedApproval { let fd: Int32; let payload: [String: Any]; let since: Date }
+    private var approvalQueue: [QueuedApproval] = []
+
+    @MainActor
+    private func queueApproval(fd: Int32, payload: [String: Any]) {
+        approvalQueue.append(QueuedApproval(fd: fd, payload: payload, since: .now))
+        nbLog("PermissionRequest queued (\(approvalQueue.count) waiting)")
+        let sessionId = payload["session_id"] as? String ?? ""
+        let state = AppState.shared
+        if let i = state.claudeSessions.firstIndex(where: { $0.id == sessionId }) {
+            state.claudeSessions[i].state = .approval
+            state.claudeSessions[i].unseen = true
+        }
+        // Claude Code gives up after ~120 s: let it re-ask instead of answering too late.
+        DispatchQueue.main.asyncAfter(deadline: .now() + 112) { [weak self] in
+            guard let self, let i = self.approvalQueue.firstIndex(where: { $0.fd == fd }) else { return }
+            self.approvalQueue.remove(at: i)
+            Task.detached { [weak self] in
+                self?.sendLine(fd: fd, text: #"{"permissionDecision":"ask"}"#)
+                close(fd)
+            }
+        }
+    }
+
+    @MainActor
+    private func showNextQueuedApproval() {
+        guard pendingApprovalFD < 0, !approvalQueue.isEmpty else { return }
+        let next = approvalQueue.removeFirst()
+        processPermissionRequest(fd: next.fd, payload: next.payload)
     }
 
     // MARK: - Live view feed

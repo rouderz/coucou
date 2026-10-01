@@ -287,6 +287,10 @@ final class AppState: ObservableObject {
     @Published var notionLoaded: Bool = false
     @Published var notionError: String? = nil
 
+    // Claude Code sessions running at the same time (#24). The card shows the focused one.
+    @Published var claudeSessions: [ClaudeSession] = []
+    @Published var focusedClaudeSession: String? = nil
+
     // Chat conversation on screen, and its entry in ChatStore once saved
     @Published var chatHistory: [ChatMessage] = []
     @Published var currentChatID: UUID? = nil
@@ -561,6 +565,19 @@ struct NotionPage: Identifiable {
         if diff < 86400 { return "\(Int(diff/3600))h" }
         return "\(Int(diff/86400))d"
     }
+}
+
+// MARK: - Claude Code sessions
+
+struct ClaudeSession: Identifiable, Equatable {
+    let id: String
+    var project: String
+    var cwd: String
+    var state: BotState = .idle
+    var steps: [String] = []
+    var updatedAt: Date = .now
+    /// Something happened here while another session was on the card.
+    var unseen: Bool = false
 }
 
 // MARK: - Chat
