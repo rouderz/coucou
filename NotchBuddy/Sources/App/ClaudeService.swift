@@ -187,21 +187,72 @@ final class ClaudeService {
 
         conversationMessages.append(["role": "user", "content": userContent])
 
-        let body: [String: Any] = [
-            "model": model,
-            "max_tokens": 4096,
-            "tools": webSearchTools,
-            "system": Self.systemPrompt,
-            "messages": conversationMessages,
-        ]
-
         do {
-            let data = try await callAPI(body: body, key: key, beta: "web-search-2025-03-05")
-            await handleChatResult(data, state: state)
+            try await streamChat(key: key, state: state)
         } catch {
-            conversationMessages.removeLast()
-            await showError("Network error: \(error.localizedDescription)", state: state)
+            // Drop the unanswered question so the conversation stays valid for the next try.
+            if conversationMessages.last?["role"] as? String == "user" { conversationMessages.removeLast() }
+            VoiceOutput.shared.stop()
+            await showError(APIError.describe(error), state: state)
         }
+    }
+
+    /// API engine: streams the answer into the chat as it's written. Web search may pause the turn
+    /// (`pause_turn`); the paused message is sent back so Claude finishes it, up to 4 times.
+    private func streamChat(key: String, state: AppState) async throws {
+        var replyID: UUID?
+        func show(_ text: String) {
+            let clean = text.trimmingCharacters(in: .whitespacesAndNewlines)
+            guard !clean.isEmpty else { return }
+            if let id = replyID, let i = state.chatHistory.firstIndex(where: { $0.id == id }) {
+                state.chatHistory[i].content = clean
+            } else {
+                let msg = ChatMessage(role: .assistant, content: clean)
+                replyID = msg.id
+                state.chatHistory.append(msg)
+                state.stateOverride = nil  // hide the typing dots once text streams in
+            }
+            VoiceOutput.shared.feed(clean)
+        }
+
+        var content: [[String: Any]] = []
+        for _ in 0..<4 {
+            var messages = conversationMessages
+            if !content.isEmpty { messages.append(["role": "assistant", "content": content]) }
+            let body: [String: Any] = [
+                "model": model,
+                "max_tokens": AppState.shared.apiMaxTokens,
+                "tools": webSearchTools,
+                "system": Self.systemPrompt,
+                "messages": messages,
+                "stream": true,
+            ]
+            let before = Self.text(of: content)
+            let part: (content: [[String: Any]], stopReason: String?)
+            do {
+                part = try await streamMessage(body: body, key: key, beta: "web-search-2025-03-05",
+                                               kind: "chat") { show(before + $0) }
+            } catch {
+                if let id = replyID { state.chatHistory.removeAll { $0.id == id } }
+                throw error
+            }
+            content += part.content
+            if part.stopReason != "pause_turn" { break }
+        }
+
+        let answer = Self.text(of: content).trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !answer.isEmpty else {
+            if let id = replyID { state.chatHistory.removeAll { $0.id == id } }
+            throw APIError(message: "Claude didn't write an answer. Try asking again.")
+        }
+        // Full content (tool use + search results) keeps the next turns grounded.
+        conversationMessages.append(["role": "assistant", "content": content])
+        show(answer)
+        VoiceOutput.shared.finish(answer)
+        ChatStore.shared.saveCurrent(state)
+        state.stateOverride = nil
+        state.view = .prompt
+        NotificationCenter.default.post(name: .triggerEmote, object: BotEmote.happy)
     }
 
     // MARK: - Chat through the user's Claude Code (subscription)
@@ -296,7 +347,7 @@ final class ClaudeService {
             let result = try await callAPI(body: body, key: key, beta: "web-search-2025-03-05")
             await handleResult(result, state: state)
         } catch {
-            await showError("Network error: \(error.localizedDescription)", state: state)
+            await showError(APIError.describe(error), state: state)
         }
     }
 
@@ -314,41 +365,105 @@ final class ClaudeService {
 
         let (data, response) = try await URLSession.shared.data(for: request)
 
-        guard let http = response as? HTTPURLResponse, http.statusCode == 200 else {
-            let msg = String(data: data, encoding: .utf8) ?? "unknown error"
-            throw NSError(domain: "Claude", code: 0, userInfo: [NSLocalizedDescriptionKey: msg])
-        }
+        let status = (response as? HTTPURLResponse)?.statusCode ?? 0
+        guard status == 200 else { throw APIError(status: status, body: data, model: model) }
         return data
     }
 
-    // MARK: - Chat result handler
+    /// One streamed request (server-sent events). `onText` gets the message's text so far.
+    /// Returns the content blocks as the non-streaming API would, to keep them in the history.
+    private func streamMessage(body: [String: Any], key: String, beta: String?, kind: String,
+                               onText: (String) -> Void) async throws -> (content: [[String: Any]], stopReason: String?) {
+        var request = URLRequest(url: endpoint)
+        request.httpMethod = "POST"
+        request.setValue(key, forHTTPHeaderField: "x-api-key")
+        request.setValue(anthropicVersion, forHTTPHeaderField: "anthropic-version")
+        request.setValue("application/json", forHTTPHeaderField: "content-type")
+        request.setValue("text/event-stream", forHTTPHeaderField: "accept")
+        if let beta { request.setValue(beta, forHTTPHeaderField: "anthropic-beta") }
+        request.httpBody = try JSONSerialization.data(withJSONObject: body)
+        request.timeoutInterval = 120
 
-    private func handleChatResult(_ data: Data, state: AppState) async {
-        guard let json = try? JSONSerialization.jsonObject(with: data) as? [String: Any],
-              let content = json["content"] as? [[String: Any]] else {
-            await showError("Unexpected API response.", state: state)
-            return
+        let (bytes, response) = try await URLSession.shared.bytes(for: request)
+        let status = (response as? HTTPURLResponse)?.statusCode ?? 0
+        guard status == 200 else {
+            var data = Data()
+            for try await byte in bytes { data.append(byte) }
+            throw APIError(status: status, body: data, model: model)
         }
-        logUsage(json, kind: "chat")
 
-        // Store full content (includes tool_use/tool_result blocks) for correct multi-turn context
-        conversationMessages.append(["role": "assistant", "content": content])
+        var blocks: [Int: [String: Any]] = [:]
+        var toolInput: [Int: String] = [:]
+        var stopReason: String?
+        var usage: [String: Any] = [:]
+        var responseModel = model
 
-        guard let textBlock = content.first(where: { $0["type"] as? String == "text" }),
-              let text = textBlock["text"] as? String, !text.isEmpty else {
-            await showError("No response text.", state: state)
-            return
+        for try await line in bytes.lines {
+            guard line.hasPrefix("data:"),
+                  let data = line.dropFirst(5).trimmingCharacters(in: .whitespaces).data(using: .utf8),
+                  let event = try? JSONSerialization.jsonObject(with: data) as? [String: Any],
+                  let type = event["type"] as? String else { continue }
+            let index = event["index"] as? Int ?? 0
+
+            switch type {
+            case "message_start":
+                let message = event["message"] as? [String: Any]
+                usage = message?["usage"] as? [String: Any] ?? [:]
+                responseModel = message?["model"] as? String ?? model
+            case "content_block_start":
+                var block = event["content_block"] as? [String: Any] ?? [:]
+                if block["type"] as? String == "text" { block["text"] = block["text"] as? String ?? "" }
+                blocks[index] = block
+            case "content_block_delta":
+                guard let delta = event["delta"] as? [String: Any] else { break }
+                switch delta["type"] as? String {
+                case "text_delta":
+                    let piece = delta["text"] as? String ?? ""
+                    blocks[index]?["text"] = (blocks[index]?["text"] as? String ?? "") + piece
+                    onText(Self.text(of: Self.ordered(blocks)))
+                case "input_json_delta":
+                    toolInput[index, default: ""] += delta["partial_json"] as? String ?? ""
+                case "citations_delta":
+                    if let citation = delta["citation"] {
+                        var list = blocks[index]?["citations"] as? [Any] ?? []
+                        list.append(citation)
+                        blocks[index]?["citations"] = list
+                    }
+                default: break
+                }
+            case "content_block_stop":
+                if let json = toolInput[index] {
+                    let input = json.data(using: .utf8).flatMap { try? JSONSerialization.jsonObject(with: $0) }
+                    blocks[index]?["input"] = input ?? [String: Any]()
+                }
+            case "message_delta":
+                stopReason = (event["delta"] as? [String: Any])?["stop_reason"] as? String ?? stopReason
+                if let more = event["usage"] as? [String: Any] { usage.merge(more) { $1 } }
+            case "error":
+                let err = event["error"] as? [String: Any]
+                throw APIError(message: APIError.friendly(type: err?["type"] as? String,
+                                                          message: err?["message"] as? String,
+                                                          status: 0, model: model))
+            default:
+                break
+            }
         }
-
-        // Add to display history
-        state.chatHistory.append(ChatMessage(role: .assistant, content: text.trimmingCharacters(in: .whitespacesAndNewlines)))
-        ChatStore.shared.saveCurrent(state)
-        VoiceOutput.shared.finish(text.trimmingCharacters(in: .whitespacesAndNewlines))
-
-        state.stateOverride = nil
-        state.view = .prompt
-        NotificationCenter.default.post(name: .triggerEmote, object: BotEmote.happy)
+        logUsage(["usage": usage, "model": responseModel], kind: kind)
+        return (Self.ordered(blocks), stopReason)
     }
+
+    private static func ordered(_ blocks: [Int: [String: Any]]) -> [[String: Any]] {
+        blocks.keys.sorted().compactMap { blocks[$0] }
+    }
+
+    /// The answer's text. Web search splits it into many text blocks (one per cited passage).
+    static func text(of content: [[String: Any]]) -> String {
+        content.filter { $0["type"] as? String == "text" }
+            .compactMap { $0["text"] as? String }
+            .joined()
+    }
+
+    // MARK: - Chat result handler
 
     // MARK: - Structured result handler
 
@@ -356,8 +471,7 @@ final class ClaudeService {
         // Extract text from Anthropic response (may contain tool_use / web_search_tool_result blocks)
         guard let json = try? JSONSerialization.jsonObject(with: data) as? [String: Any],
               let content = json["content"] as? [[String: Any]],
-              let textBlock = content.first(where: { $0["type"] as? String == "text" }),
-              let text = textBlock["text"] as? String else {
+              case let text = Self.text(of: content), !text.isEmpty else {
             await showError("Unexpected API response.", state: state)
             return
         }
@@ -442,5 +556,61 @@ final class ClaudeService {
                   let text = String(data: data, encoding: .utf8) else { return nil }
             return ["type": "text", "text": "File contents:\n\(text)"]
         }
+    }
+}
+
+
+// MARK: - API errors in plain words
+
+/// Turns Anthropic API failures into something the user can act on.
+struct APIError: LocalizedError {
+    let message: String
+    var errorDescription: String? { message }
+
+    init(message: String) { self.message = message }
+
+    init(status: Int, body: Data, model: String) {
+        let json = (try? JSONSerialization.jsonObject(with: body)) as? [String: Any]
+        let err = json?["error"] as? [String: Any]
+        message = Self.friendly(type: err?["type"] as? String, message: err?["message"] as? String,
+                                status: status, model: model)
+    }
+
+    static func friendly(type: String?, message: String?, status: Int, model: String) -> String {
+        let raw = message ?? ""
+        let lower = raw.lowercased()
+        switch (type, status) {
+        case ("authentication_error", _), (_, 401):
+            return "Your Anthropic API key was rejected. Check it in Settings → Claude, or switch the chat to your Claude Code subscription."
+        case ("not_found_error", _) where lower.contains("model"), (_, 404):
+            return "Your API key can't use the model \u{201C}\(model)\u{201D}. Pick another one in Settings → Model, or switch the chat to your Claude Code subscription."
+        case ("permission_error", _), (_, 403):
+            return "Your API key doesn't have permission for this (\(raw.isEmpty ? "forbidden" : raw)). Check the key's workspace in the Anthropic Console."
+        case (_, 400) where lower.contains("credit balance"):
+            return "Your Anthropic API credit balance is too low. Add credits in the Anthropic Console, or switch the chat to your Claude Code subscription."
+        case ("rate_limit_error", _), (_, 429):
+            return "The API is rate limiting this key. Wait a moment and try again."
+        case ("overloaded_error", _), (_, 529):
+            return "Claude is overloaded right now. Try again in a minute."
+        case (_, 500...599), ("api_error", _):
+            return "Anthropic's API had a problem (\(status)). Try again in a minute."
+        default:
+            return raw.isEmpty ? "The API answered with an error (\(status))." : raw
+        }
+    }
+
+    /// Any error from a request: API errors as above, network errors in plain words.
+    static func describe(_ error: Error) -> String {
+        if let api = error as? APIError { return api.message }
+        if let url = error as? URLError {
+            switch url.code {
+            case .notConnectedToInternet, .networkConnectionLost:
+                return "No internet connection. Check your network and try again."
+            case .timedOut:
+                return "Claude took too long to answer. Try again, or ask for something shorter."
+            default: break
+            }
+        }
+        return "Network error: \(error.localizedDescription)"
     }
 }

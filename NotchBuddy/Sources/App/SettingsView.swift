@@ -146,6 +146,19 @@ struct SettingsView: View {
                         Text("Used by the chat. Fable needs access on your plan or API account.")
                             .font(.system(size: 11))
                             .foregroundColor(.secondary)
+
+                        if state.chatEngine == .apiKey {
+                            Picker("Longest answer", selection: $state.apiMaxTokens) {
+                                Text("Short (1,024 tokens)").tag(1024)
+                                Text("Medium (2,048)").tag(2048)
+                                Text("Long (4,096)").tag(4096)
+                                Text("Very long (8,192)").tag(8192)
+                                Text("Maximum (16,000)").tag(16000)
+                            }
+                            Text("Caps how much each API answer can write. Longer answers cost more tokens.")
+                                .font(.system(size: 11))
+                                .foregroundColor(.secondary)
+                        }
                     }
                     .padding(6)
                 }
