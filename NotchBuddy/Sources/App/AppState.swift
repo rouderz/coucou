@@ -293,6 +293,25 @@ final class AppState: ObservableObject {
     @Published var notionLoaded: Bool = false
     @Published var notionError: String? = nil
 
+    // Inbox: reviews, mentions and assignments from GitHub and Linear
+    @Published var inboxEnabled: Bool = true {
+        didSet { UserDefaults.standard.set(inboxEnabled, forKey: "inboxEnabled") }
+    }
+    @Published var inboxGitHub: Bool = true {
+        didSet { UserDefaults.standard.set(inboxGitHub, forKey: "inboxGitHub") }
+    }
+    @Published var inboxLinear: Bool = true {
+        didSet { UserDefaults.standard.set(inboxLinear, forKey: "inboxLinear") }
+    }
+    /// Mochi says new inbox items out loud (push-to-talk voice and language).
+    @Published var inboxSpeak: Bool = false {
+        didSet { UserDefaults.standard.set(inboxSpeak, forKey: "inboxSpeak") }
+    }
+    /// InboxItem.Kind raw values that count (comments and other updates are off by default).
+    @Published var inboxKinds: Set<String> = ["review", "mention", "assigned"] {
+        didSet { UserDefaults.standard.set(Array(inboxKinds), forKey: "inboxKinds") }
+    }
+
     // Phone alerts for approvals nobody answered (#31)
     @Published var phoneAlertsEnabled: Bool = false {
         didSet { UserDefaults.standard.set(phoneAlertsEnabled, forKey: "phoneAlertsEnabled") }
@@ -365,6 +384,11 @@ final class AppState: ObservableObject {
         if let v = ud.object(forKey: "approvalShortcutsEnabled") as? Bool { approvalShortcutsEnabled = v }
         if let v = ud.object(forKey: "dndUntil") as? Date, v > .now { dndUntil = v }
         if let v = ud.object(forKey: "phoneAlertsEnabled") as? Bool { phoneAlertsEnabled = v }
+        if let v = ud.object(forKey: "inboxEnabled") as? Bool { inboxEnabled = v }
+        if let v = ud.object(forKey: "inboxGitHub") as? Bool { inboxGitHub = v }
+        if let v = ud.object(forKey: "inboxLinear") as? Bool { inboxLinear = v }
+        if let v = ud.object(forKey: "inboxSpeak") as? Bool { inboxSpeak = v }
+        if let v = ud.stringArray(forKey: "inboxKinds") { inboxKinds = Set(v) }
         if let v = ud.string(forKey: "phoneAlertsTopic") { phoneAlertsTopic = v }
         if let v = ud.string(forKey: "phoneAlertsServer"), !v.isEmpty { phoneAlertsServer = v }
         if let v = ud.object(forKey: "phoneAlertsOnlyWhenAway") as? Bool { phoneAlertsOnlyWhenAway = v }

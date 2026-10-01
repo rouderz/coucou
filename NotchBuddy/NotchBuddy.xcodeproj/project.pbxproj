@@ -62,11 +62,13 @@
 		6EFE45214D10926591B5FAAF /* LiveSession.swift in Sources */ = {isa = PBXBuildFile; fileRef = FFD4DC70ACDB12740C627D8A /* LiveSession.swift */; };
 		728D2F630BAA3A04ACDDC6FD /* AlertViews.swift in Sources */ = {isa = PBXBuildFile; fileRef = 66CC055AE736D126D6E18F55 /* AlertViews.swift */; };
 		76361364CB29B16B6F2F065D /* OverviewViews.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4E89D474AA5E467048534EA9 /* OverviewViews.swift */; };
+		779187EDB5DE90CB70187854 /* Inbox.swift in Sources */ = {isa = PBXBuildFile; fileRef = B0437ECB26D5F1310D561EC5 /* Inbox.swift */; };
 		78B3C6814431B2DD9D1F4949 /* SoundEngine.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1BE21C2B315D37AA70ED45E9 /* SoundEngine.swift */; };
 		78F33561BF3007B239C7B69D /* ChatViews.swift in Sources */ = {isa = PBXBuildFile; fileRef = 37C4FC2A2F214EACFA47351E /* ChatViews.swift */; };
 		78FCEDC8F78B683AB10E6529 /* NotionPoller.swift in Sources */ = {isa = PBXBuildFile; fileRef = BE03E03D1804B0B92C5C2DAD /* NotionPoller.swift */; };
 		7AEED9FBB924F0DD1D07E1A5 /* Localizable.xcstrings in Resources */ = {isa = PBXBuildFile; fileRef = B2AA83D80260660475FAB052 /* Localizable.xcstrings */; };
 		818E87607FD9F0CA5406BF35 /* Localizable.xcstrings in Resources */ = {isa = PBXBuildFile; fileRef = B2AA83D80260660475FAB052 /* Localizable.xcstrings */; };
+		85229871E7FE584755F626AC /* Inbox.swift in Sources */ = {isa = PBXBuildFile; fileRef = B0437ECB26D5F1310D561EC5 /* Inbox.swift */; };
 		878924960FC0F2B3524D48AC /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 192844E7299DEED5C2372067 /* AppDelegate.swift */; };
 		8A811118670161B1B7CBC90D /* ChatStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 828C4F9C123E3820C3C5BAC6 /* ChatStore.swift */; };
 		8C32A0C3EAF536D3836F61D5 /* GreetingCanvasView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C581F7B1A9F14B281B60063E /* GreetingCanvasView.swift */; };
@@ -174,6 +176,7 @@
 		A29F4C0B02BE91654D02AA0C /* BotCanvasView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BotCanvasView.swift; sourceTree = "<group>"; };
 		A3205452AED397F4671B61BD /* SessionTimeline.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SessionTimeline.swift; sourceTree = "<group>"; };
 		A83D5410BD030B243ADDCFF4 /* ClaudeService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ClaudeService.swift; sourceTree = "<group>"; };
+		B0437ECB26D5F1310D561EC5 /* Inbox.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Inbox.swift; sourceTree = "<group>"; };
 		B241B043223AFBBFB7418A5E /* UploadCanvasView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UploadCanvasView.swift; sourceTree = "<group>"; };
 		B2AA83D80260660475FAB052 /* Localizable.xcstrings */ = {isa = PBXFileReference; lastKnownFileType = text.json.xcstrings; path = Localizable.xcstrings; sourceTree = "<group>"; };
 		B89DA1A0C21AE3535A1760BB /* N8nPoller.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = N8nPoller.swift; sourceTree = "<group>"; };
@@ -225,6 +228,7 @@
 				BBC275D7EEB69B427687D00B /* GlobalHotKey.swift */,
 				C581F7B1A9F14B281B60063E /* GreetingCanvasView.swift */,
 				79D8DD79C3DD9BBC584B3CB2 /* HookServer.swift */,
+				B0437ECB26D5F1310D561EC5 /* Inbox.swift */,
 				15A1A8206F73376F4CAF2057 /* IslandRootView.swift */,
 				D8212018F09EA1E96FBD63CD /* IslandStateMachine.swift */,
 				8D3CE3617E9D336DDBA10F7A /* IslandTypes.swift */,
@@ -469,6 +473,7 @@
 				275B02DE15D06E78211EFCBD /* GlobalHotKey.swift in Sources */,
 				8C32A0C3EAF536D3836F61D5 /* GreetingCanvasView.swift in Sources */,
 				2C798C3837A63B9BB561A1A0 /* HookServer.swift in Sources */,
+				779187EDB5DE90CB70187854 /* Inbox.swift in Sources */,
 				A62648C9263FE6C2CA6680C0 /* IntegrationCardView.swift in Sources */,
 				9C1544A73504B28B435F0AC6 /* IntegrationDetailViews.swift in Sources */,
 				CA3321C14A11FED94E48B3E3 /* IslandRootView.swift in Sources */,
@@ -538,6 +543,7 @@
 				406F116610429F3D5F1ECA73 /* GlobalHotKey.swift in Sources */,
 				C0E18D0F6F5F6D131E6066B8 /* GreetingCanvasView.swift in Sources */,
 				9DD56C95ECABDDCE23652D50 /* HookServer.swift in Sources */,
+				85229871E7FE584755F626AC /* Inbox.swift in Sources */,
 				B5DEDA89F416624C766F2C72 /* IntegrationCardView.swift in Sources */,
 				43CC1CEA2048AE82D4DE137C /* IntegrationDetailViews.swift in Sources */,
 				B605F976F4141435F27CF266 /* IslandRootView.swift in Sources */,

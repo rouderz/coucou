@@ -62,6 +62,16 @@
         }
       }
     },
+    "%lld new notifications. Latest, %@": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%lld notificaciones nuevas. La última, %@"
+          }
+        }
+      }
+    },
     "%lld saved · last %lld kept": {
       "localizations": {
         "es": {
@@ -402,6 +412,16 @@
         }
       }
     },
+    "Assigned": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Asignaciones"
+          }
+        }
+      }
+    },
     "Assigned to you": {
       "localizations": {
         "es": {
@@ -418,6 +438,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "Asignadas a ti · %lld"
+          }
+        }
+      }
+    },
+    "Assignment": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Asignación"
           }
         }
       }
@@ -632,6 +662,16 @@
         }
       }
     },
+    "Checked every minute. New items make Mochi peek out (only a badge in Do not disturb); the 🔔 in the island lists them. Opening or dismissing one marks it read on GitHub / Linear.": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Se revisa cada minuto. Lo nuevo hace que Mochi se asome (solo una marca en No molestar); la 🔔 de la isla lo lista. Abrir o descartar algo lo marca como leído en GitHub / Linear."
+          }
+        }
+      }
+    },
     "Checking connection…": {
       "localizations": {
         "es": {
@@ -838,6 +878,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "Cerrar tras"
+          }
+        }
+      }
+    },
+    "Comments": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Comentarios"
           }
         }
       }
@@ -1352,6 +1402,16 @@
         }
       }
     },
+    "GitHub (through gh)": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "GitHub (con gh)"
+          }
+        }
+      }
+    },
     "GitHub CLI found but signed out. Run `gh auth login`, or paste a token.": {
       "localizations": {
         "es": {
@@ -1518,6 +1578,36 @@
           "stringUnit": {
             "state": "translated",
             "value": "En %@"
+          }
+        }
+      }
+    },
+    "Inbox": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Bandeja"
+          }
+        }
+      }
+    },
+    "Inbox: %lld waiting for you": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Bandeja: %lld pendientes"
+          }
+        }
+      }
+    },
+    "Inbox: nothing waiting for you": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Bandeja: nada pendiente"
           }
         }
       }
@@ -1732,6 +1822,26 @@
         }
       }
     },
+    "Mark all read": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Marcar todo leído"
+          }
+        }
+      }
+    },
+    "Mark as read": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Marcar como leído"
+          }
+        }
+      }
+    },
     "Maximum (16,000)": {
       "localizations": {
         "es": {
@@ -1758,6 +1868,26 @@
           "stringUnit": {
             "state": "translated",
             "value": "Riesgo medio"
+          }
+        }
+      }
+    },
+    "Mentioned you": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Te mencionaron"
+          }
+        }
+      }
+    },
+    "Mentions": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Menciones"
           }
         }
       }
@@ -1812,6 +1942,26 @@
         }
       }
     },
+    "Mochi says it out loud": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Mochi lo dice en voz alta"
+          }
+        }
+      }
+    },
+    "Mochi tells me when someone needs me": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Mochi me avisa cuando alguien me necesita"
+          }
+        }
+      }
+    },
     "Model": {
       "localizations": {
         "es": {
@@ -1858,6 +2008,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "Nuevo chat"
+          }
+        }
+      }
+    },
+    "New comment": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Comentario nuevo"
           }
         }
       }
@@ -1998,6 +2158,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "No hay nada en marcha ahora mismo."
+          }
+        }
+      }
+    },
+    "Nothing waiting for you. Review requests, mentions and assignments from GitHub and Linear show up here.": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nada pendiente. Aquí aparecen las peticiones de review, menciones y asignaciones de GitHub y Linear."
           }
         }
       }
@@ -2158,6 +2328,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "Abrió"
+          }
+        }
+      }
+    },
+    "Other": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Otros"
           }
         }
       }
@@ -2392,12 +2572,32 @@
         }
       }
     },
+    "Review requested": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Te pidieron review"
+          }
+        }
+      }
+    },
     "Review the JSON below before confirming.": {
       "localizations": {
         "es": {
           "stringUnit": {
             "state": "translated",
             "value": "Revisa el JSON de abajo antes de confirmar."
+          }
+        }
+      }
+    },
+    "Reviews": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Reviews"
           }
         }
       }
@@ -2782,6 +2982,16 @@
         }
       }
     },
+    "Try it": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Probar"
+          }
+        }
+      }
+    },
     "Turn failed": {
       "localizations": {
         "es": {
@@ -2848,6 +3058,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "Hasta mañana por la mañana"
+          }
+        }
+      }
+    },
+    "Update": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Novedad"
           }
         }
       }

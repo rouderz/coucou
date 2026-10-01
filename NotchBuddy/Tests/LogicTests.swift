@@ -242,3 +242,13 @@ final class LinearTests: XCTestCase {
         XCTAssertNotNil(issue.updatedAt)
     }
 }
+
+final class InboxTests: XCTestCase {
+    func testGitHubAPILinksBecomeWebLinks() {
+        XCTAssertEqual(GitHubInbox.webURL("https://api.github.com/repos/rouderz/coucou/pulls/80"),
+                       "https://github.com/rouderz/coucou/pull/80")
+        XCTAssertEqual(GitHubInbox.webURL("https://api.github.com/repos/rouderz/coucou/issues/12"),
+                       "https://github.com/rouderz/coucou/issues/12")
+        XCTAssertNil(GitHubInbox.webURL(nil))
+    }
+}

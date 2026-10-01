@@ -603,6 +603,45 @@ struct SettingsView: View {
                     .padding(6)
                 }
 
+                // MARK: Inbox
+                GroupBox("Inbox") {
+                    VStack(alignment: .leading, spacing: 8) {
+                        Toggle("Mochi tells me when someone needs me", isOn: $state.inboxEnabled)
+                        if state.inboxEnabled {
+                            HStack(spacing: 16) {
+                                Toggle("GitHub (through gh)", isOn: $state.inboxGitHub)
+                                Toggle("Linear", isOn: $state.inboxLinear)
+                            }
+                            HStack(spacing: 8) {
+                                Toggle("Mochi says it out loud", isOn: $state.inboxSpeak)
+                                Button("Try it") {
+                                    let sample = InboxItem(id: "sample", remoteID: "", source: .github, kind: .review,
+                                                           title: "Fix the cart total", subtitle: "rouderz/coucou #80",
+                                                           actor: nil, url: "", date: .now)
+                                    SoundEngine.shared.play("question")
+                                    VoiceOutput.shared.say(InboxStore.spoken(sample, count: 1),
+                                                           locale: VoiceSession.locale(for: state))
+                                }
+                            }
+                            HStack(spacing: 12) {
+                                ForEach(InboxItem.Kind.allCases, id: \.self) { kind in
+                                    Toggle(Self.inboxKindTitle(kind), isOn: Binding(
+                                        get: { state.inboxKinds.contains(kind.rawValue) },
+                                        set: { on in
+                                            if on { state.inboxKinds.insert(kind.rawValue) } else { state.inboxKinds.remove(kind.rawValue) }
+                                            InboxStore.shared.refresh()
+                                        }))
+                                }
+                            }
+                            Text("Checked every minute. New items make Mochi peek out (only a badge in Do not disturb); the 🔔 in the island lists them. Opening or dismissing one marks it read on GitHub / Linear.")
+                                .font(.system(size: 11))
+                                .foregroundColor(.secondary)
+                                .fixedSize(horizontal: false, vertical: true)
+                        }
+                    }
+                    .padding(6)
+                }
+
                 // MARK: Phone alerts
                 GroupBox("Phone alerts") {
                     VStack(alignment: .leading, spacing: 8) {
@@ -882,6 +921,16 @@ struct SettingsView: View {
             statusMessage = L("✓ Hooks removed.")
         } catch {
             statusMessage = "❌ \(error.localizedDescription)"
+        }
+    }
+
+    static func inboxKindTitle(_ kind: InboxItem.Kind) -> String {
+        switch kind {
+        case .review: return L("Reviews")
+        case .mention: return L("Mentions")
+        case .assigned: return L("Assigned")
+        case .comment: return L("Comments")
+        case .other: return L("Other")
         }
     }
 

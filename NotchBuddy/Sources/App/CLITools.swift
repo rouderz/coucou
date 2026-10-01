@@ -147,6 +147,15 @@ enum GitHubCLI {
         return try? JSONSerialization.jsonObject(with: out.stdoutData)
     }
 
+    /// PATCH / POST / DELETE through gh (e.g. marking a notification as read). True on success.
+    @discardableResult
+    static func send(_ method: String, _ path: String) -> Bool {
+        guard let gh = locate(),
+              let out = CLITool.run(gh.path, ["api", "-X", method, path], environment: environment(for: gh), timeout: 20)
+        else { return false }
+        return out.status == 0
+    }
+
     // MARK: Conditional requests (#8)
 
     private static let etagLock = NSLock()

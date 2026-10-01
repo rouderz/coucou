@@ -235,6 +235,13 @@ final class VoiceOutput: NSObject, AVSpeechSynthesizerDelegate {
         armed = false
     }
 
+    /// Says a short notice (e.g. a new review request). Never talks over an answer being read.
+    func say(_ text: String, locale: Locale) {
+        guard !synth.isSpeaking else { return }
+        voice = Self.bestVoice(for: locale)
+        speak(text)
+    }
+
     func stop() {
         armed = false
         pending = 0
