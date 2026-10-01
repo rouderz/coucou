@@ -977,11 +977,26 @@ struct IntegrationCardView: View {
         case "integration_resend":  return KeychainStore.shared.get("resend-api-key") != nil
         case "integration_n8n":     return KeychainStore.shared.get("n8n-api-key")    != nil
         case "integration_vercel":  return KeychainStore.shared.get("vercel-token")   != nil
-        case "integration_github":  return KeychainStore.shared.get("github-token")   != nil
+        case "integration_github":  return AppState.shared.githubConnection.isConnected
+                                        || KeychainStore.shared.get("github-token") != nil
         case "integration_stripe":  return KeychainStore.shared.get("stripe-api-key") != nil
         case "integration_notion":  return KeychainStore.shared.get("notion-api-key") != nil
         case "integration_calcom":  return KeychainStore.shared.get("calcom-api-key") != nil
         default: return false
+        }
+    }
+
+    /// GitHub-specific status line: says how it's connected instead of "Key not configured".
+    private var githubStatus: (text: String, color: Color) {
+        let green = Color(hex: "#22C55E"), red = Color(hex: "#F4505E"), grey = Color(hex: "#6B7079")
+        switch appState.githubConnection {
+        case .checking:          return ("Checking connection…", grey)
+        case .cli(let login):    return (login.map { "Connected via GitHub CLI · @\($0) · loading…" }
+                                         ?? "Connected via GitHub CLI · loading…", green)
+        case .token:             return ("Connected with token · loading…", green)
+        case .ghSignedOut:       return ("GitHub CLI signed out · run gh auth login", red)
+        case .notConfigured:     return ("Not connected · install gh or add a token", red)
+        case .failed(let why):   return (why, red)
         }
     }
 
@@ -1062,7 +1077,7 @@ struct IntegrationCardView: View {
             ResendCardView(emails: appState.resendEmails, total: appState.resendTotal)
                 .transition(.opacity)
         } else if githubHasData {
-            GitHubStatsCardView(stats: appState.githubStats!)
+            GitHubStatsCardView(stats: appState.githubStats!, connection: appState.githubConnection)
                 .transition(.opacity)
         } else if stripeHasData {
             StripeCardView()
@@ -1132,10 +1147,13 @@ struct IntegrationCardView: View {
                     let stripeErr = task.id == "integration_stripe" ? appState.stripeError
                                   : task.id == "integration_calcom"  ? appState.calcomError
                                   : nil
-                    let dot = stripeErr != nil ? Color(hex: "#F4505E")
+                    let github = task.id == "integration_github" ? githubStatus : nil
+                    let dot = github?.color
+                            ?? (stripeErr != nil ? Color(hex: "#F4505E")
                             : isConfigured    ? Color(hex: "#22C55E")
-                            :                   Color(hex: "#F4505E")
-                    let label = stripeErr ?? (isConfigured ? "Connected · loading…" : "Key not configured")
+                            :                   Color(hex: "#F4505E"))
+                    let label = github?.text
+                            ?? stripeErr ?? (isConfigured ? "Connected · loading…" : "Key not configured")
                     Circle().fill(dot).frame(width: 5, height: 5)
                     Text(label)
                         .font(.system(size: 11))
@@ -1496,6 +1514,7 @@ struct ResendCardView: View {
 
 struct GitHubStatsCardView: View {
     let stats: GitHubStats
+    var connection: GitHubConnection = .token
 
     var body: some View {
         VStack(alignment: .leading, spacing: 0) {
@@ -1525,9 +1544,26 @@ struct GitHubStatsCardView: View {
             .padding(.top, 8)
             .padding(.leading, 108)
             .padding(.trailing, 12)
+
+            // How it's connected
+            HStack(spacing: 5) {
+                Circle().fill(Color(hex: "#22C55E")).frame(width: 5, height: 5)
+                Text(connectionText)
+                    .font(.system(size: 11))
+                    .foregroundColor(Color(hex: "#6B7079"))
+            }
+            .padding(.top, 6)
+            .padding(.leading, 108)
         }
         .frame(maxWidth: .infinity, alignment: .topLeading)
         .padding(.top, 4)
+    }
+
+    private var connectionText: String {
+        switch connection {
+        case .cli(let login): return login.map { "Connected via GitHub CLI · @\($0)" } ?? "Connected via GitHub CLI"
+        default:              return "Connected with token"
+        }
     }
 
     private func formatCount(_ n: Int) -> String {
