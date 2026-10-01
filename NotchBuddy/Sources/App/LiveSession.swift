@@ -576,7 +576,8 @@ private struct CodePanel: View {
                 RiskChip(risk: approval.risk, reason: approval.riskReason)
             }
             Spacer(minLength: 4)
-            ApprovalControls(approval: state.pendingApproval)
+            ApprovalControls(approval: state.pendingApproval, compact: true)
+                .layoutPriority(1)
         }
         .padding(8)
         .background(Color.white.opacity(0.03))

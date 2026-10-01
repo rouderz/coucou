@@ -2757,6 +2757,7 @@ struct PrimaryButton: View {
         Button(action: action) {
             HStack(spacing: 7) {
                 Text(LocalizedStringKey(title)).font(.system(size: 12.5, weight: .medium))
+                    .lineLimit(1)
                 if let k = kbd {
                     Text(k).font(.system(size: 10.5))
                         .padding(.horizontal, 4)
@@ -2765,6 +2766,7 @@ struct PrimaryButton: View {
                 }
             }
             .padding(.horizontal, 13).padding(.vertical, 7)
+            .fixedSize()
             .background(Color(hex: "#F5F6F8"))
             .foregroundColor(Color(hex: "#0B0C0E"))
             .clipShape(Capsule())
@@ -2786,6 +2788,7 @@ struct SecondaryButton: View {
         Button(action: action) {
             HStack(spacing: 7) {
                 Text(LocalizedStringKey(title)).font(.system(size: 12.5, weight: .medium))
+                    .lineLimit(1)
                 if let k = kbd {
                     Text(k).font(.system(size: 10.5))
                         .padding(.horizontal, 4)
@@ -2794,6 +2797,7 @@ struct SecondaryButton: View {
                 }
             }
             .padding(.horizontal, 13).padding(.vertical, 7)
+            .fixedSize()
             .background(Color.white.opacity(0.09))
             .foregroundColor(Color(hex: "#F1F2F4"))
             .clipShape(Capsule())
