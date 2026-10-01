@@ -60,6 +60,9 @@ final class AppState: ObservableObject {
     // Per conversation: reset when a new chat starts.
     @Published var chatAllowEdits: Bool = false
 
+    // Claude plan usage (5-hour / weekly limits, context), from Claude Code's status line data
+    @Published var planUsage: PlanUsage? = nil
+
     // Live view of the current Claude Code turn (fed by HookServer)
     @Published var liveActivities: [ToolActivity] = []
     @Published var liveEdit: EditPreview? = nil
@@ -549,6 +552,7 @@ enum IntegrationRefresher {
         case "integration_n8n":     N8nPoller.shared.pollNow()
         case "integration_stripe":  StripePoller.shared.pollNow()
         case "integration_calcom":  CalcomPoller.shared.pollNow()
+        case "integration_claude":  PlanUsagePoller.shared.pollNow()
         default: break
         }
     }
@@ -556,7 +560,7 @@ enum IntegrationRefresher {
     @MainActor
     static func refreshAll() {
         for id in ["integration_github", "integration_notion", "integration_vercel", "integration_resend",
-                   "integration_n8n", "integration_stripe", "integration_calcom"] {
+                   "integration_n8n", "integration_stripe", "integration_calcom", "integration_claude"] {
             refresh(id)
         }
     }
@@ -642,4 +646,21 @@ struct IntegrationStatus {
         default:       return "\(service) error \(code)"
         }
     }
+}
+
+// MARK: - Claude plan usage
+
+/// What Claude Code reports to its status line: plan limits (Pro/Max) and the context window.
+struct PlanUsage: Equatable {
+    struct Window: Equatable {
+        let percent: Double      // 0–100
+        let resetsAt: Date
+    }
+    var fiveHour: Window? = nil
+    var sevenDay: Window? = nil
+    var contextPercent: Double? = nil
+    var model: String? = nil
+    /// "Pro", "Max"… from the Claude Code login.
+    var plan: String? = nil
+    var updatedAt: Date = .now
 }

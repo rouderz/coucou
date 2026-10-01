@@ -128,6 +128,31 @@ final class HookServer: @unchecked Sendable {
 
         switch name {
 
+        case "StatusLine":
+            // Not a hook: Coucou's status line forwarding Claude Code's status data.
+            var usage = PlanUsage()
+            func window(_ any: Any?) -> PlanUsage.Window? {
+                guard let w = any as? [String: Any],
+                      let pct = (w["used_percentage"] as? NSNumber)?.doubleValue,
+                      let resets = (w["resets_at"] as? NSNumber)?.doubleValue else { return nil }
+                let date = Date(timeIntervalSince1970: resets)
+                return date > .now ? .init(percent: pct, resetsAt: date) : nil
+            }
+            if let limits = payload["rate_limits"] as? [String: Any] {
+                usage.fiveHour = window(limits["five_hour"])
+                usage.sevenDay = window(limits["seven_day"])
+            }
+            // Limits appear only after the session's first reply: keep the last known ones meanwhile.
+            if usage.fiveHour == nil, let old = state.planUsage?.fiveHour, old.resetsAt > .now { usage.fiveHour = old }
+            if usage.sevenDay == nil, let old = state.planUsage?.sevenDay, old.resetsAt > .now { usage.sevenDay = old }
+            if let ctx = payload["context_window"] as? [String: Any] {
+                usage.contextPercent = (ctx["used_percentage"] as? NSNumber)?.doubleValue
+            }
+            usage.model = (payload["model"] as? [String: Any])?["display_name"] as? String
+            usage.plan = state.planUsage?.plan
+            state.planUsage = usage
+            return
+
         case "SessionStart":
             activeSessionId = sessionId
             upsertTask(projectName: projectName, cwd: cwd)
@@ -518,6 +543,21 @@ final class HookServer: @unchecked Sendable {
 
     // MARK: - nb-hook script installation
 
+    /// Claude Code status line command: forwards plan usage to Coucou, then shows the user's own line.
+    static var statusLineScriptPath: String { supportDir.appendingPathComponent("coucou-statusline").path }
+    /// The status line command the user had before Coucou's, run after ours so it still shows.
+    static var previousStatusLinePath: URL { supportDir.appendingPathComponent("statusline-previous") }
+
+    /// Whether ~/.claude/settings.json uses Coucou's status line (needed for the plan usage bars).
+    static func statusLineInstalled() -> Bool {
+        let url = FileManager.default.homeDirectoryForCurrentUser.appendingPathComponent(".claude/settings.json")
+        guard let data = try? Data(contentsOf: url),
+              let settings = try? JSONSerialization.jsonObject(with: data) as? [String: Any],
+              let line = settings["statusLine"] as? [String: Any],
+              let cmd = line["command"] as? String else { return false }
+        return cmd.contains("coucou-statusline")
+    }
+
     func installHookScript() {
         #if APPSTORE
         // In App Store mode the script is written during settings hook installation
@@ -530,6 +570,12 @@ final class HookServer: @unchecked Sendable {
         _ = try? FileManager.default.setAttributes(
             [.posixPermissions: 0o755 as NSNumber],
             ofItemAtPath: scriptURL.path
+        )
+        let statusURL = URL(fileURLWithPath: Self.statusLineScriptPath)
+        try? statusLineScript.write(to: statusURL, atomically: true, encoding: .utf8)
+        _ = try? FileManager.default.setAttributes(
+            [.posixPermissions: 0o755 as NSNumber],
+            ofItemAtPath: statusURL.path
         )
         #endif
     }
@@ -546,6 +592,10 @@ final class HookServer: @unchecked Sendable {
               let permReqHooks = hooks["PermissionRequest"] as? [[String: Any]] else {
             return false
         }
+        #if !APPSTORE
+        // Hooks installed before the plan usage bars existed: offer the update.
+        if !statusLineInstalled() { return true }
+        #endif
         for matcher in permReqHooks {
             if let hookList = matcher["hooks"] as? [[String: Any]] {
                 for hook in hookList {
@@ -622,6 +672,18 @@ final class HookServer: @unchecked Sendable {
             hooks[event] = existing
         }
         settings["hooks"] = hooks
+
+        #if !APPSTORE
+        // Plan usage bars: Claude Code only gives rate limits to its status line, so Coucou's
+        // status line forwards them, then runs the user's previous status line (kept aside).
+        var statusLine = settings["statusLine"] as? [String: Any] ?? [:]
+        if let previous = statusLine["command"] as? String, !previous.contains("coucou-statusline") {
+            try? previous.write(to: Self.previousStatusLinePath, atomically: true, encoding: .utf8)
+        }
+        statusLine["type"] = "command"
+        statusLine["command"] = "\"\(Self.statusLineScriptPath)\""
+        settings["statusLine"] = statusLine
+        #endif
         return try JSONSerialization.data(withJSONObject: settings, options: [.prettyPrinted, .sortedKeys])
     }
 
@@ -631,6 +693,21 @@ final class HookServer: @unchecked Sendable {
         guard let data = try? Data(contentsOf: settingsURL),
               var settings = try? JSONSerialization.jsonObject(with: data) as? [String: Any],
               var hooks = settings["hooks"] as? [String: Any] else { return }
+
+        #if !APPSTORE
+        // Give the status line back to what the user had (or remove ours).
+        if let line = settings["statusLine"] as? [String: Any],
+           (line["command"] as? String)?.contains("coucou-statusline") == true {
+            if let previous = try? String(contentsOf: Self.previousStatusLinePath, encoding: .utf8),
+               !previous.isEmpty {
+                var restored = line
+                restored["command"] = previous
+                settings["statusLine"] = restored
+            } else {
+                settings.removeValue(forKey: "statusLine")
+            }
+        }
+        #endif
 
         for key in hooks.keys {
             if var matchers = hooks[key] as? [[String: Any]] {
@@ -844,6 +921,44 @@ def main():
 
 main()
 sys.exit(0)
+"""
+
+// MARK: - Status line script (plan usage → Coucou)
+
+private let statusLineScript = """
+#!/usr/bin/env python3
+# coucou-statusline: Claude Code status line for Coucou.
+# Forwards the status data (plan usage, context window) to the Coucou app, then prints
+# the user's own status line, if they had one before installing Coucou's hooks.
+import sys, json, os, socket, subprocess
+
+SUPPORT = os.path.expanduser('~/Library/Application Support/NotchBuddy')
+
+def main():
+    raw = sys.stdin.buffer.read()
+    try:
+        data = json.loads(raw)
+        data['hook_event_name'] = 'StatusLine'
+        s = socket.socket(socket.AF_UNIX, socket.SOCK_STREAM)
+        s.settimeout(0.3)
+        s.connect(os.path.join(SUPPORT, 'nb.sock'))
+        s.sendall((json.dumps(data) + '\\n').encode())
+        s.close()
+    except Exception:
+        pass
+    try:
+        with open(os.path.join(SUPPORT, 'statusline-previous')) as f:
+            previous = f.read().strip()
+    except Exception:
+        previous = ''
+    if previous:
+        try:
+            out = subprocess.run(previous, shell=True, input=raw, capture_output=True, timeout=5)
+            sys.stdout.buffer.write(out.stdout)
+        except Exception:
+            pass
+
+main()
 """
 
 // MARK: - nb-hook script for App Store (socket in sandboxed container)

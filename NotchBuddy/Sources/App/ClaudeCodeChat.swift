@@ -192,6 +192,8 @@ final class ClaudeCodeChat {
                 resultText = obj["result"] as? String
                 resultIsError = obj["is_error"] as? Bool ?? false
                 logUsage(obj, model: model)
+            case "rate_limit_event":
+                applyRateLimit(obj)
             default:
                 break
             }
@@ -250,6 +252,36 @@ final class ClaudeCodeChat {
         case .code(let code):
             return code.promptPreamble
         }
+    }
+
+    /// Headless runs never call the status line, but they report the plan limit they hit:
+    /// `{"type":"rate_limit_event","rate_limit_info":{"rateLimitType":"five_hour","resetsAt":…,"utilization":…}}`.
+    /// Field names vary between Claude Code versions, so read them defensively and log the raw event.
+    private func applyRateLimit(_ event: [String: Any]) {
+        let info = event["rate_limit_info"] as? [String: Any] ?? event
+        if let raw = try? JSONSerialization.data(withJSONObject: info),
+           let text = String(data: raw, encoding: .utf8) {
+            Logger(subsystem: "fr.louisraille.NotchBuddy", category: "claude")
+                .info("rate_limit_event \(text, privacy: .public)")
+        }
+        func number(_ keys: String...) -> Double? {
+            for k in keys { if let n = info[k] as? NSNumber { return n.doubleValue } }
+            return nil
+        }
+        guard let kind = (info["rateLimitType"] ?? info["rate_limit_type"]) as? String,
+              let used = number("used_percentage", "usedPercentage") ?? number("utilization").map({ $0 * 100 }),
+              var resets = number("resetsAt", "resets_at") else { return }
+        if resets > 1e11 { resets /= 1000 }     // milliseconds → seconds
+        let window = PlanUsage.Window(percent: used, resetsAt: Date(timeIntervalSince1970: resets))
+        guard window.resetsAt > .now else { return }
+        var usage = AppState.shared.planUsage ?? PlanUsage()
+        switch kind {
+        case "five_hour": usage.fiveHour = window
+        case "seven_day", "seven_day_opus", "seven_day_sonnet": usage.sevenDay = window
+        default: return
+        }
+        usage.updatedAt = .now
+        AppState.shared.planUsage = usage
     }
 
     private func logUsage(_ result: [String: Any], model: String) {
