@@ -55,12 +55,12 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             placeBelowIsland(w)
             w.makeKeyAndOrderFront(nil); NSApp.activate(ignoringOtherApps: true); return
         }
-        let win = NSWindow(contentRect: NSRect(x: 0, y: 0, width: 480, height: 540),
+        let win = NSWindow(contentRect: NSRect(x: 0, y: 0, width: 560, height: 680),
                            styleMask: [.titled, .closable, .miniaturizable, .resizable],
                            backing: .buffered, defer: false)
         win.title = "Settings — Coucou"
         win.contentView = NSHostingView(rootView: SettingsView())
-        win.contentMinSize = NSSize(width: 420, height: 320)
+        win.contentMinSize = NSSize(width: 480, height: 360)
         win.isReleasedWhenClosed = false
         placeBelowIsland(win)
         settingsWindow = win
@@ -68,18 +68,19 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         NSApp.activate(ignoringOtherApps: true)
     }
 
-    /// Centres the window horizontally and keeps its title bar clear of the island panel
-    /// (320 pt tall at the top of the notch screen), shrinking it to fit if needed.
+    /// Centres the window on the notch screen (the island is folded away while Settings is
+    /// open), keeping it under the island's compact pill and shrinking it to fit small screens.
     private func placeBelowIsland(_ win: NSWindow) {
         let screen = IslandWindowController.notchScreen() ?? NSScreen.main ?? win.screen
         guard let screen else { win.center(); return }
         let visible = screen.visibleFrame
-        let islandBottom = screen.frame.maxY - 320 - 12   // island panel height + margin
-        let top = min(visible.maxY, islandBottom)
+        let top = min(visible.maxY, screen.frame.maxY - 60)   // clear of the compact pill
         var frame = win.frame
-        frame.size.height = min(frame.height, max(top - visible.minY - 12, win.minSize.height))
+        frame.size.height = min(frame.height, top - visible.minY - 24)
+        frame.size.width = min(frame.width, visible.width - 48)
         frame.origin.x = visible.midX - frame.width / 2
-        frame.origin.y = max(visible.minY + 12, top - frame.height)
+        frame.origin.y = min(top - frame.height, visible.midY - frame.height / 2)
+        frame.origin.y = max(visible.minY + 12, frame.origin.y)
         win.setFrame(frame, display: true)
     }
 

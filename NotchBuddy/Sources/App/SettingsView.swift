@@ -89,7 +89,7 @@ struct SettingsView: View {
                             Text("Anthropic API key").tag(ChatEngine.apiKey)
                             Text("Other provider").tag(ChatEngine.provider)
                         }
-                        .pickerStyle(.segmented)
+                        .pickerStyle(.menu)   // three long labels don't fit side by side
                         #endif
 
                         if state.chatEngine == .claudeCode {
@@ -648,7 +648,9 @@ struct SettingsView: View {
                                                            locale: VoiceSession.locale(for: state))
                                 }
                             }
-                            HStack(spacing: 12) {
+                            // Wraps on narrow windows instead of pushing the page wider
+                            LazyVGrid(columns: [GridItem(.adaptive(minimum: 110), alignment: .leading)],
+                                      alignment: .leading, spacing: 6) {
                                 ForEach(InboxItem.Kind.allCases, id: \.self) { kind in
                                     Toggle(Self.inboxKindTitle(kind), isOn: Binding(
                                         get: { state.inboxKinds.contains(kind.rawValue) },
@@ -773,9 +775,12 @@ struct SettingsView: View {
 
                 Spacer(minLength: 0)
             }
+            .frame(maxWidth: .infinity, alignment: .leading)   // never wider than the window
             .padding(20)
         }
-        .frame(width: 480, height: 720)
+        // Follows the window (it used to be a fixed 480 × 720 inside a shorter window: the page
+        // was centred and cut off at the top, bottom and sides).
+        .frame(minWidth: 480, maxWidth: .infinity, minHeight: 360, maxHeight: .infinity)
         .onAppear { checkGitHubCLI(force: false) }
     }
 
