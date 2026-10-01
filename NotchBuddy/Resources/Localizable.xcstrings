@@ -822,6 +822,16 @@
         }
       }
     },
+    "Claude Code sessions, approvals and plan usage are connected to Coucou.": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Las sesiones de Claude Code, las aprobaciones y el uso del plan están conectados a Coucou."
+          }
+        }
+      }
+    },
     "Claude Code settings": {
       "localizations": {
         "es": {
@@ -1242,6 +1252,16 @@
         }
       }
     },
+    "Coucou will write this to ~/.claude/settings.json (your current file is backed up first). Review it, then confirm.": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Coucou escribirá esto en ~/.claude/settings.json (antes guarda una copia del archivo actual). Revísalo y confirma."
+          }
+        }
+      }
+    },
     "Custom…": {
       "localizations": {
         "es": {
@@ -1532,6 +1552,16 @@
         }
       }
     },
+    "Hey Mochi: start by voice, without the shortcut": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Oye Mochi: empezar con la voz, sin el atajo"
+          }
+        }
+      }
+    },
     "Hide after": {
       "localizations": {
         "es": {
@@ -1582,12 +1612,32 @@
         }
       }
     },
+    "Hooks installed, but out of date": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Hooks instalados, pero desactualizados"
+          }
+        }
+      }
+    },
     "Hooks need an update (approvals timeout / plan usage bars)": {
       "localizations": {
         "es": {
           "stringUnit": {
             "state": "translated",
             "value": "Los hooks necesitan una actualización (tiempo de aprobaciones / barras de uso del plan)"
+          }
+        }
+      }
+    },
+    "Hooks not installed": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Hooks sin instalar"
           }
         }
       }
@@ -1668,6 +1718,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "Instala la app gratuita ntfy (iOS / Android), pulsa + y suscríbete a este tema. El aviso incluye el proyecto y el comando: mantén el tema en privado o usa tu propio servidor ntfy."
+          }
+        }
+      }
+    },
+    "Install them so Coucou sees your Claude Code sessions and can approve from the island. Claude Code is never blocked if Coucou isn't running.": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Instálalos para que Coucou vea tus sesiones de Claude Code y puedas aprobar desde la isla. Claude Code nunca se bloquea si Coucou no está abierto."
           }
         }
       }
@@ -1798,6 +1858,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "Linear → Settings → Security & access → Personal API keys. Muestra tus issues abiertas y vincula cada sesión de Claude Code con la issue de su rama."
+          }
+        }
+      }
+    },
+    "Listening for “Hey Mochi” (or “Oye Mochi”) on this Mac only. macOS shows the orange microphone dot while it listens.": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Escuchando “Oye Mochi” (o “Hey Mochi”) solo en este Mac. macOS muestra el punto naranja del micrófono mientras escucha."
           }
         }
       }
@@ -2082,6 +2152,16 @@
         }
       }
     },
+    "Needs Microphone and Speech Recognition (Allow now… above)": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Necesita Micrófono y Reconocimiento de voz (Permitir ahora… arriba)"
+          }
+        }
+      }
+    },
     "Network error: %@": {
       "localizations": {
         "es": {
@@ -2342,6 +2422,16 @@
         }
       }
     },
+    "Only when the Mac is plugged in": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Solo con el Mac enchufado"
+          }
+        }
+      }
+    },
     "Open": {
       "localizations": {
         "es": {
@@ -2458,6 +2548,36 @@
           "stringUnit": {
             "state": "translated",
             "value": "Resumen"
+          }
+        }
+      }
+    },
+    "Paused: Do not disturb": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "En pausa: No molestar"
+          }
+        }
+      }
+    },
+    "Paused: on battery": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "En pausa: con batería"
+          }
+        }
+      }
+    },
+    "Paused: screen locked": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "En pausa: pantalla bloqueada"
           }
         }
       }
@@ -2668,6 +2788,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "Actualizar"
+          }
+        }
+      }
+    },
+    "Reinstall…": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Reinstalar…"
           }
         }
       }
@@ -3142,6 +3272,16 @@
         }
       }
     },
+    "This Mac can't recognize speech on-device in this language, so it stays off": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Este Mac no puede reconocer voz en el propio equipo en este idioma, así que queda desactivado"
+          }
+        }
+      }
+    },
     "Timeline": {
       "localizations": {
         "es": {
@@ -3298,6 +3438,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "Actualizar hooks"
+          }
+        }
+      }
+    },
+    "Update them to get the latest: approvals that don't time out, plan usage bars.": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Actualízalos para tener lo último: aprobaciones sin tiempo agotado y barras de uso del plan."
           }
         }
       }

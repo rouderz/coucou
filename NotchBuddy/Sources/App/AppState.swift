@@ -223,6 +223,16 @@ final class AppState: ObservableObject {
     @Published var voiceSpeakReplies: Bool = true {
         didSet { UserDefaults.standard.set(voiceSpeakReplies, forKey: "voiceSpeakReplies") }
     }
+    // "Hey Mochi" (#61): off by default; only on AC power unless changed
+    @Published var wakeWordEnabled: Bool = false {
+        didSet {
+            UserDefaults.standard.set(wakeWordEnabled, forKey: "wakeWordEnabled")
+            DispatchQueue.main.async { WakeWord.shared.update() }
+        }
+    }
+    @Published var wakeWordOnlyOnPower: Bool = true {
+        didSet { UserDefaults.standard.set(wakeWordOnlyOnPower, forKey: "wakeWordOnlyOnPower") }
+    }
     @Published var voicePhase: VoicePhase = .idle
     @Published var voiceTranscript: String = ""
     @Published var voiceSpeaking: Bool = false
@@ -413,6 +423,8 @@ final class AppState: ObservableObject {
         if let v = ud.object(forKey: "voiceHotkeyCode")   as? Int    { voiceHotkeyCode = UInt16(v) }
         if let v = ud.object(forKey: "voiceLanguage")     as? String { voiceLanguage = v }
         if let v = ud.object(forKey: "voiceSpeakReplies") as? Bool   { voiceSpeakReplies = v }
+        if let v = ud.object(forKey: "wakeWordEnabled") as? Bool { wakeWordEnabled = v }
+        if let v = ud.object(forKey: "wakeWordOnlyOnPower") as? Bool { wakeWordOnlyOnPower = v }
         if let d = ud.data(forKey: "vercelProjectFilter"),
            let a = try? JSONDecoder().decode([String].self, from: d) { vercelProjectFilter = Set(a) }
         if let d = ud.data(forKey: "n8nWorkflowFilter"),

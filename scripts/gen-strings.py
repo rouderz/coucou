@@ -226,6 +226,18 @@ ES = {
 "The server returned no models.":"El servidor no devolvió modelos.",
 "Mochi's chat goes to %@ with your key. Files and the code you're on are sent as text; edits and web search stay with the Claude engines.":"El chat de Mochi va a %@ con tu clave. Los archivos y el código se envían como texto; la edición y la búsqueda web siguen siendo de los motores de Claude.",
 "Runs on your Mac: nothing leaves it. Start %@ first, then Load models.":"Funciona en tu Mac: nada sale de él. Abre primero %@ y luego Cargar modelos.",
+# hook status
+"Reinstall…":"Reinstalar…","Hooks installed, but out of date":"Hooks instalados, pero desactualizados","Hooks not installed":"Hooks sin instalar",
+"Claude Code sessions, approvals and plan usage are connected to Coucou.":"Las sesiones de Claude Code, las aprobaciones y el uso del plan están conectados a Coucou.",
+"Update them to get the latest: approvals that don't time out, plan usage bars.":"Actualízalos para tener lo último: aprobaciones sin tiempo agotado y barras de uso del plan.",
+"Install them so Coucou sees your Claude Code sessions and can approve from the island. Claude Code is never blocked if Coucou isn't running.":"Instálalos para que Coucou vea tus sesiones de Claude Code y puedas aprobar desde la isla. Claude Code nunca se bloquea si Coucou no está abierto.",
+"Coucou will write this to ~/.claude/settings.json (your current file is backed up first). Review it, then confirm.":"Coucou escribirá esto en ~/.claude/settings.json (antes guarda una copia del archivo actual). Revísalo y confirma.",
+# hey mochi
+"Needs Microphone and Speech Recognition (Allow now… above)":"Necesita Micrófono y Reconocimiento de voz (Permitir ahora… arriba)",
+"This Mac can't recognize speech on-device in this language, so it stays off":"Este Mac no puede reconocer voz en el propio equipo en este idioma, así que queda desactivado",
+"Paused: Do not disturb":"En pausa: No molestar","Paused: screen locked":"En pausa: pantalla bloqueada","Paused: on battery":"En pausa: con batería",
+"Hey Mochi: start by voice, without the shortcut":"Oye Mochi: empezar con la voz, sin el atajo","Only when the Mac is plugged in":"Solo con el Mac enchufado",
+"Listening for “Hey Mochi” (or “Oye Mochi”) on this Mac only. macOS shows the orange microphone dot while it listens.":"Escuchando “Oye Mochi” (o “Hey Mochi”) solo en este Mac. macOS muestra el punto naranja del micrófono mientras escucha.",
 }
 catalog = {"sourceLanguage": "en", "version": "1.0", "strings": {
     k: {"localizations": {"es": {"stringUnit": {"state": "translated", "value": v}}}} for k, v in sorted(ES.items())

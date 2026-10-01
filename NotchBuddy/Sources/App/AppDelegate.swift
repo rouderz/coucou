@@ -101,6 +101,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         NotionPoller.shared.start()
         LinearPoller.shared.start()
         InboxStore.shared.start()
+        WakeWord.shared.start()
         PlanUsagePoller.shared.start()
         NotificationCenter.default.addObserver(self, selector: #selector(openSettings),
                                                name: .openFullSettings, object: nil)

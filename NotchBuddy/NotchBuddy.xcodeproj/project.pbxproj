@@ -16,6 +16,7 @@
 		0A267EE2955C7AD8E02A296C /* N8nPoller.swift in Sources */ = {isa = PBXBuildFile; fileRef = B89DA1A0C21AE3535A1760BB /* N8nPoller.swift */; };
 		0CD72ED49048755285B349C8 /* CLITools.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2F5F8BEA2F1BDCF26F6383DC /* CLITools.swift */; };
 		0DFCE791B85982CB3CE8EADA /* Voice.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4A4DA9640D4CD3307049E864 /* Voice.swift */; };
+		0E731162F7B7984AA3744144 /* WakeWord.swift in Sources */ = {isa = PBXBuildFile; fileRef = CE113A009695EA871E81761E /* WakeWord.swift */; };
 		0E83C1DD4D20E7FB7A904450 /* VercelPoller.swift in Sources */ = {isa = PBXBuildFile; fileRef = 71718D1B87A39A4879DD2A9D /* VercelPoller.swift */; };
 		0E9CE475EC53C67DAB00F8E5 /* BotEngine.swift in Sources */ = {isa = PBXBuildFile; fileRef = D4540F630F8BA04AFFFA3979 /* BotEngine.swift */; };
 		0ED1C6EF01800EE3E03FDE5E /* PhoneAlerts.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1E0A10428FF6A769490C4210 /* PhoneAlerts.swift */; };
@@ -71,6 +72,7 @@
 		7AEED9FBB924F0DD1D07E1A5 /* Localizable.xcstrings in Resources */ = {isa = PBXBuildFile; fileRef = B2AA83D80260660475FAB052 /* Localizable.xcstrings */; };
 		818E87607FD9F0CA5406BF35 /* Localizable.xcstrings in Resources */ = {isa = PBXBuildFile; fileRef = B2AA83D80260660475FAB052 /* Localizable.xcstrings */; };
 		85229871E7FE584755F626AC /* Inbox.swift in Sources */ = {isa = PBXBuildFile; fileRef = B0437ECB26D5F1310D561EC5 /* Inbox.swift */; };
+		875177E868A7C226071333DF /* WakeWord.swift in Sources */ = {isa = PBXBuildFile; fileRef = CE113A009695EA871E81761E /* WakeWord.swift */; };
 		878924960FC0F2B3524D48AC /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 192844E7299DEED5C2372067 /* AppDelegate.swift */; };
 		8A811118670161B1B7CBC90D /* ChatStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 828C4F9C123E3820C3C5BAC6 /* ChatStore.swift */; };
 		8C32A0C3EAF536D3836F61D5 /* GreetingCanvasView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C581F7B1A9F14B281B60063E /* GreetingCanvasView.swift */; };
@@ -191,6 +193,7 @@
 		C71C1697FF12A9C595F365FA /* InfoPlist.xcstrings */ = {isa = PBXFileReference; lastKnownFileType = text.json.xcstrings; path = InfoPlist.xcstrings; sourceTree = "<group>"; };
 		C95931F60F2D47A652E1A32F /* IntegrationCardView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = IntegrationCardView.swift; sourceTree = "<group>"; };
 		CBB947B5DDC815EFB1A038B6 /* ClaudeCodeChat.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ClaudeCodeChat.swift; sourceTree = "<group>"; };
+		CE113A009695EA871E81761E /* WakeWord.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WakeWord.swift; sourceTree = "<group>"; };
 		D4540F630F8BA04AFFFA3979 /* BotEngine.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BotEngine.swift; sourceTree = "<group>"; };
 		D710BD7834228045869D0184 /* IslandWindowController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = IslandWindowController.swift; sourceTree = "<group>"; };
 		D8212018F09EA1E96FBD63CD /* IslandStateMachine.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = IslandStateMachine.swift; sourceTree = "<group>"; };
@@ -256,6 +259,7 @@
 				6FD65943C32E150F1CD65C31 /* UploadSequenceEngine.swift */,
 				71718D1B87A39A4879DD2A9D /* VercelPoller.swift */,
 				4A4DA9640D4CD3307049E864 /* Voice.swift */,
+				CE113A009695EA871E81761E /* WakeWord.swift */,
 				E91B733ADC638E14E9BB6EFA /* WindowContextCapture.swift */,
 				B6E9827F1494AE873968E4AF /* Views */,
 			);
@@ -508,6 +512,7 @@
 				FAD78D74C6906D4EC8AA4101 /* UploadSequenceEngine.swift in Sources */,
 				118FC4AE0AC74D84B4A134D8 /* VercelPoller.swift in Sources */,
 				17C614274463A3CA61E03291 /* Voice.swift in Sources */,
+				0E731162F7B7984AA3744144 /* WakeWord.swift in Sources */,
 				2875610F701376BD65573386 /* WindowContextCapture.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -579,6 +584,7 @@
 				ECECA2F225E82B7C951658D7 /* UploadSequenceEngine.swift in Sources */,
 				0E83C1DD4D20E7FB7A904450 /* VercelPoller.swift in Sources */,
 				0DFCE791B85982CB3CE8EADA /* Voice.swift in Sources */,
+				875177E868A7C226071333DF /* WakeWord.swift in Sources */,
 				2CC2E3B688B15BBEB3AE3BCE /* WindowContextCapture.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;

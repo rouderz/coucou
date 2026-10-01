@@ -263,6 +263,7 @@ final class DataPillsTests: XCTestCase {
     }
 }
 
+@MainActor
 final class ProviderTests: XCTestCase {
     func testPresetsAreComplete() {
         let ids = ProviderPreset.all.map(\.id)
@@ -277,5 +278,15 @@ final class ProviderTests: XCTestCase {
         XCTAssertTrue(OpenAICompatibleChat.error(code: 404, data: Data(), model: "gpt-x").message.contains("gpt-x"))
         let body = Data(#"{"error":{"message":"context too long"}}"#.utf8)
         XCTAssertEqual(OpenAICompatibleChat.error(code: 400, data: body, model: "m").message, "context too long")
+    }
+}
+
+@MainActor
+final class WakeWordTests: XCTestCase {
+    func testWakePhrasesAndCleanup() {
+        XCTAssertTrue(WakeWord.phrases.contains("hey mochi"))
+        XCTAssertTrue(WakeWord.phrases.contains("oye mochi"))
+        XCTAssertEqual(WakeWord.clean(", what's on my calendar? "), "what's on my calendar")
+        XCTAssertEqual(WakeWord.clean("  "), "")
     }
 }
