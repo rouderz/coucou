@@ -126,6 +126,9 @@ final class HookServer: @unchecked Sendable {
 
         let focused = state.focusId == "integration_claude"
 
+        // Timeline (#22): every session, on the card or not.
+        if name != "StatusLine" { TimelineStore.shared.record(event: name, sessionId: sessionId, payload: payload) }
+
         // Several sessions (#24): only the focused one drives the card; the others update their record.
         if name != "StatusLine", sessionId != "unknown" {
             if !routeSession(sessionId, project: projectName, cwd: cwd, event: name) {
@@ -394,6 +397,9 @@ final class HookServer: @unchecked Sendable {
         }
 
         let state = AppState.shared
+        if let approval = state.pendingApproval, !approvalFromChat {
+            TimelineStore.shared.recordApproval(approval, decision: decision)
+        }
         state.pendingApproval = nil
         ApprovalShortcuts.shared.disarm()
         state.isPinned = false

@@ -303,6 +303,8 @@ final class AppState: ObservableObject {
 
     // Claude Code sessions running at the same time (#24). The card shows the focused one.
     @Published var claudeSessions: [ClaudeSession] = []
+    /// The live view shows the session's timeline instead of the diff (#22).
+    @Published var liveShowsTimeline: Bool = false
     @Published var focusedClaudeSession: String? = nil
 
     // Chat conversation on screen, and its entry in ChatStore once saved

@@ -349,7 +349,11 @@ struct LiveSessionView: View {
                 }
                 .frame(width: 128, alignment: .leading)
 
-                CodePanel(state: state)
+                if state.liveShowsTimeline && state.pendingApproval == nil {
+                    TimelinePanel(state: state)
+                } else {
+                    CodePanel(state: state)
+                }
             }
             .padding(.leading, 22)
             .padding(.trailing, 14)
@@ -533,6 +537,8 @@ private struct CodePanel: View {
                 Text("Working…").font(.system(size: 11)).foregroundColor(Color(hex: "#8E939C"))
             }
             Spacer()
+            ChipButton("Timeline", icon: "list.bullet.rectangle") { state.liveShowsTimeline = true }
+                .help("Everything Claude did in this session, with times")
             if let edit = state.liveEdit {
                 ChipButton("Ask Mochi", icon: "bubble.left") { askMochi(about: edit) }
                     .help("Ask about this change in the chat")
