@@ -753,7 +753,13 @@ final class IslandWindowController: NSWindowController {
     // MARK: - Helpers
 
     func defaultView() -> IslandView {
-        state.tasks.isEmpty ? .empty : .overview
+        // While Claude Code is working, opening the island shows what it's doing.
+        if state.focusId == "integration_claude", !state.liveActivities.isEmpty,
+           let claude = state.tasks.first(where: { $0.id == "integration_claude" }),
+           [.working, .thinking, .approval].contains(claude.state) {
+            return .live
+        }
+        return state.tasks.isEmpty ? .empty : .overview
     }
 
     func baseMode() -> IslandMode {

@@ -86,6 +86,7 @@ final class ClaudeCodeChat {
         if let dir = workDir { try? FileManager.default.removeItem(at: dir) }
         workDir = nil
         projectDir = nil
+        AppState.shared.chatAllowEdits = false
     }
 
     /// Sends one user turn. `onText` receives the answer so far while it streams.
@@ -101,12 +102,22 @@ final class ClaudeCodeChat {
             projectDir = URL(fileURLWithPath: code.project, isDirectory: true)
         }
         let dir = try projectDir ?? conversationDir()
-        // Reading and searching the project is fine; editing or running commands never is.
-        let tools = projectDir == nil ? "WebSearch,WebFetch,Read" : "WebSearch,WebFetch,Read,Grep,Glob"
+        // Reading and searching the project is fine. Edits only when the user turned them on,
+        // and then every change goes through Coucou's approval (PermissionRequest hook → island).
+        // Running commands never.
+        let canEdit = projectDir != nil && AppState.shared.chatAllowEdits
+        let tools = projectDir == nil ? "WebSearch,WebFetch,Read"
+                  : canEdit ? "WebSearch,WebFetch,Read,Grep,Glob,Edit,MultiEdit,Write"
+                  : "WebSearch,WebFetch,Read,Grep,Glob"
         let allowed = projectDir == nil ? "WebSearch,WebFetch" : "WebSearch,WebFetch,Read,Grep,Glob"
+        let disallowed = canEdit ? "NotebookEdit,Bash" : "Edit,MultiEdit,Write,NotebookEdit,Bash"
         var prompt = ""
         if sessionID == nil, let context {
             prompt = contextPreamble(context, in: dir)
+        }
+        if canEdit {
+            prompt += "[Edits are allowed in this conversation: you may change files in the project with " +
+                      "Edit / Write. The user approves every change before it's written. You still can't run commands.]\n\n"
         }
         prompt += query
 
@@ -116,8 +127,12 @@ final class ClaudeCodeChat {
             "--model", model,
             "--tools", tools,
             "--allowedTools", allowed,
-            "--disallowedTools", "Edit,Write,NotebookEdit,Bash",
-            "--permission-mode", "dontAsk",
+            "--disallowedTools", disallowed,
+        ]
+        // Edits: unanswered prompts are denied, except what Coucou's PermissionRequest hook allows.
+        args += canEdit ? ["--permission-mode", "default", "--permission-prompts", "none"]
+                        : ["--permission-mode", "dontAsk"]
+        args += [
             "--strict-mcp-config",
             "--append-system-prompt", systemPrompt,
         ]
@@ -177,6 +192,8 @@ final class ClaudeCodeChat {
                 resultText = obj["result"] as? String
                 resultIsError = obj["is_error"] as? Bool ?? false
                 logUsage(obj, model: model)
+            case "rate_limit_event":
+                applyRateLimit(obj)
             default:
                 break
             }
@@ -235,6 +252,36 @@ final class ClaudeCodeChat {
         case .code(let code):
             return code.promptPreamble
         }
+    }
+
+    /// Headless runs never call the status line, but they report the plan limit they hit:
+    /// `{"type":"rate_limit_event","rate_limit_info":{"rateLimitType":"five_hour","resetsAt":…,"utilization":…}}`.
+    /// Field names vary between Claude Code versions, so read them defensively and log the raw event.
+    private func applyRateLimit(_ event: [String: Any]) {
+        let info = event["rate_limit_info"] as? [String: Any] ?? event
+        if let raw = try? JSONSerialization.data(withJSONObject: info),
+           let text = String(data: raw, encoding: .utf8) {
+            Logger(subsystem: "fr.louisraille.NotchBuddy", category: "claude")
+                .info("rate_limit_event \(text, privacy: .public)")
+        }
+        func number(_ keys: String...) -> Double? {
+            for k in keys { if let n = info[k] as? NSNumber { return n.doubleValue } }
+            return nil
+        }
+        guard let kind = (info["rateLimitType"] ?? info["rate_limit_type"]) as? String,
+              let used = number("used_percentage", "usedPercentage") ?? number("utilization").map({ $0 * 100 }),
+              var resets = number("resetsAt", "resets_at") else { return }
+        if resets > 1e11 { resets /= 1000 }     // milliseconds → seconds
+        let window = PlanUsage.Window(percent: used, resetsAt: Date(timeIntervalSince1970: resets))
+        guard window.resetsAt > .now else { return }
+        var usage = AppState.shared.planUsage ?? PlanUsage()
+        switch kind {
+        case "five_hour": usage.fiveHour = window
+        case "seven_day", "seven_day_opus", "seven_day_sonnet": usage.sevenDay = window
+        default: return
+        }
+        usage.updatedAt = .now
+        AppState.shared.planUsage = usage
     }
 
     private func logUsage(_ result: [String: Any], model: String) {

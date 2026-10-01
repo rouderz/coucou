@@ -154,7 +154,7 @@ enum CodeContextCapture {
 
     // MARK: - Project root
 
-    private static func projectRoot(for file: String, sessionFolder: String?) -> String {
+    static func projectRoot(for file: String, sessionFolder: String?) -> String {
         let fm = FileManager.default
         var dir = (file as NSString).deletingLastPathComponent
         let home = fm.homeDirectoryForCurrentUser.path

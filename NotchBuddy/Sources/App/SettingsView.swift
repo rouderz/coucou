@@ -154,7 +154,7 @@ struct SettingsView: View {
                             HStack(spacing: 6) {
                                 Image(systemName: "exclamationmark.triangle.fill")
                                     .foregroundColor(.orange)
-                                Text("Hook timeout outdated — update to fix approvals")
+                                Text("Hooks need an update (approvals timeout / plan usage bars)")
                                     .font(.system(size: 11))
                                     .foregroundColor(.orange)
                             }

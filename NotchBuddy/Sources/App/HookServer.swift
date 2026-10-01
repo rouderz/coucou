@@ -29,6 +29,8 @@ final class HookServer: @unchecked Sendable {
 
     private var serverFD: Int32 = -1
     private var pendingApprovalFD: Int32 = -1   // held open while user decides
+    /// The pending approval came from Mochi's own chat (Allow edits), not a terminal session.
+    private var approvalFromChat = false
     private var activeSessionId: String? = nil  // current Claude Code session
 
     private init() {}
@@ -120,18 +122,36 @@ final class HookServer: @unchecked Sendable {
         let rawName = URL(fileURLWithPath: cwd).lastPathComponent
         let projectName = aliasProjectName(rawName.isEmpty ? "Session" : rawName)
 
-        let termProgram = payload["term_program"] as? String ?? ""
-        let bundleId    = payload["bundle_id"]    as? String ?? ""
-        let isVSCode = termProgram.lowercased().contains("vscode") ||
-                       bundleId.lowercased().contains("vscode")
-        guard isVSCode else {
-            nbLog("Ignored \(name) from \(termProgram.isEmpty ? bundleId : termProgram) (\(projectName))")
-            return
-        }
+        // Sessions from any terminal count (VS Code, Cursor, iTerm, Terminal, Ghostty, Warp…).
 
         let focused = state.focusId == "integration_claude"
 
         switch name {
+
+        case "StatusLine":
+            // Not a hook: Coucou's status line forwarding Claude Code's status data.
+            var usage = PlanUsage()
+            func window(_ any: Any?) -> PlanUsage.Window? {
+                guard let w = any as? [String: Any],
+                      let pct = (w["used_percentage"] as? NSNumber)?.doubleValue,
+                      let resets = (w["resets_at"] as? NSNumber)?.doubleValue else { return nil }
+                let date = Date(timeIntervalSince1970: resets)
+                return date > .now ? .init(percent: pct, resetsAt: date) : nil
+            }
+            if let limits = payload["rate_limits"] as? [String: Any] {
+                usage.fiveHour = window(limits["five_hour"])
+                usage.sevenDay = window(limits["seven_day"])
+            }
+            // Limits appear only after the session's first reply: keep the last known ones meanwhile.
+            if usage.fiveHour == nil, let old = state.planUsage?.fiveHour, old.resetsAt > .now { usage.fiveHour = old }
+            if usage.sevenDay == nil, let old = state.planUsage?.sevenDay, old.resetsAt > .now { usage.sevenDay = old }
+            if let ctx = payload["context_window"] as? [String: Any] {
+                usage.contextPercent = (ctx["used_percentage"] as? NSNumber)?.doubleValue
+            }
+            usage.model = (payload["model"] as? [String: Any])?["display_name"] as? String
+            usage.plan = state.planUsage?.plan
+            state.planUsage = usage
+            return
 
         case "SessionStart":
             activeSessionId = sessionId
@@ -143,6 +163,9 @@ final class HookServer: @unchecked Sendable {
         case "UserPromptSubmit":
             activeSessionId = sessionId
             upsertTask(projectName: projectName, cwd: cwd)
+            state.liveActivities = []
+            state.liveEdit = nil
+            state.liveProject = projectName
             state.updateTask(id: "integration_claude", state: .thinking)
             if let prompt = payload["prompt"] as? String, !prompt.isEmpty {
                 appendStep(id: "integration_claude", step: String(prompt.prefix(60)))
@@ -158,13 +181,17 @@ final class HookServer: @unchecked Sendable {
             let step = frenchStep(tool: tool, input: input)
             appendStep(id: "integration_claude", step: step)
             nbLog("PreToolUse \(step)")
+            liveStart(tool: tool, input: input, toolUseID: payload["tool_use_id"] as? String,
+                      cwd: cwd, project: projectName)
 
         case "PostToolUse":
             state.updateTask(id: "integration_claude", state: .working)
+            liveFinish(payload, status: .done)
 
         case "PostToolUseFailure":
             state.updateTask(id: "integration_claude", state: .working)
             appendStep(id: "integration_claude", step: "⚠ failed")
+            liveFinish(payload, status: .failed)
 
         case "Notification":
             let message = payload["message"] as? String ?? ""
@@ -179,8 +206,16 @@ final class HookServer: @unchecked Sendable {
 
         case "Stop":
             state.updateTask(id: "integration_claude", state: .finished)
+            for i in state.liveActivities.indices where state.liveActivities[i].status == .running {
+                state.liveActivities[i].status = .done
+            }
+            if !state.liveActivities.isEmpty {
+                state.liveActivities.append(ToolActivity(tool: "Done", detail: nil, toolUseID: nil, status: .done))
+            }
             if let message = payload["message"] as? String, !message.isEmpty {
                 appendStep(id: "integration_claude", step: String(message.prefix(60)))
+            } else {
+                appendStep(id: "integration_claude", step: "Done")
             }
             SoundEngine.shared.play("finish")
             if focused {
@@ -226,6 +261,7 @@ final class HookServer: @unchecked Sendable {
         let isAlert: Bool
         switch view {
         case .approval, .finished, .error, .confused: isAlert = true
+        case .live: isAlert = state.pendingApproval != nil
         default: isAlert = false
         }
         if state.mode == .expanded {
@@ -251,24 +287,16 @@ final class HookServer: @unchecked Sendable {
         let rawName   = URL(fileURLWithPath: cwd).lastPathComponent
         let projectName = aliasProjectName(rawName.isEmpty ? "Session" : rawName)
 
-        let termProgram = payload["term_program"] as? String ?? ""
-        let bundleId    = payload["bundle_id"]    as? String ?? ""
-        let isVSCode = termProgram.lowercased().contains("vscode") ||
-                       bundleId.lowercased().contains("vscode")
-        guard isVSCode else {
-            Task.detached { [weak self] in
-                self?.sendLine(fd: fd, text: #"{"permissionDecision":"ask"}"#)
-                close(fd)
-            }
-            return
-        }
 
         let tool = payload["tool_name"] as? String ?? "Tool"
         var command = tool
         if let input = payload["tool_input"] as? [String: Any] {
             command = input["command"] as? String ?? tool
         }
-        nbLog("PermissionRequest \(tool): \(command)")
+        // Mochi's own chat asking to edit a file (Allow edits on): approve from the island,
+        // without touching the Claude Code session card.
+        let fromChat = payload["coucou_internal"] as? Bool == true
+        nbLog("PermissionRequest \(tool): \(command)\(fromChat ? " (chat)" : "")")
 
         if pendingApprovalFD >= 0 {
             let old = pendingApprovalFD
@@ -279,17 +307,31 @@ final class HookServer: @unchecked Sendable {
             }
         }
         pendingApprovalFD = fd
-        activeSessionId = sessionId
-
-        upsertTask(projectName: projectName, cwd: cwd)
-        state.updateTask(id: "integration_claude", state: .approval)
+        approvalFromChat = fromChat
+        if !fromChat {
+            activeSessionId = sessionId
+            upsertTask(projectName: projectName, cwd: cwd)
+            state.updateTask(id: "integration_claude", state: .approval)
+        }
         state.pendingApproval = ApprovalInfo(sessionId: sessionId, tool: tool, command: command)
+        // File edits get the live view: the diff with Allow / Deny under it.
+        let editPreview = EditPreviewBuilder.build(tool: tool, input: payload["tool_input"] as? [String: Any] ?? [:],
+                                                   cwd: cwd)
+        if let editPreview {
+            state.liveEdit = editPreview
+            state.liveProject = projectName
+        }
         state.isPinned = true
         SoundEngine.shared.play("approval")
 
         // Approval always forces the island open — user must be able to respond
-        state.focusId = "integration_claude"
-        expandIfNeeded(to: .approval)
+        if fromChat {
+            state.view = editPreview != nil ? .live : .approval
+            NotificationCenter.default.post(name: .hookExpand, object: state.view)
+        } else {
+            state.focusId = "integration_claude"
+            expandIfNeeded(to: editPreview != nil ? .live : .approval)
+        }
 
         let captured = fd
         DispatchQueue.main.asyncAfter(deadline: .now() + 115) { [weak self] in
@@ -323,6 +365,11 @@ final class HookServer: @unchecked Sendable {
         let state = AppState.shared
         state.pendingApproval = nil
         state.isPinned = false
+        if approvalFromChat {
+            approvalFromChat = false
+            state.view = .prompt  // back to the chat, Claude carries on
+            return
+        }
         state.updateTask(id: "integration_claude", state: .working)
         clearPillBadge(id: "integration_claude")
         state.view = state.tasks.isEmpty ? .empty : .overview
@@ -364,6 +411,50 @@ final class HookServer: @unchecked Sendable {
         state.tasks[idx].pillBadge = nil
     }
 
+    // MARK: - Live view feed
+
+    @MainActor
+    private func liveStart(tool: String, input: [String: Any], toolUseID: String?, cwd: String, project: String) {
+        let state = AppState.shared
+        state.liveProject = project
+        for i in state.liveActivities.indices where state.liveActivities[i].status == .running {
+            state.liveActivities[i].status = .done
+        }
+        state.liveActivities.append(ToolActivity(tool: tool, detail: liveDetail(tool: tool, input: input),
+                                                 toolUseID: toolUseID))
+        if state.liveActivities.count > 30 { state.liveActivities.removeFirst(state.liveActivities.count - 30) }
+
+        if let preview = EditPreviewBuilder.build(tool: tool, input: input, cwd: cwd) {
+            state.liveEdit = preview
+        }
+        // Never force the island open for this; if it's already showing Claude Code, go live.
+        if state.mode == .expanded && state.focusId == "integration_claude" && state.view == .overview {
+            state.view = .live
+        }
+    }
+
+    @MainActor
+    private func liveFinish(_ payload: [String: Any], status: ToolActivity.Status) {
+        let state = AppState.shared
+        let id = payload["tool_use_id"] as? String
+        let tool = payload["tool_name"] as? String
+        if let idx = state.liveActivities.lastIndex(where: {
+            $0.status == .running && (id != nil ? $0.toolUseID == id : $0.tool == tool)
+        }) {
+            state.liveActivities[idx].status = status
+        }
+    }
+
+    private func liveDetail(tool: String, input: [String: Any]) -> String? {
+        if let cmd = input["command"] as? String { return String(cmd.prefix(120)) }
+        if let file = input["file_path"] as? String { return (file as NSString).lastPathComponent }
+        if let path = input["path"] as? String { return (path as NSString).lastPathComponent }
+        if let pattern = input["pattern"] as? String { return pattern }
+        if let query = input["query"] as? String { return String(query.prefix(80)) }
+        if let url = input["url"] as? String { return url }
+        return nil
+    }
+
     @MainActor
     private func appendStep(id: String, step: String) {
         let state = AppState.shared
@@ -388,18 +479,18 @@ final class HookServer: @unchecked Sendable {
 
     private func frenchStep(tool: String, input: [String: Any]) -> String {
         let labels: [String: String] = [
-            "Bash":       "Exécute",
-            "Read":       "Lit",
-            "Write":      "Écrit",
-            "Edit":       "Modifie",
-            "Glob":       "Cherche",
-            "Grep":       "Recherche",
-            "WebSearch":  "Recherche web",
-            "WebFetch":   "Récupère",
-            "TodoWrite":  "Tâches",
+            "Bash":       "Run",
+            "Read":       "Read",
+            "Write":      "Write",
+            "Edit":       "Edit",
+            "Glob":       "Find",
+            "Grep":       "Search",
+            "WebSearch":  "Web search",
+            "WebFetch":   "Fetch",
+            "TodoWrite":  "Plan",
             "Task":       "Agent",
-            "LS":         "Liste",
-            "MultiEdit":  "Modifie",
+            "LS":         "List",
+            "MultiEdit":  "Edit",
             "NotebookEdit": "Notebook",
         ]
         let label = labels[tool] ?? tool
@@ -452,6 +543,21 @@ final class HookServer: @unchecked Sendable {
 
     // MARK: - nb-hook script installation
 
+    /// Claude Code status line command: forwards plan usage to Coucou, then shows the user's own line.
+    static var statusLineScriptPath: String { supportDir.appendingPathComponent("coucou-statusline").path }
+    /// The status line command the user had before Coucou's, run after ours so it still shows.
+    static var previousStatusLinePath: URL { supportDir.appendingPathComponent("statusline-previous") }
+
+    /// Whether ~/.claude/settings.json uses Coucou's status line (needed for the plan usage bars).
+    static func statusLineInstalled() -> Bool {
+        let url = FileManager.default.homeDirectoryForCurrentUser.appendingPathComponent(".claude/settings.json")
+        guard let data = try? Data(contentsOf: url),
+              let settings = try? JSONSerialization.jsonObject(with: data) as? [String: Any],
+              let line = settings["statusLine"] as? [String: Any],
+              let cmd = line["command"] as? String else { return false }
+        return cmd.contains("coucou-statusline")
+    }
+
     func installHookScript() {
         #if APPSTORE
         // In App Store mode the script is written during settings hook installation
@@ -464,6 +570,12 @@ final class HookServer: @unchecked Sendable {
         _ = try? FileManager.default.setAttributes(
             [.posixPermissions: 0o755 as NSNumber],
             ofItemAtPath: scriptURL.path
+        )
+        let statusURL = URL(fileURLWithPath: Self.statusLineScriptPath)
+        try? statusLineScript.write(to: statusURL, atomically: true, encoding: .utf8)
+        _ = try? FileManager.default.setAttributes(
+            [.posixPermissions: 0o755 as NSNumber],
+            ofItemAtPath: statusURL.path
         )
         #endif
     }
@@ -480,6 +592,10 @@ final class HookServer: @unchecked Sendable {
               let permReqHooks = hooks["PermissionRequest"] as? [[String: Any]] else {
             return false
         }
+        #if !APPSTORE
+        // Hooks installed before the plan usage bars existed: offer the update.
+        if !statusLineInstalled() { return true }
+        #endif
         for matcher in permReqHooks {
             if let hookList = matcher["hooks"] as? [[String: Any]] {
                 for hook in hookList {
@@ -556,6 +672,18 @@ final class HookServer: @unchecked Sendable {
             hooks[event] = existing
         }
         settings["hooks"] = hooks
+
+        #if !APPSTORE
+        // Plan usage bars: Claude Code only gives rate limits to its status line, so Coucou's
+        // status line forwards them, then runs the user's previous status line (kept aside).
+        var statusLine = settings["statusLine"] as? [String: Any] ?? [:]
+        if let previous = statusLine["command"] as? String, !previous.contains("coucou-statusline") {
+            try? previous.write(to: Self.previousStatusLinePath, atomically: true, encoding: .utf8)
+        }
+        statusLine["type"] = "command"
+        statusLine["command"] = "\"\(Self.statusLineScriptPath)\""
+        settings["statusLine"] = statusLine
+        #endif
         return try JSONSerialization.data(withJSONObject: settings, options: [.prettyPrinted, .sortedKeys])
     }
 
@@ -565,6 +693,21 @@ final class HookServer: @unchecked Sendable {
         guard let data = try? Data(contentsOf: settingsURL),
               var settings = try? JSONSerialization.jsonObject(with: data) as? [String: Any],
               var hooks = settings["hooks"] as? [String: Any] else { return }
+
+        #if !APPSTORE
+        // Give the status line back to what the user had (or remove ours).
+        if let line = settings["statusLine"] as? [String: Any],
+           (line["command"] as? String)?.contains("coucou-statusline") == true {
+            if let previous = try? String(contentsOf: Self.previousStatusLinePath, encoding: .utf8),
+               !previous.isEmpty {
+                var restored = line
+                restored["command"] = previous
+                settings["statusLine"] = restored
+            } else {
+                settings.removeValue(forKey: "statusLine")
+            }
+        }
+        #endif
 
         for key in hooks.keys {
             if var matchers = hooks[key] as? [[String: Any]] {
@@ -690,9 +833,9 @@ private let nbHookScript = """
 import sys, json, os, socket
 
 def main():
-    # Coucou's own chat runs through Claude Code too; never report those sessions.
-    if os.environ.get('COUCOU_INTERNAL') == '1':
-        return
+    # Coucou's own chat runs through Claude Code too: never report its activity,
+    # only bring its file-edit approvals back to the island.
+    internal = os.environ.get('COUCOU_INTERNAL') == '1'
     try:
         raw = sys.stdin.buffer.read()
         if not raw:
@@ -700,6 +843,10 @@ def main():
         payload = json.loads(raw)
     except Exception:
         return
+    if internal:
+        if payload.get('hook_event_name') != 'PermissionRequest':
+            return
+        payload['coucou_internal'] = True
 
     # Enrich with terminal context
     env = os.environ
@@ -776,6 +923,44 @@ main()
 sys.exit(0)
 """
 
+// MARK: - Status line script (plan usage → Coucou)
+
+private let statusLineScript = """
+#!/usr/bin/env python3
+# coucou-statusline: Claude Code status line for Coucou.
+# Forwards the status data (plan usage, context window) to the Coucou app, then prints
+# the user's own status line, if they had one before installing Coucou's hooks.
+import sys, json, os, socket, subprocess
+
+SUPPORT = os.path.expanduser('~/Library/Application Support/NotchBuddy')
+
+def main():
+    raw = sys.stdin.buffer.read()
+    try:
+        data = json.loads(raw)
+        data['hook_event_name'] = 'StatusLine'
+        s = socket.socket(socket.AF_UNIX, socket.SOCK_STREAM)
+        s.settimeout(0.3)
+        s.connect(os.path.join(SUPPORT, 'nb.sock'))
+        s.sendall((json.dumps(data) + '\\n').encode())
+        s.close()
+    except Exception:
+        pass
+    try:
+        with open(os.path.join(SUPPORT, 'statusline-previous')) as f:
+            previous = f.read().strip()
+    except Exception:
+        previous = ''
+    if previous:
+        try:
+            out = subprocess.run(previous, shell=True, input=raw, capture_output=True, timeout=5)
+            sys.stdout.buffer.write(out.stdout)
+        except Exception:
+            pass
+
+main()
+"""
+
 // MARK: - nb-hook script for App Store (socket in sandboxed container)
 
 private let nbHookScriptAppStore = """
@@ -785,9 +970,9 @@ private let nbHookScriptAppStore = """
 import sys, json, os, socket
 
 def main():
-    # Coucou's own chat runs through Claude Code too; never report those sessions.
-    if os.environ.get('COUCOU_INTERNAL') == '1':
-        return
+    # Coucou's own chat runs through Claude Code too: never report its activity,
+    # only bring its file-edit approvals back to the island.
+    internal = os.environ.get('COUCOU_INTERNAL') == '1'
     try:
         raw = sys.stdin.buffer.read()
         if not raw:
@@ -795,6 +980,10 @@ def main():
         payload = json.loads(raw)
     except Exception:
         return
+    if internal:
+        if payload.get('hook_event_name') != 'PermissionRequest':
+            return
+        payload['coucou_internal'] = True
 
     env = os.environ
     payload.setdefault('term_program', env.get('TERM_PROGRAM', ''))

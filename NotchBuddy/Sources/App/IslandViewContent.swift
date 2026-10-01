@@ -25,6 +25,7 @@ struct IslandViewContent: View {
         case .note:      NoteView(state: state)
         case .settings:  SettingsIslandView(state: state)
         case .greeting:  EmptyView()  // GreetingCanvasView overlaid in IslandRootView
+        case .live:      LiveSessionView(state: state)
         }
     }
 }
@@ -93,6 +94,18 @@ struct OverviewView: View {
                         // ↻ refresh — integrations only (Claude Code is live through its hooks)
                         if let agent, agent.isIntegration, agent.id != "integration_claude" {
                             RefreshButton(id: agent.id)
+                        }
+                        if let agent, agent.id == "integration_claude", !state.liveActivities.isEmpty {
+                            Button { state.view = .live } label: {
+                                Image(systemName: "rectangle.and.pencil.and.ellipsis")
+                                    .font(.system(size: 8, weight: .medium))
+                                    .foregroundColor(Color(hex: "#5F646D"))
+                                    .frame(width: 16, height: 16)
+                                    .background(Color.white.opacity(0.07))
+                                    .clipShape(Circle())
+                            }
+                            .buttonStyle(.plain)
+                            .help("Live view")
                         }
                         Button(action: { openAgentTarget(agent) }) {
                             Image(systemName: "arrow.up.right")
@@ -725,7 +738,29 @@ struct PromptView: View {
 
             VStack(alignment: .leading, spacing: 6) {
                 if let ctx = state.promptContext {
-                    ContextChip(context: ctx).padding(.top, 4)
+                    HStack(spacing: 6) {
+                        ContextChip(context: ctx)
+                        // Code context: let Mochi change files, each change approved in the island
+                        if case .code = ctx, state.chatEngine == .claudeCode {
+                            Button { state.chatAllowEdits.toggle() } label: {
+                                HStack(spacing: 4) {
+                                    Image(systemName: state.chatAllowEdits ? "pencil.circle.fill" : "pencil.slash")
+                                        .font(.system(size: 10, weight: .semibold))
+                                    Text(state.chatAllowEdits ? "Edits on" : "Read-only")
+                                        .font(.system(size: 11, weight: .medium))
+                                }
+                                .foregroundColor(state.chatAllowEdits ? Color(hex: "#22C55E") : Color(hex: "#8E939C"))
+                                .padding(.horizontal, 9).padding(.vertical, 4)
+                                .background((state.chatAllowEdits ? Color(hex: "#22C55E") : Color.white).opacity(0.1))
+                                .clipShape(Capsule())
+                            }
+                            .buttonStyle(.plain)
+                            .help(state.chatAllowEdits
+                                  ? "Mochi can change files in this project. You approve every change in the island."
+                                  : "Mochi can only read this project. Click to let it propose edits.")
+                        }
+                    }
+                    .padding(.top, 4)
                 }
 
                 if !state.chatHistory.isEmpty {
@@ -1109,7 +1144,7 @@ struct IntegrationCardView: View {
                 }
                 .padding(.top, 6)
                 .padding(.leading, 108)
-                .padding(.trailing, 36)
+                .padding(.trailing, 62)  // room for the ✎ and ↗ buttons
 
                 TickerView(task: task)
                     .frame(height: 44)
@@ -1138,20 +1173,28 @@ struct IntegrationCardView: View {
                 .padding(.leading, 108)
                 .padding(.trailing, 36)
 
-                HStack(spacing: 5) {
-                    let status: (text: String, color: Color) = task.id == "integration_claude"
-                        ? claudeHookStatus
-                        : { let st = IntegrationStatus.of(task.id, appState)
-                            return (st.help, Color(hex: st.colorHex)) }()
-                    let dot = status.color
-                    let label = status.text
-                    Circle().fill(dot).frame(width: 5, height: 5)
-                    Text(label)
-                        .font(.system(size: 11))
-                        .foregroundColor(Color(hex: "#6B7079"))
+                // Claude Code with hooks installed: the plan usage bars say more than "Hooks installed".
+                if task.id == "integration_claude" && isConfigured {
+                    PlanUsageView(usage: appState.planUsage)
+                        .padding(.leading, 108)
+                        .padding(.trailing, 16)
+                        .padding(.top, 4)
+                } else {
+                    HStack(spacing: 5) {
+                        let status: (text: String, color: Color) = task.id == "integration_claude"
+                            ? claudeHookStatus
+                            : { let st = IntegrationStatus.of(task.id, appState)
+                                return (st.help, Color(hex: st.colorHex)) }()
+                        let dot = status.color
+                        let label = status.text
+                        Circle().fill(dot).frame(width: 5, height: 5)
+                        Text(label)
+                            .font(.system(size: 11))
+                            .foregroundColor(Color(hex: "#6B7079"))
+                    }
+                    .padding(.leading, 108)
+                    .padding(.top, 2)
                 }
-                .padding(.leading, 108)
-                .padding(.top, 2)
 
                 HStack(spacing: 8) {
                     if task.id == "integration_claude" {
@@ -2881,5 +2924,85 @@ private struct NotionHint: View {
         .padding(.top, 8)
         .padding(.leading, 108)
         .padding(.trailing, 16)
+    }
+}
+
+
+// MARK: - Claude plan usage
+
+/// 5-hour and weekly plan limits, as Claude Code reports them to its status line.
+struct PlanUsageView: View {
+    let usage: PlanUsage?
+
+    var body: some View {
+        if let usage, usage.fiveHour != nil || usage.sevenDay != nil {
+            VStack(alignment: .leading, spacing: 5) {
+                if let w = usage.fiveHour {
+                    UsageBar(label: "5h", window: w, reset: "resets in " + Self.remaining(until: w.resetsAt))
+                }
+                if let w = usage.sevenDay {
+                    UsageBar(label: "Week", window: w, reset: "resets " + Self.dayTime(w.resetsAt))
+                }
+            }
+        } else {
+            HStack(spacing: 5) {
+                Circle().fill(Color(hex: "#22C55E")).frame(width: 5, height: 5)
+                Text(HookServer.statusLineInstalled()
+                     ? "Hooks installed · usage shows after your next Claude message"
+                     : "Hooks installed · update them in Settings to see plan usage")
+                    .font(.system(size: 11))
+                    .foregroundColor(Color(hex: "#6B7079"))
+                    .lineLimit(2)
+            }
+        }
+    }
+
+    static func remaining(until date: Date) -> String {
+        let minutes = max(0, Int(date.timeIntervalSinceNow / 60))
+        return minutes >= 60 ? "\(minutes / 60)h \(minutes % 60)m" : "\(minutes)m"
+    }
+
+    static func dayTime(_ date: Date) -> String {
+        let f = DateFormatter()
+        f.dateFormat = Calendar.current.isDateInToday(date) ? "'today' HH:mm" : "EEE HH:mm"
+        return f.string(from: date)
+    }
+}
+
+private struct UsageBar: View {
+    let label: String
+    let window: PlanUsage.Window
+    let reset: String
+
+    private var color: Color {
+        window.percent >= 90 ? Color(hex: "#F4505E")
+            : window.percent >= 75 ? Color(hex: "#F5A524")
+            : Color(hex: "#4C8DFF")
+    }
+
+    var body: some View {
+        HStack(spacing: 7) {
+            Text(label)
+                .font(.system(size: 11, weight: .medium))
+                .foregroundColor(Color(hex: "#C5C8CD"))
+                .frame(width: 34, alignment: .leading)
+            GeometryReader { geo in
+                ZStack(alignment: .leading) {
+                    Capsule().fill(Color.white.opacity(0.08))
+                    Capsule().fill(color)
+                        .frame(width: max(3, geo.size.width * min(1, window.percent / 100)))
+                }
+            }
+            .frame(height: 5)
+            Text("\(Int(window.percent.rounded()))%")
+                .font(.system(size: 11, weight: .semibold).monospacedDigit())
+                .foregroundColor(Color(hex: "#F5F6F8"))
+                .frame(width: 34, alignment: .trailing)
+            Text(reset)
+                .font(.system(size: 10.5))
+                .foregroundColor(Color(hex: "#6B7079"))
+                .lineLimit(1)
+                .fixedSize()
+        }
     }
 }
