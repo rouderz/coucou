@@ -308,7 +308,9 @@ final class AppState: ObservableObject {
     @Published var dndDuringMeetings: Bool = false {
         didSet {
             UserDefaults.standard.set(dndDuringMeetings, forKey: "dndDuringMeetings")
-            if dndDuringMeetings != oldValue { DoNotDisturb.shared.refresh() }
+            // Deferred: this also runs while AppState.shared is still being created (saved settings),
+            // and refresh() reads AppState.shared — calling it now would deadlock the app at launch.
+            if dndDuringMeetings != oldValue { DispatchQueue.main.async { DoNotDisturb.shared.refresh() } }
         }
     }
     @Published var dndInMeeting: Bool = false
