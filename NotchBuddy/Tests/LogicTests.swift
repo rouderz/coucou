@@ -280,6 +280,7 @@ final class ProviderTests: XCTestCase {
     }
 }
 
+@MainActor
 final class WakeWordTests: XCTestCase {
     func testWakePhrasesAndCleanup() {
         XCTAssertTrue(WakeWord.phrases.contains("hey mochi"))
