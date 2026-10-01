@@ -737,6 +737,9 @@ final class HookServer: @unchecked Sendable {
         }
     }
 
+    /// The nb-hook relay as installed in ~/Library/Application Support (exposed for the tests).
+    static var hookScriptSource: String { nbHookScript }
+
     // MARK: - nb-hook script installation
 
     /// Claude Code status line command: forwards plan usage to Coucou, then shows the user's own line.
@@ -1054,7 +1057,8 @@ def main():
         payload['cwd'] = os.getcwd()
 
     event = payload.get('hook_event_name', '')
-    socket_path = os.path.expanduser(
+    # COUCOU_SOCKET lets the tests talk to a fake Coucou instead of the running app.
+    socket_path = os.environ.get('COUCOU_SOCKET') or os.path.expanduser(
         '~/Library/Application Support/NotchBuddy/nb.sock'
     )
 
