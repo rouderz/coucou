@@ -67,11 +67,11 @@ final class HookScriptTests: XCTestCase {
 
     func testMochisOwnChatOnlyForwardsApprovals() throws {
         let server = try FakeCoucou(path: socketPath, reply: #"{"ok":true}"#)
-        _ = try exec(["hook_event_name": "PreToolUse", "tool_name": "Read"], internal: true)
+        _ = try exec(["hook_event_name": "PreToolUse", "tool_name": "Read"], fromChat: true)
         XCTAssertNil(server.received(timeout: 0.5), "chat activity must not reach the island")
 
         let server2 = try FakeCoucou(path: socketPath, reply: #"{"permissionDecision":"allow"}"#)
-        _ = try exec(permission, internal: true)
+        _ = try exec(permission, fromChat: true)
         XCTAssertEqual(server2.received()?["coucou_internal"] as? Bool, true)
     }
 
@@ -88,13 +88,13 @@ final class HookScriptTests: XCTestCase {
         return try exec(event)
     }
 
-    private func exec(_ event: [String: Any], internal: Bool = false) throws -> String {
+    private func exec(_ event: [String: Any], fromChat: Bool = false) throws -> String {
         let p = Process()
         p.executableURL = URL(fileURLWithPath: "/usr/bin/python3")
         p.arguments = [script.path]
         var env = ProcessInfo.processInfo.environment
         env["COUCOU_SOCKET"] = socketPath
-        env["COUCOU_INTERNAL"] = internal ? "1" : nil
+        env["COUCOU_INTERNAL"] = fromChat ? "1" : nil
         p.environment = env
         let input = Pipe(), output = Pipe()
         p.standardInput = input
