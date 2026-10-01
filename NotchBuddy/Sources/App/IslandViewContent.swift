@@ -418,7 +418,10 @@ struct UploadingView: View {
     var body: some View {
         // TimelineView fires at display refresh rate — progress derived from elapsed wall time,
         // not from @Published uploadProgress (which only flips to 1.0 at completion).
-        TimelineView(.animation) { tl in
+        // Paused once the upload is done: the finished bar is static, but this view stays
+        // on screen afterwards and kept redrawing the whole island at 60 fps.
+        TimelineView(.animation(minimumInterval: FrameRate.main,
+                                paused: state.uploadProgress >= 0.999)) { tl in
             let elapsed: Double = {
                 guard let start = state.uploadStartTime else { return 0 }
                 return tl.date.timeIntervalSince(start)
@@ -2212,7 +2215,7 @@ struct TickerShimmerText: View {
     let text: String
 
     var body: some View {
-        TimelineView(.animation) { tl in
+        TimelineView(AlignedAnimationSchedule(interval: FrameRate.decor)) { tl in
             let t = tl.date.timeIntervalSinceReferenceDate
             let p = CGFloat(t.truncatingRemainder(dividingBy: 2.2) / 2.2)
             // phase sweeps -0.1 → 1.1 so white peak enters from left and exits right
@@ -2289,6 +2292,9 @@ struct AgentPill: View {
                         .fill(isHovered
                               ? Color(hex: task.color).opacity(0.18)
                               : Color(hex: "#0E0F11"))
+                        // Hover glow on the static capsule only: shadowing the whole pill
+                        // re-rendered it off-screen on every mini-Mochi animation frame.
+                        .shadow(color: Color(hex: task.color).opacity(isHovered ? 0.35 : 0), radius: 10, x: 0, y: 2)
                     Capsule()
                         .stroke(Color(hex: task.color).opacity(isHovered ? 0.55 : 0.14), lineWidth: 1)
                     HStack(spacing: 0) {
@@ -2309,7 +2315,6 @@ struct AgentPill: View {
                 }
                 .frame(maxWidth: .infinity)
                 .frame(height: 28)
-                .shadow(color: Color(hex: task.color).opacity(isHovered ? 0.35 : 0), radius: 10, x: 0, y: 2)
 
                 // Alert badge (approval / finished / error)
                 if let badge = task.pillBadge {

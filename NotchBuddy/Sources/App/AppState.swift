@@ -51,6 +51,8 @@ final class AppState: ObservableObject {
 
     // Mouse tracking
     var mousePosition: CGPoint = .zero
+    // Pointer over the island — published on enter/leave only; drives Mochi's frame rate
+    @Published var pointerInIsland: Bool = false
     var lastMouseMove: Date = .now
     var lastActivity: Date = .now
     var isPresent: Bool = true

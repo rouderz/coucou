@@ -10,7 +10,8 @@ struct BotCanvasView: View {
     @StateObject private var engine = BotEngine()
 
     var body: some View {
-        TimelineView(.animation(paused: state.mode == .hidden)) { timeline in
+        TimelineView(AlignedAnimationSchedule(interval: FrameRate.mochi(for: state),
+                                              paused: state.mode == .hidden)) { timeline in
             Canvas { context, size in
                 let now = timeline.date.timeIntervalSinceReferenceDate
                 let dtRaw = min(0.05, now - engine.lastTime)
@@ -122,6 +123,7 @@ struct BotCanvasView: View {
 struct MiniBotCanvasView: View {
     let task: AgentTask
     @StateObject private var engine: BotEngine
+    @ObservedObject private var appState = AppState.shared
 
     init(task: AgentTask) {
         self.task = task
@@ -134,7 +136,8 @@ struct MiniBotCanvasView: View {
     }
 
     var body: some View {
-        TimelineView(.animation) { timeline in
+        TimelineView(AlignedAnimationSchedule(interval: FrameRate.mini,
+                                              paused: appState.mode == .hidden)) { timeline in
             Canvas { context, size in
                 let now = timeline.date.timeIntervalSinceReferenceDate
                 let dt = min(0.05, now - engine.lastTime)

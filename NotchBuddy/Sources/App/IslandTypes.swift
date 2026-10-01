@@ -162,3 +162,51 @@ enum IslandConst {
         .prompt:    "rgba(99,102,241,0.22)",
     ]
 }
+
+// MARK: - Frame-rate caps
+
+/// `TimelineView(.animation)` alone renders at the display's maximum rate — 120 fps on
+/// ProMotion MacBooks — which kept the open island above 50 % CPU. These caps are
+/// visually indistinguishable at the island's size.
+enum FrameRate {
+    /// Main Mochi, greeting, upload sequence.
+    static let main: TimeInterval = 1.0 / 60
+    /// Mini Mochis in the integration pills.
+    static let mini: TimeInterval = 1.0 / 30
+    /// Decorative loops (text shimmer).
+    static let decor: TimeInterval = 1.0 / 30
+    /// Main Mochi when nobody is interacting (breathing, blinking, compact island).
+    static let calm: TimeInterval = 1.0 / 30
+
+    /// Every frame makes SwiftUI rebuild the whole island's display list, so Mochi only
+    /// gets 60 fps while the pointer is over the open island (tracking, pokes, emotes).
+    @MainActor
+    static func mochi(for state: AppState) -> TimeInterval {
+        state.mode == .expanded && state.pointerInIsland ? main : calm
+    }
+}
+
+/// Animation schedule whose ticks land on a shared clock: multiples of `interval`
+/// since a fixed epoch. `.animation(minimumInterval:)` counts from when each view
+/// appeared, so Mochi, every mini-Mochi and the shimmer ticked out of phase and each
+/// forced its own rebuild of the whole island. Aligned ticks coincide, so SwiftUI
+/// renders them together — 30 fps really means 30 island updates per second.
+struct AlignedAnimationSchedule: TimelineSchedule {
+    let interval: TimeInterval
+    var paused: Bool = false
+
+    func entries(from date: Date, mode: TimelineScheduleMode) -> AnyIterator<Date> {
+        var first: Date? = date  // draw now, then join the shared clock
+        guard !paused else {
+            return AnyIterator { defer { first = nil }; return first }
+        }
+        // SwiftUI asks for low frequency when frequent updates aren't needed: 1 fps then.
+        let step = mode == .lowFrequency ? max(interval, 1) : interval
+        var tick = (date.timeIntervalSinceReferenceDate / step).rounded(.down) + 1
+        return AnyIterator {
+            if let now = first { first = nil; return now }
+            defer { tick += 1 }
+            return Date(timeIntervalSinceReferenceDate: tick * step)
+        }
+    }
+}
