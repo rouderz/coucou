@@ -217,14 +217,16 @@ final class ClaudeService {
 
         var content: [[String: Any]] = []
         for _ in 0..<4 {
-            var messages = conversationMessages
+            var messages = Self.trimmed(conversationMessages)
             if !content.isEmpty { messages.append(["role": "assistant", "content": content]) }
             let body: [String: Any] = [
                 "model": model,
                 "max_tokens": AppState.shared.apiMaxTokens,
                 "tools": webSearchTools,
-                "system": Self.systemPrompt,
-                "messages": messages,
+                // Cached: the system prompt and everything up to the newest message (attachments
+                // included) are billed at ~10% on the next turns instead of being resent in full.
+                "system": [["type": "text", "text": Self.systemPrompt, "cache_control": ["type": "ephemeral"]]],
+                "messages": Self.withCacheBreakpoint(messages),
                 "stream": true,
             ]
             let before = Self.text(of: content)
@@ -419,7 +421,8 @@ final class ClaudeService {
                 switch delta["type"] as? String {
                 case "text_delta":
                     let piece = delta["text"] as? String ?? ""
-                    blocks[index]?["text"] = (blocks[index]?["text"] as? String ?? "") + piece
+                    let current = blocks[index]?["text"] as? String ?? ""
+                    blocks[index]?["text"] = current + piece
                     onText(Self.text(of: Self.ordered(blocks)))
                 case "input_json_delta":
                     toolInput[index, default: ""] += delta["partial_json"] as? String ?? ""
@@ -450,6 +453,38 @@ final class ClaudeService {
         }
         logUsage(["usage": usage, "model": responseModel], kind: kind)
         return (Self.ordered(blocks), stopReason)
+    }
+
+    // MARK: History limit and prompt caching (#9)
+
+    /// Turns sent to the API: the first exchange (it carries the attachment) and the latest ones.
+    /// Older turns in between are dropped so long chats don't grow without limit.
+    static let maxRecentMessages = 21  // odd: the tail starts with a user turn
+
+    static func trimmed(_ messages: [[String: Any]]) -> [[String: Any]] {
+        guard messages.count > maxRecentMessages + 2 else { return messages }
+        let head = Array(messages.prefix(2))
+        let tail = Array(messages.suffix(maxRecentMessages))
+        return head + tail
+    }
+
+    /// Marks the last block of the last message as a cache breakpoint (copies; history stays clean).
+    static func withCacheBreakpoint(_ messages: [[String: Any]]) -> [[String: Any]] {
+        guard var last = messages.last else { return messages }
+        var blocks: [[String: Any]]
+        if let list = last["content"] as? [[String: Any]] {
+            blocks = list
+        } else if let text = last["content"] as? String {
+            blocks = [["type": "text", "text": text]]
+        } else {
+            return messages
+        }
+        // Thinking/tool-use blocks can't carry cache_control: mark the last text or document block.
+        guard let i = blocks.lastIndex(where: { ["text", "document", "image"].contains($0["type"] as? String ?? "") })
+        else { return messages }
+        blocks[i]["cache_control"] = ["type": "ephemeral"]
+        last["content"] = blocks
+        return Array(messages.dropLast()) + [last]
     }
 
     private static func ordered(_ blocks: [Int: [String: Any]]) -> [[String: Any]] {

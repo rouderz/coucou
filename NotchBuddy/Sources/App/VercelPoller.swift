@@ -15,7 +15,10 @@ final class VercelPoller: @unchecked Sendable {
         guard timer == nil else { return }
         let t = DispatchSource.makeTimerSource(queue: .global(qos: .background))
         t.schedule(deadline: .now() + 5, repeating: 30)
-        t.setEventHandler { [weak self] in self?.poll() }
+        t.setEventHandler { [weak self] in
+            guard PollGate.shared.allow("integration_vercel", every: 30) else { return }
+            self?.poll()
+        }
         t.resume()
         timer = t
     }
@@ -37,6 +40,7 @@ final class VercelPoller: @unchecked Sendable {
         URLSession.shared.dataTask(with: req) { [weak self] data, response, error in
             guard let self else { return }
             let code = (response as? HTTPURLResponse)?.statusCode ?? 0
+            PollGate.shared.record("integration_vercel", response)
             guard let data, code == 200 else {
                 IntegrationStatus.report("integration_vercel",
                                          .error(IntegrationStatus.httpError("Vercel", code: code, error: error)))

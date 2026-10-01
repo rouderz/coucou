@@ -147,6 +147,32 @@ enum GitHubCLI {
         return try? JSONSerialization.jsonObject(with: out.stdoutData)
     }
 
+    // MARK: Conditional requests (#8)
+
+    private static let etagLock = NSLock()
+    nonisolated(unsafe) private static var etagCache: [String: (etag: String, body: Data)] = [:]
+
+    /// Like `api`, but sends the last ETag: unchanged data comes back as 304, which doesn't
+    /// count against GitHub's rate limit, and the cached body is reused.
+    static func apiCached(_ path: String) -> Any? {
+        guard let gh = locate() else { return nil }
+        etagLock.lock(); let cached = etagCache[path]; etagLock.unlock()
+
+        var args = ["api", "--include", path]
+        if let cached { args += ["-H", "If-None-Match: \(cached.etag)"] }
+        guard let out = CLITool.run(gh.path, args, environment: environment(for: gh), timeout: 20) else { return nil }
+        let response = GitHubHTTP.split(out.stdoutData)
+
+        if response.status == 304, let cached {
+            return try? JSONSerialization.jsonObject(with: cached.body)
+        }
+        guard out.status == 0, response.status == 200 else { return nil }
+        if let etag = response.headers["etag"] {
+            etagLock.lock(); etagCache[path] = (etag, response.body); etagLock.unlock()
+        }
+        return try? JSONSerialization.jsonObject(with: response.body)
+    }
+
     private static func environment(for gh: CLITool.Install) -> [String: String] {
         var env = ProcessInfo.processInfo.environment
         env["PATH"] = gh.pathEnv
@@ -155,5 +181,28 @@ enum GitHubCLI {
         env["NO_COLOR"] = "1"
         env["GH_PAGER"] = "cat"
         return env
+    }
+}
+
+
+/// Splits `gh api --include` output (status line, headers, blank line, body).
+enum GitHubHTTP {
+    static func split(_ data: Data) -> (status: Int, headers: [String: String], body: Data) {
+        let crlf = Data("\r\n\r\n".utf8), lf = Data("\n\n".utf8)
+        let r1 = data.range(of: crlf), r2 = data.range(of: lf)
+        let sep = [r1, r2].compactMap { $0 }.min { $0.lowerBound < $1.lowerBound }
+        guard let sep else { return (0, [:], data) }
+        let head = String(decoding: data[..<sep.lowerBound], as: UTF8.self)
+        let body = data[sep.upperBound...]
+        var lines = head.split(whereSeparator: \.isNewline).map(String.init)
+        let statusLine = lines.isEmpty ? "" : lines.removeFirst()
+        let parts = statusLine.split(separator: " ")
+        let status = parts.count > 1 ? Int(parts[1]) ?? 0 : 0
+        var headers: [String: String] = [:]
+        for line in lines {
+            guard let colon = line.firstIndex(of: ":") else { continue }
+            headers[line[..<colon].lowercased()] = line[line.index(after: colon)...].trimmingCharacters(in: .whitespaces)
+        }
+        return (status, headers, Data(body))
     }
 }
