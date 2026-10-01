@@ -117,12 +117,7 @@ struct OverviewView: View {
         guard let task else { return }
         switch task.id {
         case "integration_claude":
-            let vscodeBundleId = "com.microsoft.VSCode"
-            if let app = NSWorkspace.shared.runningApplications.first(where: { $0.bundleIdentifier == vscodeBundleId }) {
-                app.activate(options: .activateIgnoringOtherApps)
-            } else {
-                NSWorkspace.shared.open(URL(fileURLWithPath: "/Applications/Visual Studio Code.app"))
-            }
+            Editor.preferred(AppState.shared.preferredEditor)?.open(folder: task.sessionCwd)
         case "integration_resend":
             NSWorkspace.shared.open(URL(string: "https://resend.com/emails")!)
         case "integration_vercel":
@@ -986,6 +981,13 @@ struct IntegrationCardView: View {
         }
     }
 
+    /// Claude Code status line: whether Coucou's hooks are in ~/.claude/settings.json.
+    private var claudeHookStatus: (text: String, color: Color) {
+        isConfigured
+            ? ("Hooks installed", Color(hex: "#22C55E"))
+            : ("Hooks not installed · install them in Settings", Color(hex: "#F4505E"))
+    }
+
     /// GitHub-specific status line: says how it's connected instead of "Key not configured".
     private var githubStatus: (text: String, color: Color) {
         let green = Color(hex: "#22C55E"), red = Color(hex: "#F4505E"), grey = Color(hex: "#6B7079")
@@ -1016,7 +1018,7 @@ struct IntegrationCardView: View {
         }
     }
 
-    // VS Code with active session: show ticker layout (same as overview)
+    // Claude Code with an active session: show ticker layout (same as overview)
     private var vsCodeSessionActive: Bool {
         task.id == "integration_claude" && (task.state != .idle || !task.steps.isEmpty)
     }
@@ -1131,7 +1133,7 @@ struct IntegrationCardView: View {
                     Circle()
                         .fill(Color(hex: task.color))
                         .frame(width: 7, height: 7)
-                    Text(task.id == "integration_claude" ? "VS Code" : task.name)
+                    Text(task.id == "integration_claude" ? "Claude Code" : task.name)
                         .font(.system(size: 12, weight: .semibold))
                         .foregroundColor(Color(hex: "#F5F6F8"))
                     Text("Integration")
@@ -1147,7 +1149,8 @@ struct IntegrationCardView: View {
                     let stripeErr = task.id == "integration_stripe" ? appState.stripeError
                                   : task.id == "integration_calcom"  ? appState.calcomError
                                   : nil
-                    let github = task.id == "integration_github" ? githubStatus : nil
+                    let github = task.id == "integration_github" ? githubStatus
+                               : task.id == "integration_claude" ? claudeHookStatus : nil
                     let dot = github?.color
                             ?? (stripeErr != nil ? Color(hex: "#F4505E")
                             : isConfigured    ? Color(hex: "#22C55E")
@@ -1164,10 +1167,19 @@ struct IntegrationCardView: View {
 
                 HStack(spacing: 8) {
                     if task.id == "integration_claude" {
-                        Button("Open Visual Studio Code") { openVSCode() }
+                        if let editor = Editor.preferred(appState.preferredEditor) {
+                            Button("Open in \(editor.name)") { editor.open(folder: task.sessionCwd) }
+                                .font(.system(size: 11, weight: .medium))
+                                .foregroundColor(Color(hex: task.color).opacity(0.7))
+                                .buttonStyle(.plain)
+                        } else if let cwd = task.sessionCwd, !cwd.isEmpty {
+                            Button("Show in Finder") {
+                                NSWorkspace.shared.activateFileViewerSelecting([URL(fileURLWithPath: cwd)])
+                            }
                             .font(.system(size: 11, weight: .medium))
                             .foregroundColor(Color(hex: task.color).opacity(0.7))
                             .buttonStyle(.plain)
+                        }
                     } else if n8nHasActivity {
                         // Clickable pill — tap to open execution detail
                         let success = task.state == .finished
@@ -1229,32 +1241,6 @@ struct IntegrationCardView: View {
         }
     }
 
-    private func openVSCode() {
-        let ids = ["com.microsoft.VSCode", "com.microsoft.VSCodeInsiders", "com.vscodium.codium"]
-        let appURL = ids.compactMap { NSWorkspace.shared.urlForApplication(withBundleIdentifier: $0) }.first
-
-        // If we have a project folder, open it directly in VS Code
-        if let cwd = task.sessionCwd, !cwd.isEmpty, let appURL = appURL {
-            NSWorkspace.shared.open(
-                [URL(fileURLWithPath: cwd)],
-                withApplicationAt: appURL,
-                configuration: .init(),
-                completionHandler: nil
-            )
-            return
-        }
-
-        // No cwd: activate running instance or launch fresh
-        if let running = ids.compactMap({ id in
-            NSWorkspace.shared.runningApplications.first { $0.bundleIdentifier == id }
-        }).first {
-            running.activate(options: .activateIgnoringOtherApps)
-            return
-        }
-        if let appURL = appURL {
-            NSWorkspace.shared.openApplication(at: appURL, configuration: .init(), completionHandler: nil)
-        }
-    }
 }
 
 // MARK: - Vercel Deployment List View
@@ -2315,9 +2301,9 @@ struct AgentPill: View {
     let onTap: () -> Void
     @State private var isHovered = false
 
-    // VS Code pill always shows "VS Code" label regardless of active project name
+    // The Claude Code pill keeps its name regardless of the active project
     private var displayName: String {
-        task.id == "integration_claude" ? "VS Code" : task.name
+        task.id == "integration_claude" ? "Claude Code" : task.name
     }
 
     var body: some View {

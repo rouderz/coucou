@@ -6,7 +6,7 @@ import Combine
 extension AgentTask {
     /// All available integration pills. Claude is always active; others are opt-in (max 4).
     static let integrationAgents: [AgentTask] = [
-        AgentTask(id: "integration_claude",  name: "VS Code",   color: "#F5F6F8", state: .idle, steps: [], source: .claudeCode, isIntegration: true),
+        AgentTask(id: "integration_claude",  name: "Claude Code",   color: "#F5F6F8", state: .idle, steps: [], source: .claudeCode, isIntegration: true),
         AgentTask(id: "integration_resend",  name: "Resend",    color: "#22C55E", state: .idle, steps: [], source: .n8n, isIntegration: true),
         AgentTask(id: "integration_n8n",     name: "n8n",       color: "#F29B38", state: .idle, steps: [], source: .n8n, isIntegration: true),
         AgentTask(id: "integration_vercel",  name: "Vercel",    color: "#7C5CFF", state: .idle, steps: [], source: .n8n, isIntegration: true),
@@ -51,6 +51,11 @@ final class AppState: ObservableObject {
 
     // Mouse tracking
     var mousePosition: CGPoint = .zero
+    // Editor used to open Claude Code projects (Editor.id); nil = first installed
+    @Published var preferredEditor: String? = nil {
+        didSet { UserDefaults.standard.set(preferredEditor, forKey: "preferredEditor") }
+    }
+
     // How the GitHub integration is connected (set by GithubPoller)
     @Published var githubConnection: GitHubConnection = .checking
     var githubCLILogin: String? {
@@ -158,7 +163,7 @@ final class AppState: ObservableObject {
         }
     }
 
-    // Active integration pills (VS Code excluded — always on). Max 4.
+    // Active integration pills (Claude Code excluded — always on). Max 4.
     @Published var activeIntegrations: Set<String> = ["integration_resend", "integration_n8n", "integration_vercel", "integration_github"] {
         didSet {
             if let data = try? JSONEncoder().encode(Array(activeIntegrations)) {
@@ -214,6 +219,7 @@ final class AppState: ObservableObject {
         #if !APPSTORE
         if let v = ud.string(forKey: "chatEngine"), let e = ChatEngine(rawValue: v) { chatEngine = e }
         #endif
+        preferredEditor = ud.string(forKey: "preferredEditor")
         if let v = ud.string(forKey: "claudeModel"),
            !v.trimmingCharacters(in: .whitespaces).isEmpty { claudeModel = v }
         // Migrate old 60s default → 15s
@@ -292,7 +298,7 @@ final class AppState: ObservableObject {
         else if view == .overview && tasks.isEmpty { view = .empty }
     }
 
-    /// Load integration pills respecting activeIntegrations. VS Code always loads. Safe to call multiple times.
+    /// Load integration pills respecting activeIntegrations. Claude Code always loads. Safe to call multiple times.
     func loadIntegrationTasks() {
         for task in AgentTask.integrationAgents {
             let shouldLoad = task.id == "integration_claude" || activeIntegrations.contains(task.id)
@@ -304,7 +310,7 @@ final class AppState: ObservableObject {
         syncMode()
     }
 
-    /// Toggle an integration pill on/off. VS Code cannot be toggled. Max 4 active at once.
+    /// Toggle an integration pill on/off. Claude Code cannot be toggled. Max 4 active at once.
     func toggleIntegration(_ id: String) {
         guard id != "integration_claude" else { return }
         if activeIntegrations.contains(id) {

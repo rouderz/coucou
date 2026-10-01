@@ -213,6 +213,21 @@ struct SettingsView: View {
                                     .buttonStyle(.bordered)
                             }
                         }
+
+                        Divider().padding(.vertical, 2)
+                        let editors = Editor.installed
+                        if editors.isEmpty {
+                            Text("No supported editor found. Projects open in Finder.")
+                                .font(.system(size: 11))
+                                .foregroundColor(.secondary)
+                        } else {
+                            Picker("Open projects in", selection: Binding(
+                                get: { Editor.preferred(state.preferredEditor)?.id ?? editors[0].id },
+                                set: { state.preferredEditor = $0 }
+                            )) {
+                                ForEach(editors) { Text($0.name).tag($0.id) }
+                            }
+                        }
                     }
                     .padding(6)
                 }
@@ -375,7 +390,7 @@ struct SettingsView: View {
                 GroupBox("Active pills") {
                     VStack(alignment: .leading, spacing: 10) {
                         HStack {
-                            Text("VS Code")
+                            Text("Claude Code")
                                 .font(.system(size: 12, weight: .semibold))
                             Circle().fill(Color(hex: "#F5F6F8")).frame(width: 8, height: 8)
                             Spacer()
