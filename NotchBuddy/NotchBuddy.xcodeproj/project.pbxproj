@@ -73,11 +73,13 @@
 		8D1C01F283FA7806119A1C85 /* SettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7C1A7D5CBE2AC084A10C5FF3 /* SettingsView.swift */; };
 		967B525F7D3837F31D740D18 /* ResendPoller.swift in Sources */ = {isa = PBXBuildFile; fileRef = 61B5FDDE03F5F711146937E2 /* ResendPoller.swift */; };
 		971B6C1654C44AA824BE189C /* Localization.swift in Sources */ = {isa = PBXBuildFile; fileRef = 54C2F1398292E39F8D2341B1 /* Localization.swift */; };
+		99FCB84CED76CA3140372557 /* AppLinks.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3EC5FE52D2C2BC1EBD7072F1 /* AppLinks.swift */; };
 		9C1544A73504B28B435F0AC6 /* IntegrationDetailViews.swift in Sources */ = {isa = PBXBuildFile; fileRef = 589F138EBC77C639BE9A1750 /* IntegrationDetailViews.swift */; };
 		9DD56C95ECABDDCE23652D50 /* HookServer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 79D8DD79C3DD9BBC584B3CB2 /* HookServer.swift */; };
 		A07373551CD3632C64DDB053 /* PlanUsagePoller.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0472D6224C260A9BAA00AAD8 /* PlanUsagePoller.swift */; };
 		A62648C9263FE6C2CA6680C0 /* IntegrationCardView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C95931F60F2D47A652E1A32F /* IntegrationCardView.swift */; };
 		A6812FF3480E8B9010B9FDD7 /* InfoPlist.xcstrings in Resources */ = {isa = PBXBuildFile; fileRef = C71C1697FF12A9C595F365FA /* InfoPlist.xcstrings */; };
+		A72CBC493AE2DF95FC3311D0 /* AppLinks.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3EC5FE52D2C2BC1EBD7072F1 /* AppLinks.swift */; };
 		B0437E6ADE001DAA5408634A /* Linear.swift in Sources */ = {isa = PBXBuildFile; fileRef = F66B8E32CDC045AD62BCC19A /* Linear.swift */; };
 		B3EC9CF3C8BD629C3530E8F1 /* sounds in Resources */ = {isa = PBXBuildFile; fileRef = C066E2B991AA4F56B2724263 /* sounds */; };
 		B5DEDA89F416624C766F2C72 /* IntegrationCardView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C95931F60F2D47A652E1A32F /* IntegrationCardView.swift */; };
@@ -146,6 +148,7 @@
 		3232F258523DD8D09B670363 /* FileDropView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FileDropView.swift; sourceTree = "<group>"; };
 		37C4FC2A2F214EACFA47351E /* ChatViews.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ChatViews.swift; sourceTree = "<group>"; };
 		3EA5915C6C4D09E3069642CD /* HookScriptTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HookScriptTests.swift; sourceTree = "<group>"; };
+		3EC5FE52D2C2BC1EBD7072F1 /* AppLinks.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppLinks.swift; sourceTree = "<group>"; };
 		4A4DA9640D4CD3307049E864 /* Voice.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Voice.swift; sourceTree = "<group>"; };
 		4DC2A07E42245A8CF3BBD2AB /* CoucouAppStore.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = CoucouAppStore.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		4E89D474AA5E467048534EA9 /* OverviewViews.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OverviewViews.swift; sourceTree = "<group>"; };
@@ -202,6 +205,7 @@
 			isa = PBXGroup;
 			children = (
 				192844E7299DEED5C2372067 /* AppDelegate.swift */,
+				3EC5FE52D2C2BC1EBD7072F1 /* AppLinks.swift */,
 				B9087B9BF23C41A12137D3AA /* Approvals.swift */,
 				C2E4F18AA940EFF7E047B9F7 /* AppState.swift */,
 				EC73547483E5895C0A7034F8 /* AutoApprove.swift */,
@@ -444,6 +448,7 @@
 			files = (
 				728D2F630BAA3A04ACDDC6FD /* AlertViews.swift in Sources */,
 				C940B651C6CA952D99388E04 /* AppDelegate.swift in Sources */,
+				99FCB84CED76CA3140372557 /* AppLinks.swift in Sources */,
 				1F11EC4E6F604C612A1ADAD1 /* AppState.swift in Sources */,
 				DF805924DEFA7D8878B75675 /* Approvals.swift in Sources */,
 				EBE2578D8114FECEE319FA5A /* AutoApprove.swift in Sources */,
@@ -512,6 +517,7 @@
 			files = (
 				E09A12E59C83858C8377BC04 /* AlertViews.swift in Sources */,
 				878924960FC0F2B3524D48AC /* AppDelegate.swift in Sources */,
+				A72CBC493AE2DF95FC3311D0 /* AppLinks.swift in Sources */,
 				61F73B27A7E3AFF584B2CC22 /* AppState.swift in Sources */,
 				141F7A090A7D5337390C567F /* Approvals.swift in Sources */,
 				D3D69287377CD85F807D2985 /* AutoApprove.swift in Sources */,
