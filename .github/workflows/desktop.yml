@@ -1,8 +1,8 @@
 name: Linux and Windows
 
-# Every PR that touches the Tauri app: unit tests and a full build on Linux and
-# Windows. The Linux packages are kept as artifacts so a PR can be tried without
-# building it yourself. (Builds of main and releases: release.yml.)
+# Every PR that touches the Tauri app: type check and unit tests on Linux and
+# Windows (which compiles the whole app for both). No packages here: those are
+# built only for a version tag (release.yml).
 on:
   pull_request:
     branches: [main]
@@ -67,23 +67,3 @@ jobs:
         run: |
           npm run build
           cargo test --workspace
-
-      - name: Build the app and its packages
-        run: npx tauri build
-
-      - name: Keep the Linux packages
-        if: matrix.name == 'linux'
-        uses: actions/upload-artifact@v4
-        with:
-          name: Coucou-Linux
-          path: |
-            windows/target/release/bundle/deb/*.deb
-            windows/target/release/bundle/rpm/*.rpm
-            windows/target/release/bundle/appimage/*.AppImage
-
-      # New dependencies (Linux) are resolved here: keep the lock file so it can be committed.
-      - name: Keep Cargo.lock
-        uses: actions/upload-artifact@v4
-        with:
-          name: Cargo.lock-${{ matrix.name }}
-          path: windows/Cargo.lock
