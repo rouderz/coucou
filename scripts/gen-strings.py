@@ -238,6 +238,12 @@ ES = {
 "Paused: Do not disturb":"En pausa: No molestar","Paused: screen locked":"En pausa: pantalla bloqueada","Paused: on battery":"En pausa: con batería",
 "Hey Mochi: start by voice, without the shortcut":"Oye Mochi: empezar con la voz, sin el atajo","Only when the Mac is plugged in":"Solo con el Mac enchufado",
 "Listening for “Hey Mochi” (or “Oye Mochi”) on this Mac only. macOS shows the orange microphone dot while it listens.":"Escuchando “Oye Mochi” (o “Hey Mochi”) solo en este Mac. macOS muestra el punto naranja del micrófono mientras escucha.",
+# updates
+"Couldn't check for updates (%lld)":"No se pudo buscar actualizaciones (%lld)","Coucou %@ is available · Settings → Updates":"Coucou %@ está disponible · Ajustes → Actualizaciones",
+"Coucou %@ is available (you have %@)":"Coucou %@ está disponible (tienes la %@)","Coucou %@":"Coucou %@","up to date":"al día",
+"Checking…":"Comprobando…","Check now":"Comprobar ahora","Download the DMG":"Descargar el DMG","Open the release page":"Abrir la página de la versión",
+"Open it and drag Coucou to Applications, replacing this one.":"Ábrelo y arrastra Coucou a Aplicaciones, reemplazando esta.",
+"Check for updates automatically (every 6 hours, GitHub releases)":"Buscar actualizaciones automáticamente (cada 6 horas, en GitHub)","Updates":"Actualizaciones",
 }
 catalog = {"sourceLanguage": "en", "version": "1.0", "strings": {
     k: {"localizations": {"es": {"stringUnit": {"state": "translated", "value": v}}}} for k, v in sorted(ES.items())

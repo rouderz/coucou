@@ -759,6 +759,11 @@ struct SettingsView: View {
                     .padding(6)
                 }
 
+                // MARK: Updates
+                GroupBox("Updates") {
+                    UpdatesSection(state: state).padding(6)
+                }
+
                 // MARK: Startup
                 GroupBox("Startup") {
                     Toggle("Launch at Mac startup", isOn: $launchAtStartup)

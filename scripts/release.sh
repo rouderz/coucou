@@ -1,70 +1,35 @@
 #!/usr/bin/env bash
-# Usage: ./scripts/release.sh 0.1.1
+# Publishes a new version of Coucou on rouderz/coucou.
+#
+#   bash scripts/release.sh 0.2.0
+#
+# Sets the version in project.yml, commits it on main, tags v0.2.0 and pushes. GitHub Actions
+# (.github/workflows/release.yml) then builds the DMG and attaches it to the release; Coucou's
+# update check picks it up. To build a DMG locally instead: bash scripts/make-dmg.sh 0.2.0
 set -euo pipefail
 
-VERSION="${1:?Usage: $0 <version>}"
-REPO_ROOT="$(cd "$(dirname "$0")/.." && pwd)"
-BUILD_DIR="/tmp/coucou-release-$VERSION"
-APP="$BUILD_DIR/Coucou.app"
-ZIP="$BUILD_DIR/Coucou.zip"
+VERSION="${1:?Usage: $0 <version>   e.g. $0 0.2.0}"
+ROOT="$(cd "$(dirname "$0")/.." && pwd)"
+cd "$ROOT"
 
-# ── 1. Find Developer ID identity ─────────────────────────────────────────────
-IDENTITY=$(security find-identity -v -p codesigning | grep "Developer ID Application" | head -1 | sed 's/.*"\(Developer ID Application[^"]*\)".*/\1/')
-if [ -z "$IDENTITY" ]; then
-  echo "error: No 'Developer ID Application' certificate found. Install it via Xcode → Settings → Accounts." >&2
-  exit 1
-fi
-echo "Signing with: $IDENTITY"
+[ "$(git branch --show-current)" = "main" ] || { echo "✗ Run it on main (git checkout main && git pull)"; exit 1; }
+[ -z "$(git status --porcelain -- NotchBuddy)" ] || { echo "✗ Commit or stash your NotchBuddy changes first"; exit 1; }
+git rev-parse "v$VERSION" >/dev/null 2>&1 && { echo "✗ v$VERSION already exists"; exit 1; }
 
-# ── 2. xcodegen + Release build ───────────────────────────────────────────────
-cd "$REPO_ROOT/NotchBuddy"
-xcodegen generate
-rm -rf "$BUILD_DIR" && mkdir -p "$BUILD_DIR"
+# Version shown in the app (macOS target only)
+python3 - "$VERSION" <<'PY'
+import re, sys
+v = sys.argv[1]
+p = "NotchBuddy/project.yml"
+s = open(p).read()
+s = re.sub(r'(CFBundleShortVersionString: )"[^"]*"', rf'\g<1>"{v}"', s, count=1)
+open(p, "w").write(s)
+PY
 
-xcodebuild \
-  -project NotchBuddy.xcodeproj \
-  -scheme NotchBuddy \
-  -configuration Release \
-  build \
-  CODE_SIGN_IDENTITY="$IDENTITY" \
-  CODE_SIGNING_REQUIRED=YES \
-  CODE_SIGNING_ALLOWED=YES \
-  CONFIGURATION_BUILD_DIR="$BUILD_DIR"
+git add NotchBuddy/project.yml
+git diff --cached --quiet || git commit -m "Release $VERSION"
+git tag -a "v$VERSION" -m "Coucou $VERSION"
+git push origin main "v$VERSION"
 
-# ── 3. Zip + notarize ─────────────────────────────────────────────────────────
-ditto -c -k --keepParent "$APP" "$ZIP"
-xcrun notarytool submit "$ZIP" --keychain-profile coucou-notary --wait
-
-# ── 4. Staple + verify ────────────────────────────────────────────────────────
-xcrun stapler staple "$APP"
-spctl -a -vv "$APP"
-
-# ── 5. Re-zip (with stapled app) ──────────────────────────────────────────────
-rm "$ZIP"
-ditto -c -k --keepParent "$APP" "$ZIP"
-echo "Release zip ready: $ZIP"
-
-# ── 6. Tag + GitHub release ───────────────────────────────────────────────────
-cd "$REPO_ROOT"
-git tag "v$VERSION"
-git push origin "v$VERSION"
-
-gh release create "v$VERSION" "$ZIP" \
-  --repo Louis-CFM/coucou \
-  --title "Coucou $VERSION" \
-  --notes "$(cat <<EOF
-## Install
-
-Download **Coucou.zip**, unzip and move **Coucou.app** to \`/Applications\`. Launch — no extra steps needed.
-
-## Build from source
-
-\`\`\`bash
-brew install xcodegen
-git clone https://github.com/Louis-CFM/coucou.git
-cd coucou/NotchBuddy && xcodegen && open NotchBuddy.xcodeproj
-\`\`\`
-EOF
-)"
-
-echo "✓ v$VERSION released: https://github.com/Louis-CFM/coucou/releases/tag/v$VERSION"
+echo "✓ v$VERSION pushed. The DMG appears in a few minutes at:"
+echo "  https://github.com/rouderz/coucou/releases/tag/v$VERSION"

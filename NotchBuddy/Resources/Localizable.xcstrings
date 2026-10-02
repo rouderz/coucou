@@ -702,6 +702,26 @@
         }
       }
     },
+    "Check for updates automatically (every 6 hours, GitHub releases)": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Buscar actualizaciones automáticamente (cada 6 horas, en GitHub)"
+          }
+        }
+      }
+    },
+    "Check now": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Comprobar ahora"
+          }
+        }
+      }
+    },
     "Checked every minute. New items make Mochi peek out (only a badge in Do not disturb); the 🔔 in the island lists them. Opening or dismissing one marks it read on GitHub / Linear.": {
       "localizations": {
         "es": {
@@ -718,6 +738,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "Comprobando conexión…"
+          }
+        }
+      }
+    },
+    "Checking…": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Comprobando…"
           }
         }
       }
@@ -1192,6 +1222,36 @@
         }
       }
     },
+    "Coucou %@": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Coucou %@"
+          }
+        }
+      }
+    },
+    "Coucou %@ is available (you have %@)": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Coucou %@ está disponible (tienes la %@)"
+          }
+        }
+      }
+    },
+    "Coucou %@ is available · Settings → Updates": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Coucou %@ está disponible · Ajustes → Actualizaciones"
+          }
+        }
+      }
+    },
     "Coucou can answer Allow for you, per project. High-risk requests always ask. Auto-allowed steps show in the session timeline.": {
       "localizations": {
         "es": {
@@ -1258,6 +1318,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "Coucou escribirá esto en ~/.claude/settings.json (antes guarda una copia del archivo actual). Revísalo y confirma."
+          }
+        }
+      }
+    },
+    "Couldn't check for updates (%lld)": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No se pudo buscar actualizaciones (%lld)"
           }
         }
       }
@@ -1338,6 +1408,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "Listo · 1 paso"
+          }
+        }
+      }
+    },
+    "Download the DMG": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Descargar el DMG"
           }
         }
       }
@@ -2482,6 +2562,16 @@
         }
       }
     },
+    "Open it and drag Coucou to Applications, replacing this one.": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ábrelo y arrastra Coucou a Aplicaciones, reemplazando esta."
+          }
+        }
+      }
+    },
     "Open projects in": {
       "localizations": {
         "es": {
@@ -2508,6 +2598,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "Abre el archivo en tu editor"
+          }
+        }
+      }
+    },
+    "Open the release page": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Abrir la página de la versión"
           }
         }
       }
@@ -3452,6 +3552,16 @@
         }
       }
     },
+    "Updates": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Actualizaciones"
+          }
+        }
+      }
+    },
     "Uploading %@": {
       "localizations": {
         "es": {
@@ -4128,6 +4238,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "herramienta desconocida"
+          }
+        }
+      }
+    },
+    "up to date": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "al día"
           }
         }
       }

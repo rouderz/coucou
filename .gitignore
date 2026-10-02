@@ -25,3 +25,4 @@ NotchBuddy/NotchBuddy.xcodeproj/xcshareddata/
 # Local profiling output (sample / Instruments)
 .profiling/
 .test.log
+dist/
