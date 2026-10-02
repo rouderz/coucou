@@ -74,4 +74,39 @@ final class ResendPoller: @unchecked Sendable {
 
         return ResendEmail(id: id, to: to, subject: subject, createdAt: date, lastEvent: lastEvent)
     }
+
+    // MARK: - Sending (#16: no network calls from views)
+
+    /// Sends one email (with the dropped file attached, if any). Only after the user's click.
+    static func sendEmail(apiKey: String, from: String, to: String,
+                          subject: String, body: String, fileURL: URL?) async -> Bool {
+        guard let url = URL(string: "https://api.resend.com/emails") else { return false }
+        var request = URLRequest(url: url)
+        request.httpMethod = "POST"
+        request.setValue("Bearer \(apiKey)", forHTTPHeaderField: "Authorization")
+        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+
+        var payload: [String: Any] = [
+            "from": from,
+            "to": [to],
+            "subject": subject,
+            "text": body.isEmpty ? " " : body
+        ]
+        if let fileURL, let data = try? Data(contentsOf: fileURL) {
+            payload["attachments"] = [[
+                "filename": fileURL.lastPathComponent,
+                "content": data.base64EncodedString()
+            ]]
+        }
+        guard let httpBody = try? JSONSerialization.data(withJSONObject: payload) else { return false }
+        request.httpBody = httpBody
+        guard let (data, response) = try? await URLSession.shared.data(for: request) else { return false }
+        let code = (response as? HTTPURLResponse)?.statusCode ?? 0
+        if code == 200 || code == 201 { return true }
+        // Surface Resend error body for debugging
+        if let body = String(data: data, encoding: .utf8) {
+            print("[Resend] HTTP \(code): \(body)")
+        }
+        return false
+    }
 }

@@ -123,23 +123,8 @@ final class ClaudeService {
 
     var apiKey: String? { Secrets.store.get("anthropic-api-key") }
 
-    // Multi-turn conversation messages (for API)
-    private var conversationMessages: [[String: Any]] = []
-
-    func clearConversation() {
-        conversationMessages = []
-    }
-
-    /// API engine: continues a saved conversation from its text (attachments aren't kept).
-    func restoreConversation(_ messages: [SavedChat.Message]) {
-        conversationMessages = messages.map { m -> [String: Any] in
-            ["role": m.user ? "user" : "assistant", "content": [["type": "text", "text": m.text]]]
-        }
-        // The API needs user/assistant turns to alternate and to end on an answer.
-        while let last = conversationMessages.last, last["role"] as? String == "user" {
-            conversationMessages.removeLast()
-        }
-    }
+    /// The model chosen in Settings (the API and Claude Code engines use it).
+    var currentModel: String { model }
 
     static let systemPrompt = """
     You are Mochi, a personal AI assistant living in the notch of the user's Mac. \
@@ -148,163 +133,20 @@ final class ClaudeService {
     No markdown formatting (no **, no ##, no bullet dashes). Use plain text with line breaks.
     """
 
-    private let webSearchTools: [[String: Any]] = [
-        ["type": "web_search_20250305", "name": "web_search", "max_uses": 5]
-    ]
+    // MARK: - Chat (#16): every engine goes through the ChatProvider port
 
-    // MARK: - Chat (multi-turn, natural text + web search)
+    /// The engine picked in Settings.
+    static func provider(for engine: ChatEngine) -> any ChatProvider {
+        switch engine {
+        case .claudeCode: return ClaudeCodeChat.shared
+        case .apiKey:     return AnthropicAPIChat.shared
+        case .provider:   return OpenAICompatibleChat.shared
+        }
+    }
 
     func chat(query: String, context: PromptContext?, state: AppState) async {
-        if state.chatEngine == .claudeCode {
-            await chatWithClaudeCode(query: query, context: context, state: state)
-            return
-        }
-        if state.chatEngine == .provider {
-            await chatWithProvider(OpenAICompatibleChat.shared, query: query, context: context, state: state)
-            return
-        }
-        guard let key = apiKey, !key.isEmpty else {
-            await showError(L("API key missing. Open settings."), state: state)
-            return
-        }
-
-        // Build user content for this turn
-        var userContent: [[String: Any]] = []
-
-        // Add file/window context on first message only
-        if conversationMessages.isEmpty, let context = context {
-            switch context {
-            case .window(let app, let title, let url):
-                var text = "Context — App: \(app), Window: \(title)"
-                if let url = url { text += ", URL: \(url)" }
-                userContent.append(["type": "text", "text": text])
-            case .file(let name, let fileURL):
-                if let fileURL = fileURL, let block = readFileAsBlock(url: fileURL) {
-                    userContent.append(block)
-                }
-                userContent.append(["type": "text", "text": "File: \(name)"])
-            case .code(let code):
-                if let block = readFileAsBlock(url: URL(fileURLWithPath: code.file)) {
-                    userContent.append(block)
-                }
-                userContent.append(["type": "text", "text": code.inlinePreamble])
-            }
-        }
-        userContent.append(["type": "text", "text": query])
-
-        conversationMessages.append(["role": "user", "content": userContent])
-
-        do {
-            try await streamChat(key: key, state: state)
-        } catch {
-            // Drop the unanswered question so the conversation stays valid for the next try.
-            if conversationMessages.last?["role"] as? String == "user" { conversationMessages.removeLast() }
-            VoiceOutput.shared.stop()
-            await showError(APIError.describe(error), state: state)
-        }
-    }
-
-    /// API engine: streams the answer into the chat as it's written. Web search may pause the turn
-    /// (`pause_turn`); the paused message is sent back so Claude finishes it, up to 4 times.
-    private func streamChat(key: String, state: AppState) async throws {
-        var replyID: UUID?
-        func show(_ text: String) {
-            let clean = text.trimmingCharacters(in: .whitespacesAndNewlines)
-            guard !clean.isEmpty else { return }
-            if let id = replyID, let i = state.chatHistory.firstIndex(where: { $0.id == id }) {
-                state.chatHistory[i].content = clean
-            } else {
-                let msg = ChatMessage(role: .assistant, content: clean)
-                replyID = msg.id
-                state.chatHistory.append(msg)
-                state.stateOverride = nil  // hide the typing dots once text streams in
-            }
-            VoiceOutput.shared.feed(clean)
-        }
-
-        var content: [[String: Any]] = []
-        for _ in 0..<4 {
-            var messages = Self.trimmed(conversationMessages)
-            if !content.isEmpty { messages.append(["role": "assistant", "content": content]) }
-            let body: [String: Any] = [
-                "model": model,
-                "max_tokens": AppState.shared.apiMaxTokens,
-                "tools": webSearchTools,
-                // Cached: the system prompt and everything up to the newest message (attachments
-                // included) are billed at ~10% on the next turns instead of being resent in full.
-                "system": [["type": "text", "text": Self.systemPrompt, "cache_control": ["type": "ephemeral"]]],
-                "messages": Self.withCacheBreakpoint(messages),
-                "stream": true,
-            ]
-            let before = Self.text(of: content)
-            let part: (content: [[String: Any]], stopReason: String?)
-            do {
-                part = try await streamMessage(body: body, key: key, beta: "web-search-2025-03-05",
-                                               kind: "chat") { show(before + $0) }
-            } catch {
-                if let id = replyID { state.chatHistory.removeAll { $0.id == id } }
-                throw error
-            }
-            content += part.content
-            if part.stopReason != "pause_turn" { break }
-        }
-
-        let answer = Self.text(of: content).trimmingCharacters(in: .whitespacesAndNewlines)
-        guard !answer.isEmpty else {
-            if let id = replyID { state.chatHistory.removeAll { $0.id == id } }
-            throw APIError(message: L("Claude didn't write an answer. Try asking again."))
-        }
-        // Full content (tool use + search results) keeps the next turns grounded.
-        conversationMessages.append(["role": "assistant", "content": content])
-        show(answer)
-        VoiceOutput.shared.finish(answer)
-        ChatStore.shared.saveCurrent(state)
-        state.stateOverride = nil
-        state.view = .prompt
-        NotificationCenter.default.post(name: .triggerEmote, object: BotEmote.happy)
-    }
-
-    // MARK: - Chat through the user's Claude Code (subscription)
-
-    private func chatWithClaudeCode(query: String, context: PromptContext?, state: AppState) async {
-        let engine = ClaudeCodeChat.shared
+        let provider = Self.provider(for: state.chatEngine)
         // The chat view only holds the new question: a fresh conversation.
-        if state.chatHistory.count <= 1 { engine.reset() }
-
-        var replyID: UUID?
-        func show(_ text: String) {
-            let clean = text.trimmingCharacters(in: .whitespacesAndNewlines)
-            guard !clean.isEmpty else { return }
-            if let id = replyID, let i = state.chatHistory.firstIndex(where: { $0.id == id }) {
-                state.chatHistory[i].content = clean
-                VoiceOutput.shared.feed(clean)
-            } else {
-                let msg = ChatMessage(role: .assistant, content: clean)
-                replyID = msg.id
-                state.chatHistory.append(msg)
-                state.stateOverride = nil  // hide the typing dots once text streams in
-            }
-        }
-
-        do {
-            let answer = try await engine.send(query: query, context: context, model: model,
-                                               systemPrompt: Self.systemPrompt) { partial in show(partial) }
-            show(answer)
-            VoiceOutput.shared.finish(answer.trimmingCharacters(in: .whitespacesAndNewlines))
-            state.stateOverride = nil
-            state.view = .prompt
-            ChatStore.shared.saveCurrent(state)
-            NotificationCenter.default.post(name: .triggerEmote, object: BotEmote.happy)
-        } catch {
-            if let id = replyID { state.chatHistory.removeAll { $0.id == id } }
-            VoiceOutput.shared.stop()
-            await showError(error.localizedDescription, state: state)
-        }
-    }
-
-    // MARK: - Chat through another provider (#42)
-
-    private func chatWithProvider(_ provider: any ChatProvider, query: String, context: PromptContext?, state: AppState) async {
         if state.chatHistory.count <= 1 { provider.reset() }
         var replyID: UUID?
         func show(_ text: String) {
@@ -316,14 +158,15 @@ final class ClaudeService {
                 let msg = ChatMessage(role: .assistant, content: clean)
                 replyID = msg.id
                 state.chatHistory.append(msg)
-                state.stateOverride = nil
+                state.stateOverride = nil  // hide the typing dots once text streams in
             }
             VoiceOutput.shared.feed(clean)
         }
+        let request = ChatRequest(query: query, context: context, systemPrompt: Self.systemPrompt)
         do {
-            let answer = try await provider.send(query: query, context: context, systemPrompt: Self.systemPrompt) { show($0) }
+            let answer = try await provider.stream(request) { show($0) }
             show(answer)
-            VoiceOutput.shared.finish(answer)
+            VoiceOutput.shared.finish(answer.trimmingCharacters(in: .whitespacesAndNewlines))
             ChatStore.shared.saveCurrent(state)
             state.stateOverride = nil
             state.view = .prompt
@@ -331,7 +174,7 @@ final class ClaudeService {
         } catch {
             if let id = replyID { state.chatHistory.removeAll { $0.id == id } }
             VoiceOutput.shared.stop()
-            await showError(APIError.describe(error), state: state)
+            await showError(provider.describe(error), state: state)
         }
     }
 
@@ -414,7 +257,7 @@ final class ClaudeService {
 
     /// One streamed request (server-sent events). `onText` gets the message's text so far.
     /// Returns the content blocks as the non-streaming API would, to keep them in the history.
-    private func streamMessage(body: [String: Any], key: String, beta: String?, kind: String,
+    func streamMessage(body: [String: Any], key: String, beta: String?, kind: String,
                                onText: (String) -> Void) async throws -> (content: [[String: Any]], stopReason: String?) {
         var request = URLRequest(url: endpoint)
         request.httpMethod = "POST"
@@ -597,7 +440,7 @@ final class ClaudeService {
         let output = u["output_tokens"] as? Int ?? 0
         let cacheW = u["cache_creation_input_tokens"] as? Int ?? 0
         let cacheR = u["cache_read_input_tokens"] as? Int ?? 0
-        let turn   = conversationMessages.count / 2
+        let turn   = AnthropicAPIChat.shared.turn
         let model  = json["model"] as? String ?? self.model
         claudeLog.info("usage kind=\(kind, privacy: .public) model=\(model, privacy: .public) turn=\(turn) input=\(input) cache_write=\(cacheW) cache_read=\(cacheR) output=\(output)")
     }
@@ -610,7 +453,7 @@ final class ClaudeService {
 
     // MARK: - File content block builder
 
-    private func readFileAsBlock(url: URL) -> [String: Any]? {
+    func readFileAsBlock(url: URL) -> [String: Any]? {
         guard let data = try? Data(contentsOf: url) else { return nil }
         let ext = url.pathExtension.lowercased()
         let base64 = data.base64EncodedString()

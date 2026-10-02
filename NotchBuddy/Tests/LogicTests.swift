@@ -404,3 +404,41 @@ final class PortsTests: XCTestCase {
         XCTAssertNil(Agents.named("other"))
     }
 }
+
+/// Chat port (#16): every engine behind ChatProvider, with what it can do.
+@MainActor
+final class ChatPortTests: XCTestCase {
+    func testEachEngineHasItsAdapter() {
+        XCTAssertTrue(ClaudeService.provider(for: .claudeCode) === ClaudeCodeChat.shared)
+        XCTAssertTrue(ClaudeService.provider(for: .apiKey) === AnthropicAPIChat.shared)
+        XCTAssertTrue(ClaudeService.provider(for: .provider) === OpenAICompatibleChat.shared)
+    }
+
+    func testOnlyClaudeCodeEditsFiles() {
+        XCTAssertTrue(ClaudeCodeChat.shared.capabilities.contains(.editsFiles))
+        XCTAssertFalse(AnthropicAPIChat.shared.capabilities.contains(.editsFiles))
+        XCTAssertFalse(OpenAICompatibleChat.shared.capabilities.contains(.editsFiles))
+        XCTAssertTrue(AnthropicAPIChat.shared.capabilities.contains(.webSearch))
+    }
+
+    func testAPIContextGoesOnTheFirstTurnOnly() {
+        let chat = AnthropicAPIChat.shared
+        chat.reset()
+        let request = ChatRequest(query: "what is this?", context: .window(appName: "Safari", title: "Docs", url: nil),
+                                  systemPrompt: "")
+        let first = chat.userContent(for: request)
+        XCTAssertEqual(first.count, 2)
+        XCTAssertEqual(first.last?["text"] as? String, "what is this?")
+
+        chat.restore([.init(user: true, text: "hi"), .init(user: false, text: "hello")])
+        XCTAssertEqual(chat.userContent(for: request).count, 1, "later turns: just the question")
+        chat.reset()
+    }
+
+    func testRestoreEndsOnAnAnswer() {
+        let chat = AnthropicAPIChat.shared
+        chat.restore([.init(user: true, text: "a"), .init(user: false, text: "b"), .init(user: true, text: "c")])
+        XCTAssertEqual(chat.messages.count, 2)
+        chat.reset()
+    }
+}

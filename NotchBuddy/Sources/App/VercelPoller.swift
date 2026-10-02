@@ -126,3 +126,17 @@ final class VercelPoller: @unchecked Sendable {
         }
     }
 }
+
+// MARK: - Project list for Settings (#16: no network calls from views)
+
+extension VercelPoller {
+    static func listProjects(token: String) async -> [String] {
+        guard let url = URL(string: "https://api.vercel.com/v9/projects?limit=100") else { return [] }
+        var req = URLRequest(url: url, timeoutInterval: 10)
+        req.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
+        guard let (data, _) = try? await URLSession.shared.data(for: req),
+              let json = try? JSONSerialization.jsonObject(with: data) as? [String: Any],
+              let projects = json["projects"] as? [[String: Any]] else { return [] }
+        return projects.compactMap { $0["name"] as? String }.sorted()
+    }
+}

@@ -1006,24 +1006,12 @@ struct SettingsView: View {
             return
         }
         loadingVercel = true
-        guard let url = URL(string: "https://api.vercel.com/v9/projects?limit=100") else { return }
-        var req = URLRequest(url: url, timeoutInterval: 10)
-        req.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
-        URLSession.shared.dataTask(with: req) { data, response, _ in
-            let names: [String]
-            if let data,
-               let json = try? JSONSerialization.jsonObject(with: data) as? [String: Any],
-               let projects = json["projects"] as? [[String: Any]] {
-                names = projects.compactMap { $0["name"] as? String }.sorted()
-            } else {
-                names = []
-            }
-            DispatchQueue.main.async {
-                self.vercelProjects = names
-                self.loadingVercel = false
-                if names.isEmpty { self.statusMessage = L("❌ No Vercel projects found.") }
-            }
-        }.resume()
+        Task { @MainActor in
+            let names = await VercelPoller.listProjects(token: token)
+            vercelProjects = names
+            loadingVercel = false
+            if names.isEmpty { statusMessage = L("❌ No Vercel projects found.") }
+        }
     }
 
     // MARK: - n8n workflow list
@@ -1035,36 +1023,12 @@ struct SettingsView: View {
             return
         }
         loadingN8n = true
-        let base = rawBase.trimmingCharacters(in: CharacterSet(charactersIn: "/"))
-        let urls = ["\(base)/api/v1/workflows?limit=100", "\(base)/rest/workflows?limit=100"]
-        fetchN8nWorkflows(urls: urls, apiKey: apiKey, idx: 0)
-    }
-
-    private func fetchN8nWorkflows(urls: [String], apiKey: String, idx: Int) {
-        guard idx < urls.count, let url = URL(string: urls[idx]) else {
-            DispatchQueue.main.async { self.loadingN8n = false; self.statusMessage = L("❌ No n8n workflows found.") }
-            return
+        Task { @MainActor in
+            let names = await N8nPoller.listWorkflows(baseURL: rawBase, apiKey: apiKey)
+            n8nWorkflows = names
+            loadingN8n = false
+            if names.isEmpty { statusMessage = L("❌ No n8n workflows found.") }
         }
-        var req = URLRequest(url: url, timeoutInterval: 10)
-        req.setValue(apiKey, forHTTPHeaderField: "X-N8N-API-KEY")
-        URLSession.shared.dataTask(with: req) { data, response, _ in
-            let code = (response as? HTTPURLResponse)?.statusCode ?? 0
-            guard let data, code == 200 else {
-                self.fetchN8nWorkflows(urls: urls, apiKey: apiKey, idx: idx + 1)
-                return
-            }
-            let items: [[String: Any]]
-            if let obj = (try? JSONSerialization.jsonObject(with: data)) as? [String: Any],
-               let arr = obj["data"] as? [[String: Any]] { items = arr }
-            else if let arr = (try? JSONSerialization.jsonObject(with: data)) as? [[String: Any]] { items = arr }
-            else { items = [] }
-            let names = items.compactMap { $0["name"] as? String }.sorted()
-            DispatchQueue.main.async {
-                self.n8nWorkflows = names
-                self.loadingN8n = false
-                if names.isEmpty { self.statusMessage = L("❌ No n8n workflows found.") }
-            }
-        }.resume()
     }
 }
 

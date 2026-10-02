@@ -3,15 +3,37 @@ import os
 
 // MARK: - Port (#16)
 
+/// One user turn, in the app's own terms; each adapter translates it for its backend.
+struct ChatRequest {
+    var query: String
+    var context: PromptContext?
+    var systemPrompt: String
+}
+
+/// What a backend can do, so the interface can offer only what works.
+struct ChatCapabilities: OptionSet, Sendable {
+    let rawValue: Int
+    static let webSearch   = ChatCapabilities(rawValue: 1 << 0)
+    static let attachments = ChatCapabilities(rawValue: 1 << 1)  // files, images and PDFs as such
+    static let editsFiles  = ChatCapabilities(rawValue: 1 << 2)  // can change the project (with approval)
+    static let needsKey    = ChatCapabilities(rawValue: 1 << 3)
+}
+
 /// What every chat backend does for Mochi: one user turn in, the answer streamed back.
-/// Claude Code (subscription) and the Anthropic API live in ClaudeCodeChat / ClaudeService;
-/// other providers implement this.
+/// Adapters: ClaudeCodeChat (subscription), AnthropicAPIChat, OpenAICompatibleChat.
 @MainActor
 protocol ChatProvider: AnyObject {
-    func send(query: String, context: PromptContext?, systemPrompt: String,
-              onText: @escaping @MainActor (String) -> Void) async throws -> String
+    var capabilities: ChatCapabilities { get }
+    /// Streams the answer: `onText` gets the text so far; returns the final answer.
+    func stream(_ request: ChatRequest, onText: @escaping @MainActor (String) -> Void) async throws -> String
     func reset()
     func restore(_ messages: [SavedChat.Message])
+    /// A failure in words the user can act on.
+    func describe(_ error: Error) -> String
+}
+
+extension ChatProvider {
+    func describe(_ error: Error) -> String { APIError.describe(error) }
 }
 
 // MARK: - Providers (#42, #43)
@@ -92,8 +114,12 @@ final class OpenAICompatibleChat: ChatProvider {
         while messages.last?["role"] as? String == "user" { messages.removeLast() }
     }
 
-    func send(query: String, context: PromptContext?, systemPrompt: String,
-              onText: @escaping @MainActor (String) -> Void) async throws -> String {
+    var capabilities: ChatCapabilities {
+        ProviderSettings.preset.needsKey ? [.needsKey] : []
+    }
+
+    func stream(_ request: ChatRequest, onText: @escaping @MainActor (String) -> Void) async throws -> String {
+        let query = request.query, context = request.context, systemPrompt = request.systemPrompt
         let preset = ProviderSettings.preset
         let key = ProviderSettings.key
         if preset.needsKey && key == nil {
