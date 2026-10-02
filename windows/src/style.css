@@ -61,6 +61,8 @@ body {
   width: 240px;
   height: 6px;
   background: transparent;
+  /* Above the idle notch, so hovering it wakes the island. */
+  z-index: 50;
 }
 
 /* ── Island ─────────────────────────────────────────────────────────────── */

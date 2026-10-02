@@ -74,7 +74,9 @@ fn boot(app: AppHandle, shared: State<Shared>) -> BootInfo {
 fn save_settings(app: AppHandle, shared: State<Shared>, settings: Settings) {
     let (screen_changed, autostart_changed) = {
         let mut current = shared.settings.lock().unwrap();
-        let screen_changed = current.screen != settings.screen;
+        // The idle notch changes the hidden window's size too.
+        let screen_changed = current.screen != settings.screen || current.idle_notch != settings.idle_notch;
+        shared.gate.idle_notch.store(settings.idle_notch, Ordering::Relaxed);
         let autostart_changed = current.autostart != settings.autostart;
         *current = settings.clone();
         (screen_changed, autostart_changed)
@@ -101,7 +103,11 @@ fn save_settings(app: AppHandle, shared: State<Shared>, settings: Settings) {
 /// cursor poll; anything else → full panel and 60 Hz polling.
 #[tauri::command]
 fn set_collapsed(app: AppHandle, shared: State<Shared>, collapsed: bool) {
-    let pref = shared.settings.lock().unwrap().screen.clone();
+    let (pref, idle_notch) = {
+        let s = shared.settings.lock().unwrap();
+        (s.screen.clone(), s.idle_notch)
+    };
+    shared.gate.idle_notch.store(idle_notch, Ordering::Relaxed);
     shared.gate.collapsed.store(collapsed, Ordering::Relaxed);
     island::apply_geometry(&app, &pref, collapsed);
     // The wake strip must always take the mouse, and a resize invalidates the flag.
@@ -713,6 +719,8 @@ pub fn run() {
             if platform::pointer_mode() == "poll" {
                 island::spawn_cursor_poll(handle.clone(), gate.clone());
             }
+            gate.idle_notch.store(loaded.idle_notch, Ordering::Relaxed);
+            island::spawn_topmost_keeper(handle.clone());
 
             log::line(format!("--- Coucou {} started ---", env!("CARGO_PKG_VERSION")));
             hooks::ensure_hook_exe(&handle);

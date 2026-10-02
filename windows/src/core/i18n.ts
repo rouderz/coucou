@@ -139,6 +139,7 @@ const ES: Record<string, string> = {
   "Island lives on": "La isla vive en", "Main display": "Pantalla principal", "Display under the cursor": "Pantalla bajo el cursor",
   "Launch at startup": "Abrir al iniciar sesión", "Open projects in": "Abrir proyectos en", "First one installed": "El primero instalado",
   "File manager (no editor found)": "Explorador de archivos (no hay editor)", "Language": "Idioma", "Same as the system": "Igual que el sistema",
+  "Idle notch": "Notch en reposo", "a small notch stays at the top when the island hides": "una pequeña notch queda arriba cuando la isla se esconde",
   "Voice": "Voz", "Read replies aloud": "Leer las respuestas en voz alta",
   "Install and restart": "Instalar y reiniciar", "Updating…": "Actualizando…",
   "You're already up to date.": "Ya estás al día.",
