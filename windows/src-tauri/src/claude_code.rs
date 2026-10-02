@@ -34,14 +34,30 @@ pub struct ClaudeCodeChat {
     session: Mutex<Option<String>>,
     /// The conversation's own folder (dropped files are copied into it).
     dir: Mutex<Option<PathBuf>>,
+    /// The user's project, when the chat is about their code (never deleted).
+    project: Mutex<Option<PathBuf>>,
 }
 
 impl ClaudeCodeChat {
     pub fn reset(&self) {
         *self.session.lock().unwrap() = None;
-        if let Some(dir) = self.dir.lock().unwrap().take() {
-            let _ = std::fs::remove_dir_all(dir);
-        }
+        *self.project.lock().unwrap() = None;
+        // The folder stays: a saved chat resumes its Claude Code session from it.
+        *self.dir.lock().unwrap() = None;
+    }
+
+    /// What a saved chat needs to resume: Claude Code's session and its folder.
+    pub fn snapshot(&self) -> (Option<String>, Option<String>) {
+        let session = self.session.lock().unwrap().clone();
+        let dir = self.project.lock().unwrap().clone().or_else(|| self.dir.lock().unwrap().clone());
+        (session, dir.map(|d| d.display().to_string()))
+    }
+
+    /// Picks a saved conversation back up.
+    pub fn restore(&self, session: Option<String>, dir: Option<String>) {
+        *self.session.lock().unwrap() = session;
+        *self.project.lock().unwrap() = None;
+        *self.dir.lock().unwrap() = dir.map(PathBuf::from).filter(|d| d.is_dir());
     }
 
     fn folder(&self) -> Result<PathBuf, String> {
@@ -80,13 +96,17 @@ pub fn status() -> ClaudeCodeStatus {
 }
 
 /// The arguments for one turn: print mode, streamed JSON, the chat's tools only.
-pub fn arguments(model: &str, session: Option<&str>) -> Vec<String> {
+/// In a project (editor context) it may also read and search the code — never
+/// change it or run commands.
+pub fn arguments(model: &str, session: Option<&str>, in_project: bool) -> Vec<String> {
+    let tools = if in_project { "WebSearch,WebFetch,Read,Grep,Glob" } else { "WebSearch,WebFetch,Read" };
+    let allowed = if in_project { "WebSearch,WebFetch,Read,Grep,Glob" } else { "WebSearch,WebFetch" };
     let mut args: Vec<String> = [
         "-p",
         "--output-format", "stream-json", "--verbose",
         "--model", model,
-        "--tools", "WebSearch,WebFetch,Read",
-        "--allowedTools", "WebSearch,WebFetch",
+        "--tools", tools,
+        "--allowedTools", allowed,
         "--disallowedTools", "Edit,MultiEdit,Write,NotebookEdit,Bash",
         "--permission-mode", "dontAsk",
         "--strict-mcp-config",
@@ -160,6 +180,7 @@ fn preamble(context: &ChatContext, dir: &Path) -> String {
             }
             text + "\n\n"
         }
+        ChatContext::Code { .. } => crate::claude::code_preamble(context, false),
         ChatContext::File { name, path } => {
             let source = Path::new(path);
             let Some(file_name) = source.file_name() else { return format!("File: {name}\n\n") };
@@ -184,7 +205,19 @@ pub async fn send(
 ) -> Result<ChatReply, String> {
     let program = locate().ok_or_else(|| NOT_INSTALLED.to_string())?;
     let session = chat.session.lock().unwrap().clone();
-    let dir = chat.folder()?;
+    // About the user's code: run in their project so Read / Grep / Glob find it.
+    if session.is_none() {
+        if let Some(ChatContext::Code { workspace: Some(w), .. }) = &context {
+            if std::path::Path::new(w).is_dir() {
+                *chat.project.lock().unwrap() = Some(PathBuf::from(w));
+            }
+        }
+    }
+    let project = chat.project.lock().unwrap().clone();
+    let dir = match &project {
+        Some(p) => p.clone(),
+        None => chat.folder()?,
+    };
 
     let mut prompt = String::new();
     if session.is_none() {
@@ -195,7 +228,7 @@ pub async fn send(
     prompt.push_str(&query);
 
     let mut cmd = tokio::process::Command::new(&program);
-    cmd.args(arguments(model, session.as_deref()))
+    cmd.args(arguments(model, session.as_deref(), project.is_some()))
         .current_dir(&dir)
         // Coucou's own relay ignores this session: it is the chat, not your work.
         .env("COUCOU_INTERNAL", "1")
@@ -295,7 +328,7 @@ mod tests {
 
     #[test]
     fn the_chat_cannot_touch_files_or_run_commands() {
-        let args = arguments("claude-opus-5-5", Some("s1"));
+        let args = arguments("claude-opus-5-5", Some("s1"), false);
         let tools = args.iter().position(|a| a == "--tools").map(|i| &args[i + 1]).unwrap();
         assert_eq!(tools, "WebSearch,WebFetch,Read");
         assert!(args.iter().any(|a| a.contains("Bash")), "Bash is explicitly disallowed");

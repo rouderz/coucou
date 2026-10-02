@@ -238,7 +238,81 @@ const MODELS: [string, string][] = [
   ["claude-haiku-4-5", "Claude Haiku 4.5"],
 ];
 
-function apiSection(hasKey: boolean, claudeCode: { installed: boolean; path: string | null }): HTMLElement {
+type Preset = { id: string; name: string; baseUrl: string; needsKey: boolean; defaultModel: string; keyHint: string };
+
+/** "Other provider": OpenAI, Gemini, OpenRouter, Ollama, LM Studio or any OpenAI-compatible server. */
+function providerBlock(presets: Preset[], present: Record<string, boolean>): HTMLElement {
+  const box = h("div", { style: "display:flex;flex-direction:column;gap:10px" });
+  const pick = h("select", {}) as HTMLSelectElement;
+  for (const p of presets) pick.append(h("option", { value: p.id, text: p.name }));
+  pick.value = settings.providerId || "openai";
+  const server = h("input", { type: "text", spellcheck: "false", style: "flex:1 1 auto;min-width:0" }) as HTMLInputElement;
+  const modelInput = h("input", { type: "text", spellcheck: "false", style: "flex:1 1 auto;min-width:0" }) as HTMLInputElement;
+  const models = h("datalist", { id: "provider-models" });
+  modelInput.setAttribute("list", "provider-models");
+  const key = h("input", { type: "password", autocomplete: "off", spellcheck: "false", style: "flex:1 1 auto;min-width:0" }) as HTMLInputElement;
+  const keyDot = statusDot(false);
+  const note = h("div", {});
+  const current = () => presets.find((p) => p.id === pick.value) ?? presets[0];
+  function fill() {
+    const p = current();
+    server.placeholder = p.baseUrl || "https://your-server/v1";
+    server.value = settings.providerBaseUrl ?? "";
+    modelInput.placeholder = p.defaultModel || "model name";
+    modelInput.value = settings.providerModel ?? "";
+    const k = `provider-key-${p.id}`;
+    key.placeholder = present[k] ? "••••••••  (stored)" : p.keyHint || "not needed";
+    keyDot.style.background = present[k] ? "#22c55e" : p.needsKey ? "#f4505e" : "#8e939c";
+  }
+  pick.addEventListener("change", () => {
+    settings.providerId = pick.value;
+    settings.providerBaseUrl = "";
+    settings.providerModel = "";
+    void save();
+    fill();
+  });
+  server.addEventListener("change", () => { settings.providerBaseUrl = server.value.trim(); void save(); });
+  modelInput.addEventListener("change", () => { settings.providerModel = modelInput.value.trim(); void save(); });
+  const saveKey = h("button", { text: "Save", onclick: async () => {
+    const k = `provider-key-${current().id}`;
+    try {
+      await Bridge.secretSet(k, key.value.trim());
+      present[k] = key.value.trim().length > 0;
+      key.value = "";
+      fill();
+    } catch (err) {
+      clear(note);
+      note.append(h("div", { class: "notice err", text: String(err) }));
+    }
+  } });
+  const load = h("button", { text: "Load models", onclick: async () => {
+    clear(note);
+    try {
+      const list = await Bridge.providerModels();
+      clear(models);
+      for (const m of list) models.append(h("option", { value: m }));
+      note.append(h("div", { class: "hint", text: `${list.length} models — pick one in the field.` }));
+    } catch (err) {
+      note.append(h("div", { class: "notice err", text: String(err).replace(/^Error:\s*/, "") }));
+    }
+  } });
+  fill();
+  box.append(
+    h("div", { class: "row" }, h("label", { text: "Provider" }), pick),
+    h("div", { class: "row" }, h("label", { text: "Server" }), server),
+    h("div", { class: "row" }, h("label", { text: "Model" }), modelInput, load, models),
+    h("div", { class: "row" }, h("label", { text: "API key" }), key, saveKey, keyDot),
+    note,
+  );
+  return box;
+}
+
+function apiSection(
+  hasKey: boolean,
+  claudeCode: { installed: boolean; path: string | null },
+  presets: Preset[],
+  present: Record<string, boolean>,
+): HTMLElement {
   const dot = statusDot(hasKey);
   const state = h("span", { class: "hint", text: hasKey ? `Key saved in ${keychainName}.` : "No key yet — the chat needs one." });
 
@@ -307,7 +381,9 @@ function apiSection(hasKey: boolean, claudeCode: { installed: boolean; path: str
   engine.append(
     h("option", { value: "api", text: "Anthropic API key" }),
     h("option", { value: "claude-code", text: "Claude Code (your subscription)" }),
+    h("option", { value: "provider", text: "Other provider (OpenAI, Gemini, Ollama…)" }),
   );
+  const providerBox = providerBlock(presets, present);
   engine.value = settings.chatEngine ?? "api";
   const keyRow = h("div", { class: "row" }, h("label", { text: "API key" }), field, saveBtn, clearBtn);
   const codeNote = h("div", {
@@ -316,11 +392,15 @@ function apiSection(hasKey: boolean, claudeCode: { installed: boolean; path: str
       ? `Uses ${claudeCode.path}, signed in with your Claude plan. No key needed; nothing about your sign-in is read or stored.`
       : "Claude Code isn't installed (or not on PATH). Install it and sign in with `claude`, then reopen Settings.",
   });
+  const modelRow = h("div", { class: "row" }, h("label", { text: "Model" }), model);
   function showEngine() {
     const code = engine.value === "claude-code";
-    keyRow.style.display = code ? "none" : "";
-    state.style.display = code ? "none" : "";
+    const other = engine.value === "provider";
+    keyRow.style.display = code || other ? "none" : "";
+    state.style.display = code || other ? "none" : "";
     codeNote.style.display = code ? "" : "none";
+    providerBox.style.display = other ? "" : "none";
+    modelRow.style.display = other ? "none" : "";
     dot.style.background = code ? (claudeCode.installed ? "#22c55e" : "#f4505e") : dot.style.background;
   }
   engine.addEventListener("change", () => {
@@ -339,7 +419,8 @@ function apiSection(hasKey: boolean, claudeCode: { installed: boolean; path: str
     state,
     codeNote,
     keyRow,
-    h("div", { class: "row" }, h("label", { text: "Model" }), model),
+    modelRow,
+    providerBox,
     feedback,
   );
 }
@@ -634,6 +715,7 @@ async function main() {
   const claudeCode = (await Bridge.claudeCodeStatus()) ?? { installed: false, path: null };
   const editors = (await Bridge.editorsInstalled()) ?? [];
   const codex = (await Bridge.codexStatus()) ?? { found: false, installed: false, hooksPath: "" };
+  const presets = (await Bridge.providerPresets()) ?? [];
 
   const keys = [
     "stripe-api-key", "github-token", "vercel-token",
@@ -641,13 +723,16 @@ async function main() {
   ];
   const present: Record<string, boolean> = {};
   for (const k of keys) present[k] = (await Bridge.secretPresent(k)) ?? false;
+  for (const p of ["openai", "gemini", "openrouter", "ollama", "lmstudio", "custom"]) {
+    present[`provider-key-${p}`] = (await Bridge.secretPresent(`provider-key-${p}`)) ?? false;
+  }
 
   clear(root);
   root.append(
     h("h1", {}, h("span", { text: "Coucou" }), h("span", { class: "version", text: version })),
     claudeSection(status),
     codexSection(codex),
-    apiSection(hasKey, claudeCode),
+    apiSection(hasKey, claudeCode, presets, present),
     integrationsSection(present),
     phoneSection(),
     inboxSection(),

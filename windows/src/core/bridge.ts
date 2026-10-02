@@ -79,6 +79,16 @@ export const Bridge = {
   /** Alt+Enter / Alt+Backspace answer the card from any app, only while it's up. */
   approvalShortcuts: (armed: boolean) => call<void>("approval_shortcuts", { armed }),
 
+  // ── Saved chats, other providers ────────────────────────────────────────────
+  chatRestore: (messages: { user: boolean; text: string }[], sessionId: string | null, workDir: string | null) =>
+    call<void>("chat_restore", { messages, sessionId, workDir }),
+  chatSessionInfo: () => call<{ sessionId: string | null; workDir: string | null }>("chat_session_info"),
+  chatsLoad: () => call<unknown[]>("chats_load"),
+  chatsSave: (chats: unknown[]) => call<void>("chats_save", { chats }),
+  chatDeleteDir: (dir: string) => call<void>("chat_delete_dir", { dir }),
+  providerPresets: () => call<{ id: string; name: string; baseUrl: string; needsKey: boolean; defaultModel: string; keyHint: string }[]>("provider_presets"),
+  providerModels: () => callOrThrow<string[]>("provider_models"),
+
   /** Codex CLI hooks in ~/.codex/hooks.json. */
   codexStatus: () => call<{ found: boolean; installed: boolean; hooksPath: string }>("codex_status"),
   codexInstall: (install: boolean) => callOrThrow<void>("codex_install", { install }),
@@ -140,7 +150,19 @@ export interface IntegrationUpdate {
 
 export type ChatContext =
   | { kind: "file"; name: string; path: string }
-  | { kind: "window"; appName: string; title: string; url?: string };
+  | { kind: "window"; appName: string; title: string; url?: string }
+  | ({ kind: "code" } & CodeContext);
+
+/** What the VS Code / Cursor extension says about the active editor. */
+export interface CodeContext {
+  file: string;
+  workspace?: string;
+  language?: string;
+  line?: number;
+  selection?: string;
+  diagnostics?: { line: number; severity: string; message: string; source?: string }[];
+  appName?: string;
+}
 
 export interface DroppedFile {
   name: string;

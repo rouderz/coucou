@@ -4,7 +4,8 @@
 // two ask at once, auto-approval per project, and a timeline of each session.
 // Difference from macOS: no terminal filter — every terminal's sessions count.
 
-import { Bridge, onEvent } from "../core/bridge";
+import { Bridge, onEvent, type CodeContext } from "../core/bridge";
+import { startNewChat } from "../core/chats";
 import { Sound } from "../core/sound";
 import { State, type ApprovalInfo } from "../core/state";
 import type { Island } from "./island";
@@ -115,6 +116,21 @@ function handleHook(island: Island, payload: HookPayload) {
 
   if (name === "StatusLine") {
     planUsage(raw);
+    return;
+  }
+
+  // Not hooks: the VS Code / Cursor extension (#58 on macOS).
+  if (name === "EditorContext" || name === "EditorAsk") {
+    const p = raw as unknown as CodeContext;
+    if (typeof p.file !== "string") return;
+    State.editorContext = { ...p, at: Date.now() };
+    if (name === "EditorAsk") {
+      // "Ask Mochi about this": a fresh chat with this code attached.
+      startNewChat();
+      State.codeContext = p;
+      island.alert("prompt");
+    }
+    State.notify();
     return;
   }
 
