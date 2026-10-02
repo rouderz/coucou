@@ -9,6 +9,7 @@ import { registerHookHandlers } from "./island/hooks";
 import { registerIntegrationHandlers, refreshConfigured } from "./island/integrations";
 import { registerInboxHandlers } from "./island/inbox";
 import { dndActive } from "./core/dnd.ts";
+import { setLanguage, startTranslating } from "./core/i18n.ts";
 
 async function main() {
   const root = document.getElementById("root");
@@ -24,6 +25,9 @@ async function main() {
   }
   island.applySettings();
   State.loadIntegrationTasks();
+  // Spanish or English, from Settings or the system.
+  setLanguage(State.settings.language);
+  startTranslating(document.body);
 
   await onEvent<{ x: number; y: number }>("cursor", ({ x, y }) => island.onCursor(x, y));
   // Wayland (#36): no global cursor, so the page reports the pointer. The input
@@ -59,6 +63,11 @@ async function main() {
 
   // The settings window writes preferences; apply them here without a restart.
   await onEvent<Settings>("settings-changed", (s) => {
+    // A new language takes a fresh page.
+    if (s.language && s.language !== State.settings.language) {
+      window.location.reload();
+      return;
+    }
     State.settings = { ...State.settings, ...s };
     island.applySettings();
     State.loadIntegrationTasks();

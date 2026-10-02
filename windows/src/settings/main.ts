@@ -3,6 +3,7 @@
 // integrations land here too in a later stage.
 
 import "./settings.css";
+import { setLanguage, startTranslating } from "../core/i18n.ts";
 import { Bridge, onEvent, type HookStatus } from "../core/bridge";
 import { DEFAULT_SETTINGS, type Settings } from "../core/state";
 import { h, clear } from "../views/dom";
@@ -658,6 +659,19 @@ function generalSection(editors: { id: string; name: string }[]): HTMLElement {
     void save();
   });
 
+  const language = h("select", {}) as HTMLSelectElement;
+  language.append(
+    h("option", { value: "system", text: "Same as the system" }),
+    h("option", { value: "en", text: "English" }),
+    h("option", { value: "es", text: "Español" }),
+  );
+  language.value = settings.language ?? "system";
+  language.addEventListener("change", async () => {
+    settings.language = language.value as Settings["language"];
+    await save();
+    window.location.reload();
+  });
+
   const screen = h("select", {}) as HTMLSelectElement;
   screen.append(
     h("option", { value: "primary", text: "Main display" }),
@@ -684,6 +698,10 @@ function generalSection(editors: { id: string; name: string }[]): HTMLElement {
       h("span", { class: "hint", text: "seconds after you leave the island" }),
     ),
     h("div", { class: "row" },
+      h("label", { text: "Language" }),
+      language,
+    ),
+    h("div", { class: "row" },
       h("label", { text: "Island lives on" }),
       screen,
     ),
@@ -707,6 +725,7 @@ async function main() {
     version = boot.version;
     if (boot.platform === "linux") keychainName = "your keyring (Secret Service)";
   }
+  setLanguage(settings.language);
   const status = (await Bridge.hooksStatus()) ?? {
     installed: false, settingsPath: "", hookPath: "", hookReady: false,
   };
@@ -743,6 +762,8 @@ async function main() {
       text: "No telemetry. Network requests only go to the services you configure yourself.",
     }),
   );
+
+  startTranslating(document.body);
 
   void onEvent<Settings>("settings-changed", (s) => {
     settings = { ...settings, ...s };
