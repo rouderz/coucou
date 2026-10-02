@@ -26,6 +26,13 @@ export interface BootInfo {
   screen: { x: number; y: number; width: number; height: number; scale: number };
   version: string;
   hookPath: string;
+  /** "windows" or "linux". */
+  platform?: "windows" | "linux";
+  /**
+   * "poll": Rust sends `cursor` events from the global cursor. "dom": there is no
+   * global cursor (Wayland), so the page reports the pointer itself.
+   */
+  pointer?: "poll" | "dom";
 }
 
 export const Bridge = {
@@ -50,14 +57,20 @@ export const Bridge = {
 
   openUrl: (url: string) => call<void>("open_url", { url }),
 
-  /** "Open terminal" → opens the folder in VS Code when `code` is on PATH. */
+  /** "Open terminal" → opens the folder in the editor picked in Settings. */
   openInVSCode: (path: string | null) => call<boolean>("open_in_vscode", { path }),
+  /** VS Code, Cursor, Windsurf, Zed — the ones installed. */
+  editorsInstalled: () => call<{ id: string; name: string }[]>("editors_installed"),
+  /** Is `claude` installed, for the subscription chat? */
+  claudeCodeStatus: () => call<{ installed: boolean; path: string | null }>("claude_code_status"),
+  /** GitHub without a token: the GitHub CLI's own sign-in. */
+  githubCliStatus: () => call<{ installed: boolean; signedIn: boolean; user: string | null }>("github_cli_status"),
 
   quit: () => call<void>("quit_app"),
 
   openSettingsWindow: () => call<void>("open_settings_window"),
 
-  /** Writes to %LOCALAPPDATA%\Coucou\coucou.log, next to the Rust lines. */
+  /** Writes to coucou.log in the app's local folder, next to the Rust lines. */
   log: (message: string) => call<void>("log_line", { message }),
 
   // ── Claude Code hooks ─────────────────────────────────────────────────────
@@ -118,6 +131,8 @@ export interface DroppedFile {
 
 export interface HookStatus {
   installed: boolean;
+  /** Installed, but not what this version writes: offer an update. */
+  outdated?: boolean;
   settingsPath: string;
   hookPath: string;
   hookReady: boolean;
@@ -146,6 +161,8 @@ export type BridgeEvent =
 export interface DragDropPayload {
   type: "enter" | "over" | "drop" | "leave";
   paths?: string[];
+  /** Physical pixels in the window, when the platform reports it (Linux). */
+  position?: { x: number; y: number };
 }
 
 /** Files dragged onto the island. Only reaches us when the window takes the mouse. */

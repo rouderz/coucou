@@ -1,6 +1,10 @@
-// Named-pipe server for coucou-hook.
+// The relay server for coucou-hook (#33): a named pipe on Windows,
+// a Unix socket on Linux. The protocol is the same on both.
 //
-// `\\.\pipe\coucou-<sid>` — one instance per connection. Every hook event is
+// Windows: `\\.\pipe\coucou-<sid>`, one instance per connection.
+// Linux: `$XDG_RUNTIME_DIR/coucou.sock` (mode 0600; only our own uid is served).
+//
+// Every hook event is
 // forwarded to the island as a `hook` event. `PermissionRequest` is the only one
 // that keeps its connection open: it waits for the island's decision and writes
 // it back on the same pipe, which is how approving from the island works.
@@ -24,8 +28,9 @@ use std::time::Duration;
 
 use serde_json::{json, Value};
 use tauri::{AppHandle, Emitter, Manager};
-use tokio::io::{AsyncReadExt, AsyncWriteExt};
-use tokio::net::windows::named_pipe::{NamedPipeServer, ServerOptions};
+use tokio::io::{AsyncRead, AsyncReadExt, AsyncWrite, AsyncWriteExt};
+#[cfg(windows)]
+use tokio::net::windows::named_pipe::ServerOptions;
 use tokio::sync::mpsc;
 
 use crate::island::WINDOW_LABEL;
@@ -57,12 +62,72 @@ pub struct Pending(pub Mutex<HashMap<String, mpsc::Sender<Reply>>>);
 static COUNTER: AtomicU64 = AtomicU64::new(1);
 
 /// `\\.\pipe\coucou-<sid>` — must match coucou-hook's `pipe_path()` exactly.
+#[cfg(windows)]
 pub fn pipe_name() -> String {
-    let key = crate::win_user::current_user_sid()
+    let key = crate::platform::current_user_sid()
         .unwrap_or_else(|| std::env::var("USERNAME").unwrap_or_else(|_| "user".into()));
     format!(r"\\.\pipe\coucou-{key}")
 }
 
+/// `$XDG_RUNTIME_DIR/coucou.sock`, or `/tmp/coucou-<uid>/coucou.sock` without a
+/// runtime dir — must match coucou-hook's `socket_path()` exactly.
+#[cfg(target_os = "linux")]
+pub fn socket_path() -> std::path::PathBuf {
+    match std::env::var_os("XDG_RUNTIME_DIR").map(std::path::PathBuf::from) {
+        Some(dir) if dir.is_absolute() && dir.is_dir() => dir.join("coucou.sock"),
+        _ => std::path::PathBuf::from(format!("/tmp/coucou-{}", crate::platform::current_uid()))
+            .join("coucou.sock"),
+    }
+}
+
+#[cfg(target_os = "linux")]
+pub fn start(app: AppHandle) {
+    use std::os::unix::fs::{MetadataExt, PermissionsExt};
+    tauri::async_runtime::spawn(async move {
+        let path = socket_path();
+        let me = crate::platform::current_uid();
+        if let Some(dir) = path.parent() {
+            if !dir.exists() {
+                let _ = std::fs::create_dir_all(dir);
+                let _ = std::fs::set_permissions(dir, std::fs::Permissions::from_mode(0o700));
+            }
+            // A folder somebody else made for us is a trap, not a home.
+            if std::fs::metadata(dir).map(|m| m.uid() != me).unwrap_or(true) {
+                log::line(format!("{} isn't ours — no relay socket", dir.display()));
+                return;
+            }
+        }
+        // A socket left behind by a crash; the single-instance plugin already
+        // guarantees no other Coucou of ours is serving it.
+        let _ = std::fs::remove_file(&path);
+        let listener = match tokio::net::UnixListener::bind(&path) {
+            Ok(l) => l,
+            Err(err) => {
+                log::line(format!("cannot open the relay socket: {err}"));
+                return;
+            }
+        };
+        let _ = std::fs::set_permissions(&path, std::fs::Permissions::from_mode(0o600));
+        loop {
+            let Ok((stream, _)) = listener.accept().await else {
+                tokio::time::sleep(Duration::from_millis(200)).await;
+                continue;
+            };
+            // Only our own user's relays get through.
+            match stream.peer_cred() {
+                Ok(cred) if cred.uid() == me => {}
+                _ => {
+                    log::line("relay connection from another user refused");
+                    continue;
+                }
+            }
+            let app = app.clone();
+            tauri::async_runtime::spawn(async move { handle(app, stream).await });
+        }
+    });
+}
+
+#[cfg(windows)]
 pub fn start(app: AppHandle) {
     tauri::async_runtime::spawn(async move {
         let name = pipe_name();
@@ -95,7 +160,7 @@ pub fn start(app: AppHandle) {
     });
 }
 
-async fn handle(app: AppHandle, mut pipe: NamedPipeServer) {
+async fn handle<S: AsyncRead + AsyncWrite + Unpin>(app: AppHandle, mut pipe: S) {
     let mut buf = Vec::new();
     let mut chunk = [0u8; 4096];
     loop {
@@ -128,7 +193,7 @@ async fn handle(app: AppHandle, mut pipe: NamedPipeServer) {
     if event != "PermissionRequest" {
         log::line(format!("hook {event}"));
         let _ = app.emit_to(WINDOW_LABEL, "hook", payload);
-        let _ = pipe.disconnect();
+        let _ = pipe.shutdown().await;
         return;
     }
 
@@ -151,7 +216,7 @@ async fn handle(app: AppHandle, mut pipe: NamedPipeServer) {
         let _ = pipe.write_all(format!("{d}\n").as_bytes()).await;
         let _ = pipe.flush().await;
     }
-    let _ = pipe.disconnect();
+    let _ = pipe.shutdown().await;
 }
 
 /// Two waits: a short one for "the card is up", then the long one for a human.

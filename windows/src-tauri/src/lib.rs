@@ -1,19 +1,19 @@
 // Coucou for Windows — app wiring and the commands the island calls.
 
 mod claude;
+mod claude_code;
+mod editors;
 mod files;
 mod hooks;
 mod integrations;
 mod island;
 mod log;
 mod pipe;
+mod platform;
 mod secrets;
 mod settings;
 mod tray;
-mod win_user;
 
-use std::os::windows::process::CommandExt;
-use std::process::Command;
 use std::sync::atomic::Ordering;
 use std::sync::{Arc, Mutex};
 
@@ -22,14 +22,13 @@ use tauri::{AppHandle, Emitter, Manager, State, WebviewUrl, WebviewWindowBuilder
 use tauri_plugin_autostart::{ManagerExt, MacosLauncher};
 
 use claude::{Chat, ChatContext, ChatReply};
+use claude_code::{ClaudeCodeChat, ClaudeCodeStatus};
+use editors::EditorInfo;
 use files::DroppedFile;
 use hooks::{HookPreview, HookStatus};
 use island::{PollGate, ScreenInfo};
 use pipe::Pending;
 use settings::Settings;
-
-/// Keeps spawned helpers from flashing a console window.
-const CREATE_NO_WINDOW: u32 = 0x0800_0000;
 
 pub struct Shared {
     pub settings: Mutex<Settings>,
@@ -43,6 +42,10 @@ pub struct BootInfo {
     screen: ScreenInfo,
     version: String,
     hook_path: String,
+    /// "windows" or "linux".
+    platform: String,
+    /// "poll": Rust sends `cursor` events. "dom": the page tracks the pointer itself (Wayland).
+    pointer: String,
 }
 
 #[tauri::command]
@@ -56,6 +59,8 @@ fn boot(app: AppHandle, shared: State<Shared>) -> BootInfo {
         screen,
         version: env!("CARGO_PKG_VERSION").to_string(),
         hook_path: settings::hook_exe_path().to_string_lossy().to_string(),
+        platform: platform::PLATFORM.to_string(),
+        pointer: platform::pointer_mode().to_string(),
     }
 }
 
@@ -97,12 +102,14 @@ fn set_collapsed(app: AppHandle, shared: State<Shared>, collapsed: bool) {
     island::set_ignore_cursor(&app, false);
     shared.gate.forget_ignore_state();
     shared.gate.set_active(!collapsed);
+    island::apply_input_region(&app, &shared.gate);
 }
 
 /// The front end pushes the island shape; Rust decides click-through from it.
 #[tauri::command]
-fn set_island_rect(shared: State<Shared>, x: f64, y: f64, width: f64, height: f64) {
+fn set_island_rect(app: AppHandle, shared: State<Shared>, x: f64, y: f64, width: f64, height: f64) {
     shared.gate.set_rect(island::IslandRect { x, y, w: width, h: height });
+    island::apply_input_region(&app, &shared.gate);
 }
 
 #[tauri::command]
@@ -126,50 +133,21 @@ fn open_url(url: String) {
     if !(url.starts_with("http://") || url.starts_with("https://")) {
         return;
     }
-    let _ = Command::new("rundll32.exe")
-        .args(["url.dll,FileProtocolHandler", &url])
-        .creation_flags(CREATE_NO_WINDOW)
-        .spawn();
+    platform::open_url(&url);
 }
 
-/// "Open terminal" opens the working folder in VS Code when `code` is on PATH,
-/// and falls back to Explorer otherwise.
+/// "Open terminal" opens the working folder in the editor picked in Settings
+/// (or the first one installed), and in the file manager otherwise.
 #[tauri::command]
-fn open_in_vscode(path: Option<String>) -> bool {
-    // No `cmd /C` anywhere near this. The path is a project folder chosen by
-    // whoever is using Claude Code, and cmd would happily read `&`, `^` and `%`
-    // in a folder name as syntax. Finding the launcher ourselves and handing the
-    // path over as a separate argument keeps it a path.
-    if let Some(code) = find_on_path("code") {
-        let mut cmd = Command::new(code);
-        if let Some(p) = path.as_deref().filter(|p| !p.is_empty()) {
-            cmd.arg(p);
-        }
-        if cmd.creation_flags(CREATE_NO_WINDOW).spawn().is_ok() {
-            return true;
-        }
-    }
-    if let Some(p) = path.as_deref().filter(|p| !p.is_empty()) {
-        let _ = Command::new("explorer").arg(p).spawn();
-    }
-    false
+fn open_in_vscode(shared: State<Shared>, path: Option<String>) -> bool {
+    let preferred = shared.settings.lock().unwrap().editor.clone();
+    editors::open(path.as_deref().filter(|p| !p.is_empty()), &preferred)
 }
 
-/// Our own `where`: walks %PATH% against %PATHEXT%, no shell involved.
-/// Rust quotes arguments correctly for `.cmd`/`.bat` targets since 1.77, so
-/// spawning `code.cmd` directly is safe.
-fn find_on_path(stem: &str) -> Option<std::path::PathBuf> {
-    let exts = std::env::var("PATHEXT").unwrap_or_else(|_| ".COM;.EXE;.BAT;.CMD".into());
-    let dirs = std::env::var_os("PATH")?;
-    for dir in std::env::split_paths(&dirs) {
-        for ext in exts.split(';').filter(|e| !e.is_empty()) {
-            let candidate = dir.join(format!("{stem}{}", ext.to_lowercase()));
-            if candidate.is_file() {
-                return Some(candidate);
-            }
-        }
-    }
-    None
+/// The editors Settings can offer.
+#[tauri::command]
+fn editors_installed() -> Vec<EditorInfo> {
+    editors::installed()
 }
 
 #[tauri::command]
@@ -240,21 +218,37 @@ fn approval_decline(app: AppHandle, request_id: String) {
 
 // ── Chat, files and secrets ───────────────────────────────────────────────────
 
-/// One chat turn. The API key and any file bytes stay on the Rust side.
+/// One chat turn, through the engine picked in Settings. The API key and any
+/// file bytes stay on the Rust side.
 #[tauri::command]
 async fn chat_send(
     shared: State<'_, Shared>,
     chat: State<'_, Chat>,
+    code_chat: State<'_, ClaudeCodeChat>,
     query: String,
     context: Option<ChatContext>,
 ) -> Result<ChatReply, String> {
-    let model = shared.settings.lock().unwrap().model.clone();
-    claude::send(&chat, &model, query, context).await
+    let (model, engine) = {
+        let s = shared.settings.lock().unwrap();
+        (s.model.clone(), s.chat_engine.clone())
+    };
+    if engine == "claude-code" {
+        claude_code::send(&code_chat, &model, query, context).await
+    } else {
+        claude::send(&chat, &model, query, context).await
+    }
 }
 
 #[tauri::command]
-fn chat_reset(chat: State<Chat>) {
+fn chat_reset(chat: State<Chat>, code_chat: State<ClaudeCodeChat>) {
     chat.reset();
+    code_chat.reset();
+}
+
+/// Whether the subscription chat can work: is `claude` installed?
+#[tauri::command]
+fn claude_code_status() -> ClaudeCodeStatus {
+    claude_code::status()
 }
 
 /// Copies a dropped file into the inbox and reports its name back.
@@ -285,6 +279,12 @@ fn open_n8n() {
     if let Some(url) = secrets::get("n8n-url") {
         open_url(url);
     }
+}
+
+/// GitHub through the GitHub CLI when no token is saved (#75, macOS #53).
+#[tauri::command]
+async fn github_cli_status() -> integrations::GhStatus {
+    integrations::gh_status().await
 }
 
 /// Refresh buttons in the integration cards.
@@ -366,6 +366,8 @@ fn open_settings_window(app: AppHandle) {
 }
 
 pub fn run() {
+    #[cfg(target_os = "linux")]
+    platform::choose_backend();
     let loaded = settings::load();
     let gate = Arc::new(PollGate::new());
 
@@ -380,6 +382,7 @@ pub fn run() {
         })
         .manage(Pending::default())
         .manage(Chat::default())
+        .manage(ClaudeCodeChat::default())
         .invoke_handler(tauri::generate_handler![
             boot,
             save_settings,
@@ -407,6 +410,9 @@ pub fn run() {
             open_n8n,
             open_settings_window,
             set_paused,
+            editors_installed,
+            claude_code_status,
+            github_cli_status,
         ])
         .setup(move |app| {
             let handle = app.handle().clone();
@@ -415,13 +421,17 @@ pub fn run() {
             create_settings_window(&handle);
 
             if let Some(win) = island::window(&handle) {
+                platform::prepare_island(&win);
                 island::make_non_activating(&win);
                 island::apply_geometry(&handle, &loaded.screen, false);
                 let _ = win.show();
             }
             gate.collapsed.store(false, Ordering::Relaxed);
             gate.set_active(true);
-            island::spawn_cursor_poll(handle.clone(), gate.clone());
+            // Wayland has no global cursor: the page reports the pointer instead.
+            if platform::pointer_mode() == "poll" {
+                island::spawn_cursor_poll(handle.clone(), gate.clone());
+            }
 
             log::line(format!("--- Coucou {} started ---", env!("CARGO_PKG_VERSION")));
             hooks::ensure_hook_exe(&handle);

@@ -9,6 +9,8 @@ import { h, clear } from "../views/dom";
 
 let settings: Settings = { ...DEFAULT_SETTINGS };
 let version = "";
+/** Where keys are kept, named the way the user knows it. */
+let keychainName = "the Windows Credential Manager";
 
 const root = document.getElementById("settings-root")!;
 
@@ -66,7 +68,9 @@ function claudeSection(status: HookStatus): HTMLElement {
     body.append(
       h("div", {
         class: "hint",
-        text: status.installed
+        text: status.outdated
+          ? "Coucou's hooks are installed but out of date. Update them to get every event and approvals that don't time out."
+          : status.installed
           ? "Coucou is hooked into your Claude Code sessions. Tool calls, questions and permission requests show up in the island, and you can answer them there."
           : "Install the hooks to see your Claude Code sessions in the island and approve permissions without leaving what you are doing.",
       }),
@@ -84,14 +88,14 @@ function claudeSection(status: HookStatus): HTMLElement {
     if (!status.hookReady) {
       body.append(h("div", {
         class: "notice warn",
-        text: "coucou-hook.exe is not in place yet. Restart Coucou; if it still fails, build it with `cargo build -p coucou-hook`.",
+        text: "The relay (coucou-hook) is not in place yet. Restart Coucou; if it still fails, build it with `cargo build -p coucou-hook`.",
       }));
     }
 
     const actions = h("div", { class: "row" });
     const install = h("button", {
       class: "primary",
-      text: status.installed ? "Reinstall hooks…" : "Install hooks…",
+      text: status.outdated ? "Update hooks…" : status.installed ? "Reinstall hooks…" : "Install hooks…",
       onclick: () => showPreview(true),
     });
     // Writing hook commands that point at a relay which isn't there would give
@@ -181,9 +185,9 @@ const MODELS: [string, string][] = [
   ["claude-haiku-4-5", "Claude Haiku 4.5"],
 ];
 
-function apiSection(hasKey: boolean): HTMLElement {
+function apiSection(hasKey: boolean, claudeCode: { installed: boolean; path: string | null }): HTMLElement {
   const dot = statusDot(hasKey);
-  const state = h("span", { class: "hint", text: hasKey ? "Key saved in the Windows Credential Manager." : "No key yet — the chat needs one." });
+  const state = h("span", { class: "hint", text: hasKey ? `Key saved in ${keychainName}.` : "No key yet — the chat needs one." });
 
   const field = h("input", {
     type: "password",
@@ -201,7 +205,7 @@ function apiSection(hasKey: boolean): HTMLElement {
     const present = (await Bridge.secretPresent("anthropic-api-key")) ?? false;
     dot.style.background = present ? "#22c55e" : "#f4505e";
     state.textContent = present
-      ? "Key saved in the Windows Credential Manager."
+      ? `Key saved in ${keychainName}.`
       : "No key yet — the chat needs one.";
     field.placeholder = present ? "••••••••••••  (stored)" : "sk-ant-...";
     clearBtn.style.display = present ? "" : "none";
@@ -245,12 +249,43 @@ function apiSection(hasKey: boolean): HTMLElement {
 
   clearBtn.style.display = hasKey ? "" : "none";
 
+  // Engine (#75): the user's Claude Code subscription, or an API key.
+  const engine = h("select", {}) as HTMLSelectElement;
+  engine.append(
+    h("option", { value: "api", text: "Anthropic API key" }),
+    h("option", { value: "claude-code", text: "Claude Code (your subscription)" }),
+  );
+  engine.value = settings.chatEngine ?? "api";
+  const keyRow = h("div", { class: "row" }, h("label", { text: "API key" }), field, saveBtn, clearBtn);
+  const codeNote = h("div", {
+    class: claudeCode.installed ? "hint" : "notice warn",
+    text: claudeCode.installed
+      ? `Uses ${claudeCode.path}, signed in with your Claude plan. No key needed; nothing about your sign-in is read or stored.`
+      : "Claude Code isn't installed (or not on PATH). Install it and sign in with `claude`, then reopen Settings.",
+  });
+  function showEngine() {
+    const code = engine.value === "claude-code";
+    keyRow.style.display = code ? "none" : "";
+    state.style.display = code ? "none" : "";
+    codeNote.style.display = code ? "" : "none";
+    dot.style.background = code ? (claudeCode.installed ? "#22c55e" : "#f4505e") : dot.style.background;
+  }
+  engine.addEventListener("change", () => {
+    settings.chatEngine = engine.value as Settings["chatEngine"];
+    void save();
+    if (engine.value === "api") void refresh();
+    showEngine();
+  });
+  showEngine();
+
   return h(
     "section",
     {},
-    h("h2", {}, dot, h("span", { text: "Claude" })),
+    h("h2", {}, dot, h("span", { text: "Chat" })),
+    h("div", { class: "row" }, h("label", { text: "Engine" }), engine),
     state,
-    h("div", { class: "row" }, h("label", { text: "API key" }), field, saveBtn, clearBtn),
+    codeNote,
+    keyRow,
     h("div", { class: "row" }, h("label", { text: "Model" }), model),
     feedback,
   );
@@ -270,7 +305,7 @@ const INTEGRATIONS: IntegrationDef[] = [
   { id: "integration_stripe", name: "Stripe", color: "#0570DE",
     fields: [{ key: "stripe-api-key", label: "Secret key", placeholder: "sk_live_…", secret: true }] },
   { id: "integration_github", name: "GitHub", color: "#F4505E",
-    fields: [{ key: "github-token", label: "Token", placeholder: "ghp_…", secret: true }] },
+    fields: [{ key: "github-token", label: "Token", placeholder: "ghp_…  (or sign in with gh)", secret: true }] },
   { id: "integration_vercel", name: "Vercel", color: "#7C5CFF",
     fields: [{ key: "vercel-token", label: "Token", placeholder: "…", secret: true }] },
   { id: "integration_n8n", name: "n8n", color: "#F29B38",
@@ -294,7 +329,7 @@ function integrationsSection(present: Record<string, boolean>): HTMLElement {
 
   function updateNote() {
     const used = settings.activeIntegrations.length;
-    note.textContent = `Pick up to ${MAX_ACTIVE} pills to show next to Mochi — ${used}/${MAX_ACTIVE} in use. Keys are stored in the Windows Credential Manager, never on disk.`;
+    note.textContent = `Pick up to ${MAX_ACTIVE} pills to show next to Mochi — ${used}/${MAX_ACTIVE} in use. Keys are stored in ${keychainName}, never on disk.`;
   }
 
   for (const def of INTEGRATIONS) {
@@ -362,7 +397,17 @@ function integrationsSection(present: Record<string, boolean>): HTMLElement {
 
 // ── General section ───────────────────────────────────────────────────────────
 
-function generalSection(): HTMLElement {
+function generalSection(editors: { id: string; name: string }[]): HTMLElement {
+  // Where "Open terminal" / project folders open (#75).
+  const editor = h("select", {}) as HTMLSelectElement;
+  editor.append(h("option", { value: "", text: editors.length ? "First one installed" : "File manager (no editor found)" }));
+  for (const e of editors) editor.append(h("option", { value: e.id, text: e.name }));
+  editor.value = editors.some((e) => e.id === settings.editor) ? settings.editor : "";
+  editor.addEventListener("change", () => {
+    settings.editor = editor.value;
+    void save();
+  });
+
   const volume = h("input", {
     type: "range", min: "0", max: "0.2", step: "0.005",
     value: String(settings.soundVolume),
@@ -413,6 +458,10 @@ function generalSection(): HTMLElement {
       screen,
     ),
     h("div", { class: "row" },
+      h("label", { text: "Open projects in" }),
+      editor,
+    ),
+    h("div", { class: "row" },
       h("label", { text: "Launch at startup" }),
       toggle(settings.autostart, (v) => { settings.autostart = v; void save(); }),
     ),
@@ -426,12 +475,15 @@ async function main() {
   if (boot) {
     settings = { ...settings, ...boot.settings };
     version = boot.version;
+    if (boot.platform === "linux") keychainName = "your keyring (Secret Service)";
   }
   const status = (await Bridge.hooksStatus()) ?? {
     installed: false, settingsPath: "", hookPath: "", hookReady: false,
   };
 
   const hasKey = (await Bridge.secretPresent("anthropic-api-key")) ?? false;
+  const claudeCode = (await Bridge.claudeCodeStatus()) ?? { installed: false, path: null };
+  const editors = (await Bridge.editorsInstalled()) ?? [];
 
   const keys = [
     "stripe-api-key", "github-token", "vercel-token",
@@ -444,9 +496,9 @@ async function main() {
   root.append(
     h("h1", {}, h("span", { text: "Coucou" }), h("span", { class: "version", text: version })),
     claudeSection(status),
-    apiSection(hasKey),
+    apiSection(hasKey, claudeCode),
     integrationsSection(present),
-    generalSection(),
+    generalSection(editors),
     h("div", {
       class: "hint",
       text: "No telemetry. Network requests only go to the services you configure yourself.",

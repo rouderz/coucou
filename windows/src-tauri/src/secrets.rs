@@ -1,4 +1,5 @@
-// API keys live in the Windows Credential Manager, never on disk and never in
+// API keys live in the system keychain (Windows Credential Manager, or the Secret
+// Service — GNOME Keyring, KWallet — on Linux), never on disk and never in
 // the front end — the island can only ask whether a key is present.
 
 use keyring::Entry;
