@@ -140,6 +140,27 @@ const ES: Record<string, string> = {
   "Launch at startup": "Abrir al iniciar sesión", "Open projects in": "Abrir proyectos en", "First one installed": "El primero instalado",
   "File manager (no editor found)": "Explorador de archivos (no hay editor)", "Language": "Idioma", "Same as the system": "Igual que el sistema",
   "Idle notch": "Notch en reposo", "a small notch stays at the top when the island hides": "una pequeña notch queda arriba cuando la isla se esconde",
+  // Skills
+  "Skills": "Skills", "Search skills…": "Buscar skills…", "View": "Ver", "Folder": "Carpeta",
+  "Open in the editor": "Abrir en el editor", "scripts": "scripts", "off": "apagada", "No description.": "Sin descripción.",
+  "Personal": "Personal", "Project": "Proyecto", "Plugin": "Plugin", "Codex": "Codex",
+  "No skills on this computer yet. Add one below.": "Aún no hay skills en esta computadora. Agrega una abajo.",
+  "Add a skill": "Agregar una skill", "Install to": "Instalar en", "Preview": "Vista previa", "Install": "Instalar",
+  "Folder, .zip / .skill file, or a GitHub link": "Carpeta, archivo .zip / .skill o un enlace de GitHub",
+  "Or drop a skill folder or a .zip / .skill file on this window. You see what's inside before anything is installed.":
+    "O suelta una carpeta de skill o un archivo .zip / .skill en esta ventana. Ves lo que contiene antes de instalar nada.",
+  "Looking…": "Buscando…", "Installs to ": "Se instala en ",
+  "It has scripts. Coucou never runs them, but Claude may when it uses the skill — read them first.":
+    "Tiene scripts. Coucou nunca los ejecuta, pero Claude puede hacerlo al usar la skill: revísalos antes.",
+  "A skill with this name is already there; installing replaces it (the old one is kept in Coucou's trash).":
+    "Ya hay una skill con este nombre; instalar la reemplaza (la anterior se guarda en la papelera de Coucou).",
+  "Installed. Claude Code picks it up in its next session.": "Instalada. Claude Code la usará desde su próxima sesión.",
+  "New skill name": "Nombre de la nueva skill", "Create": "Crear",
+  "What Claude Code and Codex can use on this computer: your own skills, each project's, and the ones that come with plugins. Turning one off moves it aside; nothing is deleted.":
+    "Lo que Claude Code y Codex pueden usar en esta computadora: tus skills, las de cada proyecto y las que vienen con plugins. Apagar una la aparta; no se borra nada.",
+  "Ask me anything… (/ for skills)": "Pregúntame lo que quieras… (/ para skills)", "What should it do?": "¿Qué debe hacer?",
+  "Remove the skill": "Quitar la skill", "No skill matches.": "Ninguna skill coincide.",
+  "No skills installed. Add some in Settings → Skills.": "No hay skills instaladas. Agrégalas en Ajustes → Skills.",
   "Voice": "Voz", "Read replies aloud": "Leer las respuestas en voz alta",
   "Install and restart": "Instalar y reiniciar", "Updating…": "Actualizando…",
   "You're already up to date.": "Ya estás al día.",
@@ -181,6 +202,8 @@ const PATTERNS: [RegExp, string][] = [
   [/^\+(\d+) more edits?$/, "+$1 cambio(s) más"],
   [/^(\d+) lines?$/, "$1 línea(s)"],
   [/^Auto-approve in (.+):$/, "Auto-aprobar en $1:"],
+  [/^Install (\d+) skills$/, "Instalar $1 skills"],
+  [/^(\d+) files: (.*)$/s, "$1 archivos: $2"],
   [/^Coucou (.+) is out — download$/, "Coucou $1 ya está disponible — descargar"],
   [/^Coucou (.+) is out — install and restart$/, "Coucou $1 ya está disponible — instalar y reiniciar"],
   [/^The update couldn't be installed: (.+)$/, "No se pudo instalar la actualización: $1"],

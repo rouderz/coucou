@@ -254,3 +254,31 @@ pub fn choose_backend() {
         std::env::set_var("GDK_BACKEND", "x11");
     }
 }
+
+/// Extracts a .zip with whatever the system has: unzip, bsdtar or Python.
+/// All three refuse to write outside `dest`; skills.rs checks again after.
+pub fn unzip(zip: &std::path::Path, dest: &std::path::Path) -> Result<(), String> {
+    let quiet = |mut c: Command| c.stdout(Stdio::null()).stderr(Stdio::null()).status().map(|s| s.success()).unwrap_or(false);
+    if let Some(unzip) = find_program("unzip") {
+        let mut c = Command::new(unzip);
+        c.arg("-q").arg("-o").arg(zip).arg("-d").arg(dest);
+        if quiet(c) {
+            return Ok(());
+        }
+    }
+    if let Some(bsdtar) = find_program("bsdtar") {
+        let mut c = Command::new(bsdtar);
+        c.arg("-xf").arg(zip).arg("-C").arg(dest);
+        if quiet(c) {
+            return Ok(());
+        }
+    }
+    if let Some(python) = find_program("python3") {
+        let mut c = Command::new(python);
+        c.args(["-m", "zipfile", "-e"]).arg(zip).arg(dest);
+        if quiet(c) {
+            return Ok(());
+        }
+    }
+    Err("Can't open the archive: install unzip (e.g. sudo apt install unzip).".into())
+}

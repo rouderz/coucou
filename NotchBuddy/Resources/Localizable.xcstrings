@@ -72,6 +72,16 @@
         }
       }
     },
+    "%lld files: %@%@": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%lld archivos: %@%@"
+          }
+        }
+      }
+    },
     "%lld new notifications. Latest, %@": {
       "localizations": {
         "es": {
@@ -158,6 +168,26 @@
           "stringUnit": {
             "state": "translated",
             "value": "Una sesión de Claude Code está trabajando en ella"
+          }
+        }
+      }
+    },
+    "A skill with that name already exists.": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ya existe una skill con ese nombre."
+          }
+        }
+      }
+    },
+    "A skill with this name is already there; installing replaces it (the old one is kept in Coucou's trash).": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ya hay una skill con este nombre; instalar la reemplaza (la anterior se guarda en la papelera de Coucou)."
           }
         }
       }
@@ -258,6 +288,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "Pastillas activas"
+          }
+        }
+      }
+    },
+    "Add a skill": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Agregar una skill"
           }
         }
       }
@@ -458,6 +498,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "Pregúntame lo que quieras…"
+          }
+        }
+      }
+    },
+    "Ask me anything… (/ for skills)": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Pregúntame lo que quieras… (/ para skills)"
           }
         }
       }
@@ -792,6 +842,16 @@
         }
       }
     },
+    "Choose a skill folder, or a .zip / .skill file": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Elige una carpeta de skill o un archivo .zip / .skill"
+          }
+        }
+      }
+    },
     "Choose your .claude folder so Coucou can add its hooks": {
       "localizations": {
         "es": {
@@ -808,6 +868,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "Elige tu carpeta ~/.claude para que Coucou añada sus hooks."
+          }
+        }
+      }
+    },
+    "Choose…": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Elegir…"
           }
         }
       }
@@ -902,6 +972,16 @@
         }
       }
     },
+    "Claude Code — personal (~/.claude/skills)": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Claude Code — personal (~/.claude/skills)"
+          }
+        }
+      }
+    },
     "Claude didn't write an answer. Try asking again.": {
       "localizations": {
         "es": {
@@ -988,6 +1068,26 @@
           "stringUnit": {
             "state": "translated",
             "value": "Cerrar tras"
+          }
+        }
+      }
+    },
+    "Codex": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Codex"
+          }
+        }
+      }
+    },
+    "Codex (~/.codex/skills)": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Codex (~/.codex/skills)"
           }
         }
       }
@@ -1412,6 +1512,16 @@
         }
       }
     },
+    "Create": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Crear"
+          }
+        }
+      }
+    },
     "Custom…": {
       "localizations": {
         "es": {
@@ -1522,6 +1632,16 @@
         }
       }
     },
+    "Drop a skill folder, a .zip or .skill file, or paste a GitHub link.": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Suelta una carpeta de skill, un archivo .zip o .skill, o pega un enlace de GitHub."
+          }
+        }
+      }
+    },
     "Drop your files here": {
       "localizations": {
         "es": {
@@ -1612,6 +1732,26 @@
         }
       }
     },
+    "Folder": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Carpeta"
+          }
+        }
+      }
+    },
+    "Folder, .zip / .skill file, or a GitHub link": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Carpeta, archivo .zip / .skill o un enlace de GitHub"
+          }
+        }
+      }
+    },
     "For 1 hour": {
       "localizations": {
         "es": {
@@ -1682,6 +1822,16 @@
         }
       }
     },
+    "GitHub answered %lld — check the link (public repos only).": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "GitHub respondió %lld: revisa el enlace (solo repositorios públicos)."
+          }
+        }
+      }
+    },
     "GitHub error %lld": {
       "localizations": {
         "es": {
@@ -1728,6 +1878,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "Oye Mochi: empezar con la voz, sin el atajo"
+          }
+        }
+      }
+    },
+    "Hide": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ocultar"
           }
         }
       }
@@ -1872,6 +2032,26 @@
         }
       }
     },
+    "Install": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Instalar"
+          }
+        }
+      }
+    },
+    "Install %lld skills": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Instalar %lld skills"
+          }
+        }
+      }
+    },
     "Install Codex CLI and run it once to see its sessions and approvals here too.": {
       "localizations": {
         "es": {
@@ -1928,6 +2108,36 @@
           "stringUnit": {
             "state": "translated",
             "value": "Instálalos para que Coucou vea tus sesiones de Claude Code y puedas aprobar desde la isla. Claude Code nunca se bloquea si Coucou no está abierto."
+          }
+        }
+      }
+    },
+    "Install to": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Instalar en"
+          }
+        }
+      }
+    },
+    "Installed. Claude Code picks it up in its next session.": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Instalada. Claude Code la usará desde su próxima sesión."
+          }
+        }
+      }
+    },
+    "Installs to %@": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Se instala en %@"
           }
         }
       }
@@ -2008,6 +2218,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "Dirección del servidor no válida"
+          }
+        }
+      }
+    },
+    "It has scripts. Coucou never runs them, but Claude may when it uses the skill — read them first.": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tiene scripts. Coucou nunca los ejecuta, pero Claude puede hacerlo al usar la skill: revísalos antes."
           }
         }
       }
@@ -2148,6 +2368,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "Buscando GitHub CLI…"
+          }
+        }
+      }
+    },
+    "Looking…": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Buscando…"
           }
         }
       }
@@ -2412,6 +2642,16 @@
         }
       }
     },
+    "New skill name": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nombre de la nueva skill"
+          }
+        }
+      }
+    },
     "No API key or URL configured": {
       "localizations": {
         "es": {
@@ -2422,12 +2662,32 @@
         }
       }
     },
+    "No SKILL.md in there, so it isn't a skill.": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No contiene SKILL.md, así que no es una skill."
+          }
+        }
+      }
+    },
     "No calls scheduled": {
       "localizations": {
         "es": {
           "stringUnit": {
             "state": "translated",
             "value": "No hay llamadas programadas"
+          }
+        }
+      }
+    },
+    "No description.": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sin descripción."
           }
         }
       }
@@ -2478,6 +2738,36 @@
           "stringUnit": {
             "state": "translated",
             "value": "Aún no hay chats guardados"
+          }
+        }
+      }
+    },
+    "No skill matches.": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ninguna skill coincide."
+          }
+        }
+      }
+    },
+    "No skills installed. Add some in Settings → Skills.": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No hay skills instaladas. Agrégalas en Ajustes → Skills."
+          }
+        }
+      }
+    },
+    "No skills on this Mac yet. Add one below.": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Aún no hay skills en este Mac. Agrega una abajo."
           }
         }
       }
@@ -2538,6 +2828,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "No hay nada en marcha ahora mismo."
+          }
+        }
+      }
+    },
+    "Nothing there — check the path.": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No hay nada ahí: revisa la ruta."
           }
         }
       }
@@ -2612,6 +2912,16 @@
         }
       }
     },
+    "Only github.com links to a repository or a folder in one.": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Solo enlaces de github.com a un repositorio o a una carpeta dentro de uno."
+          }
+        }
+      }
+    },
     "Only when I'm away (screen locked or 2 min idle)": {
       "localizations": {
         "es": {
@@ -2682,6 +2992,16 @@
         }
       }
     },
+    "Open in the editor": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Abrir en el editor"
+          }
+        }
+      }
+    },
     "Open it and drag Coucou to Applications, replacing this one.": {
       "localizations": {
         "es": {
@@ -2738,6 +3058,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "Abrió"
+          }
+        }
+      }
+    },
+    "Or drop a skill folder or a .zip / .skill file here. You see what's inside before anything is installed.": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "O suelta aquí una carpeta de skill o un archivo .zip / .skill. Ves lo que contiene antes de instalar nada."
           }
         }
       }
@@ -2822,6 +3152,16 @@
         }
       }
     },
+    "Personal": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Personal"
+          }
+        }
+      }
+    },
     "Personal API key  (lin_api_…)": {
       "localizations": {
         "es": {
@@ -2872,6 +3212,36 @@
         }
       }
     },
+    "Pick where to create it.": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Elige dónde crearla."
+          }
+        }
+      }
+    },
+    "Pick where to install it.": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Elige dónde instalarla."
+          }
+        }
+      }
+    },
+    "Plugin · %@": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Plugin · %@"
+          }
+        }
+      }
+    },
     "Post to %@": {
       "localizations": {
         "es": {
@@ -2908,6 +3278,36 @@
           "stringUnit": {
             "state": "translated",
             "value": "Pulsa las teclas…"
+          }
+        }
+      }
+    },
+    "Preview": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Vista previa"
+          }
+        }
+      }
+    },
+    "Project · %@": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Proyecto · %@"
+          }
+        }
+      }
+    },
+    "Project — %@": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Proyecto — %@"
           }
         }
       }
@@ -3032,6 +3432,16 @@
         }
       }
     },
+    "Remove the skill": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Quitar la skill"
+          }
+        }
+      }
+    },
     "Resend error — check API key & sender.": {
       "localizations": {
         "es": {
@@ -3132,6 +3542,16 @@
         }
       }
     },
+    "SKILL.md can't be read": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No se puede leer SKILL.md"
+          }
+        }
+      }
+    },
     "Same as the Mac": {
       "localizations": {
         "es": {
@@ -3188,6 +3608,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "Agenda"
+          }
+        }
+      }
+    },
+    "Search skills…": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Buscar skills…"
           }
         }
       }
@@ -3352,6 +3782,16 @@
         }
       }
     },
+    "Skills": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Skills"
+          }
+        }
+      }
+    },
     "Sound": {
       "localizations": {
         "es": {
@@ -3442,6 +3882,26 @@
         }
       }
     },
+    "That preview expired — preview it again.": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Esa vista previa caducó: vuelve a generarla."
+          }
+        }
+      }
+    },
+    "That repository is too big to be a skill (over 50 MB).": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ese repositorio es demasiado grande para ser una skill (más de 50 MB)."
+          }
+        }
+      }
+    },
     "The API answered with an error (%lld).": {
       "localizations": {
         "es": {
@@ -3458,6 +3918,26 @@
           "stringUnit": {
             "state": "translated",
             "value": "La API está limitando esta clave. Espera un momento y vuelve a intentarlo."
+          }
+        }
+      }
+    },
+    "The archive couldn't be opened.": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No se pudo abrir el archivo comprimido."
+          }
+        }
+      }
+    },
+    "The archive tries to write outside its folder.": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "El archivo intenta escribir fuera de su carpeta."
           }
         }
       }
@@ -3538,6 +4018,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "El servidor no devolvió modelos."
+          }
+        }
+      }
+    },
+    "There's already a skill with that folder name.": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ya hay una skill con ese nombre de carpeta."
           }
         }
       }
@@ -3802,6 +4292,16 @@
         }
       }
     },
+    "View": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ver"
+          }
+        }
+      }
+    },
     "Volume": {
       "localizations": {
         "es": {
@@ -3842,12 +4342,32 @@
         }
       }
     },
+    "What Claude Code and Codex can use on this Mac: your own skills, each project's, and the ones that come with plugins. Turning one off moves it aside; nothing is deleted.": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Lo que Claude Code y Codex pueden usar en este Mac: tus skills, las de cada proyecto y las que vienen con plugins. Apagar una la aparta; no se borra nada."
+          }
+        }
+      }
+    },
     "What do you want to do with it?": {
       "localizations": {
         "es": {
           "stringUnit": {
             "state": "translated",
             "value": "¿Qué quieres hacer con él?"
+          }
+        }
+      }
+    },
+    "What should it do?": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "¿Qué debe hacer?"
           }
         }
       }
@@ -4232,6 +4752,16 @@
         }
       }
     },
+    "off": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "apagada"
+          }
+        }
+      }
+    },
     "opens permissions to everyone": {
       "localizations": {
         "es": {
@@ -4358,6 +4888,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "s de inactividad"
+          }
+        }
+      }
+    },
+    "scripts": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "scripts"
           }
         }
       }

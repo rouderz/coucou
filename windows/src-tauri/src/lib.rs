@@ -17,6 +17,7 @@ mod provider;
 mod platform;
 mod secrets;
 mod settings;
+mod skills;
 mod tray;
 mod voice;
 
@@ -357,6 +358,58 @@ async fn provider_models(shared: State<'_, Shared>) -> Result<Vec<String>, Strin
 }
 
 // ── Linear, inbox, phone alerts, updates, shortcuts (phase 2 of parity) ──────
+
+// ── Skills ────────────────────────────────────────────────────────────────────
+
+#[tauri::command]
+fn skills_list() -> Vec<skills::Skill> {
+    skills::list()
+}
+
+#[tauri::command]
+fn skills_targets() -> Vec<skills::Target> {
+    skills::targets()
+}
+
+#[tauri::command]
+fn skill_read(path: String) -> Result<skills::SkillText, String> {
+    skills::read(&path)
+}
+
+#[tauri::command]
+fn skill_set_enabled(path: String, enabled: bool) -> Result<(), String> {
+    skills::set_enabled(&path, enabled)
+}
+
+/// Stages a folder, .zip / .skill file or GitHub link and shows what it holds.
+#[tauri::command]
+async fn skills_preview(source: String, target: String) -> Result<skills::Preview, String> {
+    skills::preview(&source, &target).await
+}
+
+/// Installs what the preview showed — only ever after the user clicked Install.
+#[tauri::command]
+fn skills_install(token: String, replace: bool) -> Result<Vec<String>, String> {
+    let installed = skills::install(&token, replace)?;
+    log::line(format!("skills installed: {}", installed.join(", ")));
+    Ok(installed)
+}
+
+#[tauri::command]
+fn skill_create(shared: State<Shared>, name: String, target: String) -> Result<String, String> {
+    let dir = skills::create(&name, &target)?;
+    let preferred = shared.settings.lock().unwrap().editor.clone();
+    editors::open(Some(&dir), &preferred);
+    Ok(dir)
+}
+
+/// Shows a skill's folder in Explorer / the file manager.
+#[tauri::command]
+fn skill_reveal(path: String) {
+    if std::path::Path::new(&path).is_dir() {
+        platform::open_folder(&path);
+    }
+}
 
 /// The Linear issue a session's git branch names, if any.
 #[tauri::command]
@@ -700,6 +753,14 @@ pub fn run() {
             provider_models,
             voice_listen,
             voice_available,
+            skills_list,
+            skills_targets,
+            skill_read,
+            skill_set_enabled,
+            skills_preview,
+            skills_install,
+            skill_create,
+            skill_reveal,
         ])
         .setup(move |app| {
             let handle = app.handle().clone();

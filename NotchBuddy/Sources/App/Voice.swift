@@ -294,6 +294,14 @@ extension ChatSession {
         if state.view != .prompt { state.view = .prompt }
         state.chatHistory.append(ChatMessage(role: .user, content: query))
         state.stateOverride = .thinking
-        Task { await ClaudeService.shared.chat(query: query, context: state.promptContext, state: state) }
+        // A skill picked with "/": its instructions go with this question only.
+        var sent = query
+        if let skill = state.chatSkill {
+            state.chatSkill = nil
+            if let text = SkillsStore.shared.read(skill) {
+                sent = SkillFiles.withSkill(name: skill.name, path: text.path, content: text.content, query: query)
+            }
+        }
+        Task { await ClaudeService.shared.chat(query: sent, context: state.promptContext, state: state) }
     }
 }

@@ -760,6 +760,13 @@ struct SettingsView: View {
                     .padding(6)
                 }
 
+                #if !APPSTORE
+                // MARK: Skills
+                GroupBox("Skills") {
+                    SkillsSettingsSection()
+                }
+                #endif
+
                 // MARK: Updates
                 GroupBox("Updates") {
                     UpdatesSection(state: state).padding(6)
