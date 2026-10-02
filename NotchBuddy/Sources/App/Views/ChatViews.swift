@@ -19,7 +19,7 @@ struct PromptView: View {
                     if let ctx = state.promptContext {
                         ContextChip(context: ctx)
                         // Code context: let Mochi change files, each change approved in the island
-                        if case .code = ctx, state.chatEngine == .claudeCode {
+                        if case .code = ctx, ClaudeService.provider(for: state.chatEngine).capabilities.contains(.editsFiles) {
                             Button { state.chatAllowEdits.toggle() } label: {
                                 HStack(spacing: 4) {
                                     Image(systemName: state.chatAllowEdits ? "pencil.circle.fill" : "pencil.slash")

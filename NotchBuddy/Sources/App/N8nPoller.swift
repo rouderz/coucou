@@ -281,3 +281,23 @@ final class N8nPoller: @unchecked Sendable {
         } else { try? data.write(to: logFile) }
     }
 }
+
+// MARK: - Workflow list for Settings (#16: no network calls from views)
+
+extension N8nPoller {
+    /// Tries the public API, then the older internal one.
+    static func listWorkflows(baseURL: String, apiKey: String) async -> [String] {
+        let base = baseURL.trimmingCharacters(in: CharacterSet(charactersIn: "/"))
+        for path in ["/api/v1/workflows?limit=100", "/rest/workflows?limit=100"] {
+            guard let url = URL(string: base + path) else { continue }
+            var req = URLRequest(url: url, timeoutInterval: 10)
+            req.setValue(apiKey, forHTTPHeaderField: "X-N8N-API-KEY")
+            guard let (data, response) = try? await URLSession.shared.data(for: req),
+                  (response as? HTTPURLResponse)?.statusCode == 200 else { continue }
+            let json = try? JSONSerialization.jsonObject(with: data)
+            let items = (json as? [String: Any])?["data"] as? [[String: Any]] ?? json as? [[String: Any]] ?? []
+            return items.compactMap { $0["name"] as? String }.sorted()
+        }
+        return []
+    }
+}

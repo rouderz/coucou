@@ -77,7 +77,7 @@ final class ChatStore: ObservableObject {
         state.currentChatID = chat.id
         state.chatHistory = chat.messages.map { ChatMessage(role: $0.user ? .user : .assistant, content: $0.text) }
         state.promptContext = chat.code.map { PromptContext.code($0) }
-        ClaudeService.shared.restoreConversation(chat.messages)
+        AnthropicAPIChat.shared.restore(chat.messages)
         OpenAICompatibleChat.shared.restore(chat.messages)
         ClaudeCodeChat.shared.restore(sessionID: chat.sessionID,
                                       workDir: chat.workDir,
@@ -147,7 +147,7 @@ enum ChatSession {
         state.currentChatID = nil
         state.promptContext = nil
         state.chatAllowEdits = false
-        ClaudeService.shared.clearConversation()
+        AnthropicAPIChat.shared.reset()
         ClaudeCodeChat.shared.reset()
         OpenAICompatibleChat.shared.reset()
     }
