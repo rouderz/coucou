@@ -15,6 +15,12 @@ struct PromptView: View {
     /// "/" at the start of the field lists the skills, in the chat's place.
     private var picking: Bool { text.hasPrefix("/") && !text.contains(" ") }
     private var matches: [SkillInfo] { SkillFiles.match(skillsStore.skills, typed: text) }
+    /// "@" searches Google Drive; the picked file is attached to the chat.
+    private var drivePicking: Bool { text.hasPrefix("@") }
+    @State private var driveResults: [DriveFile] = []
+    @State private var driveStatus = ""
+    /// Items the arrow keys move through.
+    private var pickCount: Int { picking ? matches.count : drivePicking ? driveResults.count : 0 }
 
     var body: some View {
         ZStack(alignment: .leading) {
@@ -80,6 +86,9 @@ struct PromptView: View {
                 } else if picking {
                     SkillPickerList(matches: matches, selected: pickIndex, hasAny: !skillsStore.skills.isEmpty) { choose($0) }
                         .frame(maxHeight: .infinity)
+                } else if drivePicking {
+                    DrivePickerList(files: driveResults, selected: pickIndex, status: driveStatus) { chooseDrive($0) }
+                        .frame(maxHeight: .infinity)
                 } else if !state.chatHistory.isEmpty {
                     ScrollViewReader { proxy in
                         ScrollView(.vertical, showsIndicators: false) {
@@ -124,25 +133,28 @@ struct PromptView: View {
                         VoiceListeningLabel(phase: state.voicePhase, transcript: state.voiceTranscript)
                     } else {
                         TextField(state.chatSkill != nil ? "What should it do?"
-                                  : state.chatHistory.isEmpty ? "Ask me anything… (/ for skills)" : "Continue…", text: $text)
+                                  : state.chatHistory.isEmpty ? "Ask me anything… (/ skills, @ Drive)" : "Continue…", text: $text)
                             .textFieldStyle(.plain)
                             .font(.system(size: 13))
                             .focused($focused)
                             .onSubmit {
-                                if picking, matches.indices.contains(pickIndex) { choose(matches[pickIndex]) } else { sendMessage() }
+                                if picking, matches.indices.contains(pickIndex) { choose(matches[pickIndex]) }
+                                else if drivePicking { if driveResults.indices.contains(pickIndex) { chooseDrive(driveResults[pickIndex]) } }
+                                else { sendMessage() }
                             }
                             .onChange(of: text) { old, new in
                                 if new == "/", !old.hasPrefix("/") { skillsStore.refresh() }
                                 pickIndex = 0
+                                if new.hasPrefix("@") { searchDrive(String(new.dropFirst())) }
                             }
                             .onKeyPress(.downArrow) {
-                                guard picking, !matches.isEmpty else { return .ignored }
-                                pickIndex = (pickIndex + 1) % matches.count
+                                guard pickCount > 0 else { return .ignored }
+                                pickIndex = (pickIndex + 1) % pickCount
                                 return .handled
                             }
                             .onKeyPress(.upArrow) {
-                                guard picking, !matches.isEmpty else { return .ignored }
-                                pickIndex = (pickIndex + matches.count - 1) % matches.count
+                                guard pickCount > 0 else { return .ignored }
+                                pickIndex = (pickIndex + pickCount - 1) % pickCount
                                 return .handled
                             }
                             .onKeyPress(.tab) {
@@ -186,6 +198,43 @@ struct PromptView: View {
         .onAppear { focused = true }
     }
 
+    private func searchDrive(_ query: String) {
+        guard GoogleAPI.isConnected else {
+            driveResults = []
+            driveStatus = L("Connect Google in Settings → Google to search your Drive.")
+            return
+        }
+        driveStatus = L("Searching Drive…")
+        Task { @MainActor in
+            try? await Task.sleep(for: .milliseconds(350))
+            guard text == "@" + query else { return }  // typed on: a newer search follows
+            do {
+                let files = try await GoogleAPI.driveSearch(query)
+                guard text == "@" + query else { return }
+                driveResults = files
+                driveStatus = files.isEmpty ? L("No Drive file with that name.") : ""
+            } catch {
+                driveResults = []
+                driveStatus = error.localizedDescription
+            }
+        }
+    }
+
+    private func chooseDrive(_ file: DriveFile) {
+        driveResults = []
+        driveStatus = L("Downloading…")
+        Task { @MainActor in
+            do {
+                GoogleAPI.attach(try await GoogleAPI.driveFile(file), fresh: false)
+                text = ""
+                driveStatus = ""
+            } catch {
+                driveStatus = error.localizedDescription
+            }
+            focused = true
+        }
+    }
+
     private func choose(_ skill: SkillInfo) {
         state.chatSkill = SkillRef(name: skill.name, path: skill.path)
         text = ""
@@ -202,6 +251,50 @@ struct PromptView: View {
     }
 }
 
+
+/// Google Drive files matching what follows "@" in the chat field.
+struct DrivePickerList: View {
+    let files: [DriveFile]
+    let selected: Int
+    let status: String
+    let choose: (DriveFile) -> Void
+
+    private func kind(_ f: DriveFile) -> String {
+        f.mimeType.contains("spreadsheet") ? L("Sheet") : f.mimeType.contains("document") ? L("Doc")
+            : f.mimeType.contains("presentation") ? L("Slides") : String(f.modified.prefix(10))
+    }
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 2) {
+            Spacer(minLength: 0)
+            if !status.isEmpty {
+                Text(verbatim: status)
+                    .font(.system(size: 11.5))
+                    .foregroundColor(Color(hex: "#8E939C"))
+                    .padding(.horizontal, 9)
+            }
+            ForEach(Array(files.enumerated()), id: \.element.id) { index, file in
+                Button { choose(file) } label: {
+                    HStack(spacing: 8) {
+                        Text(verbatim: file.name)
+                            .font(.system(size: 11.5, weight: .semibold))
+                            .foregroundColor(Color(hex: "#F5F6F8"))
+                            .lineLimit(1)
+                        Text(verbatim: kind(file))
+                            .font(.system(size: 11))
+                            .foregroundColor(Color.white.opacity(0.5))
+                        Spacer(minLength: 0)
+                    }
+                    .padding(.horizontal, 9).padding(.vertical, 5)
+                    .background(Color.white.opacity(index == selected ? 0.08 : 0))
+                    .clipShape(RoundedRectangle(cornerRadius: 8))
+                    .contentShape(Rectangle())
+                }
+                .buttonStyle(.plain)
+            }
+        }
+    }
+}
 
 /// The skills matching what follows "/" in the chat field.
 struct SkillPickerList: View {

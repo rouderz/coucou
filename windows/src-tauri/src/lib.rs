@@ -6,6 +6,7 @@ mod claude_code;
 mod codex;
 mod editors;
 mod files;
+mod google;
 mod hooks;
 mod inbox;
 mod integrations;
@@ -392,6 +393,44 @@ fn whaticket_open(id: Option<i64>) {
     if let Some(url) = whaticket::web_url(id) {
         open_url(url);
     }
+}
+
+// ── Google (Gmail, Drive) ─────────────────────────────────────────────────────
+
+/// Opens Google's consent page and waits for the answer; returns the account's email.
+#[tauri::command]
+async fn google_connect(app: AppHandle) -> Result<String, String> {
+    let email = google::connect().await?;
+    google::poll(app).await;
+    Ok(email)
+}
+
+#[tauri::command]
+async fn google_disconnect() {
+    google::disconnect().await;
+    log::line("google: disconnected");
+}
+
+#[tauri::command]
+fn google_connected() -> bool {
+    google::connected()
+}
+
+/// A mail as a text file, attached to the chat on a click.
+#[tauri::command]
+async fn gmail_attach(id: String) -> Result<files::DroppedFile, String> {
+    google::mail_to_file(&id).await
+}
+
+#[tauri::command]
+async fn drive_search(text: String) -> Result<Vec<google::DriveFile>, String> {
+    google::drive_search(&text).await
+}
+
+/// A Drive file (Docs / Sheets / Slides exported as text / CSV) attached to the chat.
+#[tauri::command]
+async fn drive_attach(id: String, name: String, mime: String) -> Result<files::DroppedFile, String> {
+    google::drive_to_file(&id, &name, &mime).await
 }
 
 // ── Skills ────────────────────────────────────────────────────────────────────
@@ -805,6 +844,12 @@ pub fn run() {
             whaticket_accept,
             whaticket_undo,
             whaticket_open,
+            google_connect,
+            google_disconnect,
+            google_connected,
+            gmail_attach,
+            drive_search,
+            drive_attach,
         ])
         .setup(move |app| {
             let handle = app.handle().clone();

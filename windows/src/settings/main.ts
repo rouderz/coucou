@@ -463,6 +463,8 @@ const INTEGRATIONS: IntegrationDef[] = [
       { key: "whaticket-email", label: "Email", placeholder: "you@company.com", secret: false },
       { key: "whaticket-password", label: "Password", placeholder: "…", secret: true },
     ] },
+  // Connected in the Google section below.
+  { id: "integration_gmail", name: "Gmail", color: "#EA4335", fields: [] },
 ];
 
 const MAX_ACTIVE = 4;
@@ -604,6 +606,86 @@ function inboxSection(): HTMLElement {
       h("label", { text: "Linear", style: "min-width:0;margin-left:16px" }),
       toggle(settings.inboxLinear, (v) => { settings.inboxLinear = v; void save(); })),
     kindRow,
+  );
+}
+
+// ── Google (Gmail, Drive) ─────────────────────────────────────────────────────
+
+function googleSection(connected: boolean, hasClient: boolean): HTMLElement {
+  const status = h("div", {});
+  const buttons = h("div", { class: "row" });
+
+  function setStatus(text: string, kind: "hint" | "ok" | "err") {
+    status.className = kind === "hint" ? "hint" : `notice ${kind}`;
+    status.textContent = text;
+  }
+
+  function draw() {
+    clear(buttons);
+    if (connected) {
+      setStatus(settings.googleEmail ? `Connected as ${settings.googleEmail}.` : "Connected.", "ok");
+      buttons.append(h("button", { class: "danger", text: "Disconnect", onclick: async () => {
+        await Bridge.googleDisconnect();
+        connected = false;
+        settings.googleEmail = "";
+        void save();
+        draw();
+      } }));
+    } else {
+      setStatus(hasClient ? "Not connected yet." : "Add your OAuth client first (steps above).", "hint");
+      const connect = h("button", { class: "primary", text: "Connect Google…" }) as HTMLButtonElement;
+      connect.addEventListener("click", async () => {
+        connect.disabled = true;
+        setStatus("Finish signing in in your browser…", "hint");
+        try {
+          const email = await Bridge.googleConnect();
+          connected = true;
+          settings.googleEmail = email;
+          void save();
+        } catch (err) {
+          setStatus(String(err).replace(/^Error:\s*/, ""), "err");
+          connect.disabled = false;
+          return;
+        }
+        draw();
+      });
+      buttons.append(connect);
+    }
+  }
+
+  const clientRow = (key: string, label: string, placeholder: string, secret: boolean) => {
+    const input = h("input", { type: secret ? "password" : "text", placeholder, autocomplete: "off", spellcheck: "false", style: "flex:1 1 auto;min-width:0" }) as HTMLInputElement;
+    const saveBtn = h("button", { text: "Save" });
+    saveBtn.addEventListener("click", async () => {
+      try {
+        await Bridge.secretSet(key, input.value.trim());
+        input.value = "";
+        input.placeholder = "••••••••  (stored)";
+        hasClient = true;
+        draw();
+      } catch (err) {
+        setStatus(String(err), "err");
+      }
+    });
+    return h("div", { class: "row" }, h("label", { text: label }), input, saveBtn);
+  };
+
+  const query = h("input", { type: "text", value: settings.gmailQuery || "is:unread in:inbox", style: "flex:1;min-width:200px" }) as HTMLInputElement;
+  query.addEventListener("change", () => {
+    settings.gmailQuery = query.value.trim() || "is:unread in:inbox";
+    void save();
+  });
+
+  draw();
+  return h("section", {},
+    h("h2", {}, h("i", { class: "dot", style: "background:#EA4335" }), h("span", { text: "Google" })),
+    h("div", { class: "hint", text: "Gmail in the island and your Drive files in the chat (type @ and a file name). Read-only: Coucou never sends mail or changes files." }),
+    h("div", { class: "hint", text: "One-time setup, free: in console.cloud.google.com create a project, turn on the Gmail API and the Google Drive API, set up the OAuth consent screen (External, add yourself as a test user, then Publish it so the sign-in doesn't expire every 7 days), and create an OAuth client ID of type \"Desktop app\". Paste its ID and secret here." }),
+    clientRow("google-client-id", "Client ID", hasClient ? "••••••••  (stored)" : "….apps.googleusercontent.com", false),
+    clientRow("google-client-secret", "Client secret", hasClient ? "••••••••  (stored)" : "GOCSPX-…", true),
+    h("div", { class: "row" }, buttons, status),
+    h("div", { class: "row" }, h("label", { text: "Gmail shows" }), query),
+    h("div", { class: "hint", text: "A Gmail search, e.g. is:unread in:inbox, or is:important is:unread. Turn on the Gmail pill under Integrations." }),
   );
 }
 
@@ -1044,6 +1126,8 @@ async function main() {
   const codex = (await Bridge.codexStatus()) ?? { found: false, installed: false, hooksPath: "" };
   const presets = (await Bridge.providerPresets()) ?? [];
   const canListen = (await Bridge.voiceAvailable()) ?? false;
+  const googleConnected = (await Bridge.googleConnected()) ?? false;
+  const googleClient = (await Bridge.secretPresent("google-client-id")) ?? false;
   const skillTargets = (await Bridge.skillsTargets()) ?? [{ id: "personal", label: "Claude Code — personal (~/.claude/skills)" }];
 
   const keys = [
@@ -1066,6 +1150,7 @@ async function main() {
     apiSection(hasKey, claudeCode, presets, present),
     integrationsSection(present),
     whaticketSection(),
+    googleSection(googleConnected, googleClient),
     phoneSection(),
     inboxSection(),
     voiceSection(canListen),

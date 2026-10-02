@@ -154,6 +154,28 @@ const ES: Record<string, string> = {
   "Wrong email or password": "Correo o contraseña incorrectos", "That URL doesn't answer like WhaTicket.": "Esa URL no responde como WhaTicket.",
   "Someone already took that ticket.": "Alguien ya tomó ese ticket.", "Too late to undo — reopen it in WhaTicket.": "Ya es tarde para deshacer: reábrelo en WhaTicket.",
   "Add the WhaTicket URL, email and password first.": "Agrega primero la URL, el correo y la contraseña de WhaTicket.",
+  // Google
+  "Google": "Google", "Gmail": "Gmail", "Disconnect": "Desconectar", "Connect Google…": "Conectar Google…",
+  "Not connected yet.": "Aún no está conectado.", "Add your OAuth client first (steps above).": "Primero agrega tu cliente OAuth (pasos de arriba).",
+  "Finish signing in in your browser…": "Termina de iniciar sesión en tu navegador…", "Connected.": "Conectado.",
+  "Client ID": "ID de cliente", "Client secret": "Secreto del cliente", "Gmail shows": "Gmail muestra",
+  "Gmail in the island and your Drive files in the chat (type @ and a file name). Read-only: Coucou never sends mail or changes files.":
+    "Gmail en la isla y tus archivos de Drive en el chat (escribe @ y el nombre de un archivo). Solo lectura: Coucou nunca envía correos ni cambia archivos.",
+  "One-time setup, free: in console.cloud.google.com create a project, turn on the Gmail API and the Google Drive API, set up the OAuth consent screen (External, add yourself as a test user, then Publish it so the sign-in doesn't expire every 7 days), and create an OAuth client ID of type \"Desktop app\". Paste its ID and secret here.":
+    "Configuración única y gratuita: en console.cloud.google.com crea un proyecto, activa la API de Gmail y la de Google Drive, configura la pantalla de consentimiento OAuth (Externa, agrégate como usuario de prueba y luego Publícala para que la sesión no caduque cada 7 días) y crea un ID de cliente OAuth de tipo \"App de escritorio\". Pega aquí su ID y su secreto.",
+  "A Gmail search, e.g. is:unread in:inbox, or is:important is:unread. Turn on the Gmail pill under Integrations.":
+    "Una búsqueda de Gmail, p. ej. is:unread in:inbox o is:important is:unread. Activa la píldora de Gmail en Integraciones.",
+  "Nothing new in your inbox.": "Nada nuevo en tu bandeja.", "(no subject)": "(sin asunto)",
+  "Ask me anything… (/ skills, @ Drive)": "Pregúntame lo que quieras… (/ skills, @ Drive)",
+  "Searching Drive…": "Buscando en Drive…", "Downloading…": "Descargando…", "No Drive file with that name.": "Ningún archivo de Drive con ese nombre.",
+  "Connect Google in Settings → Google to search your Drive.": "Conecta Google en Ajustes → Google para buscar en tu Drive.",
+  "Not connected to Google": "No conectado a Google", "Can't reach Google": "No se puede conectar con Google",
+  "That file is over 10 MB — too big for the chat.": "Ese archivo pasa de 10 MB: demasiado grande para el chat.",
+  "Nobody finished signing in within 5 minutes.": "Nadie terminó de iniciar sesión en 5 minutos.",
+  "Paste your Google OAuth client ID first (see the steps above).": "Pega primero tu ID de cliente OAuth de Google (mira los pasos de arriba).",
+  "Google signed Coucou out — connect again in Settings": "Google cerró la sesión de Coucou: vuelve a conectar en Ajustes",
+  "Google refused (403): is the Gmail / Drive API turned on in your Google Cloud project?": "Google lo rechazó (403): ¿está activada la API de Gmail / Drive en tu proyecto de Google Cloud?",
+  "Coucou can read Docs, Sheets, Slides and ordinary files — not this kind.": "Coucou puede leer Documentos, Hojas, Presentaciones y archivos normales, pero no este tipo.",
   // Skills
   "Skills": "Skills", "Search skills…": "Buscar skills…", "View": "Ver", "Folder": "Carpeta",
   "Open in the editor": "Abrir en el editor", "scripts": "scripts", "off": "apagada", "No description.": "Sin descripción.",
@@ -217,6 +239,9 @@ const PATTERNS: [RegExp, string][] = [
   [/^(\d+) lines?$/, "$1 línea(s)"],
   [/^Auto-approve in (.+):$/, "Auto-aprobar en $1:"],
   [/^Install (\d+) skills$/, "Instalar $1 skills"],
+  [/^Connected as (.+)\.$/, "Conectado como $1."],
+  [/^Unread · (\d+)$/, "Sin leer · $1"],
+  [/^Mail · (.+)$/, "Correo · $1"],
   [/^Signed in as (.+)\. Queues: (.*)\.$/, "Sesión iniciada como $1. Colas: $2."],
   [/^Waiting (\d+) · Mine (\d+)( · Auto)?$/, "En espera $1 · Míos $2$3"],
   [/^Accepted · (.+)$/, "Aceptado · $1"],

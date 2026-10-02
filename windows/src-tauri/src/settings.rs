@@ -88,6 +88,16 @@ pub struct Settings {
     pub whaticket_queues: Vec<i64>,
     #[serde(default)]
     pub whaticket_hours: String,
+
+    /// Google: the connected account (shown in Settings) and the Gmail search the pill shows.
+    #[serde(default)]
+    pub google_email: String,
+    #[serde(default = "default_gmail_query")]
+    pub gmail_query: String,
+}
+
+fn default_gmail_query() -> String {
+    "is:unread in:inbox".into()
 }
 
 fn default_provider() -> String {
@@ -153,6 +163,8 @@ impl Default for Settings {
             whaticket_auto_accept: false,
             whaticket_queues: Vec::new(),
             whaticket_hours: String::new(),
+            google_email: String::new(),
+            gmail_query: default_gmail_query(),
         }
     }
 }

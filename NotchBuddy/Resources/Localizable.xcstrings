@@ -122,6 +122,16 @@
         }
       }
     },
+    "(no subject)": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "(sin asunto)"
+          }
+        }
+      }
+    },
     "+%lld more edits": {
       "localizations": {
         "es": {
@@ -178,6 +188,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "Una sesión de Claude Code está trabajando en ella"
+          }
+        }
+      }
+    },
+    "A Gmail search, e.g. is:unread in:inbox, or is:important is:unread. Turn on the Gmail pill under Integrations.": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Una búsqueda de Gmail, p. ej. is:unread in:inbox o is:important is:unread. Activa la píldora de Gmail en Integraciones."
           }
         }
       }
@@ -482,6 +502,16 @@
         }
       }
     },
+    "Ask": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Preguntar"
+          }
+        }
+      }
+    },
     "Ask Claude": {
       "localizations": {
         "es": {
@@ -568,6 +598,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "Pregúntame lo que quieras… (/ para skills)"
+          }
+        }
+      }
+    },
+    "Ask me anything… (/ skills, @ Drive)": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Pregúntame lo que quieras… (/ skills, @ Drive)"
           }
         }
       }
@@ -778,6 +818,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "No se puede conectar con GitHub"
+          }
+        }
+      }
+    },
+    "Can't reach Google": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No se puede conectar con Google"
           }
         }
       }
@@ -1132,6 +1182,26 @@
         }
       }
     },
+    "Client ID  (….apps.googleusercontent.com)": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ID de cliente  (….apps.googleusercontent.com)"
+          }
+        }
+      }
+    },
+    "Client secret  (GOCSPX-…)": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Secreto del cliente  (GOCSPX-…)"
+          }
+        }
+      }
+    },
     "Close": {
       "localizations": {
         "es": {
@@ -1228,6 +1298,36 @@
           "stringUnit": {
             "state": "translated",
             "value": "Confirmar y escribir"
+          }
+        }
+      }
+    },
+    "Connect Google in Settings → Google to search your Drive.": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Conecta Google en Ajustes → Google para buscar en tu Drive."
+          }
+        }
+      }
+    },
+    "Connect Google…": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Conectar Google…"
+          }
+        }
+      }
+    },
+    "Connected as %@.": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Conectado como %@."
           }
         }
       }
@@ -1382,6 +1482,16 @@
         }
       }
     },
+    "Connected.": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Conectado."
+          }
+        }
+      }
+    },
     "Context": {
       "localizations": {
         "es": {
@@ -1512,6 +1622,16 @@
         }
       }
     },
+    "Coucou can read Docs, Sheets, Slides and ordinary files — not this kind.": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Coucou puede leer Documentos, Hojas, Presentaciones y archivos normales, pero no este tipo."
+          }
+        }
+      }
+    },
     "Coucou is connected": {
       "localizations": {
         "es": {
@@ -1592,6 +1712,16 @@
         }
       }
     },
+    "Couldn't open a local port for the sign-in.": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No se pudo abrir un puerto local para iniciar sesión."
+          }
+        }
+      }
+    },
     "Create": {
       "localizations": {
         "es": {
@@ -1642,6 +1772,16 @@
         }
       }
     },
+    "Disconnect": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Desconectar"
+          }
+        }
+      }
+    },
     "Do not disturb": {
       "localizations": {
         "es": {
@@ -1658,6 +1798,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "No molestar: sin sonidos y la isla no se abre sola"
+          }
+        }
+      }
+    },
+    "Doc": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Documento"
           }
         }
       }
@@ -1822,6 +1972,16 @@
         }
       }
     },
+    "Finish signing in in your browser…": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Termina de iniciar sesión en tu navegador…"
+          }
+        }
+      }
+    },
     "Folder": {
       "localizations": {
         "es": {
@@ -1942,12 +2102,112 @@
         }
       }
     },
+    "Gmail": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Gmail"
+          }
+        }
+      }
+    },
+    "Gmail in the island and your Drive files in the chat (type @ and a file name). Read-only: Coucou never sends mail or changes files.": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Gmail en la isla y tus archivos de Drive en el chat (escribe @ y el nombre de un archivo). Solo lectura: Coucou nunca envía correos ni cambia archivos."
+          }
+        }
+      }
+    },
     "Gmail node timed out after 30s. Retry or open n8n.": {
       "localizations": {
         "es": {
           "stringUnit": {
             "state": "translated",
             "value": "El nodo de Gmail superó el tiempo de 30 s. Reintenta o abre n8n."
+          }
+        }
+      }
+    },
+    "Gmail shows": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Gmail muestra"
+          }
+        }
+      }
+    },
+    "Google": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Google"
+          }
+        }
+      }
+    },
+    "Google error %lld": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Error de Google %lld"
+          }
+        }
+      }
+    },
+    "Google refused (403): is the Gmail / Drive API turned on in your Google Cloud project?": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Google lo rechazó (403): ¿está activada la API de Gmail / Drive en tu proyecto de Google Cloud?"
+          }
+        }
+      }
+    },
+    "Google refused the sign-in (%lld) %@": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Google rechazó el inicio de sesión (%lld) %@"
+          }
+        }
+      }
+    },
+    "Google said: %@": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Google dijo: %@"
+          }
+        }
+      }
+    },
+    "Google sent no refresh token": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Google no envió un token de actualización"
+          }
+        }
+      }
+    },
+    "Google signed Coucou out — connect again in Settings": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Google cerró la sesión de Coucou: vuelve a conectar en Ajustes"
           }
         }
       }
@@ -2492,6 +2752,16 @@
         }
       }
     },
+    "Mail · %@": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Correo · %@"
+          }
+        }
+      }
+    },
     "Mark all read": {
       "localizations": {
         "es": {
@@ -2782,6 +3052,16 @@
         }
       }
     },
+    "No Drive file with that name.": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ningún archivo de Drive con ese nombre."
+          }
+        }
+      }
+    },
     "No SKILL.md in there, so it isn't a skill.": {
       "localizations": {
         "es": {
@@ -2798,6 +3078,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "No hay llamadas programadas"
+          }
+        }
+      }
+    },
+    "No code from Google": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Google no envió ningún código"
           }
         }
       }
@@ -2922,6 +3212,16 @@
         }
       }
     },
+    "Nobody finished signing in within 5 minutes.": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nadie terminó de iniciar sesión en 5 minutos."
+          }
+        }
+      }
+    },
     "Not answered in time": {
       "localizations": {
         "es": {
@@ -2938,6 +3238,26 @@
           "stringUnit": {
             "state": "translated",
             "value": "Sin configurar · añádelo en Ajustes"
+          }
+        }
+      }
+    },
+    "Not connected to Google": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No conectado a Google"
+          }
+        }
+      }
+    },
+    "Nothing new in your inbox.": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nada nuevo en tu bandeja."
           }
         }
       }
@@ -3028,6 +3348,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "Activado hasta que lo desactives"
+          }
+        }
+      }
+    },
+    "One-time setup, free: in console.cloud.google.com create a project, turn on the Gmail API and the Google Drive API, set up the OAuth consent screen (External, add yourself as a test user, then Publish it so the sign-in doesn't expire every 7 days), and create an OAuth client ID of type \"Desktop app\". Paste its ID and secret here.": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Configuración única y gratuita: en console.cloud.google.com crea un proyecto, activa la API de Gmail y la de Google Drive, configura la pantalla de consentimiento OAuth (Externa, agrégate como usuario de prueba y luego Publícala para que la sesión no caduque cada 7 días) y crea un ID de cliente OAuth de tipo \"App de escritorio\". Pega aquí su ID y su secreto."
           }
         }
       }
@@ -3258,6 +3588,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "Contraseña"
+          }
+        }
+      }
+    },
+    "Paste your Google OAuth client ID first (see the steps above).": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Pega primero tu ID de cliente OAuth de Google (mira los pasos de arriba)."
           }
         }
       }
@@ -3802,6 +4142,16 @@
         }
       }
     },
+    "Searching Drive…": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Buscando en Drive…"
+          }
+        }
+      }
+    },
     "Secret key  (sk_live_… or sk_test_…)": {
       "localizations": {
         "es": {
@@ -3902,6 +4252,16 @@
         }
       }
     },
+    "Sheet": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Hoja"
+          }
+        }
+      }
+    },
     "Short (1,024 tokens)": {
       "localizations": {
         "es": {
@@ -3998,6 +4358,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "Skills"
+          }
+        }
+      }
+    },
+    "Slides": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Presentación"
           }
         }
       }
@@ -4112,6 +4482,16 @@
         }
       }
     },
+    "That file is over 10 MB — too big for the chat.": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ese archivo pasa de 10 MB: demasiado grande para el chat."
+          }
+        }
+      }
+    },
     "That preview expired — preview it again.": {
       "localizations": {
         "es": {
@@ -4148,6 +4528,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "La API está limitando esta clave. Espera un momento y vuelve a intentarlo."
+          }
+        }
+      }
+    },
+    "The answer from Google didn't match this sign-in.": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "La respuesta de Google no corresponde a este inicio de sesión."
           }
         }
       }
@@ -4418,6 +4808,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "Desinstalar"
+          }
+        }
+      }
+    },
+    "Unread · %lld": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sin leer · %lld"
           }
         }
       }

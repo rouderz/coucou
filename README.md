@@ -56,6 +56,12 @@ has the details for Windows and Linux.
 - **Push-to-talk** (hold ⌃⌥V) — speak, Mochi answers and reads it aloud. On-device transcription when the Mac supports it.
   Windows: the 🎙 in the chat. Linux: replies read aloud only (no built-in speech recognition).
 - **Chat history** — the last 50 conversations, resumable.
+- **Skills** — Settings → Skills lists every Claude Code / Codex skill on the computer (personal, per project, from plugins), turns them off without deleting, and installs new ones from a folder, a zip or a GitHub link after showing what's inside. `/` in the chat picks one.
+- **Google Drive in the chat** — `@` and a file name attaches a Doc (as text), a Sheet (as CSV), Slides or any file.
+
+**Work apps**
+- **WhaTicket** — the WhatsApp ticket queue and your tickets in the island, Accept in one click, and optional auto-accept (by queue and hours, with Undo).
+- **Gmail** — what matches your search (unread in the inbox by default); "Ask" hands a mail to Mochi. Read-only, with your own Google Cloud OAuth client.
 
 **Everyday**
 - **Do not disturb** — 🌙 in the island, or automatically during calendar events (calendar: macOS only).
@@ -136,7 +142,8 @@ Menu bar icon (Mac) or tray icon (Windows, Linux) → **Settings…**
 | **Chat → Engine** | *Claude Code (subscription)* needs nothing else; *Anthropic API key* goes to the Keychain. |
 | **Hotkey** | ⌃⌥M ask about the file · ⌃⌥V push-to-talk · ⌥⏎ / ⌥⌫ approvals. Grant Accessibility for ⌃⌥M (Mac). |
 | **Auto-approve · Phone alerts · Do not disturb** | optional, all off by default. |
-| **Integrations** | GitHub (uses `gh` if signed in), Linear, Vercel, Stripe, Resend, n8n, Notion, Cal.com — all optional. |
+| **Integrations** | GitHub (uses `gh` if signed in), Linear, Vercel, Stripe, Resend, n8n, Notion, Cal.com, WhaTicket — all optional. |
+| **Google** | Gmail and Drive: create a free "Desktop app" OAuth client in Google Cloud, paste it, Connect. |
 | **General → Idle notch** | Windows / Linux: the small notch left at the top when the island hides; turn it off to leave only an invisible strip. |
 
 If Coucou isn't running, the hook exits at once: **Claude Code is never blocked.**
@@ -157,7 +164,9 @@ Secret Service (GNOME Keyring, KWallet) — never on disk. Coucou talks only to 
 
 - Anthropic (`api.anthropic.com`) with your Claude Code login, to read plan usage;
 - your ntfy server, if you turn on phone alerts (it receives the project and the command — keep the topic private);
-- GitHub (`api.github.com`, `github.com`), to check for and download updates — turn it off in Settings → Updates.
+- GitHub (`api.github.com`, `github.com`), to check for and download updates — turn it off in Settings → Updates;
+- GitHub again only when you paste a link to install a skill from it;
+- Google's APIs (Gmail, Drive) and your WhaTicket server, only if you connect them.
 
 The editor extension talks to Coucou over a local socket (named pipe on Windows) only.
 

@@ -16,13 +16,14 @@ extension AgentTask {
         AgentTask(id: "integration_stripe",  name: "Stripe",    color: "#0570DE", state: .idle, steps: [], source: .n8n, isIntegration: true),
         AgentTask(id: "integration_linear",  name: "Linear",    color: "#5E6AD2", state: .idle, steps: [], source: .n8n, isIntegration: true),
         AgentTask(id: "integration_whaticket", name: "WhaTicket", color: "#25D366", state: .idle, steps: [], source: .n8n, isIntegration: true),
+        AgentTask(id: "integration_gmail", name: "Gmail", color: "#EA4335", state: .idle, steps: [], source: .n8n, isIntegration: true),
     ]
 
     /// IDs that can be toggled (VS Code is always on and excluded from this list)
     static let toggleableIntegrationIds: [String] = [
         "integration_resend", "integration_n8n", "integration_vercel", "integration_github",
         "integration_notion", "integration_calcom", "integration_stripe", "integration_linear",
-        "integration_whaticket",
+        "integration_whaticket", "integration_gmail",
     ]
 
 }
@@ -81,6 +82,12 @@ final class AppState: ObservableObject {
     @Published var whaticketUndoable: Set<Int> = []
     @Published var whaticketError: String? = nil
     @Published var whaticketLoaded = false
+
+    // Gmail (the Google integration)
+    @Published var gmailMails: [GmailMessage] = []
+    @Published var gmailTotal = 0
+    @Published var gmailError: String? = nil
+    @Published var gmailLoaded = false
 
     // Claude plan usage (5-hour / weekly limits, context), from Claude Code's status line data
     @Published var planUsage: PlanUsage? = nil
@@ -799,6 +806,12 @@ struct IntegrationStatus {
             return .init(colorHex: s.linearIssues.isEmpty ? amber : green,
                          help: s.linearIssues.isEmpty ? L("Connected · nothing assigned to you")
                                                       : L("Connected · \(s.linearIssues.count) open issues"))
+        case "integration_gmail":
+            guard GoogleAPI.isConnected else { return notSet }
+            if let e = s.gmailError { return .init(colorHex: red, help: e) }
+            guard s.gmailLoaded else { return checking }
+            let email = UserDefaults.standard.string(forKey: "googleEmail") ?? ""
+            return .init(colorHex: green, help: email.isEmpty ? "Connected" : L("Signed in as \(email)"))
         case "integration_whaticket":
             guard WhaTicketAPI.isConfigured else { return notSet }
             if let e = s.whaticketError { return .init(colorHex: red, help: e) }

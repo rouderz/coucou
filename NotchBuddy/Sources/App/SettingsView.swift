@@ -786,6 +786,13 @@ struct SettingsView: View {
                 }
 
                 #if !APPSTORE
+                // MARK: Google
+                GroupBox("Google") {
+                    GoogleSettingsSection()
+                }
+                #endif
+
+                #if !APPSTORE
                 // MARK: Skills
                 GroupBox("Skills") {
                     SkillsSettingsSection()

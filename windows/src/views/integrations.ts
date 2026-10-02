@@ -7,6 +7,7 @@
 import { h, svg, clear, dot } from "./dom";
 import { ICONS } from "./icons";
 import { State, type AgentTask } from "../core/state";
+import { startNewChat } from "../core/chats";
 import { Bridge } from "../core/bridge";
 
 /** Same shape as the Swift `timeAgo` computed properties. */
@@ -412,6 +413,52 @@ function whaticketCard(): HTMLElement {
   return h("div", { class: "int-card" }, header("#25D366", "WhaTicket", kind), rows);
 }
 
+// ── Gmail ─────────────────────────────────────────────────────────────────────
+
+/** Puts a file (a mail, a Drive file) in the chat; it goes with the next question. */
+export function attachToChat(file: { name: string; path: string }, fresh: boolean) {
+  if (fresh) startNewChat();
+  State.droppedFile = { name: file.name, path: file.path };
+  State.promptContext = { kind: "file", name: file.name, path: file.path };
+  State.attachNext = true;
+  State.view = "prompt";
+  State.notify();
+}
+
+function gmailCard(): HTMLElement {
+  const d = get("integration_gmail");
+  const mails = arr("integration_gmail", "mails");
+  const rows = h("div", { class: "int-rows tight" });
+  if (!mails.length) rows.append(h("div", { class: "int-empty", text: "Nothing new in your inbox." }));
+  for (const m of mails.slice(0, 3)) {
+    const ask = h("button", { class: "int-mini mail", text: "Ask" });
+    ask.addEventListener("click", async (e) => {
+      e.stopPropagation();
+      ask.textContent = "…";
+      try {
+        attachToChat(await Bridge.gmailAttach(String(m.id)), true);
+      } catch (err) {
+        ask.textContent = "Ask";
+        State.noteMessage = String(err).replace(/^Error:\s*/, "");
+        State.view = "note";
+        State.notify();
+      }
+    });
+    rows.append(h("div", {
+      class: "int-page",
+      title: String(m.snippet ?? ""),
+      onclick: () => void Bridge.openUrl(`https://mail.google.com/mail/u/0/#inbox/${String(m.threadId ?? m.id)}`),
+    },
+      dot("#EA4335", 6),
+      h("span", { class: "int-time", text: String(m.from ?? "") }),
+      h("span", { class: "int-name", text: String(m.subject || "(no subject)") }),
+      ask,
+    ));
+  }
+  const total = Number(d.total ?? 0);
+  return h("div", { class: "int-card" }, header("#EA4335", "Gmail", total ? `Unread · ${total}` : "Inbox"), rows);
+}
+
 // ── n8n ───────────────────────────────────────────────────────────────────────
 
 function n8nCard(task: AgentTask, onDetail: () => void, openSettings: () => void): HTMLElement {
@@ -497,6 +544,7 @@ export function hasIntegrationData(id: string): boolean {
       return info.loaded;
     case "integration_linear":
     case "integration_whaticket":
+    case "integration_gmail":
       return info.loaded;
     default:
       return false;
@@ -530,6 +578,8 @@ export function renderIntegrationCard(task: AgentTask, hooks: IntegrationCardHoo
       return linearCard();
     case "integration_whaticket":
       return whaticketCard();
+    case "integration_gmail":
+      return gmailCard();
     default:
       return idleCard(task, hooks.openSettings);
   }

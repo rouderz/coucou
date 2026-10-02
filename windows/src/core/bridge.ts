@@ -115,6 +115,15 @@ export const Bridge = {
   whaticketUndo: (id: number) => callOrThrow<void>("whaticket_undo", { id }),
   whaticketOpen: (id: number | null) => call<void>("whaticket_open", { id }),
 
+  // ── Google (Gmail, Drive) ───────────────────────────────────────────────────
+  /** Opens Google's consent page; resolves with the account's email once signed in. */
+  googleConnect: () => callOrThrow<string>("google_connect"),
+  googleDisconnect: () => call<void>("google_disconnect"),
+  googleConnected: () => call<boolean>("google_connected"),
+  gmailAttach: (id: string) => callOrThrow<DroppedFile>("gmail_attach", { id }),
+  driveSearch: (text: string) => callOrThrow<DriveFile[]>("drive_search", { text }),
+  driveAttach: (id: string, name: string, mime: string) => callOrThrow<DroppedFile>("drive_attach", { id, name, mime }),
+
   /** Codex CLI hooks in ~/.codex/hooks.json. */
   codexStatus: () => call<{ found: boolean; installed: boolean; hooksPath: string }>("codex_status"),
   codexInstall: (install: boolean) => callOrThrow<void>("codex_install", { install }),
@@ -214,6 +223,14 @@ export interface SkillText {
 export interface SkillPreview {
   token: string;
   skills: { name: string; description: string; files: string[]; hasScripts: boolean; dest: string; exists: boolean }[];
+}
+
+export interface DriveFile {
+  id: string;
+  name: string;
+  mimeType: string;
+  modified: string;
+  link: string;
 }
 
 export interface DroppedFile {
