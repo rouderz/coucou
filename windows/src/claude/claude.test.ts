@@ -83,3 +83,19 @@ test("timeline: records and copies as markdown", () => {
   assert.ok(md.includes("Allowed from Coucou: Bash · rm -rf dist"));
   assert.equal(summary("s1"), "1 tool call · 1 approval · 1 auto");
 });
+
+import { buildPreview, diffLines } from "./preview.ts";
+
+test("previews: edits, writes and codex patches", () => {
+  const d = diffLines("a\nb\nc\nd\ne", "a\nb\nX\nd\ne");
+  assert.deepEqual(d.map((l) => `${l.kind[0]}${l.text}`), ["ca", "cb", "rc", "aX", "cd", "ce"]);
+  const edit = buildPreview("Edit", { file_path: "/p/a.ts", old_string: "x = 1", new_string: "x = 2" }, "/p");
+  assert.equal(edit?.fileName, "a.ts");
+  assert.deepEqual(edit?.lines.map((l) => l.kind), ["removed", "added"]);
+  const write = buildPreview("Write", { file_path: "/p/n.ts", content: "1\n2" }, "/p");
+  assert.equal(write?.note, "2 lines");
+  const patch = buildPreview("apply_patch", { command: PATCH }, "/p");
+  assert.equal(patch?.file, "/p/src/app.ts");
+  assert.equal(patch?.note, "+1 more file");
+  assert.equal(buildPreview("Bash", { command: "ls" }, "/p"), null);
+});

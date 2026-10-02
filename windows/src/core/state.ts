@@ -2,6 +2,7 @@
 
 import type { BotEmoteName, BotStateName, IslandMode, IslandViewName } from "./layout";
 import type { EyeShape } from "../mochi/engine";
+import type { EditPreview } from "../claude/preview.ts";
 
 export type AgentSource = "claudeCode" | "n8n";
 export type PillBadge = "approval" | "finished" | "error";
@@ -34,6 +35,16 @@ export interface ApprovalInfo {
   project: string;
   /** "claude" or "codex". */
   agent: string;
+  /** The change an edit would make, shown as a diff in the review card. */
+  preview: EditPreview | null;
+}
+
+/** Plan usage from Claude Code's status line (the macOS bars). */
+export interface PlanUsage {
+  fiveHour: { percent: number; resetsAt: number } | null;
+  sevenDay: { percent: number; resetsAt: number } | null;
+  context: number | null;
+  model: string | null;
 }
 
 /** One Claude Code / Codex session (#24 on macOS). The focused one drives the card. */
@@ -169,6 +180,8 @@ class AppState {
   pendingApproval: ApprovalInfo | null = null;
   /** Requests waiting behind the one on screen. */
   approvalQueue: ApprovalInfo[] = [];
+
+  planUsage: PlanUsage | null = null;
 
   /** Claude Code / Codex sessions, and the one on the card. */
   sessions: ClaudeSession[] = [];

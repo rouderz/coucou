@@ -1528,3 +1528,89 @@ input[type="range"]::-webkit-slider-thumb {
   font: 400 11.5px var(--font);
   color: var(--dim-2);
 }
+
+/* ── Review: the diff of an edit to approve ───────────────────────────────────── */
+
+.review {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 10px 16px 10px 104px;
+  height: 100%;
+  min-height: 0;
+}
+
+.diff {
+  flex: 1 1 auto;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  border-radius: 10px;
+  background: rgba(0, 0, 0, 0.35);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  overflow: hidden;
+}
+
+.diff-file {
+  display: flex;
+  gap: 8px;
+  align-items: baseline;
+  padding: 5px 10px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+  font: 400 11px var(--font);
+  color: var(--dim-2);
+  white-space: nowrap;
+  overflow: hidden;
+}
+
+.diff-file .name { font-weight: 600; color: var(--ink); }
+.diff-file .path { overflow: hidden; text-overflow: ellipsis; }
+.diff-file .note { margin-left: auto; }
+
+.diff-body {
+  overflow: auto;
+  padding: 4px 0;
+  font: 400 11px var(--mono);
+}
+
+.diff-line {
+  display: flex;
+  gap: 8px;
+  padding: 0 10px;
+  white-space: pre;
+  color: var(--ink-2);
+}
+
+.diff-line .sign { width: 8px; flex: none; opacity: 0.7; }
+.diff-line.added { background: rgba(34, 197, 94, 0.12); color: #a7f3c0; }
+.diff-line.removed { background: rgba(244, 80, 94, 0.12); color: #fdb4bb; }
+
+/* ── Plan usage bars ─────────────────────────────────────────────────────────── */
+
+.usage-row {
+  display: flex;
+  gap: 12px;
+  padding: 2px 36px 0 108px;
+}
+
+.usage {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font: 500 10px var(--font);
+  color: var(--dim-2);
+}
+
+.usage .bar {
+  width: 44px;
+  height: 4px;
+  border-radius: 2px;
+  background: rgba(255, 255, 255, 0.1);
+  overflow: hidden;
+}
+
+.usage .bar .fill {
+  display: block;
+  height: 100%;
+  border-radius: 2px;
+}

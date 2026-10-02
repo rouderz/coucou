@@ -74,6 +74,10 @@ function claudeSection(status: HookStatus): HTMLElement {
           ? "Coucou is hooked into your Claude Code sessions. Tool calls, questions and permission requests show up in the island, and you can answer them there."
           : "Install the hooks to see your Claude Code sessions in the island and approve permissions without leaving what you are doing.",
       }),
+      h("div", {
+        class: "hint",
+        text: "The plan usage bars come from Claude Code's status line: the hooks add Coucou's, unless you already have your own (then it stays, and the bars stay empty).",
+      }),
       h("div", { class: "row" },
         h("label", { text: "settings.json" }),
         h("span", { class: "path", text: status.settingsPath }),

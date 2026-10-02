@@ -12,6 +12,7 @@ import { classify } from "../claude/risk.ts";
 import { shouldAutoAllow } from "../claude/autoApprove.ts";
 import { approvalTarget, lastPathComponent, stepLabel, stopMessage } from "../claude/labels.ts";
 import { recordApproval, recordAutoApproval, recordEvent } from "../claude/timeline.ts";
+import { buildPreview } from "../claude/preview.ts";
 import {
   CLAUDE_ID, flagApproval, focusSession, routeSession, syncFocused, updateBackground, endSession,
 } from "../claude/sessions.ts";
@@ -86,6 +87,11 @@ function handleHook(island: Island, payload: HookPayload) {
   const agent = payload.agent ?? "claude";
   const sessionId = payload.session_id ?? "";
   const raw = payload as unknown as Record<string, unknown>;
+
+  if (name === "StatusLine") {
+    planUsage(raw);
+    return;
+  }
 
   if (name === "PermissionRequest") {
     permissionRequest(island, payload, projectName, agent);
@@ -203,6 +209,29 @@ function handleHook(island: Island, payload: HookPayload) {
   State.notify();
 }
 
+// ── Plan usage (Claude Code's status line) ─────────────────────────────────
+
+function planUsage(payload: Record<string, unknown>) {
+  const now = Date.now();
+  const window = (v: unknown) => {
+    const w = v as { used_percentage?: number; resets_at?: number } | undefined;
+    if (typeof w?.used_percentage !== "number") return null;
+    const resetsAt = typeof w.resets_at === "number" ? w.resets_at * 1000 : 0;
+    return resetsAt && resetsAt < now ? null : { percent: w.used_percentage, resetsAt };
+  };
+  const limits = (payload.rate_limits ?? {}) as Record<string, unknown>;
+  const prev = State.planUsage;
+  const ctx = (payload.context_window as { used_percentage?: number } | undefined)?.used_percentage;
+  State.planUsage = {
+    // Limits come after the session's first reply: keep the last known ones meanwhile.
+    fiveHour: window(limits.five_hour) ?? (prev?.fiveHour && prev.fiveHour.resetsAt > now ? prev.fiveHour : null),
+    sevenDay: window(limits.seven_day) ?? (prev?.sevenDay && prev.sevenDay.resetsAt > now ? prev.sevenDay : null),
+    context: typeof ctx === "number" ? ctx : prev?.context ?? null,
+    model: (payload.model as { display_name?: string } | undefined)?.display_name ?? prev?.model ?? null,
+  };
+  State.notify();
+}
+
 // ── Permission requests ─────────────────────────────────────────────────────
 
 function permissionRequest(island: Island, payload: HookPayload, project: string, agent: string) {
@@ -217,6 +246,7 @@ function permissionRequest(island: Island, payload: HookPayload, project: string
     command: approvalTarget(tool, input),
     risk: verdict.risk, riskReason: verdict.reason,
     cwd, project, agent,
+    preview: buildPreview(tool, input, cwd),
   };
 
   // Auto-approval for this project (#29 on macOS): answered at once, no card,
@@ -267,7 +297,7 @@ function show(island: Island, approval: ApprovalInfo) {
   State.isPinned = true;
   Sound.play("approval");
   if (State.focusId === CLAUDE_ID) {
-    island.alert("approval");
+    island.alert(approval.preview ? "review" : "approval");
   } else {
     State.setPillBadge(CLAUDE_ID, "approval");
     island.reveal();
@@ -283,7 +313,7 @@ function show(island: Island, approval: ApprovalInfo) {
     island.dropPin();
     State.updateTask(CLAUDE_ID, "working");
     State.setPillBadge(CLAUDE_ID, null);
-    if (State.view === "approval") island.setView(State.defaultView());
+    if (State.view === "approval" || State.view === "review") island.setView(State.defaultView());
     showNextApproval();
     State.notify();
   }, DECISION_MS);

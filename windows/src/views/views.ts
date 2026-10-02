@@ -14,6 +14,7 @@ import { renderIntegrationCard, type IntegrationCardHooks } from "./integrations
 import { AUTO_LEVELS, levelFor, withLevel, type AutoLevel } from "../claude/autoApprove.ts";
 import { clock, entries, icon, markdown, summary } from "../claude/timeline.ts";
 import { focusSession } from "../claude/sessions.ts";
+import type { EditPreview } from "../claude/preview.ts";
 
 export interface ViewActions {
   setView(v: IslandViewName): void;
@@ -125,7 +126,8 @@ function buildOverview(actions: ViewActions): ViewHost {
   const ticker = new Ticker();
   const who = h("div", { class: "who" });
   const chips = h("div", { class: "session-chips" });
-  const tickerBody = h("div", { class: "card-body" }, who, chips, ticker.el);
+  const usage = h("div", { class: "usage-row" });
+  const tickerBody = h("div", { class: "card-body" }, who, chips, ticker.el, usage);
   const leftBody = h("div", { class: "left-body" });
   const jump = h(
     "button",
@@ -204,6 +206,7 @@ function buildOverview(actions: ViewActions): ViewHost {
           }),
         );
         syncSessionChips(chips);
+        syncUsage(usage);
         if (task.steps.length > 1) {
           who.append(h("span", {
             class: "count",
@@ -298,6 +301,49 @@ function buildEmpty(actions: ViewActions): ViewHost {
     btn("Ask Claude", "primary", () => actions.setView("prompt")),
   );
   return { el: h("div", { class: "view" }, card(null, body)), sync() {} };
+}
+
+// ── Review diff (the macOS live view) ─────────────────────────────────────────
+
+function renderDiff(box: HTMLElement, preview: EditPreview) {
+  clear(box);
+  box.append(h("div", { class: "diff-file" },
+    h("span", { class: "name", text: preview.fileName }),
+    h("span", { class: "path", text: preview.file }),
+    preview.note ? h("span", { class: "note", text: preview.note }) : null,
+  ));
+  const body = h("div", { class: "diff-body" });
+  for (const line of preview.lines) {
+    const sign = line.kind === "added" ? "+" : line.kind === "removed" ? "−" : " ";
+    body.append(h("div", { class: `diff-line ${line.kind}` },
+      h("span", { class: "sign", text: sign }), h("span", { text: line.text || " " })));
+  }
+  box.append(body);
+}
+
+// ── Plan usage bars ───────────────────────────────────────────────────────────
+
+let usageKey = "";
+function syncUsage(row: HTMLElement) {
+  const u = State.planUsage;
+  const key = JSON.stringify(u);
+  if (key === usageKey) return;
+  usageKey = key;
+  clear(row);
+  const bars: [string, number][] = [];
+  if (u?.fiveHour) bars.push(["5h", u.fiveHour.percent]);
+  if (u?.sevenDay) bars.push(["7d", u.sevenDay.percent]);
+  if (u?.context != null) bars.push(["ctx", u.context]);
+  row.style.display = bars.length ? "" : "none";
+  for (const [label, pct] of bars) {
+    const color = pct >= 90 ? "#F4505E" : pct >= 70 ? "#F5A524" : "#4C8DFF";
+    const fill = h("i", { class: "fill" });
+    fill.style.width = `${Math.max(2, Math.min(100, pct))}%`;
+    fill.style.background = color;
+    row.append(h("span", { class: "usage" },
+      h("span", { class: "label", text: label }), h("span", { class: "bar" }, fill),
+      h("span", { class: "pct", text: `${Math.round(pct)}%` })));
+  }
 }
 
 // ── Sessions (#24 on macOS) ───────────────────────────────────────────────────
@@ -397,14 +443,18 @@ function riskChip(risk: "low" | "medium" | "high", reason: string): HTMLElement 
   return chip;
 }
 
-function buildApproval(actions: ViewActions): ViewHost {
+function buildApproval(actions: ViewActions, withDiff = false): ViewHost {
   const who = h("div");
   const code = h("div", { class: "code" });
   const row = h("div", { class: "actions" });
   const auto = h("div", { class: "auto-row" });
-  const el = h("div", { class: "view" }, card("amber", stack(116, 16, who, code, row, auto)));
+  const diff = h("div", { class: "diff" });
+  const el = withDiff
+    ? h("div", { class: "view" }, card("amber", h("div", { class: "review" }, who, code, diff, row, auto)))
+    : h("div", { class: "view" }, card("amber", stack(116, 16, who, code, row, auto)));
   let rowKey = "";
   let autoKey = "";
+  let diffKey = "";
   return {
     el,
     sync() {
@@ -412,6 +462,10 @@ function buildApproval(actions: ViewActions): ViewHost {
       clear(who);
       who.append(agentWho(State.focusTask, a?.agent === "codex" ? "· Codex needs permission" : "needs permission"));
       if (a) who.append(riskChip(a.risk, a.riskReason));
+      if (withDiff && a?.preview && diffKey !== a.requestId) {
+        diffKey = a.requestId;
+        renderDiff(diff, a.preview);
+      }
       if (State.approvalQueue.length) {
         who.append(h("span", { class: "queue", text: `+${State.approvalQueue.length} waiting` }));
       }
@@ -629,6 +683,7 @@ export function buildViews(
   map.set("overview", buildOverview(actions));
   map.set("empty", buildEmpty(actions));
   map.set("approval", buildApproval(actions));
+  map.set("review", buildApproval(actions, true));
   map.set("question", buildQuestion());
   map.set("error", buildError(actions));
   map.set("finished", buildFinished(actions));

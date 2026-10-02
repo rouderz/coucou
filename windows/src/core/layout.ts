@@ -8,6 +8,7 @@ export type IslandViewName =
   | "overview"
   | "empty"
   | "approval"
+  | "review"
   | "question"
   | "error"
   | "finished"
@@ -72,6 +73,8 @@ export const VIEW_LAYOUTS: Record<IslandViewName, ViewLayout> = {
   empty: { height: 160, botX: 70, botY: null, botDiameter: 62, agentMode: "none" },
   // Taller than macOS by one row: the risk chip and the auto-approve choices.
   approval: { height: 184, botX: 62, botY: null, botDiameter: 56, agentMode: "column" },
+  // An edit to approve: the diff of what would change (the macOS live view).
+  review: { height: 300, botX: 52, botY: 52, botDiameter: 44, agentMode: "none" },
   question: { height: 160, botX: 62, botY: null, botDiameter: 56, agentMode: "column" },
   error: { height: 160, botX: 62, botY: null, botDiameter: 58, agentMode: "column" },
   finished: { height: 160, botX: 62, botY: null, botDiameter: 58, agentMode: "column" },

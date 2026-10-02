@@ -158,12 +158,39 @@ fn merged(existing: &Value) -> Value {
     }
 
     root.insert("hooks".into(), Value::Object(hooks));
+
+    // Plan usage bars: Claude Code only gives rate limits to its status line.
+    // Ours forwards them and prints a short line; a status line the user already
+    // has is never replaced (the bars then stay empty, which Settings explains).
+    let has_own = root
+        .get("statusLine")
+        .and_then(|l| l.get("command"))
+        .and_then(Value::as_str)
+        .map(|c| !c.contains(MARKER))
+        .unwrap_or(false);
+    if !has_own {
+        root.insert("statusLine".into(), json!({ "type": "command", "command": status_line_command() }));
+    }
     Value::Object(root)
+}
+
+fn status_line_command() -> String {
+    let exe = settings::hook_exe_path().to_string_lossy().replace('\\', "/");
+    format!("\"{exe}\" --statusline")
 }
 
 /// Settings with every Coucou entry removed, and nothing else changed.
 fn without_ours(existing: &Value) -> Value {
     let mut root = existing.as_object().cloned().unwrap_or_default();
+    let ours = root
+        .get("statusLine")
+        .and_then(|l| l.get("command"))
+        .and_then(Value::as_str)
+        .map(|c| c.contains(MARKER))
+        .unwrap_or(false);
+    if ours {
+        root.remove("statusLine");
+    }
     let Some(hooks) = root.get("hooks").and_then(Value::as_object).cloned() else {
         return Value::Object(root);
     };
@@ -463,6 +490,16 @@ fn unified_diff(before: &str, after: &str) -> String {
 
 #[cfg(test)]
 mod tests {
+
+    #[test]
+    fn our_status_line_comes_and_goes_and_never_replaces_the_users() {
+        let fresh = merged(&json!({}));
+        assert!(fresh["statusLine"]["command"].as_str().unwrap().contains("--statusline"));
+        assert!(without_ours(&fresh).get("statusLine").is_none());
+        let theirs = json!({ "statusLine": { "type": "command", "command": "my-line.sh" } });
+        assert_eq!(merged(&theirs)["statusLine"]["command"], "my-line.sh");
+        assert_eq!(without_ours(&merged(&theirs))["statusLine"]["command"], "my-line.sh");
+    }
 
     #[test]
     fn fresh_hooks_are_up_to_date_and_old_ones_are_not() {
