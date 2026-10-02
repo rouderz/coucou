@@ -44,7 +44,7 @@ final class ResendPoller: @unchecked Sendable {
             IntegrationStatus.report("integration_resend", rawList.isEmpty ? .empty(L("Connected · no emails sent yet")) : .ok)
 
             let total = (json["total"] as? Int) ?? (json["count"] as? Int)
-            let emails = rawList.compactMap { self.parseEmail($0) }
+            let emails = rawList.compactMap { Self.parseEmail($0) }
 
             DispatchQueue.main.async {
                 AppState.shared.resendEmails = Array(emails.prefix(5))
@@ -53,7 +53,7 @@ final class ResendPoller: @unchecked Sendable {
         }.resume()
     }
 
-    private func parseEmail(_ d: [String: Any]) -> ResendEmail? {
+    static func parseEmail(_ d: [String: Any]) -> ResendEmail? {
         guard let id        = d["id"]         as? String,
               let createdAt = d["created_at"] as? String else { return nil }
 

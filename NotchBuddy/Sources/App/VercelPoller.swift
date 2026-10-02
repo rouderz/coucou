@@ -56,7 +56,7 @@ final class VercelPoller: @unchecked Sendable {
             // Only terminal deployments (READY, ERROR, CANCELED)
             let terminal = ["READY", "ERROR", "CANCELED"]
             let parsed = rawList
-                .compactMap { self.parseDeployment($0) }
+                .compactMap { Self.parseDeployment($0) }
                 .filter { terminal.contains($0.state) }
             guard !parsed.isEmpty else { return }
 
@@ -64,7 +64,7 @@ final class VercelPoller: @unchecked Sendable {
         }.resume()
     }
 
-    private func parseDeployment(_ d: [String: Any]) -> VercelDeployment? {
+    static func parseDeployment(_ d: [String: Any]) -> VercelDeployment? {
         guard let uid   = d["uid"]   as? String,
               let name  = d["name"]  as? String,
               let state = d["state"] as? String else { return nil }

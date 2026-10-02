@@ -153,7 +153,7 @@ final class N8nPoller: @unchecked Sendable {
                 return
             }
             let name = self.extractWorkflowName(from: json)
-            let detail = self.parseDetail(from: json, success: success)
+            let detail = Self.parseDetail(from: json, success: success)
             self.n8nLog("Parsed: \(name) · \(detail ?? "no detail")")
             self.dispatch(success: success, name: name, detail: detail)
         }.resume()
@@ -167,18 +167,18 @@ final class N8nPoller: @unchecked Sendable {
 
     // MARK: - Parse execution output / error message
 
-    private func parseDetail(from json: [String: Any], success: Bool) -> String? {
+    static func parseDetail(from json: [String: Any], success: Bool) -> String? {
         guard let execData   = json["data"] as? [String: Any],
               let resultData = execData["resultData"] as? [String: Any] else { return nil }
 
         if success {
-            return parseSuccessDetail(resultData: resultData)
+            return Self.parseSuccessDetail(resultData: resultData)
         } else {
-            return parseErrorDetail(resultData: resultData)
+            return Self.parseErrorDetail(resultData: resultData)
         }
     }
 
-    private func parseErrorDetail(resultData: [String: Any]) -> String? {
+    static func parseErrorDetail(resultData: [String: Any]) -> String? {
         // Top-level error
         if let error = resultData["error"] as? [String: Any] {
             let msg = error["message"] as? String ?? ""
@@ -201,7 +201,7 @@ final class N8nPoller: @unchecked Sendable {
         return nil
     }
 
-    private func parseSuccessDetail(resultData: [String: Any]) -> String? {
+    static func parseSuccessDetail(resultData: [String: Any]) -> String? {
         guard let lastNode = resultData["lastNodeExecuted"] as? String,
               let runData  = resultData["runData"] as? [String: Any],
               let nodeRuns = runData[lastNode] as? [[String: Any]],
@@ -216,13 +216,13 @@ final class N8nPoller: @unchecked Sendable {
         // Preview first item's JSON keys (up to 4)
         if let firstItem = items.first,
            let jsonObj = firstItem["json"] as? [String: Any], !jsonObj.isEmpty {
-            let lines = jsonObj.prefix(4).map { "\($0.key): \(fmtValue($0.value))" }
+            let lines = jsonObj.prefix(4).map { "\($0.key): \(Self.fmtValue($0.value))" }
             return "\(header)\n\(lines.joined(separator: "\n"))"
         }
         return header
     }
 
-    private func fmtValue(_ v: Any) -> String {
+    private static func fmtValue(_ v: Any) -> String {
         if let s = v as? String  { return String(s.prefix(50)) }
         if let n = v as? NSNumber { return n.stringValue }
         if let a = v as? [Any]   { return "[\(a.count)]" }

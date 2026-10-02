@@ -49,7 +49,7 @@ final class CalcomPoller: @unchecked Sendable {
                   let json = try? JSONSerialization.jsonObject(with: data) as? [String: Any],
                   let rawList = json["data"] as? [[String: Any]] else { return }
 
-            let parsed = rawList.compactMap { self.parseBooking($0) }
+            let parsed = rawList.compactMap { Self.parseBooking($0) }
             DispatchQueue.main.async {
                 AppState.shared.calcomError    = nil
                 AppState.shared.calcomBookings = parsed
@@ -58,7 +58,7 @@ final class CalcomPoller: @unchecked Sendable {
         }.resume()
     }
 
-    private func parseBooking(_ b: [String: Any]) -> CalcomBooking? {
+    static func parseBooking(_ b: [String: Any]) -> CalcomBooking? {
         let id: Int
         if let i = b["id"] as? Int { id = i }
         else if let s = b["id"] as? String, let i = Int(s) { id = i }

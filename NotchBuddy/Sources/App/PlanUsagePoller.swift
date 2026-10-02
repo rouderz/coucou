@@ -71,7 +71,7 @@ final class PlanUsagePoller: @unchecked Sendable {
     }
 
     /// `{"utilization": 81.0, "resets_at": "2026-10-01T18:00:00.123456+00:00"}` → Window
-    private static func window(_ any: Any?) -> PlanUsage.Window? {
+    static func window(_ any: Any?) -> PlanUsage.Window? {
         guard let w = any as? [String: Any],
               let pct = (w["utilization"] as? NSNumber)?.doubleValue,
               let raw = w["resets_at"] as? String,
@@ -79,7 +79,7 @@ final class PlanUsagePoller: @unchecked Sendable {
         return PlanUsage.Window(percent: pct, resetsAt: date)
     }
 
-    private static func parseDate(_ raw: String) -> Date? {
+    static func parseDate(_ raw: String) -> Date? {
         // ISO8601DateFormatter rejects microseconds: drop the fraction first.
         let trimmed = raw.replacingOccurrences(of: #"\.\d+"#, with: "", options: .regularExpression)
         return ISO8601DateFormatter().date(from: trimmed)
