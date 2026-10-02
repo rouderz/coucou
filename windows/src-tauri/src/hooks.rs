@@ -41,6 +41,9 @@ const MARKER: &str = "coucou-hook";
 #[serde(rename_all = "camelCase")]
 pub struct HookStatus {
     pub installed: bool,
+    /// Installed, but not what this version would write (an event missing, a
+    /// moved relay, an old timeout): Settings offers an update (#75, macOS #54).
+    pub outdated: bool,
     pub settings_path: String,
     pub hook_path: String,
     pub hook_ready: bool,
@@ -238,10 +241,26 @@ pub fn status() -> HookStatus {
     let hook_path = settings::hook_exe_path();
     HookStatus {
         installed,
+        outdated: installed && is_outdated(&current),
         settings_path: settings_path().to_string_lossy().to_string(),
         hook_ready: hook_path.exists(),
         hook_path: hook_path.to_string_lossy().to_string(),
     }
+}
+
+/// Installed hooks that differ from what `merged` would write now.
+fn is_outdated(current: &Value) -> bool {
+    let wanted = merged(current);
+    HOOK_EVENTS.iter().any(|(event, _)| {
+        let ours = |v: &Value| -> Vec<Value> {
+            v.get("hooks")
+                .and_then(|h| h.get(*event))
+                .and_then(Value::as_array)
+                .map(|list| list.iter().filter(|e| entry_is_ours(e)).cloned().collect())
+                .unwrap_or_default()
+        };
+        ours(current) != ours(&wanted)
+    })
 }
 
 pub fn preview(install: bool) -> Result<HookPreview, String> {
@@ -444,6 +463,18 @@ fn unified_diff(before: &str, after: &str) -> String {
 
 #[cfg(test)]
 mod tests {
+
+    #[test]
+    fn fresh_hooks_are_up_to_date_and_old_ones_are_not() {
+        let fresh = merged(&json!({}));
+        assert!(!is_outdated(&fresh));
+        let mut old = fresh.clone();
+        old["hooks"]["PermissionRequest"][0]["hooks"][0]["timeout"] = json!(60);
+        assert!(is_outdated(&old), "an old timeout needs an update");
+        let mut missing = fresh.clone();
+        missing["hooks"].as_object_mut().unwrap().remove("SubagentStop");
+        assert!(is_outdated(&missing), "a missing event needs an update");
+    }
     use super::*;
 
     const WHERE: &str = "settings.json";

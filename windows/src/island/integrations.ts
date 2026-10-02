@@ -28,7 +28,9 @@ export function registerIntegrationHandlers(island: Island) {
 /** Asks Rust which keys exist so the idle cards can say so. */
 export async function refreshConfigured() {
   for (const [id, key] of Object.entries(KEY_FOR)) {
-    const present = (await Bridge.secretPresent(key)) ?? false;
+    let present = (await Bridge.secretPresent(key)) ?? false;
+    // GitHub also works through a signed-in GitHub CLI, without a token.
+    if (!present && id === "integration_github") present = (await Bridge.githubCliStatus())?.signedIn ?? false;
     const info = State.integrations[id] ?? { data: {}, error: null, loaded: false, configured: false };
     State.integrations[id] = { ...info, configured: present };
   }

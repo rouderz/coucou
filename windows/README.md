@@ -181,5 +181,9 @@ npx tauri build         # .deb, .rpm and .AppImage in target/release/bundle/
   VS Code sessions.
 - Not in this version: sending a file by email, dragging Mochi onto a window to
   attach it as context, and jumping to a specific terminal window — "Open
-  terminal" opens the working folder in VS Code when `code` is on your `PATH`.
+  terminal" opens the working folder in the editor picked in Settings (VS Code,
+  Cursor, Windsurf or Zed, whichever are on your `PATH`).
+- The chat runs on an Anthropic API key or on your own Claude Code (Settings →
+  Chat → Engine), signed in with your Claude plan; GitHub works with a token or
+  with a signed-in GitHub CLI (`gh auth login`).
 - Cal.com shows the next bookings as a list rather than the Mac's calendar.

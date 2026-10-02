@@ -144,31 +144,25 @@ pub fn open_url(url: &str) {
         .spawn();
 }
 
-/// Opens a folder in VS Code when `code` is on PATH, in Explorer otherwise.
-pub fn open_in_editor(path: Option<&str>) -> bool {
-    // No `cmd /C` anywhere near this. The path is a project folder chosen by
-    // whoever is using Claude Code, and cmd would happily read `&`, `^` and `%`
-    // in a folder name as syntax. Finding the launcher ourselves and handing the
-    // path over as a separate argument keeps it a path.
-    if let Some(code) = find_on_path("code") {
-        let mut cmd = Command::new(code);
-        if let Some(p) = path {
-            cmd.arg(p);
-        }
-        if cmd.creation_flags(CREATE_NO_WINDOW).spawn().is_ok() {
-            return true;
-        }
-    }
-    if let Some(p) = path {
-        let _ = Command::new("explorer").arg(p).spawn();
-    }
-    false
+/// Starts a program without a console window and without waiting for it.
+pub fn spawn_quiet(program: &std::path::Path, args: &[&str]) -> bool {
+    Command::new(program).args(args).creation_flags(CREATE_NO_WINDOW).spawn().is_ok()
+}
+
+/// Keeps a helper we run and read (gh, claude) from flashing a console window.
+pub fn hide_console_async(cmd: &mut tokio::process::Command) {
+    cmd.creation_flags(CREATE_NO_WINDOW);
+}
+
+/// Shows a folder in Explorer.
+pub fn open_folder(path: &str) {
+    let _ = Command::new("explorer").arg(path).spawn();
 }
 
 /// Our own `where`: walks %PATH% against %PATHEXT%, no shell involved.
 /// Rust quotes arguments correctly for `.cmd`/`.bat` targets since 1.77, so
 /// spawning `code.cmd` directly is safe.
-fn find_on_path(stem: &str) -> Option<PathBuf> {
+pub fn find_program(stem: &str) -> Option<PathBuf> {
     let exts = std::env::var("PATHEXT").unwrap_or_else(|_| ".COM;.EXE;.BAT;.CMD".into());
     let dirs = std::env::var_os("PATH")?;
     for dir in std::env::split_paths(&dirs) {
@@ -180,4 +174,17 @@ fn find_on_path(stem: &str) -> Option<PathBuf> {
         }
     }
     None
+}
+
+/// Where Claude Code's installers put `claude` when it isn't on PATH.
+pub fn claude_fallbacks() -> Vec<PathBuf> {
+    let home = home();
+    let mut list = vec![
+        home.join(".local").join("bin").join("claude.exe"),
+        home.join(".claude").join("local").join("claude.exe"),
+    ];
+    if let Some(appdata) = std::env::var_os("APPDATA") {
+        list.push(PathBuf::from(appdata).join("npm").join("claude.cmd"));
+    }
+    list
 }

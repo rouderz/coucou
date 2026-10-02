@@ -108,6 +108,11 @@ fn connect() -> Option<std::fs::File> {
 }
 
 fn main() {
+    // Coucou's own chat runs through Claude Code too (the subscription engine):
+    // its activity is not the user's work and never reaches the island.
+    if std::env::var("COUCOU_INTERNAL").as_deref() == Ok("1") {
+        std::process::exit(0);
+    }
     let Some((payload, event)) = read_event() else { std::process::exit(0) };
 
     let waits_for_answer = event == "PermissionRequest";

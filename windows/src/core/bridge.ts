@@ -57,8 +57,14 @@ export const Bridge = {
 
   openUrl: (url: string) => call<void>("open_url", { url }),
 
-  /** "Open terminal" → opens the folder in VS Code when `code` is on PATH. */
+  /** "Open terminal" → opens the folder in the editor picked in Settings. */
   openInVSCode: (path: string | null) => call<boolean>("open_in_vscode", { path }),
+  /** VS Code, Cursor, Windsurf, Zed — the ones installed. */
+  editorsInstalled: () => call<{ id: string; name: string }[]>("editors_installed"),
+  /** Is `claude` installed, for the subscription chat? */
+  claudeCodeStatus: () => call<{ installed: boolean; path: string | null }>("claude_code_status"),
+  /** GitHub without a token: the GitHub CLI's own sign-in. */
+  githubCliStatus: () => call<{ installed: boolean; signedIn: boolean; user: string | null }>("github_cli_status"),
 
   quit: () => call<void>("quit_app"),
 
@@ -125,6 +131,8 @@ export interface DroppedFile {
 
 export interface HookStatus {
   installed: boolean;
+  /** Installed, but not what this version writes: offer an update. */
+  outdated?: boolean;
   settingsPath: string;
   hookPath: string;
   hookReady: boolean;
