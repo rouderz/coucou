@@ -36,8 +36,13 @@ enum ApprovalRiskClassifier {
         case "Edit", "MultiEdit", "Write", "NotebookEdit":
             let path = (input["file_path"] ?? input["notebook_path"]) as? String ?? ""
             return classifyWrite(path: path, cwd: cwd)
-        case "Bash":
+        case "Bash", "shell":
+            if let cmd = input["command"] as? [String] { return classifyCommand(cmd.joined(separator: " ")) }
             return classifyCommand(input["command"] as? String ?? "")
+        case "apply_patch":  // Codex (#44): the riskiest file the patch touches
+            guard let patch = CodexPatch.text(from: input) else { return (.medium, L("changes a file")) }
+            let checks = CodexPatch.files(patch, cwd: cwd).map { classifyWrite(path: $0, cwd: cwd) }
+            return checks.max { $0.0 < $1.0 } ?? (.medium, L("changes a file"))
         default:
             if tool.hasPrefix("mcp__") { return (.medium, L("external tool")) }
             return (.medium, L("unknown tool"))

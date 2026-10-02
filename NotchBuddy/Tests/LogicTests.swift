@@ -313,3 +313,66 @@ final class UpdatesTests: XCTestCase {
         XCTAssertNil(Updates.parse(Data(#"{"tag_name":"v9","prerelease":true}"#.utf8)), "pre-releases are ignored")
     }
 }
+
+/// Codex CLI (#44): apply_patch parsing, risk, approval text and the hooks.json installer.
+final class CodexTests: XCTestCase {
+    private let patch = """
+    *** Begin Patch
+    *** Update File: src/app.ts
+    @@ function main
+     const a = 1
+    -const b = 2
+    +const b = 3
+    *** Add File: src/new.ts
+    +export const x = 1
+    *** End Patch
+    """
+
+    func testParsesFilesAndLines() {
+        let changes = CodexPatch.parse(patch)
+        XCTAssertEqual(changes.map(\.path), ["src/app.ts", "src/new.ts"])
+        XCTAssertEqual(changes[0].kind, .update)
+        XCTAssertEqual(changes[1].kind, .add)
+        XCTAssertEqual(changes[0].lines.map(\.kind), [.context, .removed, .added])
+        XCTAssertEqual(changes[0].lines.last?.text, "const b = 3")
+    }
+
+    func testPreviewShowsTheFirstFile() {
+        let preview = EditPreviewBuilder.build(tool: "apply_patch", input: ["command": patch], cwd: "/p")
+        XCTAssertEqual(preview?.file, "/p/src/app.ts")
+        XCTAssertEqual(preview?.lines.count, 3)
+        XCTAssertNotNil(preview?.note, "mentions the other file")
+    }
+
+    func testPatchRiskFollowsTheFiles() {
+        XCTAssertEqual(ApprovalRiskClassifier.classify(tool: "apply_patch", input: ["command": patch], cwd: "/p").0, .medium)
+        let env = "*** Begin Patch\n*** Update File: .env\n+KEY=1\n*** End Patch"
+        XCTAssertEqual(ApprovalRiskClassifier.classify(tool: "apply_patch", input: ["command": env], cwd: "/p").0, .high)
+    }
+
+    func testApprovalTextAndStopMessage() {
+        XCTAssertEqual(HookServer.approvalCommand(tool: "apply_patch", input: ["command": patch]),
+                       "Edit src/app.ts, src/new.ts")
+        XCTAssertEqual(HookServer.approvalCommand(tool: "Bash", input: ["description": "Run tests"]), "Run tests")
+        XCTAssertEqual(HookServer.stopMessage(["last_assistant_message": "All done"]), "All done")
+        XCTAssertNil(HookServer.stopMessage(["message": ""]))
+    }
+
+    func testInstallKeepsTheUsersHooks() throws {
+        let mine: [String: Any] = ["hooks": ["PreToolUse": [["matcher": "Bash",
+                                                            "hooks": [["type": "command", "command": "my-policy"]]]]]]
+        let installed = CodexHooks.installed(into: mine, command: "\"/x/nb-hook\" --agent codex")
+        let pre = (installed["hooks"] as? [String: Any])?["PreToolUse"] as? [[String: Any]]
+        XCTAssertEqual(pre?.count, 2)
+        // Installing twice doesn't duplicate.
+        let again = CodexHooks.installed(into: installed, command: "\"/x/nb-hook\" --agent codex")
+        XCTAssertEqual(((again["hooks"] as? [String: Any])?["PreToolUse"] as? [[String: Any]])?.count, 2)
+        let perm = ((again["hooks"] as? [String: Any])?["PermissionRequest"] as? [[String: Any]])?.first
+        XCTAssertEqual(((perm?["hooks"] as? [[String: Any]])?.first?["timeout"] as? Int), 120)
+
+        let removed = CodexHooks.uninstalled(from: again)
+        let hooks = removed["hooks"] as? [String: Any]
+        XCTAssertEqual(hooks?.keys.sorted(), ["PreToolUse"])
+        XCTAssertEqual((hooks?["PreToolUse"] as? [[String: Any]])?.count, 1)
+    }
+}

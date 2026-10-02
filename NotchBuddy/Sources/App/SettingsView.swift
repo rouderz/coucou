@@ -224,6 +224,7 @@ struct SettingsView: View {
                                     .buttonStyle(.borderedProminent)
                             }
                         }
+                        CodexHooksSection()
                         #endif
 
                         if showDiff {
@@ -1257,6 +1258,59 @@ struct ProviderSettingsSection: View {
     }
 }
 
+
+#if !APPSTORE
+/// Codex CLI (#44): the same hooks, in ~/.codex/hooks.json.
+struct CodexHooksSection: View {
+    @State private var status = CodexHooks.state()
+    @State private var error: String?
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 8) {
+            Divider().padding(.vertical, 2)
+            HStack(alignment: .top, spacing: 8) {
+                Circle()
+                    .fill(status == .installed ? Color.green : Color.gray)
+                    .frame(width: 8, height: 8)
+                    .padding(.top, 4)
+                VStack(alignment: .leading, spacing: 2) {
+                    Text(status == .installed ? "Codex hooks installed"
+                         : status == .noCodex ? "Codex CLI not found" : "Codex hooks not installed")
+                        .font(.system(size: 12.5, weight: .semibold))
+                    Text(status == .installed
+                         ? "Run /hooks in Codex once to review and trust them. Codex sessions then show up next to Claude Code's."
+                         : status == .noCodex
+                         ? "Install Codex CLI and run it once to see its sessions and approvals here too."
+                         : "Coucou can follow Codex CLI sessions and approve them from the island. Codex is never blocked if Coucou isn't running.")
+                        .font(.system(size: 11))
+                        .foregroundColor(.secondary)
+                        .fixedSize(horizontal: false, vertical: true)
+                }
+            }
+            .help(CodexHooks.hooksURL.path)
+            if status != .noCodex {
+                HStack(spacing: 10) {
+                    if status == .installed {
+                        Button("Reinstall") { run(CodexHooks.install) }.buttonStyle(.bordered)
+                        Button("Uninstall") { run(CodexHooks.uninstall) }.buttonStyle(.bordered)
+                    } else {
+                        Button("Install Codex hooks") { run(CodexHooks.install) }.buttonStyle(.borderedProminent)
+                    }
+                }
+            }
+            if let error {
+                Text(error).font(.system(size: 11)).foregroundColor(.red)
+            }
+        }
+        .onAppear { status = CodexHooks.state() }
+    }
+
+    private func run(_ action: () throws -> Void) {
+        do { try action(); error = nil } catch { self.error = error.localizedDescription }
+        status = CodexHooks.state()
+    }
+}
+#endif
 
 /// Hook status at a glance: green installed, orange needs an update, grey not installed.
 struct HookStatusRow: View {

@@ -74,6 +74,8 @@ enum EditPreviewBuilder {
 
     /// Edit / MultiEdit / Write → preview; nil for other tools.
     static func build(tool: String, input: [String: Any], cwd: String) -> EditPreview? {
+        // Codex's apply_patch carries a whole patch (#44).
+        if let patch = CodexPatch.text(from: input) { return CodexPatch.preview(patch, cwd: cwd) }
         guard let file = input["file_path"] as? String, !file.isEmpty else { return nil }
         let rel = relative(file, to: cwd)
         let lang = CodeLanguage(path: file)
