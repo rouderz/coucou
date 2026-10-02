@@ -20,14 +20,14 @@ struct IntegrationCardView: View {
             return ss.contains { ($0["hooks"] as? [[String: Any]])?.contains {
                 ($0["command"] as? String)?.contains("NotchBuddy") == true
             } ?? false }
-        case "integration_resend":  return KeychainStore.shared.get("resend-api-key") != nil
-        case "integration_n8n":     return KeychainStore.shared.get("n8n-api-key")    != nil
-        case "integration_vercel":  return KeychainStore.shared.get("vercel-token")   != nil
+        case "integration_resend":  return Secrets.store.get("resend-api-key") != nil
+        case "integration_n8n":     return Secrets.store.get("n8n-api-key")    != nil
+        case "integration_vercel":  return Secrets.store.get("vercel-token")   != nil
         case "integration_github":  return AppState.shared.githubConnection.isConnected
-                                        || KeychainStore.shared.get("github-token") != nil
-        case "integration_stripe":  return KeychainStore.shared.get("stripe-api-key") != nil
-        case "integration_notion":  return KeychainStore.shared.get("notion-api-key") != nil
-        case "integration_calcom":  return KeychainStore.shared.get("calcom-api-key") != nil
+                                        || Secrets.store.get("github-token") != nil
+        case "integration_stripe":  return Secrets.store.get("stripe-api-key") != nil
+        case "integration_notion":  return Secrets.store.get("notion-api-key") != nil
+        case "integration_calcom":  return Secrets.store.get("calcom-api-key") != nil
         case "integration_linear":  return LinearAPI.hasKey
         default: return false
         }
@@ -45,7 +45,7 @@ struct IntegrationCardView: View {
         case "integration_claude":  return nil  // uses terminal button below
         case "integration_resend":  return URL(string: "https://resend.com/emails")
         case "integration_n8n":
-            if let s = KeychainStore.shared.get("n8n-url") { return URL(string: s) }
+            if let s = Secrets.store.get("n8n-url") { return URL(string: s) }
             return nil
         case "integration_vercel":  return URL(string: "https://vercel.com/dashboard")
         case "integration_github":  return URL(string: "https://github.com")
@@ -494,8 +494,8 @@ struct SessionChip: View {
         Button { HookServer.shared.focusSession(session.id) } label: {
             HStack(spacing: 4) {
                 Circle().fill(color).frame(width: 6, height: 6)
-                if session.agent == "codex" {
-                    Text("Codex")
+                if session.agent != "claude", let agent = Agents.named(session.agent) {
+                    Text(agent.name)
                         .font(.system(size: 9, weight: .bold))
                         .foregroundColor(Color(hex: "#10A37F"))
                 }

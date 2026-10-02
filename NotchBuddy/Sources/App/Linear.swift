@@ -52,10 +52,10 @@ enum LinearAPI {
         }
     }
 
-    static var hasKey: Bool { !(KeychainStore.shared.get(keychainKey) ?? "").isEmpty }
+    static var hasKey: Bool { !(Secrets.store.get(keychainKey) ?? "").isEmpty }
 
     static func query(_ query: String, variables: [String: Any] = [:]) async throws -> [String: Any] {
-        guard let key = KeychainStore.shared.get(keychainKey), !key.isEmpty else { throw Failure.noKey }
+        guard let key = Secrets.store.get(keychainKey), !key.isEmpty else { throw Failure.noKey }
         var req = URLRequest(url: endpoint, timeoutInterval: 15)
         req.httpMethod = "POST"
         req.setValue(key, forHTTPHeaderField: "Authorization")

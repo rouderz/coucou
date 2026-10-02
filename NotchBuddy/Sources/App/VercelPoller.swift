@@ -29,7 +29,7 @@ final class VercelPoller: @unchecked Sendable {
     func pollNow() { DispatchQueue.global(qos: .utility).async { [weak self] in self?.poll() } }
 
     private func poll() {
-        guard let token = KeychainStore.shared.get("vercel-token") else { return }
+        guard let token = Secrets.store.get("vercel-token") else { return }
 
         // Fetch last 5 terminal deployments
         guard let url = URL(string: "https://api.vercel.com/v6/deployments?limit=5") else { return }

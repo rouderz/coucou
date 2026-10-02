@@ -60,7 +60,7 @@ enum ProviderSettings {
     }
 
     static var key: String? {
-        KeychainStore.shared.get(preset.keychainKey).flatMap { $0.isEmpty ? nil : $0 }
+        Secrets.store.get(preset.keychainKey).flatMap { $0.isEmpty ? nil : $0 }
     }
 
     /// Models the server offers (GET /models), for the picker.

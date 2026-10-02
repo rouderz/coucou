@@ -121,7 +121,7 @@ final class ClaudeService {
         return m.isEmpty ? AppState.defaultClaudeModel : m
     }
 
-    var apiKey: String? { KeychainStore.shared.get("anthropic-api-key") }
+    var apiKey: String? { Secrets.store.get("anthropic-api-key") }
 
     // Multi-turn conversation messages (for API)
     private var conversationMessages: [[String: Any]] = []

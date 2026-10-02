@@ -116,7 +116,7 @@ struct OverviewView: View {
         case "integration_github":
             NSWorkspace.shared.open(URL(string: "https://github.com")!)
         case "integration_n8n":
-            if let urlStr = KeychainStore.shared.get("n8n-url"), let url = URL(string: urlStr) {
+            if let urlStr = Secrets.store.get("n8n-url"), let url = URL(string: urlStr) {
                 NSWorkspace.shared.open(url)
             }
         case "integration_stripe":
@@ -130,7 +130,7 @@ struct OverviewView: View {
         default:
             // Non-integration real tasks
             if task.source == .n8n {
-                if let urlStr = KeychainStore.shared.get("n8n-url"), let url = URL(string: urlStr) {
+                if let urlStr = Secrets.store.get("n8n-url"), let url = URL(string: urlStr) {
                     NSWorkspace.shared.open(url)
                 }
             } else {

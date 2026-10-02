@@ -13,7 +13,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         if ProcessInfo.processInfo.environment["XCTestConfigurationFilePath"] != nil { return }
         _ = AppLanguage.atLaunch  // remember the language this run started with
         // Warm up Keychain cache on main thread BEFORE any poller or view touches it
-        _ = KeychainStore.shared
+        _ = Secrets.store
         NSApp.setActivationPolicy(.accessory)
         setupMenuBarItem()
         setupIsland()
@@ -93,18 +93,10 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         PollGate.shared.start()
         DoNotDisturb.shared.start()
         HookServer.shared.start()
-        N8nPoller.shared.start()
-        VercelPoller.shared.start()
-        ResendPoller.shared.start()
-        GithubPoller.shared.start()
-        StripePoller.shared.start()
-        CalcomPoller.shared.start()
-        NotionPoller.shared.start()
-        LinearPoller.shared.start()
+        for source in Integrations.all { source.start() }
         InboxStore.shared.start()
         WakeWord.shared.start()
         Updates.shared.start()
-        PlanUsagePoller.shared.start()
         NotificationCenter.default.addObserver(self, selector: #selector(openSettings),
                                                name: .openFullSettings, object: nil)
         Task { await ClaudeCodeChat.locate() }

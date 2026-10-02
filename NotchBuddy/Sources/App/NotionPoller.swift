@@ -20,7 +20,7 @@ final class NotionPoller: @unchecked Sendable {
     func pollNow() { poll() }
 
     private func poll() {
-        guard let token = KeychainStore.shared.get("notion-api-key") else { return }
+        guard let token = Secrets.store.get("notion-api-key") else { return }
         guard let url = URL(string: "https://api.notion.com/v1/search") else { return }
         var req = URLRequest(url: url, timeoutInterval: 10)
         req.httpMethod = "POST"

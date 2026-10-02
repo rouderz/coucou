@@ -29,7 +29,7 @@ final class StripePoller: @unchecked Sendable {
     func pollNow() { poll() }
 
     private func poll() {
-        guard let key = KeychainStore.shared.get("stripe-api-key") else { return }
+        guard let key = Secrets.store.get("stripe-api-key") else { return }
         fetchBalance(key: key)
         fetchCharges(key: key)
         if Date().timeIntervalSince(lastWeekFetch) > 600 { fetchWeek(key: key) }

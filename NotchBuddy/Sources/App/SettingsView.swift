@@ -4,7 +4,7 @@ import AppKit
 
 struct SettingsView: View {
     @ObservedObject private var state = AppState.shared
-    @State private var apiKey: String = KeychainStore.shared.get("anthropic-api-key") ?? ""
+    @State private var apiKey: String = Secrets.store.get("anthropic-api-key") ?? ""
 
     // Claude model — presets plus a free field for any other model ID
     private static let modelPresets: [(id: String, label: String)] = [
@@ -36,16 +36,16 @@ struct SettingsView: View {
     #endif
 
     // Integration keys
-    @State private var resendKey: String    = KeychainStore.shared.get("resend-api-key")  ?? ""
-    @State private var resendFrom: String   = KeychainStore.shared.get("resend-from")     ?? ""
-    @State private var n8nUrl: String       = KeychainStore.shared.get("n8n-url")         ?? ""
-    @State private var n8nKey: String       = KeychainStore.shared.get("n8n-api-key")     ?? ""
-    @State private var vercelToken: String  = KeychainStore.shared.get("vercel-token")    ?? ""
-    @State private var githubToken: String  = KeychainStore.shared.get("github-token")    ?? ""
-    @State private var stripeKey: String    = KeychainStore.shared.get("stripe-api-key")  ?? ""
-    @State private var calcomKey: String    = KeychainStore.shared.get("calcom-api-key")  ?? ""
-    @State private var notionKey: String    = KeychainStore.shared.get("notion-api-key")  ?? ""
-    @State private var linearKey: String    = KeychainStore.shared.get("linear-api-key")  ?? ""
+    @State private var resendKey: String    = Secrets.store.get("resend-api-key")  ?? ""
+    @State private var resendFrom: String   = Secrets.store.get("resend-from")     ?? ""
+    @State private var n8nUrl: String       = Secrets.store.get("n8n-url")         ?? ""
+    @State private var n8nKey: String       = Secrets.store.get("n8n-api-key")     ?? ""
+    @State private var vercelToken: String  = Secrets.store.get("vercel-token")    ?? ""
+    @State private var githubToken: String  = Secrets.store.get("github-token")    ?? ""
+    @State private var stripeKey: String    = Secrets.store.get("stripe-api-key")  ?? ""
+    @State private var calcomKey: String    = Secrets.store.get("calcom-api-key")  ?? ""
+    @State private var notionKey: String    = Secrets.store.get("notion-api-key")  ?? ""
+    @State private var linearKey: String    = Secrets.store.get("linear-api-key")  ?? ""
 
     // Hotkey
     @State private var hotkeyFlags: UInt    = AppState.shared.hotkeyFlags
@@ -122,7 +122,7 @@ struct SettingsView: View {
                             SecureField("API key (sk-ant-…)", text: $apiKey)
                                 .textFieldStyle(.roundedBorder)
                             Button("Save") {
-                                KeychainStore.shared.set("anthropic-api-key", value: apiKey)
+                                Secrets.store.set("anthropic-api-key", value: apiKey)
                                 statusMessage = L("✓ Key saved.")
                             }
                             .buttonStyle(.borderedProminent)
@@ -992,16 +992,16 @@ struct SettingsView: View {
     /// Saves non-empty value; removes only if key was previously set (explicit user clear).
     private func saveKey(_ key: String, value: String) {
         if value.isEmpty {
-            KeychainStore.shared.remove(key)
+            Secrets.store.remove(key)
         } else {
-            KeychainStore.shared.set(key, value: value)
+            Secrets.store.set(key, value: value)
         }
     }
 
     // MARK: - Vercel project list
 
     private func loadVercelProjects() {
-        guard let token = KeychainStore.shared.get("vercel-token") else {
+        guard let token = Secrets.store.get("vercel-token") else {
             statusMessage = L("❌ Save Vercel token first.")
             return
         }
@@ -1029,8 +1029,8 @@ struct SettingsView: View {
     // MARK: - n8n workflow list
 
     private func loadN8nWorkflows() {
-        guard let apiKey  = KeychainStore.shared.get("n8n-api-key"),
-              let rawBase = KeychainStore.shared.get("n8n-url") else {
+        guard let apiKey  = Secrets.store.get("n8n-api-key"),
+              let rawBase = Secrets.store.get("n8n-url") else {
             statusMessage = L("❌ Save n8n URL and API key first.")
             return
         }
@@ -1205,7 +1205,7 @@ struct ProviderSettingsSection: View {
                 state.providerModel = ""
                 state.providerBaseURL = ""
                 models = []
-                key = KeychainStore.shared.get(preset.keychainKey) ?? ""
+                key = Secrets.store.get(preset.keychainKey) ?? ""
             }
 
             TextField(preset.baseURL.isEmpty ? "https://your-server/v1" : preset.baseURL, text: $state.providerBaseURL)
@@ -1217,7 +1217,7 @@ struct ProviderSettingsSection: View {
                     SecureField(preset.keyHint.isEmpty ? "API key" : "API key (\(preset.keyHint))", text: $key)
                         .textFieldStyle(.roundedBorder)
                     Button("Save") {
-                        KeychainStore.shared.set(preset.keychainKey, value: key)
+                        Secrets.store.set(preset.keychainKey, value: key)
                         statusMessage = L("✓ Key saved.")
                     }
                 }
@@ -1254,7 +1254,7 @@ struct ProviderSettingsSection: View {
                 .foregroundColor(.secondary)
                 .fixedSize(horizontal: false, vertical: true)
         }
-        .onAppear { key = KeychainStore.shared.get(preset.keychainKey) ?? "" }
+        .onAppear { key = Secrets.store.get(preset.keychainKey) ?? "" }
     }
 }
 
@@ -1262,7 +1262,8 @@ struct ProviderSettingsSection: View {
 #if !APPSTORE
 /// Codex CLI (#44): the same hooks, in ~/.codex/hooks.json.
 struct CodexHooksSection: View {
-    @State private var status = CodexHooks.state()
+    private let agent = CodexAgent()
+    @State private var status = CodexAgent().hookState
     @State private var error: String?
 
     var body: some View {
@@ -1275,11 +1276,11 @@ struct CodexHooksSection: View {
                     .padding(.top, 4)
                 VStack(alignment: .leading, spacing: 2) {
                     Text(status == .installed ? "Codex hooks installed"
-                         : status == .noCodex ? "Codex CLI not found" : "Codex hooks not installed")
+                         : status == .unavailable ? "Codex CLI not found" : "Codex hooks not installed")
                         .font(.system(size: 12.5, weight: .semibold))
                     Text(status == .installed
                          ? "Run /hooks in Codex once to review and trust them. Codex sessions then show up next to Claude Code's."
-                         : status == .noCodex
+                         : status == .unavailable
                          ? "Install Codex CLI and run it once to see its sessions and approvals here too."
                          : "Coucou can follow Codex CLI sessions and approve them from the island. Codex is never blocked if Coucou isn't running.")
                         .font(.system(size: 11))
@@ -1288,13 +1289,13 @@ struct CodexHooksSection: View {
                 }
             }
             .help(CodexHooks.hooksURL.path)
-            if status != .noCodex {
+            if status != .unavailable {
                 HStack(spacing: 10) {
                     if status == .installed {
-                        Button("Reinstall") { run(CodexHooks.install) }.buttonStyle(.bordered)
-                        Button("Uninstall") { run(CodexHooks.uninstall) }.buttonStyle(.bordered)
+                        Button("Reinstall") { run(agent.installHooks) }.buttonStyle(.bordered)
+                        Button("Uninstall") { run(agent.uninstallHooks) }.buttonStyle(.bordered)
                     } else {
-                        Button("Install Codex hooks") { run(CodexHooks.install) }.buttonStyle(.borderedProminent)
+                        Button("Install Codex hooks") { run(agent.installHooks) }.buttonStyle(.borderedProminent)
                     }
                 }
             }
@@ -1302,12 +1303,12 @@ struct CodexHooksSection: View {
                 Text(error).font(.system(size: 11)).foregroundColor(.red)
             }
         }
-        .onAppear { status = CodexHooks.state() }
+        .onAppear { status = agent.hookState }
     }
 
     private func run(_ action: () throws -> Void) {
         do { try action(); error = nil } catch { self.error = error.localizedDescription }
-        status = CodexHooks.state()
+        status = agent.hookState
     }
 }
 #endif

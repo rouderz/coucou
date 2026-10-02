@@ -258,8 +258,8 @@ struct MailView: View {
         let subj = subject.isEmpty ? (state.droppedFile?.name ?? "File") : subject
 
         // Prefer Resend if API key + sender address are configured
-        let apiKey  = KeychainStore.shared.get("resend-api-key")
-        let fromAddr = KeychainStore.shared.get("resend-from")
+        let apiKey  = Secrets.store.get("resend-api-key")
+        let fromAddr = Secrets.store.get("resend-from")
 
         if let apiKey, let fromAddr {
             isSending = true
