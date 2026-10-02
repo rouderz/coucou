@@ -250,7 +250,7 @@ class AppState {
   codeContext: CodeContext | null = null;
 
   /** A newer release, from the update check. */
-  update: { latest: string; url: string } | null = null;
+  update: { latest: string; url: string; canInstall: boolean; installing?: boolean } | null = null;
 
   /** Claude Code / Codex sessions, and the one on the card. */
   sessions: ClaudeSession[] = [];

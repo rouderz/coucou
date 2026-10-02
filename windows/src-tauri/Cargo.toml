@@ -19,6 +19,8 @@ tauri-plugin-single-instance = "2"
 tauri-plugin-autostart = "2"
 # Allow / deny from any app while an approval is up (⌥⏎ / ⌥⌫ on macOS).
 tauri-plugin-global-shortcut = "2"
+# Self-update: signed release builds, installed in place, then a restart.
+tauri-plugin-updater = "2"
 serde = { version = "1", features = ["derive"] }
 serde_json = { version = "1", features = ["preserve_order"] }
 tokio = { version = "1", features = ["net", "io-util", "sync", "time", "rt", "fs", "process"] }

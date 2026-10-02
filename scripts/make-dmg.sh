@@ -66,5 +66,11 @@ if [ -n "$IDENTITY" ]; then
   fi
 fi
 
+# The app as a zip too: what the self-update downloads (signed by the release workflow).
+ZIP="$OUT/Coucou-$VERSION.zip"
+rm -f "$ZIP"
+/usr/bin/ditto -c -k --keepParent "$APP" "$ZIP"
+
 rm -rf "$WORK"
 echo "✓ $DMG ($(du -h "$DMG" | cut -f1))"
+echo "✓ $ZIP (self-update)"

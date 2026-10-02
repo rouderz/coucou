@@ -248,7 +248,7 @@ ES = {
 # updates
 "Couldn't check for updates (%lld)":"No se pudo buscar actualizaciones (%lld)","Coucou %@ is available · Settings → Updates":"Coucou %@ está disponible · Ajustes → Actualizaciones",
 "Coucou %@ is available (you have %@)":"Coucou %@ está disponible (tienes la %@)","Coucou %@":"Coucou %@","up to date":"al día",
-"Checking…":"Comprobando…","Check now":"Comprobar ahora","Download the DMG":"Descargar el DMG","Open the release page":"Abrir la página de la versión",
+"Checking…":"Comprobando…","Check now":"Comprobar ahora","Download the DMG":"Descargar el DMG","Install and restart":"Instalar y reiniciar","Downloading…":"Descargando…","Checking the signature…":"Comprobando la firma…","Restarting…":"Reiniciando…","Coucou updates itself and opens again in a few seconds.":"Coucou se actualiza solo y se vuelve a abrir en unos segundos.","The download isn't signed by Coucou's key. Nothing was installed.":"La descarga no está firmada con la clave de Coucou. No se instaló nada.","The downloaded app isn't the expected Coucou version. Nothing was installed.":"La app descargada no es la versión esperada de Coucou. No se instaló nada.","Open the release page":"Abrir la página de la versión",
 "Open it and drag Coucou to Applications, replacing this one.":"Ábrelo y arrastra Coucou a Aplicaciones, reemplazando esta.",
 "Check for updates automatically (every 6 hours, GitHub releases)":"Buscar actualizaciones automáticamente (cada 6 horas, en GitHub)","Updates":"Actualizaciones",
 }

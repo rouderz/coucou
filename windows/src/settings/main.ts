@@ -619,13 +619,30 @@ function updatesSection(): HTMLElement {
   const status = h("span", { class: "hint", text: `You have ${version || "this version"}.` });
   const link = h("button", { class: "primary", text: "Download", style: "display:none" });
   let url = "";
-  link.addEventListener("click", () => { if (url) void Bridge.openUrl(url); });
+  let canInstall = false;
+  link.addEventListener("click", async () => {
+    if (!canInstall) {
+      if (url) void Bridge.openUrl(url);
+      return;
+    }
+    link.textContent = "Updating…";
+    (link as HTMLButtonElement).disabled = true;
+    try {
+      await Bridge.updateInstall();
+    } catch (err) {
+      status.textContent = String(err).replace(/^Error:\s*/, "");
+      link.textContent = "Install and restart";
+      (link as HTMLButtonElement).disabled = false;
+    }
+  });
   const check = h("button", { text: "Check now", onclick: async () => {
     status.textContent = "Checking…";
     try {
       const info = await Bridge.checkUpdate();
       url = info.url;
+      canInstall = info.newer ? (await Bridge.updateCanInstall()) ?? false : false;
       status.textContent = info.newer ? `Coucou ${info.latest} is out (you have ${info.current}).` : `You're up to date (${info.current}).`;
+      link.textContent = canInstall ? "Install and restart" : "Download";
       link.style.display = info.newer ? "" : "none";
     } catch (err) {
       status.textContent = String(err).replace(/^Error:\s*/, "");
