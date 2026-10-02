@@ -110,10 +110,10 @@ export const Bridge = {
 
   // ── WhaTicket ───────────────────────────────────────────────────────────────
   /** Signs in with the stored credentials; who you are and your queues. */
-  whaticketLogin: () => callOrThrow<{ userId: number; name: string; queues: { id: number; name: string; color: string }[] }>("whaticket_login"),
-  whaticketAccept: (id: number) => callOrThrow<void>("whaticket_accept", { id }),
-  whaticketUndo: (id: number) => callOrThrow<void>("whaticket_undo", { id }),
-  whaticketOpen: (id: number | null) => call<void>("whaticket_open", { id }),
+  whaticketLogin: () => callOrThrow<{ userId: string; name: string; cloud: boolean; queues: { id: string; name: string; color: string }[] }>("whaticket_login"),
+  whaticketAccept: (id: string) => callOrThrow<void>("whaticket_accept", { id }),
+  whaticketUndo: (id: string) => callOrThrow<void>("whaticket_undo", { id }),
+  whaticketOpen: (id: string | null) => call<void>("whaticket_open", { id }),
 
   // ── Google (Gmail, Drive) ───────────────────────────────────────────────────
   /** Opens Google's consent page; resolves with the account's email once signed in. */

@@ -60,7 +60,7 @@ has the details for Windows and Linux.
 - **Google Drive in the chat** — `@` and a file name attaches a Doc (as text), a Sheet (as CSV), Slides or any file.
 
 **Work apps**
-- **WhaTicket** — the WhatsApp ticket queue and your tickets in the island, Accept in one click, and optional auto-accept (by queue and hours, with Undo).
+- **WhaTicket** — the WhatsApp ticket queue and your tickets in the island, Accept in one click, and optional auto-accept (by queue and hours). whaticket.com connects with an API token (Integrations → Tokens); a self-hosted WhaTicket with its URL, email and password (and Undo).
 - **Gmail** — what matches your search (unread in the inbox by default); "Ask" hands a mail to Mochi. Read-only, with your own Google Cloud OAuth client.
 
 **Everyday**

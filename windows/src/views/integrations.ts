@@ -346,17 +346,17 @@ function whaticketCard(): HTMLElement {
   const d = get("integration_whaticket");
   const pending = arr("integration_whaticket", "pending");
   const mine = arr("integration_whaticket", "mine");
-  const undoable = new Set(Array.isArray(d.undoable) ? (d.undoable as number[]) : []);
+  const undoable = new Set(Array.isArray(d.undoable) ? (d.undoable as string[]) : []);
   const rows = h("div", { class: "int-rows tight" });
 
   // What Coucou just accepted on its own, with Undo.
-  for (const t of mine.filter((m) => undoable.has(Number(m.id))).slice(0, 1)) {
+  for (const t of mine.filter((m) => undoable.has(String(m.id))).slice(0, 1)) {
     const undo = h("button", { class: "int-mini", text: "Undo" });
     undo.addEventListener("click", async (e) => {
       e.stopPropagation();
       undo.textContent = "…";
       try {
-        await Bridge.whaticketUndo(Number(t.id));
+        await Bridge.whaticketUndo(String(t.id));
       } catch (err) {
         State.noteMessage = String(err).replace(/^Error:\s*/, "");
         State.view = "note";
@@ -378,7 +378,7 @@ function whaticketCard(): HTMLElement {
       e.stopPropagation();
       accept.textContent = "…";
       try {
-        await Bridge.whaticketAccept(Number(t.id));
+        await Bridge.whaticketAccept(String(t.id));
       } catch (err) {
         accept.textContent = "Accept";
         State.noteMessage = String(err).replace(/^Error:\s*/, "");
@@ -389,7 +389,7 @@ function whaticketCard(): HTMLElement {
     rows.append(h("div", {
       class: "int-page",
       title: String(t.lastMessage ?? ""),
-      onclick: () => void Bridge.whaticketOpen(Number(t.id)),
+      onclick: () => void Bridge.whaticketOpen(String(t.id)),
     },
       dot(String(t.queueColor || "#F5A524"), 6),
       h("span", { class: "int-name", text: String(t.name ?? "") }),
@@ -398,11 +398,11 @@ function whaticketCard(): HTMLElement {
     ));
   }
   const left = 3 - Math.min(3, pending.length);
-  for (const t of mine.filter((m) => !undoable.has(Number(m.id))).slice(0, left)) {
+  for (const t of mine.filter((m) => !undoable.has(String(m.id))).slice(0, left)) {
     rows.append(h("button", {
       class: "int-page",
       title: String(t.lastMessage ?? ""),
-      onclick: () => void Bridge.whaticketOpen(Number(t.id)),
+      onclick: () => void Bridge.whaticketOpen(String(t.id)),
     },
       dot("#25D366", 6),
       h("span", { class: "int-name", text: String(t.name ?? "") }),

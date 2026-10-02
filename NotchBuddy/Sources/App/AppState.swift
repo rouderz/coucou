@@ -79,7 +79,7 @@ final class AppState: ObservableObject {
     @Published var whaticketPendingCount = 0
     @Published var whaticketMine: [WhaTicketTicket] = []
     @Published var whaticketMineCount = 0
-    @Published var whaticketUndoable: Set<Int> = []
+    @Published var whaticketUndoable: Set<String> = []
     @Published var whaticketError: String? = nil
     @Published var whaticketLoaded = false
 

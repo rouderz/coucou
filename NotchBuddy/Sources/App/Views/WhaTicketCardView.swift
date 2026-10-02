@@ -5,7 +5,7 @@ import SwiftUI
 /// and my open tickets. Same layout as LinearCardView.
 struct WhaTicketCardView: View {
     @ObservedObject private var appState = AppState.shared
-    @State private var busy: Set<Int> = []
+    @State private var busy: Set<String> = []
 
     private var justAccepted: [WhaTicketTicket] { appState.whaticketMine.filter { appState.whaticketUndoable.contains($0.id) } }
     private var otherMine: [WhaTicketTicket] { appState.whaticketMine.filter { !appState.whaticketUndoable.contains($0.id) } }
@@ -73,7 +73,7 @@ struct WhaTicketCardView: View {
         .onTapGesture { if let url = WhaTicketAPI.webURL(t.id) { NSWorkspace.shared.open(url) } }
     }
 
-    private func action(_ title: String, _ id: Int, _ run: @escaping @MainActor () async throws -> Void) -> some View {
+    private func action(_ title: String, _ id: String, _ run: @escaping @MainActor () async throws -> Void) -> some View {
         Button {
             busy.insert(id)
             Task { @MainActor in

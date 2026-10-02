@@ -12,7 +12,7 @@ struct WhaTicketSettingsSection: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: 10) {
-            Text("Turn on the WhaTicket pill and add its URL, email and password under Integrations. New tickets then show in the island; you accept them with one click.")
+            Text("whaticket.com: in WhaTicket go to Integrations → Tokens, create a token with a profile that can view all tickets, view pending ones, transfer tickets and view users; paste it under Integrations with the email you sign in with. Self-hosted WhaTicket: its backend URL, email and password instead.")
                 .font(.system(size: 11)).foregroundColor(.secondary)
                 .fixedSize(horizontal: false, vertical: true)
 
@@ -61,7 +61,7 @@ struct WhaTicketSettingsSection: View {
                     .onChange(of: hours) { _, v in WhaTicketSettings.hours = v.trimmingCharacters(in: .whitespaces) }
             }
 
-            Text("Never during Do not disturb, never group chats, and you can undo for two minutes. Coucou only assigns the ticket — it never writes to the customer.")
+            Text("Never during Do not disturb and never group chats. Self-hosted WhaTicket can undo for two minutes (whaticket.com can't put a ticket back in the queue). Coucou only assigns the ticket — it never writes to the customer.")
                 .font(.system(size: 11)).foregroundColor(.secondary)
                 .fixedSize(horizontal: false, vertical: true)
         }

@@ -151,6 +151,20 @@ const ES: Record<string, string> = {
   "Never during Do not disturb, never group chats, and you can undo for two minutes. Coucou only assigns the ticket — it never writes to the customer.":
     "Nunca en No molestar ni en chats de grupo, y puedes deshacerlo durante dos minutos. Coucou solo se asigna el ticket: nunca le escribe al cliente.",
   "Accept": "Aceptar", "Undo": "Deshacer", "Accepted": "Aceptado", "No tickets waiting.": "No hay tickets esperando.",
+  "API token": "Token de API", "whaticket.com → Integrations → Tokens": "whaticket.com → Integraciones → Tokens",
+  "the one you sign in to WhaTicket with": "con el que entras a WhaTicket", "self-hosted only: https://api.your-whaticket.com": "solo instalado por ti: https://api.tu-whaticket.com",
+  "self-hosted only": "solo instalado por ti", "optional, to open tickets": "opcional, para abrir tickets",
+  "whaticket.com: in WhaTicket go to Integrations → Tokens, create a token with a profile that can view all tickets, view pending ones, transfer tickets and view users; paste it under Integrations with the email you sign in with. Self-hosted WhaTicket: its backend URL, email and password instead.":
+    "whaticket.com: en WhaTicket ve a Integraciones → Tokens, crea un token con un perfil que pueda ver todos los tickets, ver los pendientes, transferir tickets y ver usuarios; pégalo en Integraciones junto con el correo con el que entras. WhaTicket instalado por ti: su URL del backend, correo y contraseña.",
+  "Never during Do not disturb and never group chats. Self-hosted WhaTicket can undo for two minutes (whaticket.com can't put a ticket back in the queue). Coucou only assigns the ticket — it never writes to the customer.":
+    "Nunca en No molestar ni en chats de grupo. Con WhaTicket instalado por ti puedes deshacer durante dos minutos (whaticket.com no permite devolver un ticket a la cola). Coucou solo se asigna el ticket: nunca le escribe al cliente.",
+  "WhaTicket refused the token — check it in whaticket.com → Integrations → Tokens.": "WhaTicket rechazó el token: revísalo en whaticket.com → Integraciones → Tokens.",
+  "Add the email you sign in to WhaTicket with, so Coucou knows which agent you are.": "Agrega el correo con el que entras a WhaTicket, para que Coucou sepa qué agente eres.",
+  "No WhaTicket user has that email — check it.": "Ningún usuario de WhaTicket tiene ese correo: revísalo.",
+  "This WhaTicket asks for a code to sign in: use an API token instead (whaticket.com → Integrations → Tokens).": "Este WhaTicket pide un código para entrar: usa un token de API (whaticket.com → Integraciones → Tokens).",
+  "WhaTicket says too many attempts — wait a minute and try again.": "WhaTicket dice que hubo demasiados intentos: espera un minuto y vuelve a intentar.",
+  "Add your WhaTicket token (or URL, email and password) first.": "Agrega primero tu token de WhaTicket (o URL, correo y contraseña).",
+  "whaticket.com can't put a ticket back in the queue — open it in WhaTicket.": "whaticket.com no permite devolver un ticket a la cola: ábrelo en WhaTicket.",
   "Wrong email or password": "Correo o contraseña incorrectos", "That URL doesn't answer like WhaTicket.": "Esa URL no responde como WhaTicket.",
   "Someone already took that ticket.": "Alguien ya tomó ese ticket.", "Too late to undo — reopen it in WhaTicket.": "Ya es tarde para deshacer: reábrelo en WhaTicket.",
   "Add the WhaTicket URL, email and password first.": "Agrega primero la URL, el correo y la contraseña de WhaTicket.",
@@ -245,6 +259,7 @@ const PATTERNS: [RegExp, string][] = [
   [/^Signed in as (.+)\. Queues: (.*)\.$/, "Sesión iniciada como $1. Colas: $2."],
   [/^Waiting (\d+) · Mine (\d+)( · Auto)?$/, "En espera $1 · Míos $2$3"],
   [/^Accepted · (.+)$/, "Aceptado · $1"],
+  [/^The token's profile needs these permissions: (.+)$/, "El perfil del token necesita estos permisos: $1"],
   [/^New ticket · (.+)$/, "Ticket nuevo · $1"],
   [/^Message · (.+)$/, "Mensaje · $1"],
   [/^(\d+) new$/, "$1 nuevos"],
