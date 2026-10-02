@@ -111,8 +111,11 @@ jobs:
           key: release-windows-${{ hashFiles('windows/Cargo.lock', 'windows/**/Cargo.toml') }}
           restore-keys: release-windows-
       - run: npm ci
+      # The cached target/ keeps installers from earlier versions: start from an
+      # empty bundle folder so only this version's file is picked up.
       - name: Build the installer
         run: |
+          rm -rf target/release/bundle
           npx tauri build
           mkdir -p ../out
           cp target/release/bundle/nsis/*-setup.exe "../out/Coucou-${{ needs.version.outputs.label }}-Windows-setup.exe"
@@ -162,6 +165,7 @@ jobs:
       - run: npm ci
       - name: Build the packages
         run: |
+          rm -rf target/release/bundle   # cached older versions' packages
           npx tauri build
           L="${{ needs.version.outputs.label }}"
           mkdir -p ../out
