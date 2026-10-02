@@ -13,6 +13,27 @@ import { shouldAutoAllow } from "../claude/autoApprove.ts";
 import { approvalTarget, lastPathComponent, stepLabel, stopMessage } from "../claude/labels.ts";
 import { recordApproval, recordAutoApproval, recordEvent } from "../claude/timeline.ts";
 import { buildPreview } from "../claude/preview.ts";
+import { dndActive } from "../core/dnd.ts";
+
+/** Seconds an approval waits before the phone is told (#31 on macOS). */
+const PHONE_DELAY_MS = 20_000;
+const linearChecked = new Map<string, number>();
+
+/** The Linear issue the session's branch names; looked up at most once a minute. */
+function linkLinear(sessionId: string, cwd: string, force: boolean) {
+  if (!sessionId || !cwd) return;
+  const last = linearChecked.get(sessionId) ?? 0;
+  if (!force && Date.now() - last < 60_000) return;
+  linearChecked.set(sessionId, Date.now());
+  void Bridge.linearIssueForFolder(cwd).then((issue) => {
+    const s = State.sessions.find((x) => x.id === sessionId);
+    if (!s) return;
+    s.linear = issue ?? null;
+    State.notify();
+  });
+}
+
+const quiet = () => dndActive(State.settings.dndUntil);
 import {
   CLAUDE_ID, flagApproval, focusSession, routeSession, syncFocused, updateBackground, endSession,
 } from "../claude/sessions.ts";
@@ -70,6 +91,10 @@ let islandRef: Island | null = null;
 export function registerHookHandlers(island: Island) {
   islandRef = island;
   void onEvent<HookPayload>("hook", (payload) => handleHook(island, payload));
+  // Alt+Enter / Alt+Backspace from any app while a card is up.
+  void onEvent<string>("approval-shortcut", (word) => {
+    if (State.pendingApproval) island.decide(word === "allow" ? "allow" : "deny");
+  });
 }
 
 function handleHook(island: Island, payload: HookPayload) {
@@ -102,7 +127,9 @@ function handleHook(island: Island, payload: HookPayload) {
   recordEvent(name, sessionId, raw);
 
   // Several sessions: only the focused one drives the card.
-  if (sessionId && !routeSession(sessionId, agent, projectName, cwd, name)) {
+  const routed = sessionId ? routeSession(sessionId, agent, projectName, cwd, name) : true;
+  if (sessionId) linkLinear(sessionId, cwd, name === "SessionStart" || name === "UserPromptSubmit");
+  if (!routed) {
     updateBackground(sessionId, name, raw);
     return;
   }
@@ -111,6 +138,11 @@ function handleHook(island: Island, payload: HookPayload) {
 
   /** Alerts force the island open; work events only reveal the compact island. */
   const surface = (view: Parameters<Island["alert"]>[0], isAlert: boolean) => {
+    // Do not disturb: never opens by itself; alerts badge the pill instead.
+    if (quiet()) {
+      if (isAlert) State.setPillBadge(CLAUDE_ID, view === "error" ? "error" : "finished");
+      return;
+    }
     if (State.mode === "expanded") {
       if (isAlert) island.setView(view);
     } else if (isAlert) {
@@ -296,12 +328,23 @@ function show(island: Island, approval: ApprovalInfo) {
   State.updateTask(CLAUDE_ID, "approval");
   State.isPinned = true;
   Sound.play("approval");
-  if (State.focusId === CLAUDE_ID) {
+  void Bridge.approvalShortcuts(true);
+  if (State.focusId === CLAUDE_ID && !quiet()) {
     island.alert(approval.preview ? "review" : "approval");
   } else {
+    // Another pill holds the view, or Do not disturb: the badge says it, quietly.
     State.setPillBadge(CLAUDE_ID, "approval");
     island.reveal();
   }
+  // Still waiting after a while: tell the phone (if set up; away only, if asked).
+  window.setTimeout(() => {
+    if (State.pendingApproval?.requestId !== requestId) return;
+    void Bridge.phoneAlert(
+      `Claude Code needs you · ${approval.project}`,
+      `${approval.tool}: ${approval.command}`,
+      approval.risk === "high",
+    );
+  }, PHONE_DELAY_MS);
   // Coucou answers within 108 s or not at all; after that the terminal has
   // taken over and the card would be lying.
   pendingTimeout = window.setTimeout(() => {
@@ -315,6 +358,7 @@ function show(island: Island, approval: ApprovalInfo) {
     State.setPillBadge(CLAUDE_ID, null);
     if (State.view === "approval" || State.view === "review") island.setView(State.defaultView());
     showNextApproval();
+    if (!State.pendingApproval) void Bridge.approvalShortcuts(false);
     State.notify();
   }, DECISION_MS);
 }
@@ -328,6 +372,7 @@ export function approvalDecided(approval: ApprovalInfo, decision: "allow" | "den
   }
   syncFocused();
   showNextApproval();
+  if (!State.pendingApproval) void Bridge.approvalShortcuts(false);
 }
 
 function showNextApproval() {

@@ -63,6 +63,22 @@ export const Bridge = {
   editorsInstalled: () => call<{ id: string; name: string }[]>("editors_installed"),
   /** Is `claude` installed, for the subscription chat? */
   claudeCodeStatus: () => call<{ installed: boolean; path: string | null }>("claude_code_status"),
+  // ── Linear, inbox, phone alerts, updates, shortcuts ─────────────────────────
+  linearIssueForFolder: (cwd: string) =>
+    call<{ id: string; identifier: string; title: string; url: string } | null>("linear_issue_for_folder", { cwd }),
+  /** Posts Markdown on the issue — only ever from a click. */
+  linearComment: (issueId: string, body: string) => callOrThrow<void>("linear_comment", { issueId, body }),
+  inboxRefresh: () => call<void>("inbox_refresh"),
+  inboxDismiss: (id: string) => call<void>("inbox_dismiss", { id }),
+  /** True when the phone was told (set up, and away when that's asked for). */
+  phoneAlert: (title: string, message: string, urgent: boolean) =>
+    call<boolean>("phone_alert", { title, message, urgent }),
+  phoneTest: (server: string, topic: string) => callOrThrow<void>("phone_test", { server, topic }),
+  newNtfyTopic: () => call<string>("new_ntfy_topic"),
+  checkUpdate: () => callOrThrow<{ current: string; latest: string; newer: boolean; url: string }>("check_update"),
+  /** Alt+Enter / Alt+Backspace answer the card from any app, only while it's up. */
+  approvalShortcuts: (armed: boolean) => call<void>("approval_shortcuts", { armed }),
+
   /** Codex CLI hooks in ~/.codex/hooks.json. */
   codexStatus: () => call<{ found: boolean; installed: boolean; hooksPath: string }>("codex_status"),
   codexInstall: (install: boolean) => callOrThrow<void>("codex_install", { install }),

@@ -7,6 +7,8 @@ import { State, type Settings } from "./core/state";
 import { Island } from "./island/island";
 import { registerHookHandlers } from "./island/hooks";
 import { registerIntegrationHandlers, refreshConfigured } from "./island/integrations";
+import { registerInboxHandlers } from "./island/inbox";
+import { dndActive } from "./core/dnd.ts";
 
 async function main() {
   const root = document.getElementById("root");
@@ -65,6 +67,24 @@ async function main() {
 
   registerHookHandlers(island);
   registerIntegrationHandlers(island);
+  registerInboxHandlers(island);
+
+  // Do not disturb mutes every sound.
+  Sound.quiet = () => dndActive(State.settings.dndUntil);
+
+  // A newer release: the ⬇ in the header (at launch, then once a day).
+  const checkUpdate = async () => {
+    if (!State.settings.checkUpdates) return;
+    try {
+      const info = await Bridge.checkUpdate();
+      State.update = info.newer ? { latest: info.latest, url: info.url } : null;
+      State.notify();
+    } catch {
+      // Offline or rate limited: try again tomorrow.
+    }
+  };
+  window.setTimeout(() => void checkUpdate(), 20_000);
+  window.setInterval(() => void checkUpdate(), 24 * 60 * 60_000);
 
   island.launch();
 

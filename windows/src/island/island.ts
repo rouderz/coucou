@@ -104,6 +104,9 @@ export class Island {
 
   // ── DOM ─────────────────────────────────────────────────────────────────────
 
+  /** Allow / Deny from outside the views (the global shortcuts). */
+  decide: (d: "allow" | "deny") => void = () => {};
+
   private build() {
     const actions: ViewActions = {
       setView: (v) => this.setView(v),
@@ -151,6 +154,11 @@ export class Island {
         approvalDecided(req, d);
       },
       saveSettings: () => void Bridge.saveSettings(State.settings),
+      setDnd: (until) => {
+        State.settings.dndUntil = until;
+        void Bridge.saveSettings(State.settings);
+        State.notify();
+      },
       toggleSound: () => {
         State.settings.soundEnabled = !State.settings.soundEnabled;
         Sound.setEnabled(State.settings.soundEnabled);
@@ -180,6 +188,7 @@ export class Island {
     this.miniGrid = h("div", { id: "mini-grid" });
     this.countdown = h("div", { id: "countdown" });
 
+    this.decide = actions.decide;
     this.header = buildHeader(actions);
     this.views = buildViews(actions, () => this.animateGeometry(false));
     this.viewsEl = h("div", { id: "views" });

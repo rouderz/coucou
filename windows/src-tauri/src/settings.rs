@@ -30,6 +30,42 @@ pub struct Settings {
     /// Auto-approve per project folder (normalised path → "low" | "medium").
     #[serde(default)]
     pub auto_approve: HashMap<String, String>,
+
+    /// Do not disturb until this time (ms since the epoch); None = off (#30 on macOS).
+    #[serde(default)]
+    pub dnd_until: Option<f64>,
+
+    /// Phone alerts through ntfy for approvals left waiting (#31 on macOS).
+    #[serde(default)]
+    pub phone_alerts: bool,
+    #[serde(default)]
+    pub ntfy_server: String,
+    #[serde(default)]
+    pub ntfy_topic: String,
+    #[serde(default = "yes")]
+    pub phone_only_when_away: bool,
+
+    /// GitHub / Linear notifications in Mochi's inbox.
+    #[serde(default = "yes")]
+    pub inbox_enabled: bool,
+    #[serde(default = "yes")]
+    pub inbox_github: bool,
+    #[serde(default = "yes")]
+    pub inbox_linear: bool,
+    #[serde(default = "all_kinds")]
+    pub inbox_kinds: Vec<String>,
+
+    /// Look for a newer release on GitHub at launch and once a day.
+    #[serde(default = "yes")]
+    pub check_updates: bool,
+}
+
+fn yes() -> bool {
+    true
+}
+
+pub fn all_kinds() -> Vec<String> {
+    ["review", "mention", "assigned", "comment", "other"].iter().map(|s| s.to_string()).collect()
 }
 
 fn default_engine() -> String {
@@ -60,6 +96,16 @@ impl Default for Settings {
             chat_engine: default_engine(),
             editor: String::new(),
             auto_approve: HashMap::new(),
+            dnd_until: None,
+            phone_alerts: false,
+            ntfy_server: String::new(),
+            ntfy_topic: String::new(),
+            phone_only_when_away: true,
+            inbox_enabled: true,
+            inbox_github: true,
+            inbox_linear: true,
+            inbox_kinds: all_kinds(),
+            check_updates: true,
         }
     }
 }

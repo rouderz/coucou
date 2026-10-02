@@ -2,6 +2,12 @@
 // Drawn on a 24×24 grid so they read at the same optical size.
 
 export const ICONS = {
+  // moon.fill (Do not disturb)
+  moon: "M20.2 14.6A8.6 8.6 0 0 1 9.4 3.8a8.6 8.6 0 1 0 10.8 10.8z",
+  // bell.fill (inbox)
+  bell: "M12 3a6 6 0 0 0-6 6v4.2l-1.9 2.9v1.1h15.8v-1.1L18 13.2V9a6 6 0 0 0-6-6zm-2.3 15.4a2.3 2.3 0 0 0 4.6 0H9.7z",
+  // arrow.down.circle.fill (update available)
+  update: "M12 3a9 9 0 1 0 0 18 9 9 0 0 0 0-18zm-1 4.5h2v6.1l2.3-2.3 1.4 1.4L12 17.4l-4.7-4.7 1.4-1.4 2.3 2.3V7.5z",
   // house.fill
   house: "M12 3.2 2.8 10.6V21h6.6v-5.4h5.2V21h6.6V10.6L12 3.2z",
   // bubble.left.fill

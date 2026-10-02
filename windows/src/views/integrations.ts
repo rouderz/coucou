@@ -315,6 +315,30 @@ function calcomCard(): HTMLElement {
   return h("div", { class: "int-card" }, header("#C9956A", "Cal.com", "Schedule"), rows);
 }
 
+// ── Linear (#26 on macOS) ─────────────────────────────────────────────────────
+
+function linearCard(): HTMLElement {
+  const issues = arr("integration_linear", "issues");
+  const linked = new Set(State.sessions.map((s) => s.linear?.identifier).filter(Boolean));
+  const rows = h("div", { class: "int-rows tight" });
+  if (!issues.length) rows.append(h("div", { class: "int-empty", text: "Nothing open is assigned to you." }));
+  for (const issue of issues.slice(0, 4)) {
+    const id = String(issue.identifier ?? "");
+    rows.append(h("button", {
+      class: "int-page",
+      title: String(issue.stateName ?? ""),
+      onclick: () => { if (typeof issue.url === "string") void Bridge.openUrl(issue.url); },
+    },
+      dot(String(issue.stateColor ?? "#8E939C"), 6),
+      h("span", { class: "int-time", text: id }),
+      h("span", { class: "int-name", text: String(issue.title ?? "") }),
+      linked.has(id) ? h("span", { class: "int-ago", text: "● session" }) : null,
+    ));
+  }
+  const count = issues.length ? `Assigned to you · ${issues.length}` : "Assigned to you";
+  return h("div", { class: "int-card" }, header("#5E6AD2", "Linear", count), rows);
+}
+
 // ── n8n ───────────────────────────────────────────────────────────────────────
 
 function n8nCard(task: AgentTask, onDetail: () => void, openSettings: () => void): HTMLElement {
@@ -398,6 +422,8 @@ export function hasIntegrationData(id: string): boolean {
       return arr(id, "pages").length > 0;
     case "integration_calcom":
       return info.loaded;
+    case "integration_linear":
+      return info.loaded;
     default:
       return false;
   }
@@ -426,6 +452,8 @@ export function renderIntegrationCard(task: AgentTask, hooks: IntegrationCardHoo
       return notionCard();
     case "integration_calcom":
       return calcomCard();
+    case "integration_linear":
+      return linearCard();
     default:
       return idleCard(task, hooks.openSettings);
   }

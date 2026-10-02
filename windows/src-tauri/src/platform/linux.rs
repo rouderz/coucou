@@ -228,6 +228,11 @@ pub fn claude_fallbacks() -> Vec<PathBuf> {
     ]
 }
 
+/// Not knowable without a compositor-specific API: unknown.
+pub fn idle_seconds() -> Option<u64> {
+    None
+}
+
 pub fn current_uid() -> u32 {
     unsafe { libc::getuid() }
 }

@@ -84,8 +84,11 @@ class SoundEngine {
     this.enabled = on;
   }
 
+  /** Do not disturb: set by main.ts, checked on every sound. */
+  quiet: () => boolean = () => false;
+
   play(name: SoundName | string) {
-    if (!this.enabled) return;
+    if (!this.enabled || this.quiet()) return;
     const ctx = this.ctx;
     const master = this.master;
     const buf = this.buffers.get(name);
