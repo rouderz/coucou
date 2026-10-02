@@ -18,6 +18,7 @@ mod platform;
 mod secrets;
 mod settings;
 mod tray;
+mod voice;
 
 use std::sync::atomic::Ordering;
 use std::sync::{Arc, Mutex};
@@ -325,6 +326,17 @@ fn chat_delete_dir(dir: String) {
             let _ = std::fs::remove_dir_all(path);
         }
     }
+}
+
+/// Push-to-talk: one spoken question, as text (Windows' own speech recognition).
+#[tauri::command]
+async fn voice_listen() -> Result<String, String> {
+    voice::listen().await
+}
+
+#[tauri::command]
+fn voice_available() -> bool {
+    voice::can_listen()
 }
 
 #[tauri::command]
@@ -637,6 +649,8 @@ pub fn run() {
             chat_delete_dir,
             provider_presets,
             provider_models,
+            voice_listen,
+            voice_available,
         ])
         .setup(move |app| {
             let handle = app.handle().clone();

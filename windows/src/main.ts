@@ -10,6 +10,8 @@ import { registerIntegrationHandlers, refreshConfigured } from "./island/integra
 import { registerInboxHandlers } from "./island/inbox";
 import { dndActive } from "./core/dnd.ts";
 import { setLanguage, startTranslating } from "./core/i18n.ts";
+import { speak } from "./core/voice.ts";
+import { setSpeaker, setListening } from "./views/chat";
 
 async function main() {
   const root = document.getElementById("root");
@@ -77,6 +79,10 @@ async function main() {
   registerHookHandlers(island);
   registerIntegrationHandlers(island);
   registerInboxHandlers(island);
+
+  // Mochi reads replies aloud (Settings → Voice), never in Do not disturb.
+  setSpeaker((text) => { if (!dndActive(State.settings.dndUntil)) speak(text); });
+  setListening((await Bridge.voiceAvailable()) ?? false);
 
   // Do not disturb mutes every sound.
   Sound.quiet = () => dndActive(State.settings.dndUntil);

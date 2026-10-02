@@ -600,6 +600,19 @@ function inboxSection(): HTMLElement {
   );
 }
 
+// ── Voice ─────────────────────────────────────────────────────────────────────
+
+function voiceSection(canListen: boolean): HTMLElement {
+  return h("section", {},
+    h("h2", {}, h("span", { text: "Voice" })),
+    h("div", { class: "row" }, h("label", { text: "Read replies aloud" }),
+      toggle(settings.speakReplies, (v) => { settings.speakReplies = v; void save(); })),
+    h("div", { class: "hint", text: canListen
+      ? "🎙 in the chat: say your question and Mochi sends it (Windows speech recognition; dictation needs online speech recognition on in Windows Settings → Privacy & security → Speech)."
+      : "Speaking your questions isn't available on Linux: it has no built-in speech recognition. Mochi can still read its replies aloud." }),
+  );
+}
+
 // ── Updates ───────────────────────────────────────────────────────────────────
 
 function updatesSection(): HTMLElement {
@@ -735,6 +748,7 @@ async function main() {
   const editors = (await Bridge.editorsInstalled()) ?? [];
   const codex = (await Bridge.codexStatus()) ?? { found: false, installed: false, hooksPath: "" };
   const presets = (await Bridge.providerPresets()) ?? [];
+  const canListen = (await Bridge.voiceAvailable()) ?? false;
 
   const keys = [
     "stripe-api-key", "github-token", "vercel-token",
@@ -755,6 +769,7 @@ async function main() {
     integrationsSection(present),
     phoneSection(),
     inboxSection(),
+    voiceSection(canListen),
     updatesSection(),
     generalSection(editors),
     h("div", {

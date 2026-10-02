@@ -140,6 +140,13 @@ const ES: Record<string, string> = {
   "Launch at startup": "Abrir al iniciar sesión", "Open projects in": "Abrir proyectos en", "First one installed": "El primero instalado",
   "File manager (no editor found)": "Explorador de archivos (no hay editor)", "Language": "Idioma", "Same as the system": "Igual que el sistema",
   "Voice": "Voz", "Read replies aloud": "Leer las respuestas en voz alta",
+  "Speak your question": "Di tu pregunta", "Listening…": "Escuchando…",
+  "I didn't catch that. Try again.": "No te he entendido. Inténtalo de nuevo.",
+  "🎙 in the chat: say your question and Mochi sends it (Windows speech recognition; dictation needs online speech recognition on in Windows Settings → Privacy & security → Speech).":
+    "🎙 en el chat: di tu pregunta y Mochi la envía (reconocimiento de voz de Windows; el dictado necesita el reconocimiento de voz en línea activado en Configuración → Privacidad y seguridad → Voz).",
+  "Speaking your questions isn't available on Linux: it has no built-in speech recognition. Mochi can still read its replies aloud.":
+    "Hablarle a Mochi no está disponible en Linux: no trae reconocimiento de voz. Mochi sí puede leer sus respuestas en voz alta.",
+  "Speech recognition isn't available on Linux.": "El reconocimiento de voz no está disponible en Linux.",
   "No telemetry. Network requests only go to the services you configure yourself.":
     "Sin telemetría. Las peticiones de red solo van a los servicios que tú configuras.",
   "the Windows Credential Manager": "el Administrador de credenciales de Windows", "your keyring (Secret Service)": "tu llavero (Secret Service)",

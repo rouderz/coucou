@@ -88,6 +88,9 @@ export const Bridge = {
   chatDeleteDir: (dir: string) => call<void>("chat_delete_dir", { dir }),
   providerPresets: () => call<{ id: string; name: string; baseUrl: string; needsKey: boolean; defaultModel: string; keyHint: string }[]>("provider_presets"),
   providerModels: () => callOrThrow<string[]>("provider_models"),
+  /** Push-to-talk: one spoken question, as text (Windows). */
+  voiceListen: () => callOrThrow<string>("voice_listen"),
+  voiceAvailable: () => call<boolean>("voice_available"),
 
   /** Codex CLI hooks in ~/.codex/hooks.json. */
   codexStatus: () => call<{ found: boolean; installed: boolean; hooksPath: string }>("codex_status"),

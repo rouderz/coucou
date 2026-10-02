@@ -1725,3 +1725,21 @@ input[type="range"]::-webkit-slider-thumb {
 .chip-attach { color: #a5b4fc; }
 .chip-action:hover,
 .chip-attach:hover { background: rgba(255, 255, 255, 0.12); }
+
+/* ── Push-to-talk ────────────────────────────────────────────────────────────── */
+
+.mic-btn {
+  border: 0;
+  background: transparent;
+  font-size: 12px;
+  opacity: 0.6;
+  cursor: default;
+  padding: 0 4px;
+}
+
+.mic-btn:hover { opacity: 1; }
+.mic-btn.on { opacity: 1; animation: mic-pulse 1s ease-in-out infinite; }
+
+@keyframes mic-pulse {
+  50% { transform: scale(1.18); }
+}

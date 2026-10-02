@@ -22,3 +22,10 @@ test("spanish: exact, patterns, pieces; the rest untouched", () => {
   _test.setLang("en");
   assert.equal(t("Allow"), "Allow");
 });
+
+test("voice: speaks plain words", async () => {
+  // speakable() lives in voice.ts, which needs the DOM; the same rules here.
+  const speakable = (text: string) => text.replace(/```[\s\S]*?```/g, " ").replace(/https?:\/\/\S+/g, " ")
+    .replace(/[*_#`>]+/g, "").replace(/\s+/g, " ").trim();
+  assert.equal(speakable("**Done.** See https://x.dev/a\n```js\nx()\n```"), "Done. See");
+});

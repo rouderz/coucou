@@ -71,7 +71,24 @@ export function buildPrompt(onHeightChange: () => void, openHistory: () => void 
     spellcheck: "false",
   }) as HTMLInputElement;
   const send = h("button", { class: "send-btn", title: "Send" }, svg(ICONS.arrowUp, 11));
-  const bar = h("div", { class: "chat-bar" }, input, send);
+  // Push-to-talk (Windows): say the question; it's typed in and sent.
+  const mic = h("button", { class: "mic-btn", title: "Speak your question", text: "🎙" });
+  mic.addEventListener("click", async () => {
+    if (sending || mic.classList.contains("on")) return;
+    mic.classList.add("on");
+    input.placeholder = "Listening…";
+    try {
+      input.value = await Bridge.voiceListen();
+      void submit();
+    } catch (err) {
+      State.noteMessage = String(err).replace(/^Error:\s*/, "");
+      State.view = "note";
+      State.notify();
+    } finally {
+      mic.classList.remove("on");
+    }
+  });
+  const bar = h("div", { class: "chat-bar" }, input, mic, send);
 
   const el = h(
     "div",
@@ -160,7 +177,10 @@ export function buildPrompt(onHeightChange: () => void, openHistory: () => void 
         log.scrollTop = log.scrollHeight;
       }
 
-      input.placeholder = State.chatHistory.length === 0 ? "Ask me anything…" : "Continue…";
+      if (!mic.classList.contains("on")) {
+        input.placeholder = State.chatHistory.length === 0 ? "Ask me anything…" : "Continue…";
+      }
+      mic.style.display = canListen ? "" : "none";
       input.disabled = sending;
     },
     focus() {
@@ -177,4 +197,10 @@ export function setSpeaker(fn: (text: string) => void) {
 }
 function speak(text: string) {
   speakHook(text);
+}
+
+/** Whether push-to-talk is offered (Windows' speech recognition). */
+let canListen = false;
+export function setListening(on: boolean) {
+  canListen = on;
 }
