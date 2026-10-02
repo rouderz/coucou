@@ -2,13 +2,14 @@
 
 <img src="src-tauri/icons/128x128.png" width="96" alt="Coucou icon">
 
-# Coucou for Windows
+# Coucou for Windows and Linux
 
-**Mochi doesn't get a notch on a PC — so it lives at the top of your screen instead.**
+**Mochi doesn't get a notch on a PC — so it brings its own, at the top of your screen.**
 
 Approve Claude Code permissions, watch your session work, drop a file, chat with Claude, keep an eye on your services — without leaving what you're doing.
 
 ![Windows 10/11](https://img.shields.io/badge/Windows-10%2F11-0078D4?logo=windows)
+![Linux](https://img.shields.io/badge/Linux-X11%20%7C%20Wayland-FCC624?logo=linux&logoColor=black)
 ![Tauri 2](https://img.shields.io/badge/Tauri-2-FFC131?logo=tauri&logoColor=black)
 ![Rust](https://img.shields.io/badge/Rust-backend-000?logo=rust)
 ![License: MIT](https://img.shields.io/badge/license-MIT-green)
@@ -21,13 +22,25 @@ Approve Claude Code permissions, watch your session work, drop a file, chat with
 
 ## Install
 
-The downloadable installer is **temporarily unavailable**. Microsoft Defender
-wrongly flags the unsigned installer as malware (`Trojan:Win32/Wacatac.H!ml`, a
-machine-learning false positive). A report is under review at Microsoft, and the
-installer will be published again once it is cleared and code-signed.
+Every release on the [Releases](https://github.com/rouderz/coucou/releases) page has:
 
-Until then, [build it yourself](#build-it-yourself): it takes a few minutes and
-installs for the current user only — no admin prompt.
+| | File | Notes |
+|---|---|---|
+| Windows 10/11 | `Coucou-<version>-Windows-setup.exe` | installs for the current user only, no admin prompt |
+| Debian, Ubuntu | `Coucou-<version>-Linux-<arch>.deb` | `x86_64` or `arm64` |
+| Fedora, openSUSE | `Coucou-<version>-Linux-<arch>.rpm` | |
+| Any other distribution | `Coucou-<version>-Linux-<arch>.AppImage` | `chmod +x`, then run it |
+
+The builds aren't code-signed yet (#39). On Windows, SmartScreen asks first:
+**More info → Run anyway**. Microsoft Defender has wrongly flagged unsigned
+builds before (`Trojan:Win32/Wacatac.H!ml`, a machine-learning false positive);
+if that happens, [build it yourself](#build-it-yourself) — it takes a few minutes.
+
+**Updates:** when a new version is out, a ⬇ appears in the island. Click it and
+Coucou downloads the update, checks its signature, installs it and restarts.
+The Windows installer and the AppImage update themselves; `.deb` and `.rpm`
+installs (owned by the package manager) open the download instead. Turn the
+check off in Settings → Updates.
 
 ## Using it
 
@@ -39,17 +52,23 @@ installs for the current user only — no admin prompt.
 
 | What you do | What happens |
 |---|---|
-| Move the mouse to the very top-centre of the screen | Mochi peeks out |
+| Move the mouse to the small notch at the top centre of the screen | Mochi peeks out |
 | Click the small island | It opens |
 | Click Mochi | It gets annoyed. Three times in a row and it goes dizzy |
 | Rest the pointer on Mochi for two seconds | Hearts |
 | Drag a file onto the island | Mochi turns into a box, swallows it, then offers to answer questions about it |
 | `Esc` | Closes the island |
+| `Alt+Enter` / `Alt+Backspace` | Allow / deny the waiting approval, from any app (X11 only on Linux) |
 | Tray icon | Open, Settings…, Pause, Quit |
 
 Everything else happens on its own: a Claude Code permission request opens the
 island with **Deny / Allow**, a finished session shows what it did, and
 your integrations sit in the coloured pills next to Mochi.
+
+When the island hides, a small notch stays at the top centre, like the Mac's, so
+Coucou never seems gone. Coucou also keeps itself above other always-on-top
+windows (the taskbar, full-screen apps). Don't want the notch? **Settings →
+General → Idle notch** leaves only an invisible strip at the top edge.
 
 ## Claude Code
 
@@ -70,12 +89,15 @@ It works from any terminal — Windows Terminal, PowerShell, VS Code, Git Bash.
 
 ## Chat and keys
 
-**Settings… → Claude** takes your Anthropic API key. Keys live in the **Windows
-Credential Manager**, never on disk and never in the interface — the island can
-only ask whether a key exists. Same for every integration key.
+**Settings… → Chat** picks the engine: your own **Claude Code** (signed in with
+your Claude plan, no key needed), an **Anthropic API key**, or an OpenAI-compatible
+provider (OpenAI, Gemini, OpenRouter, Ollama, LM Studio, or any server you point
+it at). Keys live in the **Windows Credential Manager** or the Linux **Secret
+Service** (GNOME Keyring, KWallet), never on disk and never in the interface —
+the island can only ask whether a key exists. Same for every integration key.
 
 No telemetry. The only network requests Coucou makes are to the services you
-configure yourself.
+configure yourself, and to GitHub to check for updates (Settings → Updates).
 
 ## Build it yourself
 
@@ -95,13 +117,19 @@ to work on the island's looks. It also serves `dev/upload-preview.html`, which
 replays the whole file-drop choreography on a loop — the one part of the UI that
 otherwise needs a real drag from Explorer to see. Neither page ships in the app.
 
-`npm run pack` leaves two files in `windows/release/`, the same names the release
-workflow publishes:
+`npm run pack` leaves two files in `windows/release/`:
 
 ```
 Coucou-Windows-X.Y.Z-setup.exe    the versioned installer
 Coucou-Windows-setup.exe          the same file under the rolling name
 ```
+
+Tests: `npm test` for the front-end logic, `cargo test` for the Rust side. Both
+run on every pull request, on Windows and Linux
+([`desktop.yml`](../.github/workflows/desktop.yml)). Releases are built by
+[`release.yml`](../.github/workflows/release.yml) on `v*` tags, or by hand from
+the Actions tab for a test build (`bash scripts/release.sh X.Y.Z` from the repo
+root does the tagging).
 
 Installing is optional — `target/release/coucou.exe` runs on its own. There is no
 window in the taskbar and no console: the island at the top of the screen and the
@@ -129,7 +157,7 @@ windows/
   src-tauri/           Rust backend: window, named pipe / socket, Claude API, pollers
     src/platform/      what differs between Windows and Linux
   hook/                coucou-hook(.exe), the Claude Code relay
-  scripts/             icon generator
+  scripts/             icon generator, installer packing
 ```
 
 ### Log
@@ -140,9 +168,10 @@ hook events, permission decisions, poller problems. It stays on your machine.
 ## Linux
 
 The same app runs on Linux (#33–#37). Packages: `.deb` (Debian, Ubuntu), `.rpm`
-(Fedora, openSUSE) and `.AppImage` (anything else), built by the
-[Linux release workflow](../.github/workflows/linux.yml) on `linux-v*` tags and
-by CI on every PR (download them from the run's artifacts).
+(Fedora, openSUSE) and `.AppImage` (anything else), for x86_64 and arm64, built
+by the [release workflow](../.github/workflows/release.yml) with the other
+platforms. For a test build without releasing, run it by hand with
+`platforms: linux` and download the run's artifacts.
 
 What changes:
 
@@ -175,8 +204,8 @@ npx tauri build         # .deb, .rpm and .AppImage in target/release/bundle/
 
 ## What's different from the Mac version
 
-- No notch, so the island lives at the top centre of the screen and retracts into
-  the top edge instead of hiding in a notch.
+- No notch, so the island lives at the top centre of the screen and leaves a
+  small notch of its own there when it hides (Settings → General → Idle notch).
 - Permission approval works from **any** terminal; the Mac build only listens to
   VS Code sessions.
 - Not in this version: sending a file by email, dragging Mochi onto a window to
@@ -190,7 +219,7 @@ npx tauri build         # .deb, .rpm and .AppImage in target/release/bundle/
 - Also like the Mac: Do not disturb (🌙: no sounds, the island never opens by
   itself), phone alerts through ntfy for approvals left waiting, an inbox (🔔)
   of GitHub and Linear notifications, a Linear card with the issue your branch
-  names (and the timeline posted on it), an update check (⬇), and Alt+Enter /
+  names (and the timeline posted on it), self-updates (⬇), and Alt+Enter /
   Alt+Backspace to allow or deny from any app while a card is up (X11 only on
   Linux). Not here: Do not disturb during calendar events (needs macOS EventKit).
 - Chats are saved (History, New chat); the chat can also use OpenAI, Gemini,
@@ -203,3 +232,12 @@ npx tauri build         # .deb, .rpm and .AppImage in target/release/bundle/
   Chat → Engine), signed in with your Claude plan; GitHub works with a token or
   with a signed-in GitHub CLI (`gh auth login`).
 - Cal.com shows the next bookings as a list rather than the Mac's calendar.
+
+## License
+
+The code is [MIT](../LICENSE). The name Coucou, the Mochi character, the icons
+(including the ones `scripts/gen-icons.mjs` draws) and the sounds are Louis
+Raillé's and are not covered by it — see [LICENSE-ASSETS.md](../LICENSE-ASSETS.md).
+The builds include open-source libraries (Tauri and its plugins, the `windows`
+crate, GTK / WebKitGTK bindings and the rest of [`Cargo.lock`](Cargo.lock) and
+[`package-lock.json`](package-lock.json)), each under its own license.
