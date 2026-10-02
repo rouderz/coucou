@@ -1,11 +1,8 @@
 name: Build and test
 
-# Every PR to main and every push to main: generate the project, build (Debug, like day to day,
+# Every PR to main: generate the project, build (Debug, like day to day,
 # and Release, like a DMG) and run the unit tests. A red check means: don't merge yet.
 on:
-  push:
-    branches: [main]
-    paths: ["NotchBuddy/**", ".github/workflows/build.yml"]
   pull_request:
     branches: [main]
     paths: ["NotchBuddy/**", ".github/workflows/build.yml"]

@@ -41,4 +41,5 @@ windows = { version = "0.61", features = [
 keyring = { version = "3", features = ["sync-secret-service", "crypto-rust"] }
 libc = "0.2"
 gtk = "0.18"
-gtk-layer-shell = "0.8"
+# v0_6: is_supported, is_layer_window and keyboard modes (Ubuntu 22.04 ships 0.7).
+gtk-layer-shell = { version = "0.8", features = ["v0_6"] }

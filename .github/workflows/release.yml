@@ -2,12 +2,14 @@ name: Release
 
 # One pipeline for every platform:
 #
-#   • every push to main → builds macOS (.dmg), Windows (setup .exe) and Linux
-#     (.deb, .rpm, .AppImage — x86_64 and arm64), kept as downloadable artifacts
-#     on the run for 14 days. Nothing is published.
-#   • a tag like v0.3.0 (bash scripts/release.sh 0.3.0 makes it) → the same builds,
-#     published together as the GitHub release v0.3.0. Coucou for Mac's update
-#     check reads these releases (it picks the .dmg).
+#   a tag like v0.3.0 (bash scripts/release.sh 0.3.0 makes it) → builds macOS
+#   (.dmg), Windows (setup .exe) and Linux (.deb, .rpm, .AppImage — x86_64 and
+#   arm64) and publishes them together as the GitHub release v0.3.0. Coucou for
+#   Mac's update check reads these releases (it picks the .dmg).
+#
+#   Nothing builds on merges to main. To try a build without releasing, run this
+#   workflow by hand (Actions → Release → Run workflow): it keeps the files as
+#   artifacts on the run for 14 days and publishes nothing.
 #
 # Nothing is code-signed yet (#38, #39): macOS asks to "Open Anyway" in Privacy &
 # Security the first time, Windows SmartScreen asks for "More info → Run anyway".
@@ -15,10 +17,16 @@ name: Release
 # installer out of releases (Defender once flagged the unsigned one by mistake).
 on:
   push:
-    branches: [main]
     tags: ['v*']
-    paths-ignore: ['**.md', 'docs/**', 'design/**']
+  # Test builds: Actions → Release → Run workflow (pick any branch, e.g. a PR's),
+  # or `gh workflow run release.yml --ref <branch> -f platforms=linux`.
   workflow_dispatch:
+    inputs:
+      platforms:
+        description: Which builds
+        type: choice
+        options: [all, macos, windows, linux]
+        default: all
 
 permissions:
   contents: write
@@ -55,6 +63,7 @@ jobs:
 
   macos:
     needs: version
+    if: github.event_name != 'workflow_dispatch' || contains(fromJSON('["all","macos"]'), inputs.platforms)
     runs-on: macos-latest
     timeout-minutes: 40
     steps:
@@ -78,6 +87,7 @@ jobs:
 
   windows:
     needs: version
+    if: github.event_name != 'workflow_dispatch' || contains(fromJSON('["all","windows"]'), inputs.platforms)
     runs-on: windows-latest
     timeout-minutes: 45
     defaults:
@@ -114,6 +124,7 @@ jobs:
 
   linux:
     needs: version
+    if: github.event_name != 'workflow_dispatch' || contains(fromJSON('["all","linux"]'), inputs.platforms)
     strategy:
       fail-fast: false
       matrix:

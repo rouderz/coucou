@@ -58,8 +58,8 @@ using your Claude Code subscription, no API key needed.
 | Windows | `Coucou-<version>-Windows-setup.exe` | SmartScreen → **More info → Run anyway** |
 | Linux | `.deb`, `.rpm` or `.AppImage`, x86_64 and arm64 | — |
 
-Coucou for Mac checks for new releases itself (Settings → Updates). Builds of every commit on `main` are
-on the [Release workflow](https://github.com/rouderz/coucou/actions/workflows/release.yml) runs, as artifacts.
+Coucou for Mac checks for new releases itself (Settings → Updates). To try a build without releasing, run the
+[Release workflow](https://github.com/rouderz/coucou/actions/workflows/release.yml) by hand: the files stay on the run as artifacts.
 
 **Release:** `bash scripts/release.sh 0.3.0` sets the version for every platform, tags `v0.3.0` and pushes; GitHub
 Actions builds macOS, Windows and Linux and publishes them together. `bash scripts/build.sh` builds for the
