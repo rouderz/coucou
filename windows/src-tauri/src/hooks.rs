@@ -490,9 +490,19 @@ fn unified_diff(before: &str, after: &str) -> String {
 
 #[cfg(test)]
 mod tests {
+    /// Hook commands are built from the home folder ($HOME on Linux), and one test
+    /// points HOME at a temp folder. Tests run in parallel, so every test that builds
+    /// a hook command takes this lock first — otherwise two `merged()` calls can see
+    /// two different homes and disagree.
+    static ENV: std::sync::Mutex<()> = std::sync::Mutex::new(());
+
+    fn env_lock() -> std::sync::MutexGuard<'static, ()> {
+        ENV.lock().unwrap_or_else(|poisoned| poisoned.into_inner())
+    }
 
     #[test]
     fn our_status_line_comes_and_goes_and_never_replaces_the_users() {
+        let _env = env_lock();
         let fresh = merged(&json!({}));
         assert!(fresh["statusLine"]["command"].as_str().unwrap().contains("--statusline"));
         assert!(without_ours(&fresh).get("statusLine").is_none());
@@ -503,6 +513,7 @@ mod tests {
 
     #[test]
     fn fresh_hooks_are_up_to_date_and_old_ones_are_not() {
+        let _env = env_lock();
         let fresh = merged(&json!({}));
         assert!(!is_outdated(&fresh));
         let mut old = fresh.clone();
@@ -547,6 +558,7 @@ mod tests {
 
     #[test]
     fn merging_keeps_every_other_setting_and_every_foreign_hook() {
+        let _env = env_lock();
         let existing = serde_json::json!({
             "model": "claude-opus-5",
             "theme": "dark",
@@ -590,6 +602,7 @@ mod tests {
     /// USERPROFILE at a temp directory, and that is process-wide.
     #[test]
     fn writing_backs_up_preserves_and_refuses_a_changed_file() {
+        let _env = env_lock();
         let tmp = std::env::temp_dir().join(format!("coucou-hooks-{}", std::process::id()));
         let _ = std::fs::remove_dir_all(&tmp);
         std::fs::create_dir_all(tmp.join(".claude")).unwrap();
