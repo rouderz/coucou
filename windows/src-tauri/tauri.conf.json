@@ -66,6 +66,18 @@
         ],
         "installerHooks": "nsis/hooks.nsh"
       }
+    },
+    "createUpdaterArtifacts": false
+  },
+  "plugins": {
+    "updater": {
+      "pubkey": "dW50cnVzdGVkIGNvbW1lbnQ6IG1pbmlzaWduIHB1YmxpYyBrZXk6IDhFM0JCQTgxNjdBMUJCQzQKUldURXU2Rm5nYm83anFVRGt2RFRweVRZKzBTRUdQd0dQR1lTOURGV2NTYk1PbytSTXZ5aEJpeVkK",
+      "endpoints": [
+        "https://github.com/rouderz/coucou/releases/latest/download/latest.json"
+      ],
+      "windows": {
+        "installMode": "passive"
+      }
     }
   }
 }

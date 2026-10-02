@@ -74,11 +74,22 @@ jobs:
         with:
           xcode-version: latest-stable
       - run: brew install xcodegen
-      - name: Build the DMG
+      - name: Build the DMG and the self-update zip
+        env:
+          MAC_UPDATE_KEY: ${{ secrets.MAC_UPDATE_KEY }}
         run: |
-          bash scripts/make-dmg.sh "${{ needs.version.outputs.version }}"
+          V="${{ needs.version.outputs.version }}"
+          L="${{ needs.version.outputs.label }}"
+          bash scripts/make-dmg.sh "$V"
           mkdir -p out
-          mv "dist/Coucou-${{ needs.version.outputs.version }}.dmg" "out/Coucou-${{ needs.version.outputs.label }}-macOS.dmg"
+          mv "dist/Coucou-$V.dmg" "out/Coucou-$L-macOS.dmg"
+          mv "dist/Coucou-$V.zip" "out/Coucou-$L-macOS.zip"
+          # Signed for the self-update (Ed25519, checked by the app against UpdateKey.swift).
+          if [ -n "$MAC_UPDATE_KEY" ]; then
+            swift scripts/update-signature.swift sign "out/Coucou-$L-macOS.zip" > "out/Coucou-$L-macOS.zip.sig"
+          else
+            echo "::warning::MAC_UPDATE_KEY isn't set: no self-update for macOS (run scripts/updater-keys.sh)"
+          fi
       - uses: actions/upload-artifact@v4
         with:
           name: Coucou-macOS
@@ -113,12 +124,24 @@ jobs:
       - run: npm ci
       # The cached target/ keeps installers from earlier versions: start from an
       # empty bundle folder so only this version's file is picked up.
+      # With the signing key, the installer is also signed for the self-update.
       - name: Build the installer
+        env:
+          TAURI_SIGNING_PRIVATE_KEY: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY }}
+          TAURI_SIGNING_PRIVATE_KEY_PASSWORD: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY_PASSWORD }}
         run: |
           rm -rf target/release/bundle
-          npx tauri build
+          if [ -n "$TAURI_SIGNING_PRIVATE_KEY" ]; then
+            npx tauri build --config '{"bundle":{"createUpdaterArtifacts":true}}'
+          else
+            echo "::warning::TAURI_SIGNING_PRIVATE_KEY isn't set: no self-update for Windows (run scripts/updater-keys.sh)"
+            npx tauri build
+          fi
+          L="${{ needs.version.outputs.label }}"
           mkdir -p ../out
-          cp target/release/bundle/nsis/*-setup.exe "../out/Coucou-${{ needs.version.outputs.label }}-Windows-setup.exe"
+          cp target/release/bundle/nsis/*-setup.exe "../out/Coucou-$L-Windows-setup.exe"
+          for f in target/release/bundle/nsis/*-setup.exe.sig; do [ -f "$f" ] && cp "$f" "../out/Coucou-$L-Windows-setup.exe.sig"; done
+          ls -la ../out
       - uses: actions/upload-artifact@v4
         with:
           name: Coucou-Windows
@@ -164,15 +187,24 @@ jobs:
           restore-keys: release-linux-${{ matrix.arch }}-
       - run: npm ci
       - name: Build the packages
+        env:
+          TAURI_SIGNING_PRIVATE_KEY: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY }}
+          TAURI_SIGNING_PRIVATE_KEY_PASSWORD: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY_PASSWORD }}
         run: |
           rm -rf target/release/bundle   # cached older versions' packages
-          npx tauri build
+          # With the signing key, the AppImage is also signed for the self-update.
+          if [ -n "$TAURI_SIGNING_PRIVATE_KEY" ]; then
+            npx tauri build --config '{"bundle":{"createUpdaterArtifacts":true}}'
+          else
+            npx tauri build
+          fi
           L="${{ needs.version.outputs.label }}"
           mkdir -p ../out
           shopt -s nullglob
           for f in target/release/bundle/deb/*.deb; do cp "$f" "../out/Coucou-$L-Linux-${{ matrix.arch }}.deb"; done
           for f in target/release/bundle/rpm/*.rpm; do cp "$f" "../out/Coucou-$L-Linux-${{ matrix.arch }}.rpm"; done
           for f in target/release/bundle/appimage/*.AppImage; do cp "$f" "../out/Coucou-$L-Linux-${{ matrix.arch }}.AppImage"; done
+          for f in target/release/bundle/appimage/*.AppImage.sig; do cp "$f" "../out/Coucou-$L-Linux-${{ matrix.arch }}.AppImage.sig"; done
           ls -la ../out
       - uses: actions/upload-artifact@v4
         with:
@@ -199,6 +231,23 @@ jobs:
         run: |
           V="${{ needs.version.outputs.version }}"
           [ "$PUBLISH_WINDOWS" = "false" ] && rm -f out/*Windows*
+          # latest.json: what the Windows / Linux apps update themselves from.
+          python3 - "$V" <<'PY'
+          import json, os, sys, datetime
+          v = sys.argv[1]
+          base = f"https://github.com/rouderz/coucou/releases/download/v{v}"
+          platforms = {}
+          for name, key in [("Windows-setup.exe", "windows-x86_64"),
+                            ("Linux-x86_64.AppImage", "linux-x86_64"),
+                            ("Linux-arm64.AppImage", "linux-aarch64")]:
+              sig = f"out/Coucou-{v}-{name}.sig"
+              if os.path.exists(sig):
+                  platforms[key] = {"signature": open(sig).read().strip(), "url": f"{base}/Coucou-{v}-{name}"}
+          if platforms:
+              json.dump({"version": v, "notes": f"Coucou {v}", "platforms": platforms,
+                         "pub_date": datetime.datetime.now(datetime.timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")},
+                        open("out/latest.json", "w"), indent=2)
+          PY
           ls -la out
           cat > notes.md <<NOTES
           ## Downloads

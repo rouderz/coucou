@@ -76,6 +76,10 @@ export const Bridge = {
   phoneTest: (server: string, topic: string) => callOrThrow<void>("phone_test", { server, topic }),
   newNtfyTopic: () => call<string>("new_ntfy_topic"),
   checkUpdate: () => callOrThrow<{ current: string; latest: string; newer: boolean; url: string }>("check_update"),
+  /** This copy can update itself (signed releases; Windows, or Linux as an AppImage). */
+  updateCanInstall: () => call<boolean>("update_can_install"),
+  /** Downloads, checks the signature, installs and restarts. */
+  updateInstall: () => callOrThrow<void>("update_install"),
   /** Alt+Enter / Alt+Backspace answer the card from any app, only while it's up. */
   approvalShortcuts: (armed: boolean) => call<void>("approval_shortcuts", { armed }),
 

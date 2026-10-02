@@ -411,6 +411,46 @@ async fn check_update() -> Result<alerts::UpdateInfo, String> {
     alerts::check().await
 }
 
+/// The key release builds are signed with (tauri.conf.json → plugins.updater.pubkey);
+/// empty until scripts/updater-keys.sh has been run.
+fn updater_pubkey(app: &AppHandle) -> String {
+    app.config()
+        .plugins
+        .0
+        .get("updater")
+        .and_then(|u| u.get("pubkey"))
+        .and_then(|k| k.as_str())
+        .unwrap_or("")
+        .to_string()
+}
+
+/// Can this copy update itself? Signed releases, and an installer that can be
+/// replaced: Windows, or Linux running as an AppImage (.deb / .rpm go through the
+/// system's package manager instead).
+#[tauri::command]
+fn update_can_install(app: AppHandle) -> bool {
+    !updater_pubkey(&app).is_empty() && (cfg!(windows) || std::env::var_os("APPIMAGE").is_some())
+}
+
+/// Downloads the new version, checks its signature, installs it and restarts.
+#[tauri::command]
+async fn update_install(app: AppHandle) -> Result<(), String> {
+    use tauri_plugin_updater::UpdaterExt;
+    let update = app
+        .updater()
+        .map_err(|e| e.to_string())?
+        .check()
+        .await
+        .map_err(|e| e.to_string())?
+        .ok_or("You're already up to date.")?;
+    log::line(format!("updating to {}", update.version));
+    update
+        .download_and_install(|_, _| {}, || {})
+        .await
+        .map_err(|e| format!("The update couldn't be installed: {e}"))?;
+    app.restart()
+}
+
 /// ⌥⏎ / ⌥⌫ answer the approval on screen from any app (Alt+Enter / Alt+Backspace
 /// here). Registered only while a card is up, so they never steal those keys otherwise.
 #[tauri::command]
@@ -588,6 +628,7 @@ pub fn run() {
         .manage(ClaudeCodeChat::default())
         .manage(provider::ProviderChat::default())
         .manage(inbox::Inbox::default())
+        .plugin(tauri_plugin_updater::Builder::new().build())
         .plugin(
             tauri_plugin_global_shortcut::Builder::new()
                 .with_handler(|app, shortcut, event| {
@@ -641,6 +682,8 @@ pub fn run() {
             phone_test,
             new_ntfy_topic,
             check_update,
+            update_can_install,
+            update_install,
             approval_shortcuts,
             chat_restore,
             chat_session_info,

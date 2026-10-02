@@ -762,6 +762,16 @@
         }
       }
     },
+    "Checking the signature…": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Comprobando la firma…"
+          }
+        }
+      }
+    },
     "Checking…": {
       "localizations": {
         "es": {
@@ -1372,6 +1382,16 @@
         }
       }
     },
+    "Coucou updates itself and opens again in a few seconds.": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Coucou se actualiza solo y se vuelve a abrir en unos segundos."
+          }
+        }
+      }
+    },
     "Coucou will write this to ~/.claude/settings.json (your current file is backed up first). Review it, then confirm.": {
       "localizations": {
         "es": {
@@ -1478,6 +1498,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "Descargar el DMG"
+          }
+        }
+      }
+    },
+    "Downloading…": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Descargando…"
           }
         }
       }
@@ -1858,6 +1888,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "Instalar hooks de Codex"
+          }
+        }
+      }
+    },
+    "Install and restart": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Instalar y reiniciar"
           }
         }
       }
@@ -3022,6 +3062,16 @@
         }
       }
     },
+    "Restarting…": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Reiniciando…"
+          }
+        }
+      }
+    },
     "Retry": {
       "localizations": {
         "es": {
@@ -3408,6 +3458,26 @@
           "stringUnit": {
             "state": "translated",
             "value": "La API está limitando esta clave. Espera un momento y vuelve a intentarlo."
+          }
+        }
+      }
+    },
+    "The download isn't signed by Coucou's key. Nothing was installed.": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "La descarga no está firmada con la clave de Coucou. No se instaló nada."
+          }
+        }
+      }
+    },
+    "The downloaded app isn't the expected Coucou version. Nothing was installed.": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "La app descargada no es la versión esperada de Coucou. No se instaló nada."
           }
         }
       }

@@ -92,7 +92,8 @@ async function main() {
     if (!State.settings.checkUpdates) return;
     try {
       const info = await Bridge.checkUpdate();
-      State.update = info.newer ? { latest: info.latest, url: info.url } : null;
+      const canInstall = info.newer ? (await Bridge.updateCanInstall()) ?? false : false;
+      State.update = info.newer ? { latest: info.latest, url: info.url, canInstall } : null;
       State.notify();
     } catch {
       // Offline or rate limited: try again tomorrow.

@@ -140,6 +140,8 @@ const ES: Record<string, string> = {
   "Launch at startup": "Abrir al iniciar sesión", "Open projects in": "Abrir proyectos en", "First one installed": "El primero instalado",
   "File manager (no editor found)": "Explorador de archivos (no hay editor)", "Language": "Idioma", "Same as the system": "Igual que el sistema",
   "Voice": "Voz", "Read replies aloud": "Leer las respuestas en voz alta",
+  "Install and restart": "Instalar y reiniciar", "Updating…": "Actualizando…",
+  "You're already up to date.": "Ya estás al día.",
   "Speak your question": "Di tu pregunta", "Listening…": "Escuchando…",
   "I didn't catch that. Try again.": "No te he entendido. Inténtalo de nuevo.",
   "🎙 in the chat: say your question and Mochi sends it (Windows speech recognition; dictation needs online speech recognition on in Windows Settings → Privacy & security → Speech).":
@@ -179,6 +181,8 @@ const PATTERNS: [RegExp, string][] = [
   [/^(\d+) lines?$/, "$1 línea(s)"],
   [/^Auto-approve in (.+):$/, "Auto-aprobar en $1:"],
   [/^Coucou (.+) is out — download$/, "Coucou $1 ya está disponible — descargar"],
+  [/^Coucou (.+) is out — install and restart$/, "Coucou $1 ya está disponible — instalar y reiniciar"],
+  [/^The update couldn't be installed: (.+)$/, "No se pudo instalar la actualización: $1"],
   [/^Coucou (.+) is out \(you have (.+)\)\.$/, "Coucou $1 ya está disponible (tienes $2)."],
   [/^You're up to date \((.+)\)\.$/, "Estás al día ($1)."],
   [/^You have (.+)\.$/, "Tienes $1."],

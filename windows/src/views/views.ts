@@ -105,7 +105,25 @@ export function buildHeader(actions: ViewActions): ViewHost {
   // ⬇ A newer Coucou is out.
   const updateBtn = h("button", {
     class: "update-btn",
-    onclick: () => { if (State.update) actions.openUrl(State.update.url); },
+    onclick: async () => {
+      const u = State.update;
+      if (!u || u.installing) return;
+      if (!u.canInstall) {
+        actions.openUrl(u.url);
+        return;
+      }
+      // Updates itself: download, check the signature, install, restart.
+      u.installing = true;
+      State.notify();
+      try {
+        await Bridge.updateInstall();
+      } catch (err) {
+        u.installing = false;
+        State.noteMessage = String(err).replace(/^Error:\s*/, "");
+        actions.setView("note");
+        State.notify();
+      }
+    },
   }, svg(ICONS.update, 13));
   const soundBtn = h("button", { title: "Mute", onclick: () => actions.toggleSound() }, svg(ICONS.speakerOn, 14));
 
@@ -142,7 +160,12 @@ export function buildHeader(actions: ViewActions): ViewHost {
       inboxCount.textContent = State.inbox.length ? String(Math.min(99, State.inbox.length)) : "";
       inboxCount.style.display = State.inbox.length ? "" : "none";
       updateBtn.style.display = State.update ? "" : "none";
-      updateBtn.title = State.update ? `Coucou ${State.update.latest} is out — download` : "";
+      const u = State.update;
+      updateBtn.classList.toggle("busy", !!u?.installing);
+      updateBtn.title = !u ? ""
+        : u.installing ? "Updating…"
+        : u.canInstall ? `Coucou ${u.latest} is out — install and restart`
+        : `Coucou ${u.latest} is out — download`;
     },
   };
 }

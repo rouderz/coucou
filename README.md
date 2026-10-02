@@ -61,6 +61,11 @@ using your Claude Code subscription, no API key needed.
 Coucou for Mac checks for new releases itself (Settings → Updates). To try a build without releasing, run the
 [Release workflow](https://github.com/rouderz/coucou/actions/workflows/release.yml) by hand: the files stay on the run as artifacts.
 
+**Updates itself:** from the release that includes it on, Coucou installs new versions by itself and
+restarts (Mac: Settings → Updates → *Install and restart*; Windows and the Linux AppImage: the ⬇ in the
+island). Every download is checked against Coucou's signing key first. `.deb` / `.rpm` installs and copies
+the user can't write to fall back to downloading. One-time setup of the keys: `bash scripts/updater-keys.sh`.
+
 **Release:** `bash scripts/release.sh 0.3.0` sets the version for every platform, tags `v0.3.0` and pushes; GitHub
 Actions builds macOS, Windows and Linux and publishes them together. `bash scripts/build.sh` builds for the
 system you're on, into `dist/`.
