@@ -372,8 +372,8 @@ async fn whaticket_login() -> Result<whaticket::Account, String> {
 
 /// Accept from the island card — only ever on a click.
 #[tauri::command]
-async fn whaticket_accept(app: AppHandle, id: i64) -> Result<(), String> {
-    whaticket::accept(id).await?;
+async fn whaticket_accept(app: AppHandle, id: String) -> Result<(), String> {
+    whaticket::accept(&id).await?;
     log::line(format!("whaticket: accepted ticket {id}"));
     whaticket::poll(app).await;
     Ok(())
@@ -381,16 +381,16 @@ async fn whaticket_accept(app: AppHandle, id: i64) -> Result<(), String> {
 
 /// Puts a ticket Coucou accepted on its own back in the queue.
 #[tauri::command]
-async fn whaticket_undo(app: AppHandle, id: i64) -> Result<(), String> {
-    whaticket::undo(id).await?;
+async fn whaticket_undo(app: AppHandle, id: String) -> Result<(), String> {
+    whaticket::undo(&id).await?;
     log::line(format!("whaticket: undid ticket {id}"));
     whaticket::poll(app).await;
     Ok(())
 }
 
 #[tauri::command]
-fn whaticket_open(id: Option<i64>) {
-    if let Some(url) = whaticket::web_url(id) {
+fn whaticket_open(id: Option<String>) {
+    if let Some(url) = whaticket::web_url(id.as_deref()) {
         open_url(url);
     }
 }

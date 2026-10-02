@@ -84,8 +84,9 @@ pub struct Settings {
     /// queues (empty = any of mine), only during these hours ("09:00-18:00"; empty = always).
     #[serde(default)]
     pub whaticket_auto_accept: bool,
-    #[serde(default)]
-    pub whaticket_queues: Vec<i64>,
+    /// Queue ids as text (whaticket.com uses UUIDs); numbers from an older build still load.
+    #[serde(default, deserialize_with = "ids_as_text")]
+    pub whaticket_queues: Vec<String>,
     #[serde(default)]
     pub whaticket_hours: String,
 
@@ -94,6 +95,18 @@ pub struct Settings {
     pub google_email: String,
     #[serde(default = "default_gmail_query")]
     pub gmail_query: String,
+}
+
+fn ids_as_text<'de, D: serde::Deserializer<'de>>(d: D) -> Result<Vec<String>, D::Error> {
+    let raw: Vec<serde_json::Value> = Deserialize::deserialize(d)?;
+    Ok(raw
+        .into_iter()
+        .filter_map(|v| match v {
+            serde_json::Value::String(s) => Some(s),
+            serde_json::Value::Number(n) => Some(n.to_string()),
+            _ => None,
+        })
+        .collect())
 }
 
 fn default_gmail_query() -> String {
@@ -201,4 +214,17 @@ pub fn save(settings: &Settings) -> std::io::Result<()> {
     let json = serde_json::to_vec_pretty(settings)
         .map_err(|e| std::io::Error::new(std::io::ErrorKind::InvalidData, e))?;
     std::fs::write(settings_path(), json)
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn whaticket_queues_load_from_numbers_or_text() {
+        let old: Settings = serde_json::from_str(r#"{"soundEnabled":true,"soundVolume":0.1,"autoCloseInterval":15,"absenceInterval":180,"activeIntegrations":[],"screen":"primary","autostart":false,"hooksInstalled":false,"whaticketQueues":[1,"q-2"]}"#).unwrap();
+        assert_eq!(old.whaticket_queues, vec!["1".to_string(), "q-2".to_string()]);
+        let none: Settings = serde_json::from_str(r#"{"soundEnabled":true,"soundVolume":0.1,"autoCloseInterval":15,"absenceInterval":180,"activeIntegrations":[],"screen":"primary","autostart":false,"hooksInstalled":false}"#).unwrap();
+        assert!(none.whaticket_queues.is_empty());
+    }
 }

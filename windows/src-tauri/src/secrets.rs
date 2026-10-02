@@ -22,6 +22,7 @@ pub const KNOWN_KEYS: &[&str] = &[
     "whaticket-web-url",
     "whaticket-email",
     "whaticket-password",
+    "whaticket-token",
     "google-client-id",
     "google-client-secret",
     "google-refresh-token",

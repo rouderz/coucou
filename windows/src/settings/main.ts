@@ -456,12 +456,14 @@ const INTEGRATIONS: IntegrationDef[] = [
     fields: [{ key: "calcom-api-key", label: "API key", placeholder: "cal_…", secret: true }] },
   { id: "integration_linear", name: "Linear", color: "#5E6AD2",
     fields: [{ key: "linear-api-key", label: "API key", placeholder: "lin_api_…", secret: true }] },
+  // whaticket.com: API token + your email. Self-hosted: backend URL + email + password.
   { id: "integration_whaticket", name: "WhaTicket", color: "#25D366",
     fields: [
-      { key: "whaticket-url", label: "Backend URL", placeholder: "https://api.your-whaticket.com", secret: false },
-      { key: "whaticket-web-url", label: "Web URL", placeholder: "https://your-whaticket.com  (optional)", secret: false },
-      { key: "whaticket-email", label: "Email", placeholder: "you@company.com", secret: false },
-      { key: "whaticket-password", label: "Password", placeholder: "…", secret: true },
+      { key: "whaticket-token", label: "API token", placeholder: "whaticket.com → Integrations → Tokens", secret: true },
+      { key: "whaticket-email", label: "Email", placeholder: "the one you sign in to WhaTicket with", secret: false },
+      { key: "whaticket-url", label: "Backend URL", placeholder: "self-hosted only: https://api.your-whaticket.com", secret: false },
+      { key: "whaticket-password", label: "Password", placeholder: "self-hosted only", secret: true },
+      { key: "whaticket-web-url", label: "Web URL", placeholder: "optional, to open tickets", secret: false },
     ] },
   // Connected in the Google section below.
   { id: "integration_gmail", name: "Gmail", color: "#EA4335", fields: [] },
@@ -696,7 +698,7 @@ function whaticketSection(): HTMLElement {
   const queues = h("div", { class: "row", style: "gap:8px 14px" });
   const signIn = h("button", { text: "Sign in" }) as HTMLButtonElement;
 
-  function drawQueues(list: { id: number; name: string; color: string }[]) {
+  function drawQueues(list: { id: string; name: string; color: string }[]) {
     clear(queues);
     if (!list.length) return;
     queues.append(h("label", { text: "Only from" }));
@@ -746,7 +748,7 @@ function whaticketSection(): HTMLElement {
 
   return h("section", {},
     h("h2", {}, h("i", { class: "dot", style: "background:#25D366" }), h("span", { text: "WhaTicket" })),
-    h("div", { class: "hint", text: "Turn on the WhaTicket pill and add its URL, email and password under Integrations. New tickets then show in the island; you accept them with one click." }),
+    h("div", { class: "hint", text: "whaticket.com: in WhaTicket go to Integrations → Tokens, create a token with a profile that can view all tickets, view pending ones, transfer tickets and view users; paste it under Integrations with the email you sign in with. Self-hosted WhaTicket: its backend URL, email and password instead." }),
     h("div", { class: "row" }, signIn, status),
     h("div", { class: "row" },
       h("label", { text: "Auto-accept" }),
@@ -755,7 +757,7 @@ function whaticketSection(): HTMLElement {
     ),
     queues,
     h("div", { class: "row" }, h("label", { text: "Only between" }), hours),
-    h("div", { class: "hint", text: "Never during Do not disturb, never group chats, and you can undo for two minutes. Coucou only assigns the ticket — it never writes to the customer." }),
+    h("div", { class: "hint", text: "Never during Do not disturb and never group chats. Self-hosted WhaTicket can undo for two minutes (whaticket.com can't put a ticket back in the queue). Coucou only assigns the ticket — it never writes to the customer." }),
   );
 }
 
@@ -1133,7 +1135,7 @@ async function main() {
   const keys = [
     "stripe-api-key", "github-token", "vercel-token",
     "n8n-url", "n8n-api-key", "resend-api-key", "notion-api-key", "calcom-api-key", "linear-api-key",
-    "whaticket-url", "whaticket-web-url", "whaticket-email", "whaticket-password",
+    "whaticket-url", "whaticket-web-url", "whaticket-email", "whaticket-password", "whaticket-token",
   ];
   const present: Record<string, boolean> = {};
   for (const k of keys) present[k] = (await Bridge.secretPresent(k)) ?? false;

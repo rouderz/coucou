@@ -50,6 +50,7 @@ struct SettingsView: View {
     @State private var whaticketWebURL: String   = Secrets.store.get("whaticket-web-url") ?? ""
     @State private var whaticketEmail: String    = Secrets.store.get("whaticket-email") ?? ""
     @State private var whaticketPassword: String = Secrets.store.get("whaticket-password") ?? ""
+    @State private var whaticketToken: String    = Secrets.store.get("whaticket-token") ?? ""
 
     // Hotkey
     @State private var hotkeyFlags: UInt    = AppState.shared.hotkeyFlags
@@ -405,13 +406,15 @@ struct SettingsView: View {
                                 Circle().fill(Color(hex: "#25D366")).frame(width: 8, height: 8)
                                 Text("WhaTicket").font(.system(size: 12, weight: .semibold))
                             }
-                            TextField("Backend URL  (https://api.your-whaticket.com)", text: $whaticketURL)
+                            SecureField("API token  (whaticket.com → Integrations → Tokens)", text: $whaticketToken)
+                                .textFieldStyle(.roundedBorder)
+                            TextField("Email  (the one you sign in to WhaTicket with)", text: $whaticketEmail)
+                                .textFieldStyle(.roundedBorder)
+                            TextField("Backend URL  (self-hosted only)", text: $whaticketURL)
+                                .textFieldStyle(.roundedBorder)
+                            SecureField("Password  (self-hosted only)", text: $whaticketPassword)
                                 .textFieldStyle(.roundedBorder)
                             TextField("Web URL  (optional, to open tickets)", text: $whaticketWebURL)
-                                .textFieldStyle(.roundedBorder)
-                            TextField("Email", text: $whaticketEmail)
-                                .textFieldStyle(.roundedBorder)
-                            SecureField("Password", text: $whaticketPassword)
                                 .textFieldStyle(.roundedBorder)
                         }
 
@@ -1027,6 +1030,7 @@ struct SettingsView: View {
         saveKey("whaticket-web-url",  value: whaticketWebURL)
         saveKey("whaticket-email",    value: whaticketEmail)
         saveKey("whaticket-password", value: whaticketPassword)
+        saveKey("whaticket-token",    value: whaticketToken)
         WhaTicketPoller.shared.reset()  // sign in again with what was just saved
         IntegrationRefresher.refresh("integration_linear")
         IntegrationRefresher.refreshAll()  // show the result now instead of at the next poll

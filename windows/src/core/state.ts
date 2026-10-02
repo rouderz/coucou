@@ -164,7 +164,7 @@ export interface Settings {
   idleNotch: boolean;
   /** WhaTicket: accept new tickets on their own, from these queues (empty = any), in these hours. */
   whaticketAutoAccept: boolean;
-  whaticketQueues: number[];
+  whaticketQueues: string[];
   whaticketHours: string;
   /** Google: the connected account, and the Gmail search the pill shows. */
   googleEmail: string;
