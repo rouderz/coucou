@@ -175,41 +175,57 @@ pub fn set_input_rect(win: &WebviewWindow, rect: Option<(f64, f64, f64, f64)>) {
     });
 }
 
-fn spawn_detached(program: &PathBuf, arg: Option<&str>) -> bool {
-    let mut cmd = Command::new(program);
-    if let Some(a) = arg {
-        cmd.arg(a);
-    }
-    cmd.stdin(Stdio::null()).stdout(Stdio::null()).stderr(Stdio::null()).spawn().is_ok()
+/// Starts a program detached from us, without waiting for it.
+pub fn spawn_quiet(program: &std::path::Path, args: &[&str]) -> bool {
+    Command::new(program)
+        .args(args)
+        .stdin(Stdio::null())
+        .stdout(Stdio::null())
+        .stderr(Stdio::null())
+        .spawn()
+        .is_ok()
 }
+
+/// No console windows to hide on Linux.
+pub fn hide_console_async(_cmd: &mut tokio::process::Command) {}
 
 pub fn open_url(url: &str) {
-    if let Some(open) = find_on_path("xdg-open") {
-        spawn_detached(&open, Some(url));
+    if let Some(open) = find_program("xdg-open") {
+        spawn_quiet(&open, &[url]);
     }
 }
 
-/// Opens a folder in VS Code when `code` is on PATH, in the file manager otherwise.
-pub fn open_in_editor(path: Option<&str>) -> bool {
-    if let Some(code) = find_on_path("code") {
-        if spawn_detached(&code, path) {
-            return true;
-        }
+/// Shows a folder in the file manager.
+pub fn open_folder(path: &str) {
+    if let Some(open) = find_program("xdg-open") {
+        spawn_quiet(&open, &[path]);
     }
-    if let (Some(p), Some(open)) = (path, find_on_path("xdg-open")) {
-        spawn_detached(&open, Some(p));
-    }
-    false
 }
 
 /// An executable on PATH, without a shell.
-fn find_on_path(name: &str) -> Option<PathBuf> {
+pub fn find_program(name: &str) -> Option<PathBuf> {
     let dirs = std::env::var_os("PATH")?;
-    std::env::split_paths(&dirs).map(|d| d.join(name)).find(|p| {
-        std::fs::metadata(p)
-            .map(|m| m.is_file() && m.permissions().mode() & 0o111 != 0)
-            .unwrap_or(false)
-    })
+    std::env::split_paths(&dirs).map(|d| d.join(name)).find(|p| is_executable(p))
+}
+
+fn is_executable(p: &std::path::Path) -> bool {
+    std::fs::metadata(p)
+        .map(|m| m.is_file() && m.permissions().mode() & 0o111 != 0)
+        .unwrap_or(false)
+}
+
+/// Where Claude Code's installers put `claude` when it isn't on PATH (an app
+/// started from the desktop doesn't get the shell's PATH).
+pub fn claude_fallbacks() -> Vec<PathBuf> {
+    let home = home();
+    vec![
+        home.join(".local/bin/claude"),
+        home.join(".claude/local/claude"),
+        home.join(".npm-global/bin/claude"),
+        home.join(".bun/bin/claude"),
+        PathBuf::from("/usr/local/bin/claude"),
+        PathBuf::from("/usr/bin/claude"),
+    ]
 }
 
 pub fn current_uid() -> u32 {

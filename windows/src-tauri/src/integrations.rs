@@ -264,8 +264,60 @@ async fn poll_stripe(app: AppHandle) {
 
 // ── GitHub ────────────────────────────────────────────────────────────────────
 
+#[derive(Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct GhStatus {
+    /// `gh` is on this machine.
+    pub installed: bool,
+    /// …and signed in, so GitHub works without a token in Settings.
+    pub signed_in: bool,
+    pub user: Option<String>,
+}
+
+/// The GitHub CLI's own state (#75, macOS #53): no token to paste when `gh` is signed in.
+pub async fn gh_status() -> GhStatus {
+    let Some(gh) = crate::platform::find_program("gh") else {
+        return GhStatus { installed: false, signed_in: false, user: None };
+    };
+    let mut cmd = tokio::process::Command::new(&gh);
+    cmd.args(["api", "user", "--jq", ".login"])
+        .stdin(std::process::Stdio::null())
+        .stderr(std::process::Stdio::null())
+        .kill_on_drop(true);
+    crate::platform::hide_console_async(&mut cmd);
+    let user = tokio::time::timeout(Duration::from_secs(8), cmd.output())
+        .await
+        .ok()
+        .and_then(Result::ok)
+        .filter(|o| o.status.success())
+        .map(|o| String::from_utf8_lossy(&o.stdout).trim().to_string())
+        .filter(|u| !u.is_empty());
+    GhStatus { installed: true, signed_in: user.is_some(), user }
+}
+
+/// The token saved in Settings, else the GitHub CLI's (`gh auth token`). The CLI's
+/// token is read for each poll and never stored.
+async fn github_token() -> Option<String> {
+    if let Some(token) = secrets::get("github-token") {
+        return Some(token);
+    }
+    let gh = crate::platform::find_program("gh")?;
+    let mut cmd = tokio::process::Command::new(gh);
+    cmd.args(["auth", "token"])
+        .stdin(std::process::Stdio::null())
+        .stderr(std::process::Stdio::null())
+        .kill_on_drop(true);
+    crate::platform::hide_console_async(&mut cmd);
+    let out = tokio::time::timeout(Duration::from_secs(5), cmd.output()).await.ok()?.ok()?;
+    if !out.status.success() {
+        return None;
+    }
+    let token = String::from_utf8_lossy(&out.stdout).trim().to_string();
+    (!token.is_empty()).then_some(token)
+}
+
 async fn poll_github(app: AppHandle) {
-    let Some(token) = secrets::get("github-token") else { return };
+    let Some(token) = github_token().await else { return };
     let http = client();
 
     let user = http

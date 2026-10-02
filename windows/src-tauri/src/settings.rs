@@ -20,6 +20,16 @@ pub struct Settings {
     /// Defaulted explicitly so a settings.json written by an older build still loads.
     #[serde(default = "default_model")]
     pub model: String,
+    /// "api" (Anthropic API key) or "claude-code" (the user's Claude Code subscription).
+    #[serde(default = "default_engine")]
+    pub chat_engine: String,
+    /// Preferred editor command ("code", "cursor", "windsurf", "zed"); empty = first installed.
+    #[serde(default)]
+    pub editor: String,
+}
+
+fn default_engine() -> String {
+    "api".into()
 }
 
 fn default_model() -> String {
@@ -43,6 +53,8 @@ impl Default for Settings {
             autostart: false,
             hooks_installed: false,
             model: default_model(),
+            chat_engine: default_engine(),
+            editor: String::new(),
         }
     }
 }

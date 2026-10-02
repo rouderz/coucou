@@ -1,6 +1,8 @@
 // Coucou for Windows — app wiring and the commands the island calls.
 
 mod claude;
+mod claude_code;
+mod editors;
 mod files;
 mod hooks;
 mod integrations;
@@ -20,6 +22,8 @@ use tauri::{AppHandle, Emitter, Manager, State, WebviewUrl, WebviewWindowBuilder
 use tauri_plugin_autostart::{ManagerExt, MacosLauncher};
 
 use claude::{Chat, ChatContext, ChatReply};
+use claude_code::{ClaudeCodeChat, ClaudeCodeStatus};
+use editors::EditorInfo;
 use files::DroppedFile;
 use hooks::{HookPreview, HookStatus};
 use island::{PollGate, ScreenInfo};
@@ -132,11 +136,18 @@ fn open_url(url: String) {
     platform::open_url(&url);
 }
 
-/// "Open terminal" opens the working folder in VS Code when `code` is on PATH,
-/// and in the file manager otherwise.
+/// "Open terminal" opens the working folder in the editor picked in Settings
+/// (or the first one installed), and in the file manager otherwise.
 #[tauri::command]
-fn open_in_vscode(path: Option<String>) -> bool {
-    platform::open_in_editor(path.as_deref().filter(|p| !p.is_empty()))
+fn open_in_vscode(shared: State<Shared>, path: Option<String>) -> bool {
+    let preferred = shared.settings.lock().unwrap().editor.clone();
+    editors::open(path.as_deref().filter(|p| !p.is_empty()), &preferred)
+}
+
+/// The editors Settings can offer.
+#[tauri::command]
+fn editors_installed() -> Vec<EditorInfo> {
+    editors::installed()
 }
 
 #[tauri::command]
@@ -207,21 +218,37 @@ fn approval_decline(app: AppHandle, request_id: String) {
 
 // ── Chat, files and secrets ───────────────────────────────────────────────────
 
-/// One chat turn. The API key and any file bytes stay on the Rust side.
+/// One chat turn, through the engine picked in Settings. The API key and any
+/// file bytes stay on the Rust side.
 #[tauri::command]
 async fn chat_send(
     shared: State<'_, Shared>,
     chat: State<'_, Chat>,
+    code_chat: State<'_, ClaudeCodeChat>,
     query: String,
     context: Option<ChatContext>,
 ) -> Result<ChatReply, String> {
-    let model = shared.settings.lock().unwrap().model.clone();
-    claude::send(&chat, &model, query, context).await
+    let (model, engine) = {
+        let s = shared.settings.lock().unwrap();
+        (s.model.clone(), s.chat_engine.clone())
+    };
+    if engine == "claude-code" {
+        claude_code::send(&code_chat, &model, query, context).await
+    } else {
+        claude::send(&chat, &model, query, context).await
+    }
 }
 
 #[tauri::command]
-fn chat_reset(chat: State<Chat>) {
+fn chat_reset(chat: State<Chat>, code_chat: State<ClaudeCodeChat>) {
     chat.reset();
+    code_chat.reset();
+}
+
+/// Whether the subscription chat can work: is `claude` installed?
+#[tauri::command]
+fn claude_code_status() -> ClaudeCodeStatus {
+    claude_code::status()
 }
 
 /// Copies a dropped file into the inbox and reports its name back.
@@ -252,6 +279,12 @@ fn open_n8n() {
     if let Some(url) = secrets::get("n8n-url") {
         open_url(url);
     }
+}
+
+/// GitHub through the GitHub CLI when no token is saved (#75, macOS #53).
+#[tauri::command]
+async fn github_cli_status() -> integrations::GhStatus {
+    integrations::gh_status().await
 }
 
 /// Refresh buttons in the integration cards.
@@ -349,6 +382,7 @@ pub fn run() {
         })
         .manage(Pending::default())
         .manage(Chat::default())
+        .manage(ClaudeCodeChat::default())
         .invoke_handler(tauri::generate_handler![
             boot,
             save_settings,
@@ -376,6 +410,9 @@ pub fn run() {
             open_n8n,
             open_settings_window,
             set_paused,
+            editors_installed,
+            claude_code_status,
+            github_cli_status,
         ])
         .setup(move |app| {
             let handle = app.handle().clone();
