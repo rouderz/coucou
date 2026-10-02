@@ -53,7 +53,7 @@ d.setdefault("plugins", {}).setdefault("updater", {})["pubkey"] = pub
 open(p, "w").write(json.dumps(d, indent=2, ensure_ascii=False) + "\n")
 PY
 gh secret set TAURI_SIGNING_PRIVATE_KEY --repo "$REPO" < "$KEYS/tauri-update.key"
-gh secret set TAURI_SIGNING_PRIVATE_KEY_PASSWORD --repo "$REPO" --body ""
+# The key has no password: TAURI_SIGNING_PRIVATE_KEY_PASSWORD stays unset (gh refuses empty secrets).
 
 echo
 echo "✓ Keys in GitHub secrets; public keys written to:"
