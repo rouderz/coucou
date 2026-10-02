@@ -50,9 +50,20 @@ using your Claude Code subscription, no API key needed.
 
 ## Install
 
-**Download:** the latest DMG is on the [Releases](https://github.com/rouderz/coucou/releases) page. Open it and
-drag Coucou to Applications. The app isn't notarized yet, so the first launch needs right-click → **Open**.
-Coucou checks for new releases itself (Settings → Updates).
+**Download:** every release on the [Releases](https://github.com/rouderz/coucou/releases) page has all three:
+
+| | File | First launch (not code-signed yet) |
+|---|---|---|
+| macOS | `Coucou-<version>-macOS.dmg` — drag Coucou to Applications | System Settings → Privacy & Security → **Open Anyway** |
+| Windows | `Coucou-<version>-Windows-setup.exe` | SmartScreen → **More info → Run anyway** |
+| Linux | `.deb`, `.rpm` or `.AppImage`, x86_64 and arm64 | — |
+
+Coucou for Mac checks for new releases itself (Settings → Updates). Builds of every commit on `main` are
+on the [Release workflow](https://github.com/rouderz/coucou/actions/workflows/release.yml) runs, as artifacts.
+
+**Release:** `bash scripts/release.sh 0.3.0` sets the version for every platform, tags `v0.3.0` and pushes; GitHub
+Actions builds macOS, Windows and Linux and publishes them together. `bash scripts/build.sh` builds for the
+system you're on, into `dist/`.
 
 **Build from source:**
 Requirements: macOS 15+, Xcode 16+ (Xcode 27 works), [XcodeGen](https://github.com/yonaskolb/XcodeGen), and

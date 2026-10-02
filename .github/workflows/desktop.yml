@@ -1,12 +1,9 @@
 name: Linux and Windows
 
-# Every PR and push to main that touches the Tauri app: unit tests and a full
-# build on Linux and Windows. The Linux packages (.deb, .rpm, .AppImage) are kept
-# as artifacts so a PR can be tried without building it yourself.
+# Every PR that touches the Tauri app: unit tests and a full build on Linux and
+# Windows. The Linux packages are kept as artifacts so a PR can be tried without
+# building it yourself. (Builds of main and releases: release.yml.)
 on:
-  push:
-    branches: [main]
-    paths: ["windows/**", ".github/workflows/desktop.yml"]
   pull_request:
     branches: [main]
     paths: ["windows/**", ".github/workflows/desktop.yml"]
