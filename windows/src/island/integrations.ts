@@ -17,7 +17,6 @@ const KEY_FOR: Record<string, string> = {
   integration_notion: "notion-api-key",
   integration_calcom: "calcom-api-key",
   integration_linear: "linear-api-key",
-  integration_whaticket: "whaticket-password",
   integration_gmail: "google-refresh-token",
 };
 
@@ -37,6 +36,10 @@ export async function refreshConfigured() {
     const info = State.integrations[id] ?? { data: {}, error: null, loaded: false, configured: false };
     State.integrations[id] = { ...info, configured: present };
   }
+  // WhaTicket has no key: it is set up once the browser extension's host is registered.
+  const browser = await Bridge.browserStatus();
+  const wt = State.integrations.integration_whaticket ?? { data: {}, error: null, loaded: false, configured: false };
+  State.integrations.integration_whaticket = { ...wt, configured: !!browser && browser.installed && browser.browsers.length > 0 };
   const hooks = State.settings.hooksInstalled;
   const claude = State.integrations.integration_claude ?? {
     data: {}, error: null, loaded: false, configured: false,

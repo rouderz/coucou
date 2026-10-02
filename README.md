@@ -60,7 +60,7 @@ has the details for Windows and Linux.
 - **Google Drive in the chat** — `@` and a file name attaches a Doc (as text), a Sheet (as CSV), Slides or any file.
 
 **Work apps**
-- **WhaTicket** — the WhatsApp ticket queue and your tickets in the island, Accept in one click, and optional auto-accept (by queue and hours). whaticket.com connects with an API token (Integrations → Tokens); a self-hosted WhaTicket with its URL, email and password (and Undo).
+- **WhaTicket** — the WhatsApp ticket queue and your tickets in the island, Accept in one click, and optional auto-accept (by queue and hours). It works through a small Chrome / Edge extension ([`extensions/whaticket`](extensions/whaticket)) that uses the whaticket.com session you already have open — no token, no admin access. Set it up from Settings → WhaTicket.
 - **Gmail** — what matches your search (unread in the inbox by default); "Ask" hands a mail to Mochi. Read-only, with your own Google Cloud OAuth client.
 
 **Everyday**
@@ -166,7 +166,7 @@ Secret Service (GNOME Keyring, KWallet) — never on disk. Coucou talks only to 
 - your ntfy server, if you turn on phone alerts (it receives the project and the command — keep the topic private);
 - GitHub (`api.github.com`, `github.com`), to check for and download updates — turn it off in Settings → Updates;
 - GitHub again only when you paste a link to install a skill from it;
-- Google's APIs (Gmail, Drive) and your WhaTicket server, only if you connect them.
+- Google's APIs (Gmail, Drive), only if you connect them. WhaTicket is read by the browser extension in your own tab; Coucou itself never calls it.
 
 The editor extension talks to Coucou over a local socket (named pipe on Windows) only.
 

@@ -190,6 +190,17 @@ async fn handle<S: AsyncRead + AsyncWrite + Unpin>(app: AppHandle, mut pipe: S) 
         .unwrap_or_default()
         .to_string();
 
+    // The WhaTicket browser extension checks in every few seconds through
+    // coucou-hook's native-messaging mode: answer with the commands to run.
+    // Not logged — it would be a line every 15 seconds.
+    if event == "WhaTicketBrowser" {
+        let reply = crate::whaticket::handle_browser(&app, &payload);
+        let _ = pipe.write_all(format!("{reply}\n").as_bytes()).await;
+        let _ = pipe.flush().await;
+        let _ = pipe.shutdown().await;
+        return;
+    }
+
     // Remember the projects sessions run in: their .claude/skills show in Settings → Skills.
     if matches!(event.as_str(), "SessionStart" | "UserPromptSubmit") {
         if let Some(cwd) = payload.get("cwd").and_then(Value::as_str) {

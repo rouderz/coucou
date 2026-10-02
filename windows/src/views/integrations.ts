@@ -52,6 +52,7 @@ const OPEN_URLS: Record<string, string> = {
   integration_stripe: "https://dashboard.stripe.com/payments",
   integration_notion: "https://notion.so",
   integration_calcom: "https://app.cal.com/bookings",
+  integration_whaticket: "https://app.whaticket.com/tickets",
 };
 
 function idleCard(task: AgentTask, openSettings: () => void): HTMLElement {
@@ -60,8 +61,10 @@ function idleCard(task: AgentTask, openSettings: () => void): HTMLElement {
   const error = info?.error ?? null;
   // The Claude Code pill is about hooks, not a key — the macOS wording would be
   // misleading here.
-  const missing = task.id === "integration_claude" ? "Hooks not installed" : "Key not configured";
-  const label = error ?? (configured ? "Connected · loading…" : missing);
+  const missing = task.id === "integration_claude" ? "Hooks not installed"
+    : task.id === "integration_whaticket" ? "Browser extension not set up" : "Key not configured";
+  const waiting = task.id === "integration_whaticket" ? "Open whaticket.com in Chrome or Edge" : "Connected · loading…";
+  const label = error ?? (configured ? waiting : missing);
   const statusColor = error || !configured ? "#F4505E" : "#22C55E";
 
   const actions = h("div", { class: "int-actions" });
@@ -93,7 +96,8 @@ function idleCard(task: AgentTask, openSettings: () => void): HTMLElement {
       }),
     );
   }
-  if (configured) {
+  // WhaTicket refreshes when the browser tab checks in; there is nothing to poll.
+  if (configured && task.id !== "integration_whaticket") {
     actions.append(
       h("button", {
         class: "link-btn",
@@ -102,7 +106,7 @@ function idleCard(task: AgentTask, openSettings: () => void): HTMLElement {
         onclick: () => void Bridge.refreshIntegration(task.id),
       }),
     );
-  } else {
+  } else if (!configured) {
     actions.append(
       h("button", { class: "link-btn", style: "color:#8e939c", text: "Settings…", onclick: openSettings }),
     );
@@ -342,45 +346,41 @@ function linearCard(): HTMLElement {
 
 // ── WhaTicket ─────────────────────────────────────────────────────────────────
 
+/** The extension checks in every ~15 s; past this the tab is closed or asleep. */
+const WHATICKET_STALE_MS = 60_000;
+
 function whaticketCard(): HTMLElement {
   const d = get("integration_whaticket");
   const pending = arr("integration_whaticket", "pending");
   const mine = arr("integration_whaticket", "mine");
-  const undoable = new Set(Array.isArray(d.undoable) ? (d.undoable as string[]) : []);
+  const accepting = new Set(Array.isArray(d.accepting) ? (d.accepting as unknown[]).map(String) : []);
+  const stale = Date.now() - Number(d.seenAt ?? 0) > WHATICKET_STALE_MS;
   const rows = h("div", { class: "int-rows tight" });
 
-  // What Coucou just accepted on its own, with Undo.
-  for (const t of mine.filter((m) => undoable.has(String(m.id))).slice(0, 1)) {
-    const undo = h("button", { class: "int-mini", text: "Undo" });
-    undo.addEventListener("click", async (e) => {
-      e.stopPropagation();
-      undo.textContent = "…";
-      try {
-        await Bridge.whaticketUndo(String(t.id));
-      } catch (err) {
-        State.noteMessage = String(err).replace(/^Error:\s*/, "");
-        State.view = "note";
-        State.notify();
-      }
-    });
-    rows.append(h("div", { class: "int-page" },
-      dot("#25D366", 6),
-      h("span", { class: "int-time", text: "Accepted" }),
-      h("span", { class: "int-name", text: String(t.name ?? "") }),
-      undo,
+  if (stale) {
+    rows.append(h("button", {
+      class: "int-page",
+      onclick: () => void Bridge.whaticketOpen(null),
+    },
+      dot("#F5A524", 6),
+      h("span", { class: "int-name", text: "Open whaticket.com in Chrome or Edge" }),
     ));
   }
-
   if (!pending.length && !mine.length) rows.append(h("div", { class: "int-empty", text: "No tickets waiting." }));
   for (const t of pending.slice(0, 3)) {
-    const accept = h("button", { class: "int-mini", text: "Accept" });
+    const id = String(t.id);
+    const busy = accepting.has(id);
+    const accept = h("button", { class: "int-mini", text: busy ? "…" : "Accept" }) as HTMLButtonElement;
+    accept.disabled = busy || stale;
     accept.addEventListener("click", async (e) => {
       e.stopPropagation();
       accept.textContent = "…";
+      accept.disabled = true;
       try {
-        await Bridge.whaticketAccept(String(t.id));
+        await Bridge.whaticketAccept(id);
       } catch (err) {
         accept.textContent = "Accept";
+        accept.disabled = false;
         State.noteMessage = String(err).replace(/^Error:\s*/, "");
         State.view = "note";
         State.notify();
@@ -389,7 +389,7 @@ function whaticketCard(): HTMLElement {
     rows.append(h("div", {
       class: "int-page",
       title: String(t.lastMessage ?? ""),
-      onclick: () => void Bridge.whaticketOpen(String(t.id)),
+      onclick: () => void Bridge.whaticketOpen(id),
     },
       dot(String(t.queueColor || "#F5A524"), 6),
       h("span", { class: "int-name", text: String(t.name ?? "") }),
@@ -398,7 +398,7 @@ function whaticketCard(): HTMLElement {
     ));
   }
   const left = 3 - Math.min(3, pending.length);
-  for (const t of mine.filter((m) => !undoable.has(String(m.id))).slice(0, left)) {
+  for (const t of mine.slice(0, left)) {
     rows.append(h("button", {
       class: "int-page",
       title: String(t.lastMessage ?? ""),

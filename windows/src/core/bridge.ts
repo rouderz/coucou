@@ -35,6 +35,14 @@ export interface BootInfo {
   pointer?: "poll" | "dom";
 }
 
+/** The WhaTicket browser extension and its native-messaging host. */
+export interface BrowserStatus {
+  extensionDir: string;
+  installed: boolean;
+  browsers: string[];
+  extensionId: string;
+}
+
 export const Bridge = {
   boot: () => call<BootInfo>("boot"),
 
@@ -109,11 +117,15 @@ export const Bridge = {
   skillReveal: (path: string) => call<void>("skill_reveal", { path }),
 
   // ── WhaTicket ───────────────────────────────────────────────────────────────
-  /** Signs in with the stored credentials; who you are and your queues. */
-  whaticketLogin: () => callOrThrow<{ userId: string; name: string; cloud: boolean; queues: { id: string; name: string; color: string }[] }>("whaticket_login"),
+  /** Queues an accept; the browser extension runs it at its next check-in. */
   whaticketAccept: (id: string) => callOrThrow<void>("whaticket_accept", { id }),
-  whaticketUndo: (id: string) => callOrThrow<void>("whaticket_undo", { id }),
   whaticketOpen: (id: string | null) => call<void>("whaticket_open", { id }),
+  /** Your queues, as of the extension's last check-in (empty until it has checked in). */
+  whaticketQueues: () => call<{ id: string; name: string; color: string }[]>("whaticket_queues"),
+  /** Writes the extension and registers its native-messaging host with the browsers. */
+  browserInstall: () => callOrThrow<BrowserStatus>("browser_install"),
+  browserStatus: () => call<BrowserStatus>("browser_status"),
+  browserReveal: () => call<void>("browser_reveal"),
 
   // ── Google (Gmail, Drive) ───────────────────────────────────────────────────
   /** Opens Google's consent page; resolves with the account's email once signed in. */

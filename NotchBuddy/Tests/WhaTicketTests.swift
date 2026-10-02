@@ -1,16 +1,8 @@
 import XCTest
 @testable import Coucou
 
-/// WhaTicket: URLs, auto-accept rules and both APIs (whaticket.com and self-hosted).
+/// WhaTicket through the browser extension: auto-accept rules, what a check-in may carry, the host manifest.
 final class WhaTicketTests: XCTestCase {
-    func testBaseURLs() {
-        XCTAssertEqual(WhaTicketRules.normaliseBase(" https://api.x.com/ "), "https://api.x.com")
-        XCTAssertNil(WhaTicketRules.normaliseBase("ftp://x"))
-        XCTAssertEqual(WhaTicketRules.cloudBase(nil), "https://api.whaticket.com/api/v1")
-        XCTAssertEqual(WhaTicketRules.cloudBase("https://api.whaticket.com/"), "https://api.whaticket.com/api/v1")
-        XCTAssertEqual(WhaTicketRules.cloudBase("https://api.whaticket.com/api/v1"), "https://api.whaticket.com/api/v1")
-    }
-
     func testHours() {
         XCTAssertTrue(WhaTicketRules.inHours("", minutes: 180))
         XCTAssertTrue(WhaTicketRules.inHours("09:00-18:00", minutes: 9 * 60))
@@ -27,48 +19,49 @@ final class WhaTicketTests: XCTestCase {
         XCTAssertTrue(WhaTicketRules.queueAllowed("b", ["a", "b"]))
         XCTAssertFalse(WhaTicketRules.queueAllowed("c", ["a", "b"]))
         XCTAssertFalse(WhaTicketRules.queueAllowed(nil, ["a"]))
+        XCTAssertEqual(WhaTicketRules.textID(7), "7")
+        XCTAssertEqual(WhaTicketRules.textID("q-1"), "q-1")
     }
 
-    func testSelfHostedParsing() {
-        let login: [String: Any] = ["token": "t", "user": ["id": 7, "name": "Ana", "queues": [["id": 1, "name": "Sales", "color": "#f00"]]]]
-        let parsed = WhaTicketRules.parseLogin(login)
-        XCTAssertEqual(parsed?.token, "t")
-        XCTAssertEqual(parsed?.account.userId, "7")
-        XCTAssertEqual(parsed?.account.queues.first?.id, "1")
-
-        let ticket: [String: Any] = ["id": 5, "status": "pending", "unreadMessages": 2, "lastMessage": "Hola", "queueId": 1,
-                                     "contact": ["name": "", "number": "5491100"], "queue": ["id": 1, "name": "Sales", "color": "#f00"],
-                                     "userId": NSNull(), "updatedAt": "2026-10-02T12:00:00.000Z"]
-        let t = WhaTicketRules.parseTicket(ticket)
-        XCTAssertEqual(t?.id, "5")
-        XCTAssertEqual(t?.name, "5491100")
-        XCTAssertEqual(t?.queue, "Sales")
-        XCTAssertEqual(t?.queueId, "1")
-        XCTAssertNil(t?.userId)
-        XCTAssertNotNil(t?.updatedAt)
+    func testSnapshotTicketsAreCheckedAndTrimmed() {
+        let msg: [String: Any] = [
+            "pending": [
+                ["id": "6b1c-uuid", "name": "María", "unread": 2, "queueId": "q-1", "queue": "Soporte",
+                 "lastMessage": String(repeating: "a", count: 500), "aiHandling": true,
+                 "updatedAt": "2026-10-02T12:00:00.000Z"],
+                ["id": "../users", "name": "bad"],
+                ["name": "no id"],
+                ["id": 42, "name": "not text"],
+            ],
+            "queues": [["id": "q-1", "name": "Soporte", "color": "#0af"], ["id": "a/b"]],
+        ]
+        let list = WhaTicketRules.tickets(msg, "pending")
+        XCTAssertEqual(list.count, 1)
+        XCTAssertEqual(list[0].id, "6b1c-uuid")
+        XCTAssertEqual(list[0].queue, "Soporte")
+        XCTAssertEqual(list[0].unread, 2)
+        XCTAssertTrue(list[0].aiHandling)
+        XCTAssertEqual(list[0].lastMessage.count, 300)
+        XCTAssertNotNil(list[0].updatedAt)
+        XCTAssertTrue(WhaTicketRules.tickets([:], "mine").isEmpty)
+        XCTAssertEqual(WhaTicketRules.queues(msg), [WhaTicketQueue(id: "q-1", name: "Soporte", color: "#0af")])
     }
 
-    func testWhaticketComParsing() {
-        let queues = [WhaTicketQueue(id: "q-1", name: "Soporte", color: "#0af")]
-        let ticket: [String: Any] = ["id": "6b1c-uuid", "status": "pending", "queueId": "q-1", "userId": NSNull(),
-                                     "contact": ["name": "María"], "lastMessage": "Hola"]
-        let t = WhaTicketRules.parseTicket(ticket, queues: queues)
-        XCTAssertEqual(t?.id, "6b1c-uuid")
-        XCTAssertEqual(t?.queue, "Soporte")
-        XCTAssertEqual(t?.queueColor, "#0af")
-
-        let users: [String: Any] = ["users": [["id": "u-1", "email": "Ana@Empresa.com", "name": "Ana"]]]
-        XCTAssertEqual(WhaTicketRules.findUser(users, email: "ana@empresa.com ")?["id"] as? String, "u-1")
-        XCTAssertNil(WhaTicketRules.findUser(users, email: "otro@x.com"))
-
-        XCTAssertEqual(WhaTicketRules.missingPermissions(["permissions": ["tickets:view", "tickets:viewAll"]]),
-                       ["tickets:viewPending", "tickets:transfer", "users:view"])
-        XCTAssertTrue(WhaTicketRules.missingPermissions(["name": "x"]).isEmpty)
-        XCTAssertEqual(WhaTicketRules.list([["id": 1], ["id": 2]], "queues").count, 2)
+    func testIdsAndURLs() {
+        XCTAssertTrue(WhaTicketRules.validID("6b1c0e2a-1d2f-4c1b-9a77-0f3c2b1a9e10"))
+        XCTAssertFalse(WhaTicketRules.validID("a/b"))
+        XCTAssertFalse(WhaTicketRules.validID(""))
+        XCTAssertEqual(WhaTicketRules.webURL("t-1")?.absoluteString, "https://app.whaticket.com/tickets/t-1")
+        XCTAssertEqual(WhaTicketRules.webURL("../x")?.absoluteString, "https://app.whaticket.com/tickets")
+        XCTAssertTrue(WhaTicketRules.errorText("session").contains("expired"))
     }
 
-    func testErrorsNameTheCause() {
-        XCTAssertTrue(WhaTicketRules.describe(code: 401, body: ["error": "ERR_SHOULD_LOGIN_BY_AUTH_CODE"]).contains("API token"))
-        XCTAssertTrue(WhaTicketRules.describe(code: 429, body: nil).contains("too many"))
+    func testOnlyOurExtensionMayStartTheHost() throws {
+        let text = BrowserExtension.hostManifest(path: "/x/coucou-native-host")
+        let json = try XCTUnwrap(JSONSerialization.jsonObject(with: Data(text.utf8)) as? [String: Any])
+        XCTAssertEqual(json["name"] as? String, "fr.louisraille.coucou")
+        XCTAssertEqual(json["type"] as? String, "stdio")
+        XCTAssertEqual(json["path"] as? String, "/x/coucou-native-host")
+        XCTAssertEqual(json["allowed_origins"] as? [String], ["chrome-extension://jcdddeeehgafiakcgaabpiocfdijekce/"])
     }
 }

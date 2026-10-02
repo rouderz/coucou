@@ -22,6 +22,7 @@ mod skills;
 mod tray;
 mod voice;
 mod whaticket;
+mod browser;
 
 use std::sync::atomic::Ordering;
 use std::sync::{Arc, Mutex};
@@ -363,36 +364,40 @@ async fn provider_models(shared: State<'_, Shared>) -> Result<Vec<String>, Strin
 
 // ── WhaTicket ─────────────────────────────────────────────────────────────────
 
-/// Signs in with the stored credentials (Settings → "Sign in") and returns who and which queues.
+/// Accept from the island card — only ever on a click. The browser extension runs
+/// it on its next check-in (a few seconds), with the user's own whaticket.com session.
 #[tauri::command]
-async fn whaticket_login() -> Result<whaticket::Account, String> {
-    whaticket::forget();
-    whaticket::login().await
-}
-
-/// Accept from the island card — only ever on a click.
-#[tauri::command]
-async fn whaticket_accept(app: AppHandle, id: String) -> Result<(), String> {
-    whaticket::accept(&id).await?;
-    log::line(format!("whaticket: accepted ticket {id}"));
-    whaticket::poll(app).await;
-    Ok(())
-}
-
-/// Puts a ticket Coucou accepted on its own back in the queue.
-#[tauri::command]
-async fn whaticket_undo(app: AppHandle, id: String) -> Result<(), String> {
-    whaticket::undo(&id).await?;
-    log::line(format!("whaticket: undid ticket {id}"));
-    whaticket::poll(app).await;
+fn whaticket_accept(app: AppHandle, id: String) -> Result<(), String> {
+    whaticket::queue_accept(&app, &id)?;
+    log::line(format!("whaticket: accept queued for ticket {id}"));
     Ok(())
 }
 
 #[tauri::command]
 fn whaticket_open(id: Option<String>) {
-    if let Some(url) = whaticket::web_url(id.as_deref()) {
-        open_url(url);
-    }
+    open_url(whaticket::web_url(id.as_deref()));
+}
+
+#[tauri::command]
+fn whaticket_queues() -> serde_json::Value {
+    whaticket::queues()
+}
+
+/// Writes the browser extension and its native-messaging host, and registers the host
+/// with every Chromium browser found. Returns where the unpacked extension lives.
+#[tauri::command]
+fn browser_install() -> Result<browser::Status, String> {
+    browser::install()
+}
+
+#[tauri::command]
+fn browser_status() -> browser::Status {
+    browser::status()
+}
+
+#[tauri::command]
+fn browser_reveal() {
+    browser::reveal();
 }
 
 // ── Google (Gmail, Drive) ─────────────────────────────────────────────────────
@@ -641,12 +646,7 @@ fn secret_present(key: String) -> bool {
 
 #[tauri::command]
 fn secret_set(key: String, value: String) -> Result<(), String> {
-    secrets::set(&key, &value)?;
-    // New WhaTicket credentials: sign in again with them.
-    if key.starts_with("whaticket-") {
-        whaticket::forget();
-    }
-    Ok(())
+    secrets::set(&key, &value)
 }
 
 #[tauri::command]
@@ -840,10 +840,12 @@ pub fn run() {
             skills_install,
             skill_create,
             skill_reveal,
-            whaticket_login,
             whaticket_accept,
-            whaticket_undo,
             whaticket_open,
+            whaticket_queues,
+            browser_install,
+            browser_status,
+            browser_reveal,
             google_connect,
             google_disconnect,
             google_connected,
@@ -874,6 +876,7 @@ pub fn run() {
 
             log::line(format!("--- Coucou {} started ---", env!("CARGO_PKG_VERSION")));
             hooks::ensure_hook_exe(&handle);
+            secrets::forget_retired();
             pipe::start(handle.clone());
             integrations::start(handle.clone());
             inbox::start(handle.clone());

@@ -60,6 +60,10 @@ targets:
       - path: Resources/sounds
         buildPhase: resources
         type: folder
+      # The WhaTicket browser extension, copied out by Settings → WhaTicket (BrowserExtension.swift).
+      - path: ../extensions/whaticket
+        buildPhase: resources
+        type: folder
       - path: Resources/Localizable.xcstrings
         buildPhase: resources
       - path: Resources/InfoPlist.xcstrings

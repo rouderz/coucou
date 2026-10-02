@@ -94,6 +94,11 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         DoNotDisturb.shared.start()
         HookServer.shared.start()
         for source in Integrations.all { source.start() }
+        // WhaTicket credentials from earlier builds: the browser extension needs none.
+        for key in ["whaticket-url", "whaticket-web-url", "whaticket-email", "whaticket-password", "whaticket-token"]
+            where Secrets.store.get(key) != nil {
+            Secrets.store.remove(key)
+        }
         InboxStore.shared.start()
         WakeWord.shared.start()
         Updates.shared.start()

@@ -4,7 +4,7 @@
 
 import "./settings.css";
 import { setLanguage, startTranslating } from "../core/i18n.ts";
-import { Bridge, onDragDrop, onEvent, type HookStatus, type SkillInfo, type SkillPreview } from "../core/bridge";
+import { Bridge, onDragDrop, onEvent, type BrowserStatus, type HookStatus, type SkillInfo, type SkillPreview } from "../core/bridge";
 import { DEFAULT_SETTINGS, type Settings } from "../core/state";
 import { h, clear } from "../views/dom";
 
@@ -456,15 +456,8 @@ const INTEGRATIONS: IntegrationDef[] = [
     fields: [{ key: "calcom-api-key", label: "API key", placeholder: "cal_…", secret: true }] },
   { id: "integration_linear", name: "Linear", color: "#5E6AD2",
     fields: [{ key: "linear-api-key", label: "API key", placeholder: "lin_api_…", secret: true }] },
-  // whaticket.com: API token + your email. Self-hosted: backend URL + email + password.
-  { id: "integration_whaticket", name: "WhaTicket", color: "#25D366",
-    fields: [
-      { key: "whaticket-token", label: "API token", placeholder: "whaticket.com → Integrations → Tokens", secret: true },
-      { key: "whaticket-email", label: "Email", placeholder: "the one you sign in to WhaTicket with", secret: false },
-      { key: "whaticket-url", label: "Backend URL", placeholder: "self-hosted only: https://api.your-whaticket.com", secret: false },
-      { key: "whaticket-password", label: "Password", placeholder: "self-hosted only", secret: true },
-      { key: "whaticket-web-url", label: "Web URL", placeholder: "optional, to open tickets", secret: false },
-    ] },
+  // No key: set up with the browser extension in the WhaTicket section below.
+  { id: "integration_whaticket", name: "WhaTicket", color: "#25D366", fields: [] },
   // Connected in the Google section below.
   { id: "integration_gmail", name: "Gmail", color: "#EA4335", fields: [] },
 ];
@@ -691,21 +684,51 @@ function googleSection(connected: boolean, hasClient: boolean): HTMLElement {
   );
 }
 
-// ── WhaTicket auto-accept ─────────────────────────────────────────────────────
+// ── WhaTicket (browser extension) ─────────────────────────────────────────────
 
-function whaticketSection(): HTMLElement {
-  const status = h("div", { class: "hint", text: "Sign in to check the connection and load your queues." });
+function whaticketSection(browser: BrowserStatus | null): HTMLElement {
+  const status = h("div", { class: "hint" });
+  const install = h("button", { text: "Set up browser extension" }) as HTMLButtonElement;
+  const reveal = h("button", { text: "Show folder" }) as HTMLButtonElement;
+  reveal.addEventListener("click", () => void Bridge.browserReveal());
+
+  function show(b: BrowserStatus | null) {
+    const ready = !!b && b.installed && b.browsers.length > 0;
+    reveal.style.display = b?.installed ? "" : "none";
+    install.textContent = ready ? "Set up again" : "Set up browser extension";
+    status.className = ready ? "notice ok" : "hint";
+    status.textContent = ready
+      ? `Ready for ${b!.browsers.join(", ")}. Extension folder: ${b!.extensionDir}`
+      : "Not set up yet.";
+  }
+  show(browser);
+
+  install.addEventListener("click", async () => {
+    install.disabled = true;
+    try {
+      show(await Bridge.browserInstall());
+      void refreshQueues();
+    } catch (err) {
+      status.className = "notice err";
+      status.textContent = String(err).replace(/^Error:\s*/, "");
+    } finally {
+      install.disabled = false;
+    }
+  });
+
+  // Queues come from the extension's last check-in (your whaticket.com tab).
   const queues = h("div", { class: "row", style: "gap:8px 14px" });
-  const signIn = h("button", { text: "Sign in" }) as HTMLButtonElement;
-
-  function drawQueues(list: { id: string; name: string; color: string }[]) {
+  async function refreshQueues() {
+    const list = (await Bridge.whaticketQueues()) ?? [];
     clear(queues);
-    if (!list.length) return;
+    if (!list.length) {
+      queues.append(h("span", { class: "hint", text: "Your queues show here once whaticket.com is open with the extension." }));
+      return;
+    }
     queues.append(h("label", { text: "Only from" }));
     for (const q of list) {
-      const on = settings.whaticketQueues.includes(q.id);
       const box = h("input", { type: "checkbox" }) as HTMLInputElement;
-      box.checked = on;
+      box.checked = settings.whaticketQueues.includes(q.id);
       box.addEventListener("change", () => {
         settings.whaticketQueues = box.checked
           ? [...settings.whaticketQueues.filter((x) => x !== q.id), q.id]
@@ -717,23 +740,7 @@ function whaticketSection(): HTMLElement {
     }
     queues.append(h("span", { class: "hint", text: "none ticked = any of your queues" }));
   }
-
-  signIn.addEventListener("click", async () => {
-    signIn.disabled = true;
-    status.className = "hint";
-    status.textContent = "Signing in…";
-    try {
-      const account = await Bridge.whaticketLogin();
-      status.className = "notice ok";
-      status.textContent = `Signed in as ${account.name}. Queues: ${account.queues.map((q) => q.name).join(", ") || "none"}.`;
-      drawQueues(account.queues);
-    } catch (err) {
-      status.className = "notice err";
-      status.textContent = String(err).replace(/^Error:\s*/, "");
-    } finally {
-      signIn.disabled = false;
-    }
-  });
+  void refreshQueues();
 
   const hours = h("input", {
     type: "text",
@@ -748,8 +755,15 @@ function whaticketSection(): HTMLElement {
 
   return h("section", {},
     h("h2", {}, h("i", { class: "dot", style: "background:#25D366" }), h("span", { text: "WhaTicket" })),
-    h("div", { class: "hint", text: "whaticket.com: in WhaTicket go to Integrations → Tokens, create a token with a profile that can view all tickets, view pending ones, transfer tickets and view users; paste it under Integrations with the email you sign in with. Self-hosted WhaTicket: its backend URL, email and password instead." }),
-    h("div", { class: "row" }, signIn, status),
+    h("div", { class: "hint", text: "Coucou reads your whaticket.com queue through a small Chrome / Edge extension that uses the session you already have open — no token, no password, and it never signs you out." }),
+    h("div", { class: "row" }, install, reveal),
+    status,
+    h("ol", { class: "hint", style: "margin:4px 0 0 18px;padding:0;line-height:1.6" },
+      h("li", { text: "Click Set up browser extension." }),
+      h("li", { text: "In Chrome open chrome://extensions (in Edge: edge://extensions) and turn on Developer mode." }),
+      h("li", { text: "Click Load unpacked and pick the extension folder shown above." }),
+      h("li", { text: "Keep a whaticket.com tab open, and turn on the WhaTicket pill under Integrations." }),
+    ),
     h("div", { class: "row" },
       h("label", { text: "Auto-accept" }),
       toggle(settings.whaticketAutoAccept === true, (v) => { settings.whaticketAutoAccept = v; void save(); }),
@@ -757,7 +771,7 @@ function whaticketSection(): HTMLElement {
     ),
     queues,
     h("div", { class: "row" }, h("label", { text: "Only between" }), hours),
-    h("div", { class: "hint", text: "Never during Do not disturb and never group chats. Self-hosted WhaTicket can undo for two minutes (whaticket.com can't put a ticket back in the queue). Coucou only assigns the ticket — it never writes to the customer." }),
+    h("div", { class: "hint", text: "Only while your whaticket.com tab is open. Never during Do not disturb, never group chats, never tickets an AI agent is handling. Coucou only assigns the ticket — it never writes to the customer." }),
   );
 }
 
@@ -1129,13 +1143,13 @@ async function main() {
   const presets = (await Bridge.providerPresets()) ?? [];
   const canListen = (await Bridge.voiceAvailable()) ?? false;
   const googleConnected = (await Bridge.googleConnected()) ?? false;
+  const browser = await Bridge.browserStatus();
   const googleClient = (await Bridge.secretPresent("google-client-id")) ?? false;
   const skillTargets = (await Bridge.skillsTargets()) ?? [{ id: "personal", label: "Claude Code — personal (~/.claude/skills)" }];
 
   const keys = [
     "stripe-api-key", "github-token", "vercel-token",
     "n8n-url", "n8n-api-key", "resend-api-key", "notion-api-key", "calcom-api-key", "linear-api-key",
-    "whaticket-url", "whaticket-web-url", "whaticket-email", "whaticket-password", "whaticket-token",
   ];
   const present: Record<string, boolean> = {};
   for (const k of keys) present[k] = (await Bridge.secretPresent(k)) ?? false;
@@ -1151,7 +1165,7 @@ async function main() {
     skillsSection(skillTargets),
     apiSection(hasKey, claudeCode, presets, present),
     integrationsSection(present),
-    whaticketSection(),
+    whaticketSection(browser),
     googleSection(googleConnected, googleClient),
     phoneSection(),
     inboxSection(),

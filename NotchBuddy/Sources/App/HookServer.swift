@@ -57,6 +57,18 @@ final class HookServer: @unchecked Sendable {
 
         let eventName = payload["hook_event_name"] as? String ?? ""
 
+        // The WhaTicket browser extension checking in (via coucou-native-host): answer with the
+        // tickets to accept. Not a Claude Code event — it never touches the sessions.
+        if eventName == "WhaTicketBrowser" {
+            Task { @MainActor in
+                let answer = WhaTicketBridge.shared.handle(payload)
+                let line = (try? JSONSerialization.data(withJSONObject: answer))
+                    .flatMap { String(data: $0, encoding: .utf8) } ?? #"{"commands":[],"interval":30}"#
+                Task.detached { connection.reply(line) }
+            }
+            return
+        }
+
         if eventName == "PermissionRequest" {
             // Keep the connection open: the agent waits for our decision (up to 120s)
             Task { @MainActor in self.processPermissionRequest(connection, payload: payload) }

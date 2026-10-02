@@ -182,6 +182,46 @@
         }
       }
     },
+    "1. Click Set up browser extension.": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "1. Haz clic en Configurar la extensión del navegador."
+          }
+        }
+      }
+    },
+    "2. In Chrome open chrome://extensions (in Edge: edge://extensions) and turn on Developer mode.": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "2. En Chrome abre chrome://extensions (en Edge: edge://extensions) y activa el Modo de desarrollador."
+          }
+        }
+      }
+    },
+    "3. Click Load unpacked and pick the extension folder shown above.": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "3. Haz clic en Cargar descomprimida y elige la carpeta de la extensión que aparece arriba."
+          }
+        }
+      }
+    },
+    "4. Keep a whaticket.com tab open, and turn on the WhaTicket pill under Integrations.": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "4. Deja una pestaña de whaticket.com abierta y activa la píldora de WhaTicket en Integraciones."
+          }
+        }
+      }
+    },
     "A Claude Code session is working on it": {
       "localizations": {
         "es": {
@@ -292,32 +332,12 @@
         }
       }
     },
-    "API token  (whaticket.com → Integrations → Tokens)": {
-      "localizations": {
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Token de API  (whaticket.com → Integraciones → Tokens)"
-          }
-        }
-      }
-    },
     "Accept": {
       "localizations": {
         "es": {
           "stringUnit": {
             "state": "translated",
             "value": "Aceptar"
-          }
-        }
-      }
-    },
-    "Accepted": {
-      "localizations": {
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Aceptado"
           }
         }
       }
@@ -372,26 +392,6 @@
         }
       }
     },
-    "Add the WhaTicket URL, email and password first.": {
-      "localizations": {
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Agrega primero la URL, el correo y la contraseña de WhaTicket."
-          }
-        }
-      }
-    },
-    "Add the email you sign in to WhaTicket with, so Coucou knows which agent you are.": {
-      "localizations": {
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Agrega el correo con el que entras a WhaTicket, para que Coucou sepa qué agente eres."
-          }
-        }
-      }
-    },
     "Add this timeline as a comment on %@ · %@": {
       "localizations": {
         "es": {
@@ -418,16 +418,6 @@
           "stringUnit": {
             "state": "translated",
             "value": "Añade tu clave de API de Linear en Ajustes"
-          }
-        }
-      }
-    },
-    "Add your WhaTicket token (or URL, email and password) first.": {
-      "localizations": {
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Agrega primero tu token de WhaTicket (o URL, correo y contraseña)."
           }
         }
       }
@@ -778,26 +768,6 @@
           "stringUnit": {
             "state": "translated",
             "value": "Volver al diff"
-          }
-        }
-      }
-    },
-    "Backend URL  (https://api.your-whaticket.com)": {
-      "localizations": {
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "URL del backend  (https://api.tu-whaticket.com)"
-          }
-        }
-      }
-    },
-    "Backend URL  (self-hosted only)": {
-      "localizations": {
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "URL del backend  (solo instalado por ti)"
           }
         }
       }
@@ -1722,6 +1692,16 @@
         }
       }
     },
+    "Coucou reads your whaticket.com queue through a small Chrome / Edge extension that uses the session you already have open — no token, no password, and it never signs you out.": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Coucou lee tu cola de whaticket.com con una pequeña extensión de Chrome / Edge que usa la sesión que ya tienes abierta: sin token, sin contraseña, y nunca te cierra la sesión."
+          }
+        }
+      }
+    },
     "Coucou updates itself and opens again in a few seconds.": {
       "localizations": {
         "es": {
@@ -1738,6 +1718,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "Coucou escribirá esto en ~/.claude/settings.json (antes guarda una copia del archivo actual). Revísalo y confirma."
+          }
+        }
+      }
+    },
+    "Couldn't accept · %@": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No se pudo aceptar · %@"
           }
         }
       }
@@ -1948,26 +1938,6 @@
           "stringUnit": {
             "state": "translated",
             "value": "Edición activada"
-          }
-        }
-      }
-    },
-    "Email": {
-      "localizations": {
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Correo"
-          }
-        }
-      }
-    },
-    "Email  (the one you sign in to WhaTicket with)": {
-      "localizations": {
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Correo  (con el que entras a WhaTicket)"
           }
         }
       }
@@ -3022,26 +2992,6 @@
         }
       }
     },
-    "Never during Do not disturb and never group chats. Self-hosted WhaTicket can undo for two minutes (whaticket.com can't put a ticket back in the queue). Coucou only assigns the ticket — it never writes to the customer.": {
-      "localizations": {
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Nunca en No molestar ni en chats de grupo. Con WhaTicket instalado por ti puedes deshacer durante dos minutos (whaticket.com no permite devolver un ticket a la cola). Coucou solo se asigna el ticket: nunca le escribe al cliente."
-          }
-        }
-      }
-    },
-    "Never during Do not disturb, never group chats, and you can undo for two minutes. Coucou only assigns the ticket — it never writes to the customer.": {
-      "localizations": {
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Nunca en No molestar ni en chats de grupo, y puedes deshacerlo durante dos minutos. Coucou solo se asigna el ticket: nunca le escribe al cliente."
-          }
-        }
-      }
-    },
     "New": {
       "localizations": {
         "es": {
@@ -3112,6 +3062,16 @@
         }
       }
     },
+    "No Chrome, Edge, Brave or Chromium found for this user": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No se encontró Chrome, Edge, Brave ni Chromium para este usuario"
+          }
+        }
+      }
+    },
     "No Drive file with that name.": {
       "localizations": {
         "es": {
@@ -3128,16 +3088,6 @@
           "stringUnit": {
             "state": "translated",
             "value": "No contiene SKILL.md, así que no es una skill."
-          }
-        }
-      }
-    },
-    "No WhaTicket user has that email — check it.": {
-      "localizations": {
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Ningún usuario de WhaTicket tiene ese correo: revísalo."
           }
         }
       }
@@ -3492,6 +3442,16 @@
         }
       }
     },
+    "Only while your whaticket.com tab is open. Never during Do not disturb, never group chats, never tickets an AI agent is handling. Coucou only assigns the ticket — it never writes to the customer.": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Solo mientras tu pestaña de whaticket.com esté abierta. Nunca en No molestar, nunca chats de grupo, nunca tickets que atiende un agente de IA. Coucou solo se asigna el ticket: nunca le escribe al cliente."
+          }
+        }
+      }
+    },
     "Open": {
       "localizations": {
         "es": {
@@ -3602,6 +3562,26 @@
         }
       }
     },
+    "Open whaticket.com in Chrome or Edge": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Abre whaticket.com en Chrome o Edge"
+          }
+        }
+      }
+    },
+    "Open whaticket.com in Chrome or Edge (with the Coucou extension) to accept from here.": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Abre whaticket.com en Chrome o Edge (con la extensión de Coucou) para aceptar desde aquí."
+          }
+        }
+      }
+    },
     "Opened": {
       "localizations": {
         "es": {
@@ -3648,26 +3628,6 @@
           "stringUnit": {
             "state": "translated",
             "value": "Resumen"
-          }
-        }
-      }
-    },
-    "Password": {
-      "localizations": {
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Contraseña"
-          }
-        }
-      }
-    },
-    "Password  (self-hosted only)": {
-      "localizations": {
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Contraseña  (solo instalado por ti)"
           }
         }
       }
@@ -3958,6 +3918,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "Solo lectura"
+          }
+        }
+      }
+    },
+    "Ready for %@. Extension folder: %@": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Lista para %@. Carpeta de la extensión: %@"
           }
         }
       }
@@ -4322,6 +4292,26 @@
         }
       }
     },
+    "Set up again": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Configurar de nuevo"
+          }
+        }
+      }
+    },
+    "Set up browser extension": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Configurar la extensión del navegador"
+          }
+        }
+      }
+    },
     "Settings…": {
       "localizations": {
         "es": {
@@ -4362,6 +4352,16 @@
         }
       }
     },
+    "Show folder": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Mostrar carpeta"
+          }
+        }
+      }
+    },
     "Show in Finder": {
       "localizations": {
         "es": {
@@ -4382,22 +4382,12 @@
         }
       }
     },
-    "Sign in": {
+    "Sign in to whaticket.com in Chrome or Edge.": {
       "localizations": {
         "es": {
           "stringUnit": {
             "state": "translated",
-            "value": "Iniciar sesión"
-          }
-        }
-      }
-    },
-    "Sign in to check the connection and load your queues.": {
-      "localizations": {
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Inicia sesión para comprobar la conexión y cargar tus colas."
+            "value": "Inicia sesión en whaticket.com en Chrome o Edge."
           }
         }
       }
@@ -4408,26 +4398,6 @@
           "stringUnit": {
             "state": "translated",
             "value": "Sesión iniciada como %@"
-          }
-        }
-      }
-    },
-    "Signed in as %@. Queues: %@.": {
-      "localizations": {
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Sesión iniciada como %@. Colas: %@."
-          }
-        }
-      }
-    },
-    "Signing in…": {
-      "localizations": {
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Iniciando sesión…"
           }
         }
       }
@@ -4552,16 +4522,6 @@
         }
       }
     },
-    "That URL doesn't answer like WhaTicket.": {
-      "localizations": {
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Esa URL no responde como WhaTicket."
-          }
-        }
-      }
-    },
     "That file is over 10 MB — too big for the chat.": {
       "localizations": {
         "es": {
@@ -4638,6 +4598,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "El archivo intenta escribir fuera de su carpeta."
+          }
+        }
+      }
+    },
+    "The browser extension isn't available in the App Store version.": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "La extensión del navegador no está disponible en la versión de la App Store."
           }
         }
       }
@@ -4722,16 +4692,6 @@
         }
       }
     },
-    "The token's profile needs these permissions: %@": {
-      "localizations": {
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "El perfil del token necesita estos permisos: %@"
-          }
-        }
-      }
-    },
     "There's already a skill with that folder name.": {
       "localizations": {
         "es": {
@@ -4752,12 +4712,12 @@
         }
       }
     },
-    "This WhaTicket asks for a code to sign in: use an API token instead (whaticket.com → Integrations → Tokens).": {
+    "This build of Coucou doesn't include the browser extension.": {
       "localizations": {
         "es": {
           "stringUnit": {
             "state": "translated",
-            "value": "Este WhaTicket pide un código para entrar: usa un token de API (whaticket.com → Integraciones → Tokens)."
+            "value": "Esta versión de Coucou no incluye la extensión del navegador."
           }
         }
       }
@@ -4788,16 +4748,6 @@
           "stringUnit": {
             "state": "translated",
             "value": "Token rechazado · revísalo en Ajustes"
-          }
-        }
-      }
-    },
-    "Too late to undo — reopen it in WhaTicket.": {
-      "localizations": {
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Ya es tarde para deshacer: reábrelo en WhaTicket."
           }
         }
       }
@@ -4872,26 +4822,6 @@
         }
       }
     },
-    "Turn on the WhaTicket pill and add its URL, email and password under Integrations. New tickets then show in the island; you accept them with one click.": {
-      "localizations": {
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Activa la píldora de WhaTicket y agrega su URL, correo y contraseña en Integraciones. Los tickets nuevos aparecen en la isla y los aceptas con un clic."
-          }
-        }
-      }
-    },
-    "Undo": {
-      "localizations": {
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Deshacer"
-          }
-        }
-      }
-    },
     "Unexpected API response.": {
       "localizations": {
         "es": {
@@ -4908,6 +4838,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "Desinstalar"
+          }
+        }
+      }
+    },
+    "Unknown ticket": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ticket desconocido"
           }
         }
       }
@@ -5102,62 +5042,12 @@
         }
       }
     },
-    "Web URL  (optional, to open tickets)": {
-      "localizations": {
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "URL web  (opcional, para abrir tickets)"
-          }
-        }
-      }
-    },
     "Week": {
       "localizations": {
         "es": {
           "stringUnit": {
             "state": "translated",
             "value": "Semana"
-          }
-        }
-      }
-    },
-    "WhaTicket answered %lld: %@": {
-      "localizations": {
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "WhaTicket respondió %lld: %@"
-          }
-        }
-      }
-    },
-    "WhaTicket error %lld": {
-      "localizations": {
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Error de WhaTicket %lld"
-          }
-        }
-      }
-    },
-    "WhaTicket refused the token — check it in whaticket.com → Integrations → Tokens.": {
-      "localizations": {
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "WhaTicket rechazó el token: revísalo en whaticket.com → Integraciones → Tokens."
-          }
-        }
-      }
-    },
-    "WhaTicket says too many attempts — wait a minute and try again.": {
-      "localizations": {
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "WhaTicket dice que hubo demasiados intentos: espera un minuto y vuelve a intentar."
           }
         }
       }
@@ -5218,16 +5108,6 @@
           "stringUnit": {
             "state": "translated",
             "value": "Trabajando…"
-          }
-        }
-      }
-    },
-    "Wrong email or password": {
-      "localizations": {
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Correo o contraseña incorrectos"
           }
         }
       }
@@ -5318,6 +5198,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "Tu clave de API de Anthropic fue rechazada. Revísala en Ajustes → Claude, o cambia el chat a tu suscripción de Claude Code."
+          }
+        }
+      }
+    },
+    "Your queues show here once whaticket.com is open with the extension.": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tus colas aparecen aquí cuando whaticket.com esté abierto con la extensión."
           }
         }
       }
@@ -5822,22 +5712,12 @@
         }
       }
     },
-    "whaticket.com can't put a ticket back in the queue — open it in WhaTicket.": {
+    "whaticket.com's session expired: use the tab once (or sign in again).": {
       "localizations": {
         "es": {
           "stringUnit": {
             "state": "translated",
-            "value": "whaticket.com no permite devolver un ticket a la cola: ábrelo en WhaTicket."
-          }
-        }
-      }
-    },
-    "whaticket.com: in WhaTicket go to Integrations → Tokens, create a token with a profile that can view all tickets, view pending ones, transfer tickets and view users; paste it under Integrations with the email you sign in with. Self-hosted WhaTicket: its backend URL, email and password instead.": {
-      "localizations": {
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "whaticket.com: en WhaTicket ve a Integraciones → Tokens, crea un token con un perfil que pueda ver todos los tickets, ver los pendientes, transferir tickets y ver usuarios; pégalo en Integraciones junto con el correo con el que entras. WhaTicket instalado por ti: su URL del backend, correo y contraseña."
+            "value": "La sesión de whaticket.com expiró: usa la pestaña una vez (o vuelve a iniciar sesión)."
           }
         }
       }
