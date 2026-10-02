@@ -2,6 +2,7 @@
 
 mod claude;
 mod claude_code;
+mod codex;
 mod editors;
 mod files;
 mod hooks;
@@ -245,6 +246,18 @@ fn chat_reset(chat: State<Chat>, code_chat: State<ClaudeCodeChat>) {
     code_chat.reset();
 }
 
+/// Codex CLI hooks in ~/.codex/hooks.json (#44 on macOS).
+#[tauri::command]
+fn codex_status() -> codex::CodexStatus {
+    codex::status()
+}
+
+/// Only ever called from an explicit click in Settings.
+#[tauri::command]
+fn codex_install(install: bool) -> Result<(), String> {
+    if install { codex::install() } else { codex::uninstall() }
+}
+
 /// Whether the subscription chat can work: is `claude` installed?
 #[tauri::command]
 fn claude_code_status() -> ClaudeCodeStatus {
@@ -413,6 +426,8 @@ pub fn run() {
             editors_installed,
             claude_code_status,
             github_cli_status,
+            codex_status,
+            codex_install,
         ])
         .setup(move |app| {
             let handle = app.handle().clone();

@@ -11,6 +11,9 @@ import { createMiniBot, pruneMiniBots } from "../mochi/minibots";
 import { buildPrompt } from "./chat";
 import { buildChoose, buildUpload, buildUploading } from "./upload";
 import { renderIntegrationCard, type IntegrationCardHooks } from "./integrations";
+import { AUTO_LEVELS, levelFor, withLevel, type AutoLevel } from "../claude/autoApprove.ts";
+import { clock, entries, icon, markdown, summary } from "../claude/timeline.ts";
+import { focusSession } from "../claude/sessions.ts";
 
 export interface ViewActions {
   setView(v: IslandViewName): void;
@@ -21,6 +24,8 @@ export interface ViewActions {
   openTarget(): void;
   openUrl(url: string): void;
   decide(d: "allow" | "deny"): void;
+  /** Saves settings after a change made from the island (auto-approve…). */
+  saveSettings(): void;
   toggleSound(): void;
   setVolume(v: number): void;
   setAutoClose(seconds: number): void;
@@ -119,7 +124,8 @@ export function buildHeader(actions: ViewActions): ViewHost {
 function buildOverview(actions: ViewActions): ViewHost {
   const ticker = new Ticker();
   const who = h("div", { class: "who" });
-  const tickerBody = h("div", { class: "card-body" }, who, ticker.el);
+  const chips = h("div", { class: "session-chips" });
+  const tickerBody = h("div", { class: "card-body" }, who, chips, ticker.el);
   const leftBody = h("div", { class: "left-body" });
   const jump = h(
     "button",
@@ -185,11 +191,19 @@ function buildOverview(actions: ViewActions): ViewHost {
           cardKey = "";
         }
         clear(who);
+        const agentName = State.sessions.find((s) => s.id === State.focusedSession)?.agent === "codex" ? "Codex" : "Claude Code";
         who.append(
           dot(task.color, 7),
           h("span", { class: "name", text: task.name }),
-          h("span", { class: "tool", text: task.source === "claudeCode" ? "Claude Code" : "n8n" }),
+          h("span", { class: "tool", text: task.source === "claudeCode" ? agentName : "n8n" }),
+          h("button", {
+            class: "link-btn timeline-btn",
+            title: "What this session did",
+            text: "Timeline",
+            onclick: () => actions.setView("timeline"),
+          }),
         );
+        syncSessionChips(chips);
         if (task.steps.length > 1) {
           who.append(h("span", {
             class: "count",
@@ -286,19 +300,143 @@ function buildEmpty(actions: ViewActions): ViewHost {
   return { el: h("div", { class: "view" }, card(null, body)), sync() {} };
 }
 
+// ── Sessions (#24 on macOS) ───────────────────────────────────────────────────
+
+const STATE_COLORS: Record<string, string> = {
+  working: "#4C8DFF", searching: "#4C8DFF", thinking: "#A78BFA", approval: "#F5A524", question: "#F5A524",
+  error: "#F4505E", ratelimit: "#F4505E", finished: "#22C55E",
+};
+
+let chipKey = "";
+function syncSessionChips(row: HTMLElement) {
+  const list = State.sessions;
+  const key = list.map((s) => `${s.id}:${s.state}:${s.unseen}:${s.project}:${s.agent}`).join("|") + `@${State.focusedSession}`;
+  if (key === chipKey) return;
+  chipKey = key;
+  clear(row);
+  row.style.display = list.length > 1 ? "" : "none";
+  if (list.length < 2) return;
+  for (const s of list) {
+    const focused = s.id === State.focusedSession;
+    const chip = h("button", {
+      class: focused ? "session-chip on" : "session-chip",
+      title: s.cwd,
+      onclick: () => focusSession(s.id),
+    }, dot(STATE_COLORS[s.state] ?? "#6B7079", 6));
+    if (s.agent === "codex") chip.append(h("span", { class: "agent", text: "Codex" }));
+    chip.append(h("span", { text: s.project }));
+    if (s.unseen && !focused) chip.append(h("i", { class: "unseen" }));
+    row.append(chip);
+  }
+}
+
+// ── Timeline (#22 on macOS) ───────────────────────────────────────────────────
+
+function buildTimeline(actions: ViewActions): ViewHost {
+  const title = h("div", { class: "tl-title" });
+  const sub = h("div", { class: "tl-sub" });
+  const list = h("div", { class: "tl-list" });
+  const copyBtn = h("button", { class: "btn secondary", text: "Copy as Markdown" });
+  const back = h("button", { class: "btn secondary", text: "Back", onclick: () => actions.setView("overview") });
+  const el = h("div", { class: "view" }, card(null, h("div", { class: "tl" },
+    h("div", { class: "tl-head" }, h("div", {}, title, sub), h("div", { class: "actions" }, back, copyBtn)),
+    list,
+  )));
+  let key = "";
+  copyBtn.addEventListener("click", async () => {
+    const id = State.focusedSession ?? "";
+    const text = markdown(id, State.focusTask?.name ?? "Session");
+    try {
+      await navigator.clipboard.writeText(text);
+    } catch {
+      const area = h("textarea", { style: "position:fixed;opacity:0" }) as HTMLTextAreaElement;
+      area.value = text;
+      document.body.append(area);
+      area.select();
+      document.execCommand("copy");
+      area.remove();
+    }
+    copyBtn.textContent = "Copied ✓";
+    actions.blip();
+    window.setTimeout(() => (copyBtn.textContent = "Copy as Markdown"), 1600);
+  });
+  return {
+    el,
+    sync() {
+      const id = State.focusedSession ?? "";
+      const items = entries(id);
+      const k = `${id}:${items.length}`;
+      if (k === key) return;
+      key = k;
+      title.textContent = State.focusTask?.name ?? "Session";
+      sub.textContent = id ? summary(id) : "No session yet";
+      clear(list);
+      for (const e of items.slice(-80)) {
+        list.append(h("div", { class: `tl-row ${e.kind}` },
+          h("span", { class: "tl-time", text: clock(e.at) }),
+          h("span", { class: "tl-icon", text: icon(e.kind) }),
+          h("span", { class: "tl-text", text: e.text }),
+        ));
+      }
+      if (!items.length) list.append(h("div", { class: "tl-empty", text: "Nothing recorded yet." }));
+      list.scrollTop = list.scrollHeight;
+    },
+  };
+}
+
 // ── Approval ──────────────────────────────────────────────────────────────────
+
+const RISK_COLORS = { low: "#22C55E", medium: "#F5A524", high: "#F4505E" } as const;
+const RISK_TITLES = { low: "Low risk", medium: "Medium risk", high: "High risk" } as const;
+
+/** "● High risk · deletes files recursively" (#21 on macOS). */
+function riskChip(risk: "low" | "medium" | "high", reason: string): HTMLElement {
+  const chip = h("span", { class: "risk-chip", title: reason },
+    dot(RISK_COLORS[risk], 6), h("span", { text: `${RISK_TITLES[risk]} · ${reason}` }));
+  chip.style.setProperty("--risk", RISK_COLORS[risk]);
+  return chip;
+}
 
 function buildApproval(actions: ViewActions): ViewHost {
   const who = h("div");
   const code = h("div", { class: "code" });
   const row = h("div", { class: "actions" });
-  const el = h("div", { class: "view" }, card("amber", stack(116, 16, who, code, row)));
+  const auto = h("div", { class: "auto-row" });
+  const el = h("div", { class: "view" }, card("amber", stack(116, 16, who, code, row, auto)));
   let rowKey = "";
+  let autoKey = "";
   return {
     el,
     sync() {
+      const a = State.pendingApproval;
       clear(who);
-      who.append(agentWho(State.focusTask, "needs permission"));
+      who.append(agentWho(State.focusTask, a?.agent === "codex" ? "· Codex needs permission" : "needs permission"));
+      if (a) who.append(riskChip(a.risk, a.riskReason));
+      if (State.approvalQueue.length) {
+        who.append(h("span", { class: "queue", text: `+${State.approvalQueue.length} waiting` }));
+      }
+      // Auto-approve this project from here (#29 on macOS). High risk always asks.
+      const level = a?.cwd ? levelFor(State.settings.autoApprove ?? {}, a.cwd) : "ask";
+      const key = `${a?.cwd ?? ""}|${level}`;
+      if (key !== autoKey) {
+        autoKey = key;
+        clear(auto);
+        if (a?.cwd) {
+          auto.append(h("span", { class: "auto-label", text: `Auto-approve in ${a.project}:` }));
+          for (const opt of AUTO_LEVELS) {
+            auto.append(h("button", {
+              class: opt.id === level ? "auto-opt on" : "auto-opt",
+              text: opt.label,
+              title: opt.id === "ask" ? "Ask every time" : "Answered at once and logged in the timeline. High risk always asks.",
+              onclick: () => {
+                State.settings.autoApprove = withLevel(State.settings.autoApprove ?? {}, a.cwd, opt.id as AutoLevel);
+                actions.saveSettings();
+                State.notify();
+              },
+            }));
+          }
+        }
+      }
       // The whole point of approving here rather than in the terminal: this line
       // is the command, the file path or the URL being authorised, not just the
       // name of the tool asking.
@@ -497,6 +635,7 @@ export function buildViews(
   map.set("confused", buildConfused());
   map.set("note", buildNote());
   map.set("settings", buildSettings(actions));
+  map.set("timeline", buildTimeline(actions));
   map.set("prompt", buildPrompt(onChatHeightChange));
   map.set("upload", buildUpload());
   map.set("uploading", buildUploading());

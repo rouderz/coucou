@@ -168,9 +168,14 @@ fn read_event() -> Option<(String, String)> {
     let mut payload = serde_json::from_slice::<serde_json::Value>(&raw).ok()?;
     let map = payload.as_object_mut()?;
 
-    // The event name is passed as argv[1] by the hook command; the JSON usually
-    // carries it too. Trust argv when the JSON is missing it.
-    let arg_event = std::env::args().nth(1).unwrap_or_default();
+    // The event name is passed as an argument by the Claude Code hook command; the
+    // JSON usually carries it too. Trust the argument when the JSON is missing it.
+    // `--agent codex` marks the relay installed for Codex CLI.
+    let args: Vec<String> = std::env::args().skip(1).collect();
+    let (arg_event, agent) = parse_args(&args);
+    if let Some(agent) = agent {
+        map.insert("agent".into(), serde_json::Value::String(agent));
+    }
     let event = map
         .get("hook_event_name")
         .and_then(|v| v.as_str())
@@ -217,6 +222,25 @@ fn read_event() -> Option<(String, String)> {
     let mut line = payload.to_string();
     line.push('\n');
     Some((line, event))
+}
+
+/// `[Event] [--agent NAME]`, in any order.
+fn parse_args(args: &[String]) -> (String, Option<String>) {
+    let mut event = String::new();
+    let mut agent = None;
+    let mut i = 0;
+    while i < args.len() {
+        if args[i] == "--agent" {
+            agent = args.get(i + 1).filter(|a| !a.is_empty()).cloned();
+            i += 2;
+            continue;
+        }
+        if event.is_empty() && !args[i].starts_with("--") {
+            event = args[i].clone();
+        }
+        i += 1;
+    }
+    (event, agent)
 }
 
 /// Caps every string in the payload. A single Write can carry a whole file.
@@ -286,6 +310,14 @@ mod tests {
         );
         // "always" is an island concept; Claude Code just gets an allow.
         assert!(decision_json("always").unwrap().contains(r#""behavior":"allow""#));
+    }
+
+    #[test]
+    fn arguments_give_the_event_and_the_agent() {
+        let a = |v: &[&str]| parse_args(&v.iter().map(|s| s.to_string()).collect::<Vec<_>>());
+        assert_eq!(a(&["Stop"]), ("Stop".to_string(), None));
+        assert_eq!(a(&["--agent", "codex"]), (String::new(), Some("codex".to_string())));
+        assert_eq!(a(&["PreToolUse", "--agent", "codex"]), ("PreToolUse".to_string(), Some("codex".to_string())));
     }
 
     #[test]

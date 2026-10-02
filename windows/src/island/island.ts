@@ -19,6 +19,7 @@ import { USC, UploadSeq } from "../upload/sequence";
 import { buildHeader, buildViews, type ViewActions, type ViewHost } from "../views/views";
 import { h } from "../views/dom";
 import { IslandStateMachine } from "./fsm";
+import { approvalDecided } from "./hooks";
 
 const BOT_OVERHANG = 40;
 /** Same margin as the Rust hit test (src-tauri/src/island.rs). */
@@ -146,7 +147,10 @@ export class Island {
         State.updateTask("integration_claude", "working");
         State.setPillBadge("integration_claude", null);
         this.setView(State.defaultView());
+        // Logged in the timeline; the next request in line (if any) comes up.
+        approvalDecided(req, d);
       },
+      saveSettings: () => void Bridge.saveSettings(State.settings),
       toggleSound: () => {
         State.settings.soundEnabled = !State.settings.soundEnabled;
         Sound.setEnabled(State.settings.soundEnabled);

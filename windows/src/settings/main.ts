@@ -175,6 +175,55 @@ function claudeSection(status: HookStatus): HTMLElement {
   return section;
 }
 
+// ── Codex CLI section (#44 on macOS) ──────────────────────────────────────────
+
+function codexSection(initial: { found: boolean; installed: boolean; hooksPath: string }): HTMLElement {
+  const body = h("div", { style: "display:flex;flex-direction:column;gap:10px" });
+  const head = h("h2", {});
+  const section = h("section", {}, head, body);
+  let status = initial;
+
+  function draw() {
+    clear(head);
+    head.append(statusDot(status.installed), h("span", { text: "Codex CLI" }));
+    clear(body);
+    body.append(h("div", {
+      class: "hint",
+      text: !status.found
+        ? "Codex CLI isn't set up here yet. Install it and run it once to follow its sessions and approve them from the island too."
+        : status.installed
+        ? "Coucou's hooks are in Codex. Run /hooks in Codex once to review and trust them; its sessions then show up next to Claude Code's."
+        : "Coucou can follow Codex CLI sessions and approve them from the island. Codex is never blocked if Coucou isn't running.",
+    }));
+    if (status.found) {
+      body.append(h("div", { class: "row" },
+        h("label", { text: "hooks.json" }), h("span", { class: "path", text: status.hooksPath })));
+      const row = h("div", { class: "row" });
+      const run = async (install: boolean) => {
+        try {
+          await Bridge.codexInstall(install);
+        } catch (err) {
+          body.append(h("div", { class: "notice err", text: String(err).replace(/^Error:\s*/, "") }));
+          return;
+        }
+        status = (await Bridge.codexStatus()) ?? status;
+        draw();
+      };
+      row.append(h("button", {
+        class: "primary",
+        text: status.installed ? "Reinstall Codex hooks" : "Install Codex hooks",
+        onclick: () => void run(true),
+      }));
+      if (status.installed) {
+        row.append(h("button", { class: "danger", text: "Uninstall", onclick: () => void run(false) }));
+      }
+      body.append(row);
+    }
+  }
+  draw();
+  return section;
+}
+
 // ── Claude API section ────────────────────────────────────────────────────────
 
 // Same list as the macOS app (Settings → Model).
@@ -484,6 +533,7 @@ async function main() {
   const hasKey = (await Bridge.secretPresent("anthropic-api-key")) ?? false;
   const claudeCode = (await Bridge.claudeCodeStatus()) ?? { installed: false, path: null };
   const editors = (await Bridge.editorsInstalled()) ?? [];
+  const codex = (await Bridge.codexStatus()) ?? { found: false, installed: false, hooksPath: "" };
 
   const keys = [
     "stripe-api-key", "github-token", "vercel-token",
@@ -496,6 +546,7 @@ async function main() {
   root.append(
     h("h1", {}, h("span", { text: "Coucou" }), h("span", { class: "version", text: version })),
     claudeSection(status),
+    codexSection(codex),
     apiSection(hasKey, claudeCode),
     integrationsSection(present),
     generalSection(editors),
