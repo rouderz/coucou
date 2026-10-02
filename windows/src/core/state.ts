@@ -122,11 +122,14 @@ export const INTEGRATION_AGENTS: AgentTask[] = [
   task("integration_calcom", "Cal.com", "#C9956A", "n8n"),
   task("integration_stripe", "Stripe", "#0570DE", "n8n"),
   task("integration_linear", "Linear", "#5E6AD2", "n8n"),
+  task("integration_whaticket", "WhaTicket", "#25D366", "n8n"),
+  task("integration_gmail", "Gmail", "#EA4335", "n8n"),
 ];
 
 export const TOGGLEABLE_INTEGRATION_IDS = [
   "integration_resend", "integration_n8n", "integration_vercel", "integration_github",
   "integration_notion", "integration_calcom", "integration_stripe", "integration_linear",
+  "integration_whaticket", "integration_gmail",
 ];
 
 /** What an integration poller last reported. */
@@ -159,6 +162,13 @@ export interface Settings {
   speakReplies: boolean;
   /** A small notch stays at the top when the island hides (like the Mac's). */
   idleNotch: boolean;
+  /** WhaTicket: accept new tickets on their own, from these queues (empty = any), in these hours. */
+  whaticketAutoAccept: boolean;
+  whaticketQueues: number[];
+  whaticketHours: string;
+  /** Google: the connected account, and the Gmail search the pill shows. */
+  googleEmail: string;
+  gmailQuery: string;
   /** Preferred editor command; "" = the first one installed. */
   editor: string;
   /** Auto-approve per project folder: "low" or "medium" (absent = always ask). */
@@ -207,6 +217,11 @@ export const DEFAULT_SETTINGS: Settings = {
   language: "system",
   speakReplies: false,
   idleNotch: true,
+  whaticketAutoAccept: false,
+  whaticketQueues: [],
+  whaticketHours: "",
+  googleEmail: "",
+  gmailQuery: "is:unread in:inbox",
 };
 
 type Listener = () => void;
@@ -253,6 +268,8 @@ class AppState {
   codeContext: CodeContext | null = null;
   /** A skill picked with "/" in the chat; its SKILL.md goes with the next question. */
   chatSkill: { name: string; path: string } | null = null;
+  /** A file attached mid-chat (a mail, a Drive file): it goes with the next question. */
+  attachNext = false;
 
   /** A newer release, from the update check. */
   update: { latest: string; url: string; canInstall: boolean; installing?: boolean } | null = null;

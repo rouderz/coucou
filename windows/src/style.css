@@ -1803,3 +1803,29 @@ input[type="range"]::-webkit-slider-thumb {
 .skill-chip {
   color: #c4b5fd;
 }
+
+/* WhaTicket: Accept / Undo inside a ticket row. */
+.int-mini {
+  margin-left: auto;
+  flex: 0 0 auto;
+  padding: 2px 8px;
+  border: 0;
+  border-radius: 999px;
+  background: rgba(37, 211, 102, 0.18);
+  color: #6ee7a0;
+  font: 600 10.5px var(--font);
+  cursor: pointer;
+}
+
+.int-mini:hover {
+  background: rgba(37, 211, 102, 0.3);
+}
+
+.int-mini.mail {
+  background: rgba(234, 67, 53, 0.18);
+  color: #f6a39b;
+}
+
+.int-mini.mail:hover {
+  background: rgba(234, 67, 53, 0.3);
+}

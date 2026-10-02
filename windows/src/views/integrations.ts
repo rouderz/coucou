@@ -7,6 +7,7 @@
 import { h, svg, clear, dot } from "./dom";
 import { ICONS } from "./icons";
 import { State, type AgentTask } from "../core/state";
+import { startNewChat } from "../core/chats";
 import { Bridge } from "../core/bridge";
 
 /** Same shape as the Swift `timeAgo` computed properties. */
@@ -339,6 +340,125 @@ function linearCard(): HTMLElement {
   return h("div", { class: "int-card" }, header("#5E6AD2", "Linear", count), rows);
 }
 
+// ── WhaTicket ─────────────────────────────────────────────────────────────────
+
+function whaticketCard(): HTMLElement {
+  const d = get("integration_whaticket");
+  const pending = arr("integration_whaticket", "pending");
+  const mine = arr("integration_whaticket", "mine");
+  const undoable = new Set(Array.isArray(d.undoable) ? (d.undoable as number[]) : []);
+  const rows = h("div", { class: "int-rows tight" });
+
+  // What Coucou just accepted on its own, with Undo.
+  for (const t of mine.filter((m) => undoable.has(Number(m.id))).slice(0, 1)) {
+    const undo = h("button", { class: "int-mini", text: "Undo" });
+    undo.addEventListener("click", async (e) => {
+      e.stopPropagation();
+      undo.textContent = "…";
+      try {
+        await Bridge.whaticketUndo(Number(t.id));
+      } catch (err) {
+        State.noteMessage = String(err).replace(/^Error:\s*/, "");
+        State.view = "note";
+        State.notify();
+      }
+    });
+    rows.append(h("div", { class: "int-page" },
+      dot("#25D366", 6),
+      h("span", { class: "int-time", text: "Accepted" }),
+      h("span", { class: "int-name", text: String(t.name ?? "") }),
+      undo,
+    ));
+  }
+
+  if (!pending.length && !mine.length) rows.append(h("div", { class: "int-empty", text: "No tickets waiting." }));
+  for (const t of pending.slice(0, 3)) {
+    const accept = h("button", { class: "int-mini", text: "Accept" });
+    accept.addEventListener("click", async (e) => {
+      e.stopPropagation();
+      accept.textContent = "…";
+      try {
+        await Bridge.whaticketAccept(Number(t.id));
+      } catch (err) {
+        accept.textContent = "Accept";
+        State.noteMessage = String(err).replace(/^Error:\s*/, "");
+        State.view = "note";
+        State.notify();
+      }
+    });
+    rows.append(h("div", {
+      class: "int-page",
+      title: String(t.lastMessage ?? ""),
+      onclick: () => void Bridge.whaticketOpen(Number(t.id)),
+    },
+      dot(String(t.queueColor || "#F5A524"), 6),
+      h("span", { class: "int-name", text: String(t.name ?? "") }),
+      h("span", { class: "int-ago", text: [t.queue, timeAgo(t.updatedAt)].filter(Boolean).join(" · ") }),
+      accept,
+    ));
+  }
+  const left = 3 - Math.min(3, pending.length);
+  for (const t of mine.filter((m) => !undoable.has(Number(m.id))).slice(0, left)) {
+    rows.append(h("button", {
+      class: "int-page",
+      title: String(t.lastMessage ?? ""),
+      onclick: () => void Bridge.whaticketOpen(Number(t.id)),
+    },
+      dot("#25D366", 6),
+      h("span", { class: "int-name", text: String(t.name ?? "") }),
+      Number(t.unread) > 0 ? h("span", { class: "int-ago", text: `${t.unread} new` }) : h("span", { class: "int-ago", text: timeAgo(t.updatedAt) }),
+    ));
+  }
+  const kind = `Waiting ${Number(d.pendingCount ?? 0)} · Mine ${Number(d.mineCount ?? 0)}${d.autoAccept ? " · Auto" : ""}`;
+  return h("div", { class: "int-card" }, header("#25D366", "WhaTicket", kind), rows);
+}
+
+// ── Gmail ─────────────────────────────────────────────────────────────────────
+
+/** Puts a file (a mail, a Drive file) in the chat; it goes with the next question. */
+export function attachToChat(file: { name: string; path: string }, fresh: boolean) {
+  if (fresh) startNewChat();
+  State.droppedFile = { name: file.name, path: file.path };
+  State.promptContext = { kind: "file", name: file.name, path: file.path };
+  State.attachNext = true;
+  State.view = "prompt";
+  State.notify();
+}
+
+function gmailCard(): HTMLElement {
+  const d = get("integration_gmail");
+  const mails = arr("integration_gmail", "mails");
+  const rows = h("div", { class: "int-rows tight" });
+  if (!mails.length) rows.append(h("div", { class: "int-empty", text: "Nothing new in your inbox." }));
+  for (const m of mails.slice(0, 3)) {
+    const ask = h("button", { class: "int-mini mail", text: "Ask" });
+    ask.addEventListener("click", async (e) => {
+      e.stopPropagation();
+      ask.textContent = "…";
+      try {
+        attachToChat(await Bridge.gmailAttach(String(m.id)), true);
+      } catch (err) {
+        ask.textContent = "Ask";
+        State.noteMessage = String(err).replace(/^Error:\s*/, "");
+        State.view = "note";
+        State.notify();
+      }
+    });
+    rows.append(h("div", {
+      class: "int-page",
+      title: String(m.snippet ?? ""),
+      onclick: () => void Bridge.openUrl(`https://mail.google.com/mail/u/0/#inbox/${String(m.threadId ?? m.id)}`),
+    },
+      dot("#EA4335", 6),
+      h("span", { class: "int-time", text: String(m.from ?? "") }),
+      h("span", { class: "int-name", text: String(m.subject || "(no subject)") }),
+      ask,
+    ));
+  }
+  const total = Number(d.total ?? 0);
+  return h("div", { class: "int-card" }, header("#EA4335", "Gmail", total ? `Unread · ${total}` : "Inbox"), rows);
+}
+
 // ── n8n ───────────────────────────────────────────────────────────────────────
 
 function n8nCard(task: AgentTask, onDetail: () => void, openSettings: () => void): HTMLElement {
@@ -423,6 +543,8 @@ export function hasIntegrationData(id: string): boolean {
     case "integration_calcom":
       return info.loaded;
     case "integration_linear":
+    case "integration_whaticket":
+    case "integration_gmail":
       return info.loaded;
     default:
       return false;
@@ -454,6 +576,10 @@ export function renderIntegrationCard(task: AgentTask, hooks: IntegrationCardHoo
       return calcomCard();
     case "integration_linear":
       return linearCard();
+    case "integration_whaticket":
+      return whaticketCard();
+    case "integration_gmail":
+      return gmailCard();
     default:
       return idleCard(task, hooks.openSettings);
   }

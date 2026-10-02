@@ -3,7 +3,8 @@
 
 import { h, svg, clear } from "./dom";
 import { ICONS } from "./icons";
-import { Bridge, type ChatContext, type SkillInfo } from "../core/bridge";
+import { Bridge, type ChatContext, type DriveFile, type SkillInfo } from "../core/bridge";
+import { attachToChat } from "./integrations";
 import { matchSkills, withSkill } from "../core/skills";
 import { saveCurrent, startNewChat } from "../core/chats";
 import { Sound } from "../core/sound";
@@ -71,11 +72,17 @@ export function buildPrompt(onHeightChange: () => void, openHistory: () => void 
   const historyBtn = h("button", { class: "chip-action", text: "History", onclick: () => openHistory() });
   chipRow.append(contextSlot, skillChip, attach, h("div", { style: "flex:1" }), newBtn, historyBtn);
   const log = h("div", { class: "chat-log" });
-  // "/" at the start of the field lists the skills, in the log's place.
+  // "/" at the start of the field lists the skills, "@" searches Google Drive —
+  // both in the log's place.
   const picker = h("div", { class: "skill-picker", style: "display:none" });
+  interface PickItem { label: string; detail: string; run: () => void }
   let skills: SkillInfo[] | null = null;
-  let matches: SkillInfo[] = [];
+  let googleOn: boolean | null = null;
+  let matches: PickItem[] = [];
+  let emptyText = "";
   let pickIndex = 0;
+  let driveTimer: number | null = null;
+  let driveQuery = "";
 
   function pickerOpen(): boolean {
     return picker.style.display !== "none";
@@ -88,17 +95,15 @@ export function buildPrompt(onHeightChange: () => void, openHistory: () => void 
 
   function drawPicker() {
     clear(picker);
-    if (!matches.length) {
-      picker.append(h("div", { class: "skill-pick empty", text: skills?.length ? "No skill matches." : "No skills installed. Add some in Settings → Skills." }));
-    }
-    matches.forEach((s, i) => {
+    if (!matches.length) picker.append(h("div", { class: "skill-pick empty", text: emptyText }));
+    matches.forEach((m, i) => {
       const item = h("button", { class: i === pickIndex ? "skill-pick on" : "skill-pick" },
-        h("b", { text: `/${s.name}` }),
-        h("span", { text: s.description }),
+        h("b", { text: m.label }),
+        h("span", { text: m.detail }),
       );
       item.addEventListener("mousedown", (e) => {
         e.preventDefault();
-        choose(s);
+        m.run();
       });
       picker.append(item);
     });
@@ -106,25 +111,88 @@ export function buildPrompt(onHeightChange: () => void, openHistory: () => void 
     log.style.display = "none";
   }
 
+  function skillItem(s: SkillInfo): PickItem {
+    return {
+      label: `/${s.name}`,
+      detail: s.description,
+      run: () => {
+        State.chatSkill = { name: s.name, path: s.path };
+        input.value = "";
+        closePicker();
+        State.notify();
+        input.focus();
+      },
+    };
+  }
+
+  function driveItem(f: DriveFile): PickItem {
+    return {
+      label: f.name,
+      detail: f.mimeType.includes("spreadsheet") ? "Sheet" : f.mimeType.includes("document") ? "Doc"
+        : f.mimeType.includes("presentation") ? "Slides" : (f.modified || "").slice(0, 10),
+      run: async () => {
+        input.value = "";
+        emptyText = "Downloading…";
+        matches = [];
+        drawPicker();
+        try {
+          attachToChat(await Bridge.driveAttach(f.id, f.name, f.mimeType), false);
+          closePicker();
+        } catch (err) {
+          emptyText = String(err).replace(/^Error:\s*/, "");
+          drawPicker();
+        }
+        input.focus();
+      },
+    };
+  }
+
+  async function searchDrive(text: string) {
+    driveQuery = text;
+    emptyText = "Searching Drive…";
+    try {
+      const files = await Bridge.driveSearch(text);
+      if (driveQuery !== text || !input.value.startsWith("@")) return;
+      matches = files.map(driveItem);
+      emptyText = "No Drive file with that name.";
+    } catch (err) {
+      matches = [];
+      emptyText = String(err).replace(/^Error:\s*/, "");
+    }
+    pickIndex = 0;
+    drawPicker();
+  }
+
   async function updatePicker() {
     const v = input.value;
+    if (v.startsWith("@")) {
+      if (googleOn === null) googleOn = (await Bridge.googleConnected()) ?? false;
+      if (!googleOn) {
+        matches = [];
+        emptyText = "Connect Google in Settings → Google to search your Drive.";
+        drawPicker();
+        return;
+      }
+      if (driveTimer != null) window.clearTimeout(driveTimer);
+      if (!pickerOpen()) {
+        matches = [];
+        emptyText = "Searching Drive…";
+        drawPicker();
+      }
+      driveTimer = window.setTimeout(() => void searchDrive(v.slice(1).trim()), 350);
+      return;
+    }
     if (!v.startsWith("/") || v.includes(" ")) {
       if (pickerOpen()) closePicker();
       return;
     }
     if (!skills) skills = (await Bridge.skillsList()) ?? [];
-    matches = matchSkills(skills, v);
+    matches = matchSkills(skills, v).map(skillItem);
+    emptyText = skills.length ? "No skill matches." : "No skills installed. Add some in Settings → Skills.";
     pickIndex = Math.min(pickIndex, Math.max(0, matches.length - 1));
     drawPicker();
   }
 
-  function choose(s: SkillInfo) {
-    State.chatSkill = { name: s.name, path: s.path };
-    input.value = "";
-    closePicker();
-    State.notify();
-    input.focus();
-  }
   const input = h("input", {
     type: "text",
     class: "chat-input",
@@ -179,9 +247,12 @@ export function buildPrompt(onHeightChange: () => void, openHistory: () => void 
     const file = State.droppedFile;
     const code = State.codeContext;
     const first = State.chatHistory.length === 1;
+    // A mail or a Drive file attached mid-chat goes with this question.
+    const fileNow = first || State.attachNext;
+    State.attachNext = false;
     const context: ChatContext | null =
       first && code ? { kind: "code", ...code }
-      : first && file ? { kind: "file", name: file.name, path: file.path }
+      : fileNow && file ? { kind: "file", name: file.name, path: file.path }
       : null;
 
     try {
@@ -221,7 +292,7 @@ export function buildPrompt(onHeightChange: () => void, openHistory: () => void 
         drawPicker();
       } else if ((key === "Enter" || key === "Tab") && matches[pickIndex]) {
         e.preventDefault();
-        choose(matches[pickIndex]);
+        matches[pickIndex].run();
       } else if (key === "Escape") {
         e.preventDefault();
         input.value = "";
@@ -270,7 +341,7 @@ export function buildPrompt(onHeightChange: () => void, openHistory: () => void 
 
       if (!mic.classList.contains("on")) {
         input.placeholder = State.chatSkill ? "What should it do?"
-          : State.chatHistory.length === 0 ? "Ask me anything… (/ for skills)" : "Continue…";
+          : State.chatHistory.length === 0 ? "Ask me anything… (/ skills, @ Drive)" : "Continue…";
       }
       mic.style.display = canListen ? "" : "none";
       input.disabled = sending;

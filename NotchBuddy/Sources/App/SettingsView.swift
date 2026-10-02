@@ -46,6 +46,10 @@ struct SettingsView: View {
     @State private var calcomKey: String    = Secrets.store.get("calcom-api-key")  ?? ""
     @State private var notionKey: String    = Secrets.store.get("notion-api-key")  ?? ""
     @State private var linearKey: String    = Secrets.store.get("linear-api-key")  ?? ""
+    @State private var whaticketURL: String      = Secrets.store.get("whaticket-url") ?? ""
+    @State private var whaticketWebURL: String   = Secrets.store.get("whaticket-web-url") ?? ""
+    @State private var whaticketEmail: String    = Secrets.store.get("whaticket-email") ?? ""
+    @State private var whaticketPassword: String = Secrets.store.get("whaticket-password") ?? ""
 
     // Hotkey
     @State private var hotkeyFlags: UInt    = AppState.shared.hotkeyFlags
@@ -393,6 +397,22 @@ struct SettingsView: View {
                             Text("Linear → Settings → Security & access → Personal API keys. Shows your open issues and links each Claude Code session to the issue in its branch name.")
                                 .font(.system(size: 11)).foregroundColor(.secondary)
                                 .fixedSize(horizontal: false, vertical: true)
+                        }
+
+                        // WhaTicket
+                        VStack(alignment: .leading, spacing: 5) {
+                            HStack(spacing: 6) {
+                                Circle().fill(Color(hex: "#25D366")).frame(width: 8, height: 8)
+                                Text("WhaTicket").font(.system(size: 12, weight: .semibold))
+                            }
+                            TextField("Backend URL  (https://api.your-whaticket.com)", text: $whaticketURL)
+                                .textFieldStyle(.roundedBorder)
+                            TextField("Web URL  (optional, to open tickets)", text: $whaticketWebURL)
+                                .textFieldStyle(.roundedBorder)
+                            TextField("Email", text: $whaticketEmail)
+                                .textFieldStyle(.roundedBorder)
+                            SecureField("Password", text: $whaticketPassword)
+                                .textFieldStyle(.roundedBorder)
                         }
 
                         Button("Save integrations") { saveIntegrations() }
@@ -760,6 +780,18 @@ struct SettingsView: View {
                     .padding(6)
                 }
 
+                // MARK: WhaTicket
+                GroupBox("WhaTicket") {
+                    WhaTicketSettingsSection()
+                }
+
+                #if !APPSTORE
+                // MARK: Google
+                GroupBox("Google") {
+                    GoogleSettingsSection()
+                }
+                #endif
+
                 #if !APPSTORE
                 // MARK: Skills
                 GroupBox("Skills") {
@@ -991,6 +1023,11 @@ struct SettingsView: View {
         saveKey("calcom-api-key",  value: calcomKey)
         saveKey("notion-api-key",  value: notionKey)
         saveKey("linear-api-key",  value: linearKey)
+        saveKey("whaticket-url",      value: whaticketURL)
+        saveKey("whaticket-web-url",  value: whaticketWebURL)
+        saveKey("whaticket-email",    value: whaticketEmail)
+        saveKey("whaticket-password", value: whaticketPassword)
+        WhaTicketPoller.shared.reset()  // sign in again with what was just saved
         IntegrationRefresher.refresh("integration_linear")
         IntegrationRefresher.refreshAll()  // show the result now instead of at the next poll
         statusMessage = L("✓ Integration keys saved.")

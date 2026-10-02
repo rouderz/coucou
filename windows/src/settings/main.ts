@@ -456,6 +456,15 @@ const INTEGRATIONS: IntegrationDef[] = [
     fields: [{ key: "calcom-api-key", label: "API key", placeholder: "cal_…", secret: true }] },
   { id: "integration_linear", name: "Linear", color: "#5E6AD2",
     fields: [{ key: "linear-api-key", label: "API key", placeholder: "lin_api_…", secret: true }] },
+  { id: "integration_whaticket", name: "WhaTicket", color: "#25D366",
+    fields: [
+      { key: "whaticket-url", label: "Backend URL", placeholder: "https://api.your-whaticket.com", secret: false },
+      { key: "whaticket-web-url", label: "Web URL", placeholder: "https://your-whaticket.com  (optional)", secret: false },
+      { key: "whaticket-email", label: "Email", placeholder: "you@company.com", secret: false },
+      { key: "whaticket-password", label: "Password", placeholder: "…", secret: true },
+    ] },
+  // Connected in the Google section below.
+  { id: "integration_gmail", name: "Gmail", color: "#EA4335", fields: [] },
 ];
 
 const MAX_ACTIVE = 4;
@@ -597,6 +606,156 @@ function inboxSection(): HTMLElement {
       h("label", { text: "Linear", style: "min-width:0;margin-left:16px" }),
       toggle(settings.inboxLinear, (v) => { settings.inboxLinear = v; void save(); })),
     kindRow,
+  );
+}
+
+// ── Google (Gmail, Drive) ─────────────────────────────────────────────────────
+
+function googleSection(connected: boolean, hasClient: boolean): HTMLElement {
+  const status = h("div", {});
+  const buttons = h("div", { class: "row" });
+
+  function setStatus(text: string, kind: "hint" | "ok" | "err") {
+    status.className = kind === "hint" ? "hint" : `notice ${kind}`;
+    status.textContent = text;
+  }
+
+  function draw() {
+    clear(buttons);
+    if (connected) {
+      setStatus(settings.googleEmail ? `Connected as ${settings.googleEmail}.` : "Connected.", "ok");
+      buttons.append(h("button", { class: "danger", text: "Disconnect", onclick: async () => {
+        await Bridge.googleDisconnect();
+        connected = false;
+        settings.googleEmail = "";
+        void save();
+        draw();
+      } }));
+    } else {
+      setStatus(hasClient ? "Not connected yet." : "Add your OAuth client first (steps above).", "hint");
+      const connect = h("button", { class: "primary", text: "Connect Google…" }) as HTMLButtonElement;
+      connect.addEventListener("click", async () => {
+        connect.disabled = true;
+        setStatus("Finish signing in in your browser…", "hint");
+        try {
+          const email = await Bridge.googleConnect();
+          connected = true;
+          settings.googleEmail = email;
+          void save();
+        } catch (err) {
+          setStatus(String(err).replace(/^Error:\s*/, ""), "err");
+          connect.disabled = false;
+          return;
+        }
+        draw();
+      });
+      buttons.append(connect);
+    }
+  }
+
+  const clientRow = (key: string, label: string, placeholder: string, secret: boolean) => {
+    const input = h("input", { type: secret ? "password" : "text", placeholder, autocomplete: "off", spellcheck: "false", style: "flex:1 1 auto;min-width:0" }) as HTMLInputElement;
+    const saveBtn = h("button", { text: "Save" });
+    saveBtn.addEventListener("click", async () => {
+      try {
+        await Bridge.secretSet(key, input.value.trim());
+        input.value = "";
+        input.placeholder = "••••••••  (stored)";
+        hasClient = true;
+        draw();
+      } catch (err) {
+        setStatus(String(err), "err");
+      }
+    });
+    return h("div", { class: "row" }, h("label", { text: label }), input, saveBtn);
+  };
+
+  const query = h("input", { type: "text", value: settings.gmailQuery || "is:unread in:inbox", style: "flex:1;min-width:200px" }) as HTMLInputElement;
+  query.addEventListener("change", () => {
+    settings.gmailQuery = query.value.trim() || "is:unread in:inbox";
+    void save();
+  });
+
+  draw();
+  return h("section", {},
+    h("h2", {}, h("i", { class: "dot", style: "background:#EA4335" }), h("span", { text: "Google" })),
+    h("div", { class: "hint", text: "Gmail in the island and your Drive files in the chat (type @ and a file name). Read-only: Coucou never sends mail or changes files." }),
+    h("div", { class: "hint", text: "One-time setup, free: in console.cloud.google.com create a project, turn on the Gmail API and the Google Drive API, set up the OAuth consent screen (External, add yourself as a test user, then Publish it so the sign-in doesn't expire every 7 days), and create an OAuth client ID of type \"Desktop app\". Paste its ID and secret here." }),
+    clientRow("google-client-id", "Client ID", hasClient ? "••••••••  (stored)" : "….apps.googleusercontent.com", false),
+    clientRow("google-client-secret", "Client secret", hasClient ? "••••••••  (stored)" : "GOCSPX-…", true),
+    h("div", { class: "row" }, buttons, status),
+    h("div", { class: "row" }, h("label", { text: "Gmail shows" }), query),
+    h("div", { class: "hint", text: "A Gmail search, e.g. is:unread in:inbox, or is:important is:unread. Turn on the Gmail pill under Integrations." }),
+  );
+}
+
+// ── WhaTicket auto-accept ─────────────────────────────────────────────────────
+
+function whaticketSection(): HTMLElement {
+  const status = h("div", { class: "hint", text: "Sign in to check the connection and load your queues." });
+  const queues = h("div", { class: "row", style: "gap:8px 14px" });
+  const signIn = h("button", { text: "Sign in" }) as HTMLButtonElement;
+
+  function drawQueues(list: { id: number; name: string; color: string }[]) {
+    clear(queues);
+    if (!list.length) return;
+    queues.append(h("label", { text: "Only from" }));
+    for (const q of list) {
+      const on = settings.whaticketQueues.includes(q.id);
+      const box = h("input", { type: "checkbox" }) as HTMLInputElement;
+      box.checked = on;
+      box.addEventListener("change", () => {
+        settings.whaticketQueues = box.checked
+          ? [...settings.whaticketQueues.filter((x) => x !== q.id), q.id]
+          : settings.whaticketQueues.filter((x) => x !== q.id);
+        void save();
+      });
+      queues.append(h("span", { style: "display:flex;align-items:center;gap:5px;font-size:12.5px" },
+        box, h("i", { class: "dot", style: `background:${q.color || "#8e939c"}` }), h("span", { text: q.name })));
+    }
+    queues.append(h("span", { class: "hint", text: "none ticked = any of your queues" }));
+  }
+
+  signIn.addEventListener("click", async () => {
+    signIn.disabled = true;
+    status.className = "hint";
+    status.textContent = "Signing in…";
+    try {
+      const account = await Bridge.whaticketLogin();
+      status.className = "notice ok";
+      status.textContent = `Signed in as ${account.name}. Queues: ${account.queues.map((q) => q.name).join(", ") || "none"}.`;
+      drawQueues(account.queues);
+    } catch (err) {
+      status.className = "notice err";
+      status.textContent = String(err).replace(/^Error:\s*/, "");
+    } finally {
+      signIn.disabled = false;
+    }
+  });
+
+  const hours = h("input", {
+    type: "text",
+    placeholder: "Any time — or e.g. 09:00-18:00",
+    value: settings.whaticketHours ?? "",
+    style: "width:200px",
+  }) as HTMLInputElement;
+  hours.addEventListener("change", () => {
+    settings.whaticketHours = hours.value.trim();
+    void save();
+  });
+
+  return h("section", {},
+    h("h2", {}, h("i", { class: "dot", style: "background:#25D366" }), h("span", { text: "WhaTicket" })),
+    h("div", { class: "hint", text: "Turn on the WhaTicket pill and add its URL, email and password under Integrations. New tickets then show in the island; you accept them with one click." }),
+    h("div", { class: "row" }, signIn, status),
+    h("div", { class: "row" },
+      h("label", { text: "Auto-accept" }),
+      toggle(settings.whaticketAutoAccept === true, (v) => { settings.whaticketAutoAccept = v; void save(); }),
+      h("span", { class: "hint", text: "accept new tickets as you as soon as they arrive" }),
+    ),
+    queues,
+    h("div", { class: "row" }, h("label", { text: "Only between" }), hours),
+    h("div", { class: "hint", text: "Never during Do not disturb, never group chats, and you can undo for two minutes. Coucou only assigns the ticket — it never writes to the customer." }),
   );
 }
 
@@ -967,11 +1126,14 @@ async function main() {
   const codex = (await Bridge.codexStatus()) ?? { found: false, installed: false, hooksPath: "" };
   const presets = (await Bridge.providerPresets()) ?? [];
   const canListen = (await Bridge.voiceAvailable()) ?? false;
+  const googleConnected = (await Bridge.googleConnected()) ?? false;
+  const googleClient = (await Bridge.secretPresent("google-client-id")) ?? false;
   const skillTargets = (await Bridge.skillsTargets()) ?? [{ id: "personal", label: "Claude Code — personal (~/.claude/skills)" }];
 
   const keys = [
     "stripe-api-key", "github-token", "vercel-token",
     "n8n-url", "n8n-api-key", "resend-api-key", "notion-api-key", "calcom-api-key", "linear-api-key",
+    "whaticket-url", "whaticket-web-url", "whaticket-email", "whaticket-password",
   ];
   const present: Record<string, boolean> = {};
   for (const k of keys) present[k] = (await Bridge.secretPresent(k)) ?? false;
@@ -987,6 +1149,8 @@ async function main() {
     skillsSection(skillTargets),
     apiSection(hasKey, claudeCode, presets, present),
     integrationsSection(present),
+    whaticketSection(),
+    googleSection(googleConnected, googleClient),
     phoneSection(),
     inboxSection(),
     voiceSection(canListen),

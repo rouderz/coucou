@@ -6,6 +6,7 @@ mod claude_code;
 mod codex;
 mod editors;
 mod files;
+mod google;
 mod hooks;
 mod inbox;
 mod integrations;
@@ -20,6 +21,7 @@ mod settings;
 mod skills;
 mod tray;
 mod voice;
+mod whaticket;
 
 use std::sync::atomic::Ordering;
 use std::sync::{Arc, Mutex};
@@ -359,6 +361,78 @@ async fn provider_models(shared: State<'_, Shared>) -> Result<Vec<String>, Strin
 
 // ── Linear, inbox, phone alerts, updates, shortcuts (phase 2 of parity) ──────
 
+// ── WhaTicket ─────────────────────────────────────────────────────────────────
+
+/// Signs in with the stored credentials (Settings → "Sign in") and returns who and which queues.
+#[tauri::command]
+async fn whaticket_login() -> Result<whaticket::Account, String> {
+    whaticket::forget();
+    whaticket::login().await
+}
+
+/// Accept from the island card — only ever on a click.
+#[tauri::command]
+async fn whaticket_accept(app: AppHandle, id: i64) -> Result<(), String> {
+    whaticket::accept(id).await?;
+    log::line(format!("whaticket: accepted ticket {id}"));
+    whaticket::poll(app).await;
+    Ok(())
+}
+
+/// Puts a ticket Coucou accepted on its own back in the queue.
+#[tauri::command]
+async fn whaticket_undo(app: AppHandle, id: i64) -> Result<(), String> {
+    whaticket::undo(id).await?;
+    log::line(format!("whaticket: undid ticket {id}"));
+    whaticket::poll(app).await;
+    Ok(())
+}
+
+#[tauri::command]
+fn whaticket_open(id: Option<i64>) {
+    if let Some(url) = whaticket::web_url(id) {
+        open_url(url);
+    }
+}
+
+// ── Google (Gmail, Drive) ─────────────────────────────────────────────────────
+
+/// Opens Google's consent page and waits for the answer; returns the account's email.
+#[tauri::command]
+async fn google_connect(app: AppHandle) -> Result<String, String> {
+    let email = google::connect().await?;
+    google::poll(app).await;
+    Ok(email)
+}
+
+#[tauri::command]
+async fn google_disconnect() {
+    google::disconnect().await;
+    log::line("google: disconnected");
+}
+
+#[tauri::command]
+fn google_connected() -> bool {
+    google::connected()
+}
+
+/// A mail as a text file, attached to the chat on a click.
+#[tauri::command]
+async fn gmail_attach(id: String) -> Result<files::DroppedFile, String> {
+    google::mail_to_file(&id).await
+}
+
+#[tauri::command]
+async fn drive_search(text: String) -> Result<Vec<google::DriveFile>, String> {
+    google::drive_search(&text).await
+}
+
+/// A Drive file (Docs / Sheets / Slides exported as text / CSV) attached to the chat.
+#[tauri::command]
+async fn drive_attach(id: String, name: String, mime: String) -> Result<files::DroppedFile, String> {
+    google::drive_to_file(&id, &name, &mime).await
+}
+
 // ── Skills ────────────────────────────────────────────────────────────────────
 
 #[tauri::command]
@@ -567,7 +641,12 @@ fn secret_present(key: String) -> bool {
 
 #[tauri::command]
 fn secret_set(key: String, value: String) -> Result<(), String> {
-    secrets::set(&key, &value)
+    secrets::set(&key, &value)?;
+    // New WhaTicket credentials: sign in again with them.
+    if key.starts_with("whaticket-") {
+        whaticket::forget();
+    }
+    Ok(())
 }
 
 #[tauri::command]
@@ -761,6 +840,16 @@ pub fn run() {
             skills_install,
             skill_create,
             skill_reveal,
+            whaticket_login,
+            whaticket_accept,
+            whaticket_undo,
+            whaticket_open,
+            google_connect,
+            google_disconnect,
+            google_connected,
+            gmail_attach,
+            drive_search,
+            drive_attach,
         ])
         .setup(move |app| {
             let handle = app.handle().clone();

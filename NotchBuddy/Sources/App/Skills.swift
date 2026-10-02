@@ -64,7 +64,7 @@ enum SkillFiles {
 
     /// `name` and `description` from a SKILL.md's YAML front matter (quoted values and `>` / `|` blocks).
     static func frontMatter(_ raw: String) -> (name: String?, description: String?) {
-        var text = raw
+        var text = raw.replacingOccurrences(of: "\r\n", with: "\n")
         if text.hasPrefix("\u{feff}") { text.removeFirst() }
         var lines = text.components(separatedBy: "\n").map { $0.hasSuffix("\r") ? String($0.dropLast()) : $0 }
         guard lines.first?.trimmingCharacters(in: .whitespaces) == "---" else { return (nil, nil) }

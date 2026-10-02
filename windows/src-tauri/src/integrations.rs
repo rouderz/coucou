@@ -41,7 +41,7 @@ pub struct IntegrationEvent {
     pub detail: Option<String>,
 }
 
-fn emit(app: &AppHandle, update: IntegrationUpdate) {
+pub fn emit(app: &AppHandle, update: IntegrationUpdate) {
     let _ = app.emit_to(WINDOW_LABEL, "integration", update);
 }
 
@@ -69,7 +69,9 @@ pub fn start(app: AppHandle) {
     spawn(app.clone(), "integration_github", 7, 300, poll_github);
     spawn(app.clone(), "integration_calcom", 8, 300, poll_calcom);
     spawn(app.clone(), "integration_notion", 9, 300, poll_notion);
-    spawn(app, "integration_linear", 10, 300, poll_linear);
+    spawn(app.clone(), "integration_linear", 10, 300, poll_linear);
+    spawn(app.clone(), crate::whaticket::ID, 4, 20, crate::whaticket::poll);
+    spawn(app, crate::google::ID, 11, 60, crate::google::poll);
 }
 
 /// True when the user has this integration switched on in settings.
@@ -115,6 +117,8 @@ pub async fn poll_once(app: AppHandle, id: &str) {
         "integration_notion" => poll_notion(app).await,
         "integration_calcom" => poll_calcom(app).await,
         "integration_linear" => poll_linear(app).await,
+        crate::whaticket::ID => crate::whaticket::poll(app).await,
+        crate::google::ID => crate::google::poll(app).await,
         _ => {}
     }
 }

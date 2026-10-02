@@ -302,6 +302,7 @@ extension ChatSession {
                 sent = SkillFiles.withSkill(name: skill.name, path: text.path, content: text.content, query: query)
             }
         }
-        Task { await ClaudeService.shared.chat(query: sent, context: state.promptContext, state: state) }
+        let message = sent
+        Task { await ClaudeService.shared.chat(query: message, context: state.promptContext, state: state) }
     }
 }
