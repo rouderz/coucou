@@ -79,6 +79,15 @@ pub struct Settings {
     /// the Mac's), instead of nothing but an invisible strip.
     #[serde(default = "yes")]
     pub idle_notch: bool,
+
+    /// WhaTicket: accept new tickets on their own (off by default), only from these
+    /// queues (empty = any of mine), only during these hours ("09:00-18:00"; empty = always).
+    #[serde(default)]
+    pub whaticket_auto_accept: bool,
+    #[serde(default)]
+    pub whaticket_queues: Vec<i64>,
+    #[serde(default)]
+    pub whaticket_hours: String,
 }
 
 fn default_provider() -> String {
@@ -141,6 +150,9 @@ impl Default for Settings {
             language: default_language(),
             speak_replies: false,
             idle_notch: true,
+            whaticket_auto_accept: false,
+            whaticket_queues: Vec::new(),
+            whaticket_hours: String::new(),
         }
     }
 }

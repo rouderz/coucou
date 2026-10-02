@@ -140,6 +140,20 @@ const ES: Record<string, string> = {
   "Launch at startup": "Abrir al iniciar sesión", "Open projects in": "Abrir proyectos en", "First one installed": "El primero instalado",
   "File manager (no editor found)": "Explorador de archivos (no hay editor)", "Language": "Idioma", "Same as the system": "Igual que el sistema",
   "Idle notch": "Notch en reposo", "a small notch stays at the top when the island hides": "una pequeña notch queda arriba cuando la isla se esconde",
+  // WhaTicket
+  "WhaTicket": "WhaTicket", "Backend URL": "URL del backend", "Web URL": "URL web", "Email": "Correo", "Password": "Contraseña",
+  "Sign in": "Iniciar sesión", "Signing in…": "Iniciando sesión…", "Sign in to check the connection and load your queues.": "Inicia sesión para comprobar la conexión y cargar tus colas.",
+  "Turn on the WhaTicket pill and add its URL, email and password under Integrations. New tickets then show in the island; you accept them with one click.":
+    "Activa la píldora de WhaTicket y agrega su URL, correo y contraseña en Integraciones. Los tickets nuevos aparecen en la isla y los aceptas con un clic.",
+  "Auto-accept": "Auto-aceptar", "accept new tickets as you as soon as they arrive": "acepta los tickets nuevos a tu nombre en cuanto llegan",
+  "Only from": "Solo de", "none ticked = any of your queues": "ninguna marcada = cualquiera de tus colas",
+  "Only between": "Solo entre", "Any time — or e.g. 09:00-18:00": "A cualquier hora — o p. ej. 09:00-18:00",
+  "Never during Do not disturb, never group chats, and you can undo for two minutes. Coucou only assigns the ticket — it never writes to the customer.":
+    "Nunca en No molestar ni en chats de grupo, y puedes deshacerlo durante dos minutos. Coucou solo se asigna el ticket: nunca le escribe al cliente.",
+  "Accept": "Aceptar", "Undo": "Deshacer", "Accepted": "Aceptado", "No tickets waiting.": "No hay tickets esperando.",
+  "Wrong email or password": "Correo o contraseña incorrectos", "That URL doesn't answer like WhaTicket.": "Esa URL no responde como WhaTicket.",
+  "Someone already took that ticket.": "Alguien ya tomó ese ticket.", "Too late to undo — reopen it in WhaTicket.": "Ya es tarde para deshacer: reábrelo en WhaTicket.",
+  "Add the WhaTicket URL, email and password first.": "Agrega primero la URL, el correo y la contraseña de WhaTicket.",
   // Skills
   "Skills": "Skills", "Search skills…": "Buscar skills…", "View": "Ver", "Folder": "Carpeta",
   "Open in the editor": "Abrir en el editor", "scripts": "scripts", "off": "apagada", "No description.": "Sin descripción.",
@@ -203,6 +217,12 @@ const PATTERNS: [RegExp, string][] = [
   [/^(\d+) lines?$/, "$1 línea(s)"],
   [/^Auto-approve in (.+):$/, "Auto-aprobar en $1:"],
   [/^Install (\d+) skills$/, "Instalar $1 skills"],
+  [/^Signed in as (.+)\. Queues: (.*)\.$/, "Sesión iniciada como $1. Colas: $2."],
+  [/^Waiting (\d+) · Mine (\d+)( · Auto)?$/, "En espera $1 · Míos $2$3"],
+  [/^Accepted · (.+)$/, "Aceptado · $1"],
+  [/^New ticket · (.+)$/, "Ticket nuevo · $1"],
+  [/^Message · (.+)$/, "Mensaje · $1"],
+  [/^(\d+) new$/, "$1 nuevos"],
   [/^(\d+) files: (.*)$/s, "$1 archivos: $2"],
   [/^Coucou (.+) is out — download$/, "Coucou $1 ya está disponible — descargar"],
   [/^Coucou (.+) is out — install and restart$/, "Coucou $1 ya está disponible — instalar y reiniciar"],

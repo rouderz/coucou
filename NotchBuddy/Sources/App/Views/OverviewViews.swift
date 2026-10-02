@@ -125,6 +125,8 @@ struct OverviewView: View {
             AppLinks.open("https://www.notion.so")
         case "integration_linear":
             AppLinks.open("https://linear.app")
+        case "integration_whaticket":
+            if let url = WhaTicketAPI.webURL(nil) { NSWorkspace.shared.open(url) }
         case "integration_calcom":
             NSWorkspace.shared.open(URL(string: "https://app.cal.com/bookings")!)
         default:

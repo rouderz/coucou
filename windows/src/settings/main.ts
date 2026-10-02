@@ -456,6 +456,13 @@ const INTEGRATIONS: IntegrationDef[] = [
     fields: [{ key: "calcom-api-key", label: "API key", placeholder: "cal_…", secret: true }] },
   { id: "integration_linear", name: "Linear", color: "#5E6AD2",
     fields: [{ key: "linear-api-key", label: "API key", placeholder: "lin_api_…", secret: true }] },
+  { id: "integration_whaticket", name: "WhaTicket", color: "#25D366",
+    fields: [
+      { key: "whaticket-url", label: "Backend URL", placeholder: "https://api.your-whaticket.com", secret: false },
+      { key: "whaticket-web-url", label: "Web URL", placeholder: "https://your-whaticket.com  (optional)", secret: false },
+      { key: "whaticket-email", label: "Email", placeholder: "you@company.com", secret: false },
+      { key: "whaticket-password", label: "Password", placeholder: "…", secret: true },
+    ] },
 ];
 
 const MAX_ACTIVE = 4;
@@ -597,6 +604,76 @@ function inboxSection(): HTMLElement {
       h("label", { text: "Linear", style: "min-width:0;margin-left:16px" }),
       toggle(settings.inboxLinear, (v) => { settings.inboxLinear = v; void save(); })),
     kindRow,
+  );
+}
+
+// ── WhaTicket auto-accept ─────────────────────────────────────────────────────
+
+function whaticketSection(): HTMLElement {
+  const status = h("div", { class: "hint", text: "Sign in to check the connection and load your queues." });
+  const queues = h("div", { class: "row", style: "gap:8px 14px" });
+  const signIn = h("button", { text: "Sign in" }) as HTMLButtonElement;
+
+  function drawQueues(list: { id: number; name: string; color: string }[]) {
+    clear(queues);
+    if (!list.length) return;
+    queues.append(h("label", { text: "Only from" }));
+    for (const q of list) {
+      const on = settings.whaticketQueues.includes(q.id);
+      const box = h("input", { type: "checkbox" }) as HTMLInputElement;
+      box.checked = on;
+      box.addEventListener("change", () => {
+        settings.whaticketQueues = box.checked
+          ? [...settings.whaticketQueues.filter((x) => x !== q.id), q.id]
+          : settings.whaticketQueues.filter((x) => x !== q.id);
+        void save();
+      });
+      queues.append(h("span", { style: "display:flex;align-items:center;gap:5px;font-size:12.5px" },
+        box, h("i", { class: "dot", style: `background:${q.color || "#8e939c"}` }), h("span", { text: q.name })));
+    }
+    queues.append(h("span", { class: "hint", text: "none ticked = any of your queues" }));
+  }
+
+  signIn.addEventListener("click", async () => {
+    signIn.disabled = true;
+    status.className = "hint";
+    status.textContent = "Signing in…";
+    try {
+      const account = await Bridge.whaticketLogin();
+      status.className = "notice ok";
+      status.textContent = `Signed in as ${account.name}. Queues: ${account.queues.map((q) => q.name).join(", ") || "none"}.`;
+      drawQueues(account.queues);
+    } catch (err) {
+      status.className = "notice err";
+      status.textContent = String(err).replace(/^Error:\s*/, "");
+    } finally {
+      signIn.disabled = false;
+    }
+  });
+
+  const hours = h("input", {
+    type: "text",
+    placeholder: "Any time — or e.g. 09:00-18:00",
+    value: settings.whaticketHours ?? "",
+    style: "width:200px",
+  }) as HTMLInputElement;
+  hours.addEventListener("change", () => {
+    settings.whaticketHours = hours.value.trim();
+    void save();
+  });
+
+  return h("section", {},
+    h("h2", {}, h("i", { class: "dot", style: "background:#25D366" }), h("span", { text: "WhaTicket" })),
+    h("div", { class: "hint", text: "Turn on the WhaTicket pill and add its URL, email and password under Integrations. New tickets then show in the island; you accept them with one click." }),
+    h("div", { class: "row" }, signIn, status),
+    h("div", { class: "row" },
+      h("label", { text: "Auto-accept" }),
+      toggle(settings.whaticketAutoAccept === true, (v) => { settings.whaticketAutoAccept = v; void save(); }),
+      h("span", { class: "hint", text: "accept new tickets as you as soon as they arrive" }),
+    ),
+    queues,
+    h("div", { class: "row" }, h("label", { text: "Only between" }), hours),
+    h("div", { class: "hint", text: "Never during Do not disturb, never group chats, and you can undo for two minutes. Coucou only assigns the ticket — it never writes to the customer." }),
   );
 }
 
@@ -972,6 +1049,7 @@ async function main() {
   const keys = [
     "stripe-api-key", "github-token", "vercel-token",
     "n8n-url", "n8n-api-key", "resend-api-key", "notion-api-key", "calcom-api-key", "linear-api-key",
+    "whaticket-url", "whaticket-web-url", "whaticket-email", "whaticket-password",
   ];
   const present: Record<string, boolean> = {};
   for (const k of keys) present[k] = (await Bridge.secretPresent(k)) ?? false;
@@ -987,6 +1065,7 @@ async function main() {
     skillsSection(skillTargets),
     apiSection(hasKey, claudeCode, presets, present),
     integrationsSection(present),
+    whaticketSection(),
     phoneSection(),
     inboxSection(),
     voiceSection(canListen),

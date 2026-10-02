@@ -82,6 +82,16 @@
         }
       }
     },
+    "%lld new": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%lld nuevos"
+          }
+        }
+      }
+    },
     "%lld new notifications. Latest, %@": {
       "localizations": {
         "es": {
@@ -262,6 +272,36 @@
         }
       }
     },
+    "Accept": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Aceptar"
+          }
+        }
+      }
+    },
+    "Accepted": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Aceptado"
+          }
+        }
+      }
+    },
+    "Accepted · %@": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Aceptado · %@"
+          }
+        }
+      }
+    },
     "Accessibility access granted": {
       "localizations": {
         "es": {
@@ -298,6 +338,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "Agregar una skill"
+          }
+        }
+      }
+    },
+    "Add the WhaTicket URL, email and password first.": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Agrega primero la URL, el correo y la contraseña de WhaTicket."
           }
         }
       }
@@ -408,6 +458,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "La API de Anthropic tuvo un problema (%lld). Vuelve a intentarlo en un minuto."
+          }
+        }
+      }
+    },
+    "Any time — or e.g. 09:00-18:00": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "A cualquier hora — o p. ej. 09:00-18:00"
           }
         }
       }
@@ -552,6 +612,16 @@
         }
       }
     },
+    "Auto-accept new tickets as me as soon as they arrive": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Aceptar a mi nombre los tickets nuevos en cuanto llegan"
+          }
+        }
+      }
+    },
     "Auto-allow low and medium risk": {
       "localizations": {
         "es": {
@@ -638,6 +708,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "Volver al diff"
+          }
+        }
+      }
+    },
+    "Backend URL  (https://api.your-whaticket.com)": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "URL del backend  (https://api.tu-whaticket.com)"
           }
         }
       }
@@ -1682,6 +1762,16 @@
         }
       }
     },
+    "Email": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Correo"
+          }
+        }
+      }
+    },
     "Email sent to %@.": {
       "localizations": {
         "es": {
@@ -2472,6 +2562,16 @@
         }
       }
     },
+    "Message · %@": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Mensaje · %@"
+          }
+        }
+      }
+    },
     "Microphone and Speech Recognition allowed": {
       "localizations": {
         "es": {
@@ -2602,6 +2702,16 @@
         }
       }
     },
+    "Never during Do not disturb, never group chats, and you can undo for two minutes. Coucou only assigns the ticket — it never writes to the customer.": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nunca en No molestar ni en chats de grupo, y puedes deshacerlo durante dos minutos. Coucou solo se asigna el ticket: nunca le escribe al cliente."
+          }
+        }
+      }
+    },
     "New": {
       "localizations": {
         "es": {
@@ -2648,6 +2758,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "Nombre de la nueva skill"
+          }
+        }
+      }
+    },
+    "New ticket · %@": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ticket nuevo · %@"
           }
         }
       }
@@ -2792,6 +2912,16 @@
         }
       }
     },
+    "No tickets waiting.": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No hay tickets esperando."
+          }
+        }
+      }
+    },
     "Not answered in time": {
       "localizations": {
         "es": {
@@ -2908,6 +3038,26 @@
           "stringUnit": {
             "state": "translated",
             "value": "Solo funciona mientras Claude Code te espera. Las peticiones de riesgo alto necesitan un clic en Permitir."
+          }
+        }
+      }
+    },
+    "Only between": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Solo entre"
+          }
+        }
+      }
+    },
+    "Only from these queues (none ticked = any of yours)": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Solo de estas colas (ninguna marcada = cualquiera de las tuyas)"
           }
         }
       }
@@ -3098,6 +3248,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "Resumen"
+          }
+        }
+      }
+    },
+    "Password": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Contraseña"
           }
         }
       }
@@ -3782,12 +3942,72 @@
         }
       }
     },
+    "Sign in": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Iniciar sesión"
+          }
+        }
+      }
+    },
+    "Sign in to check the connection and load your queues.": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Inicia sesión para comprobar la conexión y cargar tus colas."
+          }
+        }
+      }
+    },
+    "Signed in as %@": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sesión iniciada como %@"
+          }
+        }
+      }
+    },
+    "Signed in as %@. Queues: %@.": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sesión iniciada como %@. Colas: %@."
+          }
+        }
+      }
+    },
+    "Signing in…": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Iniciando sesión…"
+          }
+        }
+      }
+    },
     "Skills": {
       "localizations": {
         "es": {
           "stringUnit": {
             "state": "translated",
             "value": "Skills"
+          }
+        }
+      }
+    },
+    "Someone already took that ticket.": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Alguien ya tomó ese ticket."
           }
         }
       }
@@ -3878,6 +4098,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "Probar conexión"
+          }
+        }
+      }
+    },
+    "That URL doesn't answer like WhaTicket.": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Esa URL no responde como WhaTicket."
           }
         }
       }
@@ -4072,6 +4302,16 @@
         }
       }
     },
+    "Too late to undo — reopen it in WhaTicket.": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ya es tarde para deshacer: reábrelo en WhaTicket."
+          }
+        }
+      }
+    },
     "Too many hits at once.": {
       "localizations": {
         "es": {
@@ -4138,6 +4378,26 @@
           "stringUnit": {
             "state": "translated",
             "value": "Desactivar No molestar"
+          }
+        }
+      }
+    },
+    "Turn on the WhaTicket pill and add its URL, email and password under Integrations. New tickets then show in the island; you accept them with one click.": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Activa la píldora de WhaTicket y agrega su URL, correo y contraseña en Integraciones. Los tickets nuevos aparecen en la isla y los aceptas con un clic."
+          }
+        }
+      }
+    },
+    "Undo": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Deshacer"
           }
         }
       }
@@ -4312,6 +4572,16 @@
         }
       }
     },
+    "Waiting %lld · Mine %lld": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "En espera %lld · Míos %lld"
+          }
+        }
+      }
+    },
     "Waiting for Claude…": {
       "localizations": {
         "es": {
@@ -4332,12 +4602,32 @@
         }
       }
     },
+    "Web URL  (optional, to open tickets)": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "URL web  (opcional, para abrir tickets)"
+          }
+        }
+      }
+    },
     "Week": {
       "localizations": {
         "es": {
           "stringUnit": {
             "state": "translated",
             "value": "Semana"
+          }
+        }
+      }
+    },
+    "WhaTicket error %lld": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Error de WhaTicket %lld"
           }
         }
       }
@@ -4398,6 +4688,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "Trabajando…"
+          }
+        }
+      }
+    },
+    "Wrong email or password": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Correo o contraseña incorrectos"
           }
         }
       }
@@ -4748,6 +5048,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "archivo nuevo"
+          }
+        }
+      }
+    },
+    "none": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ninguna"
           }
         }
       }

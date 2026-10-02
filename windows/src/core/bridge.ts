@@ -108,6 +108,13 @@ export const Bridge = {
   skillCreate: (name: string, target: string) => callOrThrow<string>("skill_create", { name, target }),
   skillReveal: (path: string) => call<void>("skill_reveal", { path }),
 
+  // ── WhaTicket ───────────────────────────────────────────────────────────────
+  /** Signs in with the stored credentials; who you are and your queues. */
+  whaticketLogin: () => callOrThrow<{ userId: number; name: string; queues: { id: number; name: string; color: string }[] }>("whaticket_login"),
+  whaticketAccept: (id: number) => callOrThrow<void>("whaticket_accept", { id }),
+  whaticketUndo: (id: number) => callOrThrow<void>("whaticket_undo", { id }),
+  whaticketOpen: (id: number | null) => call<void>("whaticket_open", { id }),
+
   /** Codex CLI hooks in ~/.codex/hooks.json. */
   codexStatus: () => call<{ found: boolean; installed: boolean; hooksPath: string }>("codex_status"),
   codexInstall: (install: boolean) => callOrThrow<void>("codex_install", { install }),

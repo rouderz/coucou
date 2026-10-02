@@ -29,6 +29,7 @@ struct IntegrationCardView: View {
         case "integration_notion":  return Secrets.store.get("notion-api-key") != nil
         case "integration_calcom":  return Secrets.store.get("calcom-api-key") != nil
         case "integration_linear":  return LinearAPI.hasKey
+        case "integration_whaticket": return WhaTicketAPI.isConfigured
         default: return false
         }
     }
@@ -53,6 +54,7 @@ struct IntegrationCardView: View {
         case "integration_notion":  return URL(string: "https://www.notion.so")
         case "integration_calcom":  return URL(string: "https://app.cal.com/bookings")
         case "integration_linear":  return URL(string: "https://linear.app")
+        case "integration_whaticket": return WhaTicketAPI.webURL(nil)
         default: return nil
         }
     }
@@ -131,6 +133,9 @@ struct IntegrationCardView: View {
                 .transition(.opacity)
         } else if task.id == "integration_linear" && (appState.linearLoaded || appState.linearError != nil) {
             LinearCardView()
+                .transition(.opacity)
+        } else if task.id == "integration_whaticket" && appState.whaticketLoaded {
+            WhaTicketCardView()
                 .transition(.opacity)
         } else if vsCodeSessionActive {
             // Active session view — reuse overview layout

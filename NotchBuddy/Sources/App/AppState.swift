@@ -15,12 +15,14 @@ extension AgentTask {
         AgentTask(id: "integration_calcom",  name: "Cal.com",   color: "#C9956A", state: .idle, steps: [], source: .n8n, isIntegration: true),
         AgentTask(id: "integration_stripe",  name: "Stripe",    color: "#0570DE", state: .idle, steps: [], source: .n8n, isIntegration: true),
         AgentTask(id: "integration_linear",  name: "Linear",    color: "#5E6AD2", state: .idle, steps: [], source: .n8n, isIntegration: true),
+        AgentTask(id: "integration_whaticket", name: "WhaTicket", color: "#25D366", state: .idle, steps: [], source: .n8n, isIntegration: true),
     ]
 
     /// IDs that can be toggled (VS Code is always on and excluded from this list)
     static let toggleableIntegrationIds: [String] = [
         "integration_resend", "integration_n8n", "integration_vercel", "integration_github",
         "integration_notion", "integration_calcom", "integration_stripe", "integration_linear",
+        "integration_whaticket",
     ]
 
 }
@@ -69,6 +71,16 @@ final class AppState: ObservableObject {
     @Published var chatAllowEdits: Bool = false
     /// A skill picked with "/" in the chat; its SKILL.md goes with the next question.
     @Published var chatSkill: SkillRef? = nil
+
+    // WhaTicket (pending queue, my tickets, what Coucou accepted on its own)
+    @Published var whaticketUser: String? = nil
+    @Published var whaticketPending: [WhaTicketTicket] = []
+    @Published var whaticketPendingCount = 0
+    @Published var whaticketMine: [WhaTicketTicket] = []
+    @Published var whaticketMineCount = 0
+    @Published var whaticketUndoable: Set<Int> = []
+    @Published var whaticketError: String? = nil
+    @Published var whaticketLoaded = false
 
     // Claude plan usage (5-hour / weekly limits, context), from Claude Code's status line data
     @Published var planUsage: PlanUsage? = nil
@@ -787,6 +799,11 @@ struct IntegrationStatus {
             return .init(colorHex: s.linearIssues.isEmpty ? amber : green,
                          help: s.linearIssues.isEmpty ? L("Connected · nothing assigned to you")
                                                       : L("Connected · \(s.linearIssues.count) open issues"))
+        case "integration_whaticket":
+            guard WhaTicketAPI.isConfigured else { return notSet }
+            if let e = s.whaticketError { return .init(colorHex: red, help: e) }
+            guard s.whaticketLoaded else { return checking }
+            return .init(colorHex: green, help: s.whaticketUser.map { L("Signed in as \($0)") } ?? "Connected")
         case "integration_notion":
             guard key("notion-api-key") else { return notSet }
             if let e = s.notionError { return .init(colorHex: red, help: e) }

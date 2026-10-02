@@ -20,6 +20,7 @@ mod settings;
 mod skills;
 mod tray;
 mod voice;
+mod whaticket;
 
 use std::sync::atomic::Ordering;
 use std::sync::{Arc, Mutex};
@@ -359,6 +360,40 @@ async fn provider_models(shared: State<'_, Shared>) -> Result<Vec<String>, Strin
 
 // ── Linear, inbox, phone alerts, updates, shortcuts (phase 2 of parity) ──────
 
+// ── WhaTicket ─────────────────────────────────────────────────────────────────
+
+/// Signs in with the stored credentials (Settings → "Sign in") and returns who and which queues.
+#[tauri::command]
+async fn whaticket_login() -> Result<whaticket::Account, String> {
+    whaticket::forget();
+    whaticket::login().await
+}
+
+/// Accept from the island card — only ever on a click.
+#[tauri::command]
+async fn whaticket_accept(app: AppHandle, id: i64) -> Result<(), String> {
+    whaticket::accept(id).await?;
+    log::line(format!("whaticket: accepted ticket {id}"));
+    whaticket::poll(app).await;
+    Ok(())
+}
+
+/// Puts a ticket Coucou accepted on its own back in the queue.
+#[tauri::command]
+async fn whaticket_undo(app: AppHandle, id: i64) -> Result<(), String> {
+    whaticket::undo(id).await?;
+    log::line(format!("whaticket: undid ticket {id}"));
+    whaticket::poll(app).await;
+    Ok(())
+}
+
+#[tauri::command]
+fn whaticket_open(id: Option<i64>) {
+    if let Some(url) = whaticket::web_url(id) {
+        open_url(url);
+    }
+}
+
 // ── Skills ────────────────────────────────────────────────────────────────────
 
 #[tauri::command]
@@ -567,7 +602,12 @@ fn secret_present(key: String) -> bool {
 
 #[tauri::command]
 fn secret_set(key: String, value: String) -> Result<(), String> {
-    secrets::set(&key, &value)
+    secrets::set(&key, &value)?;
+    // New WhaTicket credentials: sign in again with them.
+    if key.starts_with("whaticket-") {
+        whaticket::forget();
+    }
+    Ok(())
 }
 
 #[tauri::command]
@@ -761,6 +801,10 @@ pub fn run() {
             skills_install,
             skill_create,
             skill_reveal,
+            whaticket_login,
+            whaticket_accept,
+            whaticket_undo,
+            whaticket_open,
         ])
         .setup(move |app| {
             let handle = app.handle().clone();
