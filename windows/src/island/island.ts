@@ -341,8 +341,14 @@ export class Island {
 
   // ── File drop ───────────────────────────────────────────────────────────────
 
-  private onDragDrop(e: { type: string; paths?: string[] }) {
+  private onDragDrop(e: { type: string; paths?: string[]; position?: { x: number; y: number } }) {
     if (e.type !== "over") void Bridge.log(`drag ${e.type} ${e.paths?.length ?? 0} file(s)`);
+    // No cursor events during a drag without the global cursor poll: the drag
+    // itself says where it is.
+    if (this.domPointer && e.position && e.type !== "leave") {
+      const scale = window.devicePixelRatio || 1;
+      this.onCursor(e.position.x / scale, e.position.y / scale);
+    }
     if (State.paused) return;
     switch (e.type) {
       case "enter":
@@ -556,6 +562,16 @@ export class Island {
     if (!IS_TAURI) {
       window.addEventListener("mousemove", (e) => this.onCursor(e.clientX, e.clientY));
     }
+  }
+
+  /** The page follows the pointer itself (Wayland has no global cursor). */
+  private domPointer = false;
+
+  useDomPointer() {
+    if (this.domPointer) return;
+    this.domPointer = true;
+    window.addEventListener("mousemove", (e) => this.onCursor(e.clientX, e.clientY));
+    document.documentElement.addEventListener("mouseleave", () => this.onCursor(-10_000, -10_000));
   }
 
   /** Cursor in window-logical coordinates. */

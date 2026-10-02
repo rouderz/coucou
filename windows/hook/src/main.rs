@@ -1,7 +1,8 @@
 //! coucou-hook — the relay Claude Code runs on every hook event.
 //!
 //! Reads the hook JSON on stdin, adds a little terminal context, and hands it to
-//! Coucou over the named pipe `\\.\pipe\coucou-<sid>`.
+//! Coucou: over the named pipe `\\.\pipe\coucou-<sid>` on Windows, over the
+//! Unix socket `$XDG_RUNTIME_DIR/coucou.sock` on Linux (#33).
 //!
 //! Hard rule (docs/CLAUDE.md): **never block Claude Code.**
 //! * If the pipe does not exist — Coucou is closed — we exit 0 immediately with
@@ -28,6 +29,7 @@ const DECISION_BUDGET: Duration = Duration::from_secs(110);
 
 /// `ERROR_PIPE_BUSY` — every instance is serving someone else right now. This is
 /// the one error worth retrying: the server exists and a slot will free up.
+#[cfg(windows)]
 const ERROR_PIPE_BUSY: i32 = 231;
 
 /// Fields that are pointless to forward and can be enormous (a whole file read,
@@ -37,19 +39,53 @@ const DROPPED_FIELDS: &[&str] = &["tool_response", "transcript_path"];
 /// less than this anyway.
 const MAX_FIELD_LEN: usize = 2_000;
 
+#[cfg(windows)]
 mod win;
 
 /// `\\.\pipe\coucou-<sid>`. The SID keeps two accounts on the same machine from
 /// ever meeting on the same pipe; the name falls back to the user name only if
 /// the SID cannot be read at all, which should not happen.
+#[cfg(windows)]
 fn pipe_path() -> String {
     let key = win::current_user_sid()
         .unwrap_or_else(|| std::env::var("USERNAME").unwrap_or_else(|_| "user".into()));
     format!(r"\\.\pipe\coucou-{key}")
 }
 
+/// `$XDG_RUNTIME_DIR/coucou.sock`, or `/tmp/coucou-<uid>/coucou.sock` without a
+/// runtime dir. Must match the app's `pipe::socket_path()` exactly.
+#[cfg(unix)]
+fn socket_path() -> std::path::PathBuf {
+    match std::env::var_os("XDG_RUNTIME_DIR").map(std::path::PathBuf::from) {
+        Some(dir) if dir.is_absolute() && dir.is_dir() => dir.join("coucou.sock"),
+        _ => std::path::PathBuf::from(format!("/tmp/coucou-{}", unix_uid())).join("coucou.sock"),
+    }
+}
+
+#[cfg(unix)]
+fn unix_uid() -> u32 {
+    unsafe { libc::getuid() }
+}
+
+/// Opens the socket. Only one that belongs to us: a socket file somebody else
+/// owns gets nothing, as with the pipe owner check on Windows. A missing socket
+/// (Coucou closed) fails at once.
+#[cfg(unix)]
+fn connect() -> Option<std::os::unix::net::UnixStream> {
+    use std::os::unix::fs::MetadataExt;
+    let path = socket_path();
+    let owner = std::fs::metadata(&path).ok()?.uid();
+    if owner != unix_uid() {
+        return None;
+    }
+    let stream = std::os::unix::net::UnixStream::connect(&path).ok()?;
+    let _ = stream.set_write_timeout(Some(CONNECT_TIMEOUT));
+    Some(stream)
+}
+
 /// Opens the pipe. Retries only while the server is busy: any other error means
 /// there is nothing to talk to, and waiting would only delay Claude Code.
+#[cfg(windows)]
 fn connect() -> Option<std::fs::File> {
     use std::os::windows::io::AsRawHandle;
     let path = pipe_path();

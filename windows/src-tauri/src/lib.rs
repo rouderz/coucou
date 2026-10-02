@@ -7,13 +7,11 @@ mod integrations;
 mod island;
 mod log;
 mod pipe;
+mod platform;
 mod secrets;
 mod settings;
 mod tray;
-mod win_user;
 
-use std::os::windows::process::CommandExt;
-use std::process::Command;
 use std::sync::atomic::Ordering;
 use std::sync::{Arc, Mutex};
 
@@ -28,9 +26,6 @@ use island::{PollGate, ScreenInfo};
 use pipe::Pending;
 use settings::Settings;
 
-/// Keeps spawned helpers from flashing a console window.
-const CREATE_NO_WINDOW: u32 = 0x0800_0000;
-
 pub struct Shared {
     pub settings: Mutex<Settings>,
     pub gate: Arc<PollGate>,
@@ -43,6 +38,10 @@ pub struct BootInfo {
     screen: ScreenInfo,
     version: String,
     hook_path: String,
+    /// "windows" or "linux".
+    platform: String,
+    /// "poll": Rust sends `cursor` events. "dom": the page tracks the pointer itself (Wayland).
+    pointer: String,
 }
 
 #[tauri::command]
@@ -56,6 +55,8 @@ fn boot(app: AppHandle, shared: State<Shared>) -> BootInfo {
         screen,
         version: env!("CARGO_PKG_VERSION").to_string(),
         hook_path: settings::hook_exe_path().to_string_lossy().to_string(),
+        platform: platform::PLATFORM.to_string(),
+        pointer: platform::pointer_mode().to_string(),
     }
 }
 
@@ -97,12 +98,14 @@ fn set_collapsed(app: AppHandle, shared: State<Shared>, collapsed: bool) {
     island::set_ignore_cursor(&app, false);
     shared.gate.forget_ignore_state();
     shared.gate.set_active(!collapsed);
+    island::apply_input_region(&app, &shared.gate);
 }
 
 /// The front end pushes the island shape; Rust decides click-through from it.
 #[tauri::command]
-fn set_island_rect(shared: State<Shared>, x: f64, y: f64, width: f64, height: f64) {
+fn set_island_rect(app: AppHandle, shared: State<Shared>, x: f64, y: f64, width: f64, height: f64) {
     shared.gate.set_rect(island::IslandRect { x, y, w: width, h: height });
+    island::apply_input_region(&app, &shared.gate);
 }
 
 #[tauri::command]
@@ -126,50 +129,14 @@ fn open_url(url: String) {
     if !(url.starts_with("http://") || url.starts_with("https://")) {
         return;
     }
-    let _ = Command::new("rundll32.exe")
-        .args(["url.dll,FileProtocolHandler", &url])
-        .creation_flags(CREATE_NO_WINDOW)
-        .spawn();
+    platform::open_url(&url);
 }
 
 /// "Open terminal" opens the working folder in VS Code when `code` is on PATH,
-/// and falls back to Explorer otherwise.
+/// and in the file manager otherwise.
 #[tauri::command]
 fn open_in_vscode(path: Option<String>) -> bool {
-    // No `cmd /C` anywhere near this. The path is a project folder chosen by
-    // whoever is using Claude Code, and cmd would happily read `&`, `^` and `%`
-    // in a folder name as syntax. Finding the launcher ourselves and handing the
-    // path over as a separate argument keeps it a path.
-    if let Some(code) = find_on_path("code") {
-        let mut cmd = Command::new(code);
-        if let Some(p) = path.as_deref().filter(|p| !p.is_empty()) {
-            cmd.arg(p);
-        }
-        if cmd.creation_flags(CREATE_NO_WINDOW).spawn().is_ok() {
-            return true;
-        }
-    }
-    if let Some(p) = path.as_deref().filter(|p| !p.is_empty()) {
-        let _ = Command::new("explorer").arg(p).spawn();
-    }
-    false
-}
-
-/// Our own `where`: walks %PATH% against %PATHEXT%, no shell involved.
-/// Rust quotes arguments correctly for `.cmd`/`.bat` targets since 1.77, so
-/// spawning `code.cmd` directly is safe.
-fn find_on_path(stem: &str) -> Option<std::path::PathBuf> {
-    let exts = std::env::var("PATHEXT").unwrap_or_else(|_| ".COM;.EXE;.BAT;.CMD".into());
-    let dirs = std::env::var_os("PATH")?;
-    for dir in std::env::split_paths(&dirs) {
-        for ext in exts.split(';').filter(|e| !e.is_empty()) {
-            let candidate = dir.join(format!("{stem}{}", ext.to_lowercase()));
-            if candidate.is_file() {
-                return Some(candidate);
-            }
-        }
-    }
-    None
+    platform::open_in_editor(path.as_deref().filter(|p| !p.is_empty()))
 }
 
 #[tauri::command]
@@ -366,6 +333,8 @@ fn open_settings_window(app: AppHandle) {
 }
 
 pub fn run() {
+    #[cfg(target_os = "linux")]
+    platform::choose_backend();
     let loaded = settings::load();
     let gate = Arc::new(PollGate::new());
 
@@ -415,13 +384,17 @@ pub fn run() {
             create_settings_window(&handle);
 
             if let Some(win) = island::window(&handle) {
+                platform::prepare_island(&win);
                 island::make_non_activating(&win);
                 island::apply_geometry(&handle, &loaded.screen, false);
                 let _ = win.show();
             }
             gate.collapsed.store(false, Ordering::Relaxed);
             gate.set_active(true);
-            island::spawn_cursor_poll(handle.clone(), gate.clone());
+            // Wayland has no global cursor: the page reports the pointer instead.
+            if platform::pointer_mode() == "poll" {
+                island::spawn_cursor_poll(handle.clone(), gate.clone());
+            }
 
             log::line(format!("--- Coucou {} started ---", env!("CARGO_PKG_VERSION")));
             hooks::ensure_hook_exe(&handle);

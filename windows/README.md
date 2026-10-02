@@ -126,15 +126,52 @@ windows/
     island/            state machine, hooks, integrations
     views/             every island view
     settings/          the settings window
-  src-tauri/           Rust backend: window, named pipe, Claude API, pollers
-  hook/                coucou-hook.exe, the Claude Code relay
+  src-tauri/           Rust backend: window, named pipe / socket, Claude API, pollers
+    src/platform/      what differs between Windows and Linux
+  hook/                coucou-hook(.exe), the Claude Code relay
   scripts/             icon generator
 ```
 
 ### Log
 
-`%LOCALAPPDATA%\Coucou\coucou.log` — hook events, permission decisions, poller
-problems. It stays on your machine.
+`%LOCALAPPDATA%\Coucou\coucou.log` (Linux: `~/.local/share/coucou/coucou.log`) —
+hook events, permission decisions, poller problems. It stays on your machine.
+
+## Linux
+
+The same app runs on Linux (#33–#37). Packages: `.deb` (Debian, Ubuntu), `.rpm`
+(Fedora, openSUSE) and `.AppImage` (anything else), built by the
+[Linux release workflow](../.github/workflows/linux.yml) on `linux-v*` tags and
+by CI on every PR (download them from the run's artifacts).
+
+What changes:
+
+| | Windows | Linux |
+|---|---|---|
+| Relay | `coucou-hook.exe` over `\\.\pipe\coucou-<sid>` | `coucou-hook` over `$XDG_RUNTIME_DIR/coucou.sock` (0600, own uid only) |
+| Keys | Credential Manager | Secret Service (GNOME Keyring, KWallet) |
+| Settings | `%APPDATA%\Coucou` | `~/.config/coucou` |
+| Relay, log, inbox | `%LOCALAPPDATA%\Coucou` | `~/.local/share/coucou` |
+
+**X11** works like Windows: the island sits at the top centre and follows the cursor.
+
+**Wayland** gives apps neither a global cursor nor a say in where windows go, so
+there the island is a *layer-shell* surface anchored to the top edge (KDE Plasma,
+Sway, Hyprland, and other wlroots compositors), and the page tracks the pointer
+itself. GNOME has no layer-shell: on GNOME Coucou runs through XWayland
+(`GDK_BACKEND=x11`) automatically. Set `GDK_BACKEND` yourself to override.
+
+To build it:
+
+```bash
+# Debian/Ubuntu
+sudo apt install libwebkit2gtk-4.1-dev libgtk-3-dev libgtk-layer-shell-dev \
+  libayatana-appindicator3-dev librsvg2-dev libdbus-1-dev libssl-dev patchelf
+cd windows
+npm install
+npm run tauri dev       # development build
+npx tauri build         # .deb, .rpm and .AppImage in target/release/bundle/
+```
 
 ## What's different from the Mac version
 

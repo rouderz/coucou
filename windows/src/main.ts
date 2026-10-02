@@ -24,6 +24,9 @@ async function main() {
   State.loadIntegrationTasks();
 
   await onEvent<{ x: number; y: number }>("cursor", ({ x, y }) => island.onCursor(x, y));
+  // Wayland (#36): no global cursor, so the page reports the pointer. The input
+  // region only covers the island, so leaving the window means leaving the island.
+  if (boot?.pointer === "dom") island.useDomPointer();
 
   /** Pause has to reach Rust too, or the pollers keep calling out. */
   const setPaused = (on: boolean) => {
