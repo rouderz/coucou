@@ -68,7 +68,8 @@ pub fn start(app: AppHandle) {
     spawn(app.clone(), "integration_resend", 6, 60, poll_resend);
     spawn(app.clone(), "integration_github", 7, 300, poll_github);
     spawn(app.clone(), "integration_calcom", 8, 300, poll_calcom);
-    spawn(app, "integration_notion", 9, 300, poll_notion);
+    spawn(app.clone(), "integration_notion", 9, 300, poll_notion);
+    spawn(app, "integration_linear", 10, 300, poll_linear);
 }
 
 /// True when the user has this integration switched on in settings.
@@ -113,6 +114,7 @@ pub async fn poll_once(app: AppHandle, id: &str) {
         "integration_resend" => poll_resend(app).await,
         "integration_notion" => poll_notion(app).await,
         "integration_calcom" => poll_calcom(app).await,
+        "integration_linear" => poll_linear(app).await,
         _ => {}
     }
 }
@@ -262,6 +264,28 @@ async fn poll_stripe(app: AppHandle) {
     });
 }
 
+// ── Linear (#26 on macOS) ─────────────────────────────────────────────────────
+
+async fn poll_linear(app: AppHandle) {
+    if !crate::linear::has_key() {
+        return;
+    }
+    match crate::linear::assigned_issues().await {
+        Ok(issues) => emit(&app, IntegrationUpdate {
+            id: "integration_linear",
+            data: json!({ "issues": issues }),
+            error: None,
+            event: None,
+        }),
+        Err(err) => emit(&app, IntegrationUpdate {
+            id: "integration_linear",
+            data: json!({}),
+            error: Some(err),
+            event: None,
+        }),
+    }
+}
+
 // ── GitHub ────────────────────────────────────────────────────────────────────
 
 #[derive(Serialize)]
@@ -297,7 +321,7 @@ pub async fn gh_status() -> GhStatus {
 
 /// The token saved in Settings, else the GitHub CLI's (`gh auth token`). The CLI's
 /// token is read for each poll and never stored.
-async fn github_token() -> Option<String> {
+pub(crate) async fn github_token() -> Option<String> {
     if let Some(token) = secrets::get("github-token") {
         return Some(token);
     }

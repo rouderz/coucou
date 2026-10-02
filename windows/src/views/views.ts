@@ -15,6 +15,8 @@ import { AUTO_LEVELS, levelFor, withLevel, type AutoLevel } from "../claude/auto
 import { clock, entries, icon, markdown, summary } from "../claude/timeline.ts";
 import { focusSession } from "../claude/sessions.ts";
 import type { EditPreview } from "../claude/preview.ts";
+import { dndActive, dndStatus, FOREVER, tomorrowMorning } from "../core/dnd.ts";
+import { Bridge } from "../core/bridge";
 
 export interface ViewActions {
   setView(v: IslandViewName): void;
@@ -27,6 +29,8 @@ export interface ViewActions {
   decide(d: "allow" | "deny"): void;
   /** Saves settings after a change made from the island (auto-approve…). */
   saveSettings(): void;
+  /** Do not disturb until (ms), or null to turn it off. */
+  setDnd(until: number | null): void;
   toggleSound(): void;
   setVolume(v: number): void;
   setAutoClose(seconds: number): void;
@@ -89,6 +93,19 @@ export function buildHeader(actions: ViewActions): ViewHost {
   const tabDrop = h("button", { class: "tab", title: "Drop", onclick: () => go("upload") }, svg(ICONS.plus, 13));
 
   const gearBtn = h("button", { title: "Settings", onclick: () => go("settings") }, svg(ICONS.gear, 14));
+  // 🌙 Do not disturb: on → click turns it off; off → the choices (island settings).
+  const dndBtn = h("button", {
+    title: "Do not disturb",
+    onclick: () => (dndActive(State.settings.dndUntil) ? actions.setDnd(null) : go("settings")),
+  }, svg(ICONS.moon, 13));
+  // 🔔 Inbox: GitHub / Linear notifications that need you.
+  const inboxCount = h("span", { class: "badge-count" });
+  const inboxBtn = h("button", { title: "Inbox", class: "inbox-btn", onclick: () => go("inbox") }, svg(ICONS.bell, 13), inboxCount);
+  // ⬇ A newer Coucou is out.
+  const updateBtn = h("button", {
+    class: "update-btn",
+    onclick: () => { if (State.update) actions.openUrl(State.update.url); },
+  }, svg(ICONS.update, 13));
   const soundBtn = h("button", { title: "Mute", onclick: () => actions.toggleSound() }, svg(ICONS.speakerOn, 14));
 
   function go(v: IslandViewName) {
@@ -100,7 +117,7 @@ export function buildHeader(actions: ViewActions): ViewHost {
     "div",
     { id: "header" },
     h("div", { class: "tabs" }, tabHome, tabChat, tabDrop),
-    h("div", { class: "header-actions" }, gearBtn, soundBtn),
+    h("div", { class: "header-actions" }, updateBtn, inboxBtn, dndBtn, gearBtn, soundBtn),
   );
 
   return {
@@ -116,6 +133,15 @@ export function buildHeader(actions: ViewActions): ViewHost {
       clear(soundBtn);
       soundBtn.append(svg(State.settings.soundEnabled ? ICONS.speakerOn : ICONS.speakerOff, 14));
       el.style.opacity = v === "confused" ? "0" : "1";
+      const dnd = dndActive(State.settings.dndUntil);
+      dndBtn.classList.toggle("on", dnd);
+      dndBtn.title = dndStatus(State.settings.dndUntil) ?? "Do not disturb";
+      inboxBtn.classList.toggle("on", v === "inbox");
+      inboxBtn.style.display = State.settings.inboxEnabled ? "" : "none";
+      inboxCount.textContent = State.inbox.length ? String(Math.min(99, State.inbox.length)) : "";
+      inboxCount.style.display = State.inbox.length ? "" : "none";
+      updateBtn.style.display = State.update ? "" : "none";
+      updateBtn.title = State.update ? `Coucou ${State.update.latest} is out — download` : "";
     },
   };
 }
@@ -198,6 +224,7 @@ function buildOverview(actions: ViewActions): ViewHost {
           dot(task.color, 7),
           h("span", { class: "name", text: task.name }),
           h("span", { class: "tool", text: task.source === "claudeCode" ? agentName : "n8n" }),
+          ...linearChip(),
           h("button", {
             class: "link-btn timeline-btn",
             title: "What this session did",
@@ -303,6 +330,18 @@ function buildEmpty(actions: ViewActions): ViewHost {
   return { el: h("div", { class: "view" }, card(null, body)), sync() {} };
 }
 
+/** "SHO-123" next to the session's name when its branch names a Linear issue. */
+function linearChip(): HTMLElement[] {
+  const issue = State.sessions.find((s) => s.id === State.focusedSession)?.linear;
+  if (!issue) return [];
+  return [h("button", {
+    class: "linear-chip",
+    title: issue.title,
+    text: issue.identifier,
+    onclick: () => void Bridge.openUrl(issue.url),
+  })];
+}
+
 // ── Review diff (the macOS live view) ─────────────────────────────────────────
 
 function renderDiff(box: HTMLElement, preview: EditPreview) {
@@ -376,6 +415,69 @@ function syncSessionChips(row: HTMLElement) {
   }
 }
 
+// ── Inbox ─────────────────────────────────────────────────────────────────────
+
+const KIND_LABELS: Record<string, string> = {
+  review: "Review requested", mention: "Mentioned you", assigned: "Assignment", comment: "New comment", other: "Update",
+};
+
+function buildInbox(actions: ViewActions): ViewHost {
+  const sub = h("div", { class: "tl-sub" });
+  const list = h("div", { class: "tl-list" });
+  const clearAll = h("button", {
+    class: "btn secondary",
+    text: "Dismiss all",
+    onclick: () => {
+      for (const item of State.inbox) void Bridge.inboxDismiss(item.id);
+      State.inbox = [];
+      State.notify();
+    },
+  });
+  const el = h("div", { class: "view" }, card(null, h("div", { class: "tl" },
+    h("div", { class: "tl-head" }, h("div", {}, h("div", { class: "tl-title", text: "Inbox" }), sub),
+      h("div", { class: "actions" }, clearAll)),
+    list,
+  )));
+  let key = "";
+  return {
+    el,
+    sync() {
+      const items = State.inbox;
+      const k = items.map((i) => i.id).join("|");
+      if (k === key) return;
+      key = k;
+      sub.textContent = items.length ? `${items.length} need${items.length === 1 ? "s" : ""} you` : "All caught up";
+      clearAll.style.display = items.length ? "" : "none";
+      clear(list);
+      for (const item of items.slice(0, 30)) {
+        const open = () => {
+          actions.openUrl(item.url);
+          void Bridge.inboxDismiss(item.id);
+          State.inbox = State.inbox.filter((i) => i.id !== item.id);
+          State.notify();
+        };
+        list.append(h("div", { class: "inbox-row" },
+          h("span", { class: `inbox-source ${item.source}`, text: item.source === "github" ? "GitHub" : "Linear" }),
+          h("button", { class: "inbox-open", onclick: open, title: item.url },
+            h("span", { class: "kind", text: KIND_LABELS[item.kind] ?? "Update" }),
+            h("span", { class: "title", text: item.title }),
+            h("span", { class: "sub", text: item.actor ? `${item.subtitle} · ${item.actor}` : item.subtitle }),
+          ),
+          h("button", {
+            class: "inbox-x", title: "Dismiss", text: "✕",
+            onclick: () => {
+              void Bridge.inboxDismiss(item.id);
+              State.inbox = State.inbox.filter((i) => i.id !== item.id);
+              State.notify();
+            },
+          }),
+        ));
+      }
+      if (!items.length) list.append(h("div", { class: "tl-empty", text: "Nothing needs you on GitHub or Linear." }));
+    },
+  };
+}
+
 // ── Timeline (#22 on macOS) ───────────────────────────────────────────────────
 
 function buildTimeline(actions: ViewActions): ViewHost {
@@ -383,9 +485,24 @@ function buildTimeline(actions: ViewActions): ViewHost {
   const sub = h("div", { class: "tl-sub" });
   const list = h("div", { class: "tl-list" });
   const copyBtn = h("button", { class: "btn secondary", text: "Copy as Markdown" });
+  // Post the timeline on the session's Linear issue (#27 on macOS) — only from this click.
+  const linearBtn = h("button", { class: "btn secondary" });
+  linearBtn.addEventListener("click", async () => {
+    const s = State.sessions.find((x) => x.id === State.focusedSession);
+    if (!s?.linear) return;
+    linearBtn.textContent = "Posting…";
+    try {
+      await Bridge.linearComment(s.linear.id, markdown(s.id, s.project));
+      linearBtn.textContent = `Posted on ${s.linear.identifier} ✓`;
+      actions.blip();
+    } catch (err) {
+      linearBtn.textContent = String(err).replace(/^Error:\s*/, "").slice(0, 40);
+    }
+    window.setTimeout(() => (linearBtn.textContent = `Post to ${s.linear?.identifier ?? "Linear"}`), 2500);
+  });
   const back = h("button", { class: "btn secondary", text: "Back", onclick: () => actions.setView("overview") });
   const el = h("div", { class: "view" }, card(null, h("div", { class: "tl" },
-    h("div", { class: "tl-head" }, h("div", {}, title, sub), h("div", { class: "actions" }, back, copyBtn)),
+    h("div", { class: "tl-head" }, h("div", {}, title, sub), h("div", { class: "actions" }, back, linearBtn, copyBtn)),
     list,
   )));
   let key = "";
@@ -411,6 +528,11 @@ function buildTimeline(actions: ViewActions): ViewHost {
     sync() {
       const id = State.focusedSession ?? "";
       const items = entries(id);
+      const issue = State.sessions.find((x) => x.id === id)?.linear;
+      linearBtn.style.display = issue ? "" : "none";
+      if (issue && !linearBtn.textContent?.includes("…") && !linearBtn.textContent?.includes("✓")) {
+        linearBtn.textContent = `Post to ${issue.identifier}`;
+      }
       const k = `${id}:${items.length}`;
       if (k === key) return;
       key = k;
@@ -611,6 +733,16 @@ function buildSettings(actions: ViewActions): ViewHost {
   );
   const claudeBadge = h("span", { class: "status-badge" });
   const apiBadge = h("span", { class: "status-badge" });
+  const dndLabel = h("span", {});
+  const dndChoices: [string, (() => number) | null][] = [
+    ["Off", null],
+    ["1 h", () => Date.now() + 60 * 60_000],
+    ["Until 9:00", () => tomorrowMorning()],
+    ["On", () => FOREVER],
+  ];
+  const dndButtons = dndChoices.map(([label, until]) =>
+    h("button", { onclick: () => actions.setDnd(until ? until() : null) }, label),
+  );
 
   const rows = h(
     "div",
@@ -623,6 +755,7 @@ function buildSettings(actions: ViewActions): ViewHost {
       autoLabel,
       h("div", { class: "seg" }, ...segButtons),
     ),
+    h("div", { class: "settings-row" }, svg(ICONS.moon, 12), dndLabel, h("div", { class: "seg" }, ...dndButtons)),
     h(
       "div",
       { class: "settings-row", style: "gap:14px" },
@@ -649,6 +782,12 @@ function buildSettings(actions: ViewActions): ViewHost {
       volume.value = String(s.soundVolume);
       volume.style.opacity = s.soundEnabled ? "1" : "0.4";
       autoLabel.textContent = `Auto-close · ${Math.round(s.autoCloseInterval)}s`;
+      const status = dndStatus(s.dndUntil);
+      dndLabel.textContent = status ? `Do not disturb · ${status.replace(/^On /, "")}` : "Do not disturb";
+      const until = s.dndUntil;
+      const forever = dndActive(until) && (until as number) >= FOREVER;
+      dndButtons[0].classList.toggle("on", !dndActive(until));
+      dndButtons[3].classList.toggle("on", forever);
       segButtons.forEach((b, i) => b.classList.toggle("on", s.autoCloseInterval === [10, 15, 30][i]));
       clear(claudeBadge);
       claudeBadge.append(
@@ -691,6 +830,7 @@ export function buildViews(
   map.set("note", buildNote());
   map.set("settings", buildSettings(actions));
   map.set("timeline", buildTimeline(actions));
+  map.set("inbox", buildInbox(actions));
   map.set("prompt", buildPrompt(onChatHeightChange));
   map.set("upload", buildUpload());
   map.set("uploading", buildUploading());

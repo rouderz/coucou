@@ -23,6 +23,7 @@ export type IslandViewName =
   | "note"
   | "settings"
   | "timeline"
+  | "inbox"
   | "greeting";
 
 export type BotStateName =
@@ -89,8 +90,10 @@ export const VIEW_LAYOUTS: Record<IslandViewName, ViewLayout> = {
   searching: { height: 160, botX: 52, botY: null, botDiameter: 44, agentMode: "column" },
   result: { height: 160, botX: 52, botY: null, botDiameter: 44, agentMode: "column" },
   note: { height: 160, botX: 60, botY: null, botDiameter: 50, agentMode: "column" },
-  settings: { height: 160, botX: 54, botY: null, botDiameter: 46, agentMode: "none" },
+  // One row taller than macOS: Do not disturb lives here (the 🌙 in the header).
+  settings: { height: 196, botX: 54, botY: null, botDiameter: 46, agentMode: "none" },
   timeline: { height: 240, botX: 44, botY: 40, botDiameter: 36, agentMode: "none" },
+  inbox: { height: 240, botX: 44, botY: 40, botDiameter: 36, agentMode: "none" },
   greeting: { height: 150, botX: 320, botY: 90, botDiameter: 0, agentMode: "none" },
 };
 

@@ -1,13 +1,16 @@
 // Coucou for Windows — app wiring and the commands the island calls.
 
 mod claude;
+mod alerts;
 mod claude_code;
 mod codex;
 mod editors;
 mod files;
 mod hooks;
+mod inbox;
 mod integrations;
 mod island;
+mod linear;
 mod log;
 mod pipe;
 mod platform;
@@ -246,6 +249,92 @@ fn chat_reset(chat: State<Chat>, code_chat: State<ClaudeCodeChat>) {
     code_chat.reset();
 }
 
+// ── Linear, inbox, phone alerts, updates, shortcuts (phase 2 of parity) ──────
+
+/// The Linear issue a session's git branch names, if any.
+#[tauri::command]
+async fn linear_issue_for_folder(cwd: String) -> Option<linear::LinearIssue> {
+    linear::issue_for_folder(&cwd).await
+}
+
+/// Posts a session's timeline on its Linear issue — only from an explicit click.
+#[tauri::command]
+async fn linear_comment(issue_id: String, body: String) -> Result<(), String> {
+    linear::comment(&issue_id, &body).await
+}
+
+#[tauri::command]
+async fn inbox_refresh(app: AppHandle) {
+    inbox::refresh(app).await;
+}
+
+/// Opened or dismissed: marked read on GitHub / Linear.
+#[tauri::command]
+async fn inbox_dismiss(app: AppHandle, id: String) {
+    inbox::dismiss(app, id).await;
+}
+
+/// An approval still waiting: tell the phone (if set up, and if away when asked to).
+#[tauri::command]
+async fn phone_alert(
+    shared: State<'_, Shared>,
+    title: String,
+    message: String,
+    urgent: bool,
+) -> Result<bool, String> {
+    let s = shared.settings.lock().unwrap().clone();
+    if !s.phone_alerts || s.ntfy_topic.is_empty() {
+        return Ok(false);
+    }
+    if s.phone_only_when_away && !alerts::user_is_away() {
+        return Ok(false);
+    }
+    let (priority, tags) = if urgent { ("urgent", "warning") } else { ("high", "robot") };
+    alerts::send(&s.ntfy_server, &s.ntfy_topic, &title, &message, priority, tags).await?;
+    Ok(true)
+}
+
+#[tauri::command]
+async fn phone_test(server: String, topic: String) -> Result<(), String> {
+    alerts::send(&server, &topic, "Coucou is connected",
+        "You'll get approvals here when you're away from the computer.", "default", "white_check_mark").await
+}
+
+#[tauri::command]
+fn new_ntfy_topic() -> String {
+    alerts::new_topic()
+}
+
+#[tauri::command]
+async fn check_update() -> Result<alerts::UpdateInfo, String> {
+    alerts::check().await
+}
+
+/// ⌥⏎ / ⌥⌫ answer the approval on screen from any app (Alt+Enter / Alt+Backspace
+/// here). Registered only while a card is up, so they never steal those keys otherwise.
+#[tauri::command]
+fn approval_shortcuts(app: AppHandle, armed: bool) {
+    use tauri_plugin_global_shortcut::GlobalShortcutExt;
+    let shortcuts = approval_keys();
+    let gs = app.global_shortcut();
+    for s in shortcuts {
+        let result = if armed { gs.register(s.clone()) } else { gs.unregister(s.clone()) };
+        if let Err(err) = result {
+            if armed {
+                log::line(format!("shortcut {s:?}: {err}"));
+            }
+        }
+    }
+}
+
+fn approval_keys() -> [tauri_plugin_global_shortcut::Shortcut; 2] {
+    use tauri_plugin_global_shortcut::{Code, Modifiers, Shortcut};
+    [
+        Shortcut::new(Some(Modifiers::ALT), Code::Enter),
+        Shortcut::new(Some(Modifiers::ALT), Code::Backspace),
+    ]
+}
+
 /// Codex CLI hooks in ~/.codex/hooks.json (#44 on macOS).
 #[tauri::command]
 fn codex_status() -> codex::CodexStatus {
@@ -396,6 +485,20 @@ pub fn run() {
         .manage(Pending::default())
         .manage(Chat::default())
         .manage(ClaudeCodeChat::default())
+        .manage(inbox::Inbox::default())
+        .plugin(
+            tauri_plugin_global_shortcut::Builder::new()
+                .with_handler(|app, shortcut, event| {
+                    use tauri_plugin_global_shortcut::ShortcutState;
+                    if event.state() != ShortcutState::Pressed {
+                        return;
+                    }
+                    let [allow, _deny] = approval_keys();
+                    let word = if *shortcut == allow { "allow" } else { "deny" };
+                    let _ = app.emit_to(island::WINDOW_LABEL, "approval-shortcut", word.to_string());
+                })
+                .build(),
+        )
         .invoke_handler(tauri::generate_handler![
             boot,
             save_settings,
@@ -428,6 +531,15 @@ pub fn run() {
             github_cli_status,
             codex_status,
             codex_install,
+            linear_issue_for_folder,
+            linear_comment,
+            inbox_refresh,
+            inbox_dismiss,
+            phone_alert,
+            phone_test,
+            new_ntfy_topic,
+            check_update,
+            approval_shortcuts,
         ])
         .setup(move |app| {
             let handle = app.handle().clone();
@@ -452,6 +564,7 @@ pub fn run() {
             hooks::ensure_hook_exe(&handle);
             pipe::start(handle.clone());
             integrations::start(handle.clone());
+            inbox::start(handle.clone());
             Ok(())
         })
         .run(tauri::generate_context!())

@@ -10,7 +10,8 @@ use windows::core::BOOL;
 use windows::Win32::Foundation::{HWND, LPARAM, POINT};
 use windows::Win32::System::Ole::RevokeDragDrop;
 use windows::Win32::System::SystemInformation::GetLocalTime;
-use windows::Win32::UI::Input::KeyboardAndMouse::{GetAsyncKeyState, VK_LBUTTON};
+use windows::Win32::System::SystemInformation::GetTickCount;
+use windows::Win32::UI::Input::KeyboardAndMouse::{GetAsyncKeyState, GetLastInputInfo, LASTINPUTINFO, VK_LBUTTON};
 use windows::Win32::UI::WindowsAndMessaging::{
     EnumChildWindows, GetClassNameW, GetCursorPos, GetWindowLongPtrW, SetWindowLongPtrW,
     GWL_EXSTYLE, WS_EX_NOACTIVATE, WS_EX_TOOLWINDOW,
@@ -52,6 +53,17 @@ pub fn cursor_physical(_app: &AppHandle) -> Option<(f64, f64)> {
     let mut p = POINT::default();
     unsafe { GetCursorPos(&mut p).ok()? };
     Some((p.x as f64, p.y as f64))
+}
+
+/// Seconds since the last keyboard or mouse input, anywhere.
+pub fn idle_seconds() -> Option<u64> {
+    let mut info = LASTINPUTINFO { cbSize: std::mem::size_of::<LASTINPUTINFO>() as u32, dwTime: 0 };
+    unsafe {
+        if !GetLastInputInfo(&mut info).as_bool() {
+            return None;
+        }
+        Some(GetTickCount().wrapping_sub(info.dwTime) as u64 / 1000)
+    }
 }
 
 /// True while the left mouse button is held — the only signal we get that a

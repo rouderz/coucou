@@ -372,6 +372,8 @@ const INTEGRATIONS: IntegrationDef[] = [
     fields: [{ key: "notion-api-key", label: "Integration token", placeholder: "ntn_…", secret: true }] },
   { id: "integration_calcom", name: "Cal.com", color: "#C9956A",
     fields: [{ key: "calcom-api-key", label: "API key", placeholder: "cal_…", secret: true }] },
+  { id: "integration_linear", name: "Linear", color: "#5E6AD2",
+    fields: [{ key: "linear-api-key", label: "API key", placeholder: "lin_api_…", secret: true }] },
 ];
 
 const MAX_ACTIVE = 4;
@@ -446,6 +448,100 @@ function integrationsSection(present: Record<string, boolean>): HTMLElement {
 
   updateNote();
   return h("section", {}, h("h2", {}, h("span", { text: "Integrations" })), note, list);
+}
+
+// ── Phone alerts (#31 on macOS) ───────────────────────────────────────────────
+
+function phoneSection(): HTMLElement {
+  const server = h("input", { type: "text", placeholder: "https://ntfy.sh", value: settings.ntfyServer ?? "",
+    style: "flex:1 1 auto;min-width:0", spellcheck: "false" }) as HTMLInputElement;
+  const topic = h("input", { type: "text", value: settings.ntfyTopic ?? "", style: "flex:1 1 auto;min-width:0",
+    spellcheck: "false", placeholder: "coucou-…" }) as HTMLInputElement;
+  const feedback = h("div", {});
+  server.addEventListener("change", () => { settings.ntfyServer = server.value.trim(); void save(); });
+  topic.addEventListener("change", () => { settings.ntfyTopic = topic.value.trim(); void save(); });
+  const fresh = h("button", { text: "New topic", onclick: async () => {
+    const t = await Bridge.newNtfyTopic();
+    if (!t) return;
+    topic.value = t;
+    settings.ntfyTopic = t;
+    void save();
+  } });
+  const testBtn = h("button", { text: "Send a test", onclick: async () => {
+    clear(feedback);
+    try {
+      await Bridge.phoneTest(server.value.trim(), topic.value.trim());
+      feedback.append(h("div", { class: "notice ok", text: "Sent. Check your phone." }));
+    } catch (err) {
+      feedback.append(h("div", { class: "notice err", text: String(err).replace(/^Error:\s*/, "") }));
+    }
+  } });
+  return h("section", {},
+    h("h2", {}, statusDot(settings.phoneAlerts && !!settings.ntfyTopic), h("span", { text: "Phone alerts" })),
+    h("div", { class: "hint", text: "An approval still waiting after 20 seconds goes to your phone through ntfy (free app, no account). Subscribe to the topic in the app; it carries the project and the command, so keep it private." }),
+    h("div", { class: "row" }, h("label", { text: "Alerts" }),
+      toggle(settings.phoneAlerts, (v) => { settings.phoneAlerts = v; if (v && !topic.value) fresh.click(); void save(); })),
+    h("div", { class: "row" }, h("label", { text: "Only when away" }),
+      toggle(settings.phoneOnlyWhenAway, (v) => { settings.phoneOnlyWhenAway = v; void save(); }),
+      h("span", { class: "hint", text: "no keyboard or mouse for 2 min (Windows)" })),
+    h("div", { class: "row" }, h("label", { text: "Topic" }), topic, fresh),
+    h("div", { class: "row" }, h("label", { text: "Server" }), server, testBtn),
+    feedback,
+  );
+}
+
+// ── Inbox ─────────────────────────────────────────────────────────────────────
+
+function inboxSection(): HTMLElement {
+  const kinds: [string, string][] = [
+    ["review", "Review requests"], ["mention", "Mentions"], ["assigned", "Assignments"],
+    ["comment", "Comments"], ["other", "Other updates"],
+  ];
+  const kindRow = h("div", { class: "row", style: "flex-wrap:wrap;gap:6px 14px" });
+  for (const [id, label] of kinds) {
+    kindRow.append(h("span", { style: "display:inline-flex;gap:6px;align-items:center" },
+      toggle(settings.inboxKinds.includes(id), (v) => {
+        settings.inboxKinds = v ? [...new Set([...settings.inboxKinds, id])] : settings.inboxKinds.filter((k) => k !== id);
+        void save();
+      }), h("span", { text: label })));
+  }
+  return h("section", {},
+    h("h2", {}, statusDot(settings.inboxEnabled), h("span", { text: "Inbox" })),
+    h("div", { class: "hint", text: "GitHub (your token, or a signed-in gh) and Linear notifications that need you, behind the 🔔. Mochi peeks out when something new arrives." }),
+    h("div", { class: "row" }, h("label", { text: "Inbox" }),
+      toggle(settings.inboxEnabled, (v) => { settings.inboxEnabled = v; void save(); })),
+    h("div", { class: "row" }, h("label", { text: "GitHub" }),
+      toggle(settings.inboxGithub, (v) => { settings.inboxGithub = v; void save(); }),
+      h("label", { text: "Linear", style: "min-width:0;margin-left:16px" }),
+      toggle(settings.inboxLinear, (v) => { settings.inboxLinear = v; void save(); })),
+    kindRow,
+  );
+}
+
+// ── Updates ───────────────────────────────────────────────────────────────────
+
+function updatesSection(): HTMLElement {
+  const status = h("span", { class: "hint", text: `You have ${version || "this version"}.` });
+  const link = h("button", { class: "primary", text: "Download", style: "display:none" });
+  let url = "";
+  link.addEventListener("click", () => { if (url) void Bridge.openUrl(url); });
+  const check = h("button", { text: "Check now", onclick: async () => {
+    status.textContent = "Checking…";
+    try {
+      const info = await Bridge.checkUpdate();
+      url = info.url;
+      status.textContent = info.newer ? `Coucou ${info.latest} is out (you have ${info.current}).` : `You're up to date (${info.current}).`;
+      link.style.display = info.newer ? "" : "none";
+    } catch (err) {
+      status.textContent = String(err).replace(/^Error:\s*/, "");
+    }
+  } });
+  return h("section", {},
+    h("h2", {}, h("span", { text: "Updates" })),
+    h("div", { class: "row" }, h("label", { text: "Check daily" }),
+      toggle(settings.checkUpdates, (v) => { settings.checkUpdates = v; void save(); })),
+    h("div", { class: "row" }, status, check, link),
+  );
 }
 
 // ── General section ───────────────────────────────────────────────────────────
@@ -541,7 +637,7 @@ async function main() {
 
   const keys = [
     "stripe-api-key", "github-token", "vercel-token",
-    "n8n-url", "n8n-api-key", "resend-api-key", "notion-api-key", "calcom-api-key",
+    "n8n-url", "n8n-api-key", "resend-api-key", "notion-api-key", "calcom-api-key", "linear-api-key",
   ];
   const present: Record<string, boolean> = {};
   for (const k of keys) present[k] = (await Bridge.secretPresent(k)) ?? false;
@@ -553,6 +649,9 @@ async function main() {
     codexSection(codex),
     apiSection(hasKey, claudeCode),
     integrationsSection(present),
+    phoneSection(),
+    inboxSection(),
+    updatesSection(),
     generalSection(editors),
     h("div", {
       class: "hint",

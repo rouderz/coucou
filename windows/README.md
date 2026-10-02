@@ -187,6 +187,12 @@ npx tauri build         # .deb, .rpm and .AppImage in target/release/bundle/
   several ask at once, auto-approve per project, several sessions as chips, a
   timeline per session (Copy as Markdown), the diff of an edit before you allow
   it, plan usage bars, and Codex CLI sessions (Settings → Codex CLI).
+- Also like the Mac: Do not disturb (🌙: no sounds, the island never opens by
+  itself), phone alerts through ntfy for approvals left waiting, an inbox (🔔)
+  of GitHub and Linear notifications, a Linear card with the issue your branch
+  names (and the timeline posted on it), an update check (⬇), and Alt+Enter /
+  Alt+Backspace to allow or deny from any app while a card is up (X11 only on
+  Linux). Not here: Do not disturb during calendar events (needs macOS EventKit).
 - The chat runs on an Anthropic API key or on your own Claude Code (Settings →
   Chat → Engine), signed in with your Claude plan; GitHub works with a token or
   with a signed-in GitHub CLI (`gh auth login`).

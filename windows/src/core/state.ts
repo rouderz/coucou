@@ -58,6 +58,27 @@ export interface ClaudeSession {
   updatedAt: number;
   /** Something happened here while another session was on the card. */
   unseen: boolean;
+  /** The Linear issue the session's git branch names (#27 on macOS). */
+  linear?: LinearIssueRef | null;
+}
+
+export interface LinearIssueRef {
+  id: string;
+  identifier: string;
+  title: string;
+  url: string;
+}
+
+/** Something that needs you: a review request, a mention, an assignment… */
+export interface InboxItem {
+  id: string;
+  source: "github" | "linear";
+  kind: "review" | "mention" | "assigned" | "comment" | "other";
+  title: string;
+  subtitle: string;
+  actor: string | null;
+  url: string;
+  date: number;
 }
 
 export interface ChatMessage {
@@ -98,11 +119,12 @@ export const INTEGRATION_AGENTS: AgentTask[] = [
   task("integration_notion", "Notion", "#8C8C8C", "n8n"),
   task("integration_calcom", "Cal.com", "#C9956A", "n8n"),
   task("integration_stripe", "Stripe", "#0570DE", "n8n"),
+  task("integration_linear", "Linear", "#5E6AD2", "n8n"),
 ];
 
 export const TOGGLEABLE_INTEGRATION_IDS = [
   "integration_resend", "integration_n8n", "integration_vercel", "integration_github",
-  "integration_notion", "integration_calcom", "integration_stripe",
+  "integration_notion", "integration_calcom", "integration_stripe", "integration_linear",
 ];
 
 /** What an integration poller last reported. */
@@ -130,6 +152,17 @@ export interface Settings {
   editor: string;
   /** Auto-approve per project folder: "low" or "medium" (absent = always ask). */
   autoApprove: Record<string, string>;
+  /** Do not disturb until (ms since the epoch); null = off. */
+  dndUntil: number | null;
+  phoneAlerts: boolean;
+  ntfyServer: string;
+  ntfyTopic: string;
+  phoneOnlyWhenAway: boolean;
+  inboxEnabled: boolean;
+  inboxGithub: boolean;
+  inboxLinear: boolean;
+  inboxKinds: string[];
+  checkUpdates: boolean;
 }
 
 export const DEFAULT_SETTINGS: Settings = {
@@ -147,6 +180,16 @@ export const DEFAULT_SETTINGS: Settings = {
   chatEngine: "api",
   editor: "",
   autoApprove: {},
+  dndUntil: null,
+  phoneAlerts: false,
+  ntfyServer: "",
+  ntfyTopic: "",
+  phoneOnlyWhenAway: true,
+  inboxEnabled: true,
+  inboxGithub: true,
+  inboxLinear: true,
+  inboxKinds: ["review", "mention", "assigned", "comment", "other"],
+  checkUpdates: true,
 };
 
 type Listener = () => void;
@@ -182,6 +225,11 @@ class AppState {
   approvalQueue: ApprovalInfo[] = [];
 
   planUsage: PlanUsage | null = null;
+
+  /** GitHub / Linear notifications that need you. */
+  inbox: InboxItem[] = [];
+  /** A newer release, from the update check. */
+  update: { latest: string; url: string } | null = null;
 
   /** Claude Code / Codex sessions, and the one on the card. */
   sessions: ClaudeSession[] = [];
