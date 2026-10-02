@@ -353,7 +353,7 @@ enum WhaTicketSettings {
     }
     /// Queue ids as text (whaticket.com uses UUIDs); numbers saved by an older build still load.
     static var queues: [String] {
-        get { (UserDefaults.standard.array(forKey: "whaticketQueues") ?? []).compactMap(WhaTicketRules.id) }
+        get { (UserDefaults.standard.array(forKey: "whaticketQueues") ?? []).compactMap { WhaTicketRules.textID($0) } }
         set { UserDefaults.standard.set(newValue, forKey: "whaticketQueues") }
     }
     /// "09:00-18:00"; empty = any time.
