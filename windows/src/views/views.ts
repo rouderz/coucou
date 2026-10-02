@@ -17,6 +17,7 @@ import { focusSession } from "../claude/sessions.ts";
 import type { EditPreview } from "../claude/preview.ts";
 import { dndActive, dndStatus, FOREVER, tomorrowMorning } from "../core/dnd.ts";
 import { Bridge } from "../core/bridge";
+import { deleteChat, loadChats, openChat } from "../core/chats";
 
 export interface ViewActions {
   setView(v: IslandViewName): void;
@@ -413,6 +414,44 @@ function syncSessionChips(row: HTMLElement) {
     if (s.unseen && !focused) chip.append(h("i", { class: "unseen" }));
     row.append(chip);
   }
+}
+
+// ── Chat history ──────────────────────────────────────────────────────────────
+
+function buildHistory(actions: ViewActions): ViewHost {
+  const list = h("div", { class: "tl-list" });
+  const back = h("button", { class: "btn secondary", text: "Back", onclick: () => actions.setView("prompt") });
+  const el = h("div", { class: "view" }, card(null, h("div", { class: "tl" },
+    h("div", { class: "tl-head" }, h("div", { class: "tl-title", text: "Chats" }), h("div", { class: "actions" }, back)),
+    list,
+  )));
+  let key = "";
+  void loadChats();
+  return {
+    el,
+    sync() {
+      const k = State.chats.map((c) => `${c.id}:${c.updatedAt}`).join("|");
+      if (k === key) return;
+      key = k;
+      clear(list);
+      for (const chat of State.chats) {
+        const when = new Date(chat.updatedAt);
+        const stamp = when.toDateString() === new Date().toDateString()
+          ? when.toLocaleTimeString(undefined, { hour: "2-digit", minute: "2-digit" })
+          : when.toLocaleDateString(undefined, { day: "2-digit", month: "short" });
+        list.append(h("div", { class: "inbox-row" },
+          h("span", { class: "tl-time", text: stamp }),
+          h("button", {
+            class: "inbox-open",
+            onclick: () => { openChat(chat); actions.setView("prompt"); },
+          }, h("span", { class: "title", text: chat.title }),
+            h("span", { class: "sub", text: `${chat.messages.length} messages` })),
+          h("button", { class: "inbox-x", title: "Delete", text: "✕", onclick: () => void deleteChat(chat) }),
+        ));
+      }
+      if (!State.chats.length) list.append(h("div", { class: "tl-empty", text: "No saved chats yet." }));
+    },
+  };
 }
 
 // ── Inbox ─────────────────────────────────────────────────────────────────────
@@ -831,7 +870,8 @@ export function buildViews(
   map.set("settings", buildSettings(actions));
   map.set("timeline", buildTimeline(actions));
   map.set("inbox", buildInbox(actions));
-  map.set("prompt", buildPrompt(onChatHeightChange));
+  map.set("prompt", buildPrompt(onChatHeightChange, () => actions.setView("history")));
+  map.set("history", buildHistory(actions));
   map.set("upload", buildUpload());
   map.set("uploading", buildUploading());
   map.set("choose", buildChoose(actions));

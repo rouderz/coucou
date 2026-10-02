@@ -1701,3 +1701,45 @@ input[type="range"]::-webkit-slider-thumb {
   background: rgba(94, 106, 210, 0.22);
   cursor: default;
 }
+
+/* ── Chat: context, new chat, history ───────────────────────────────────────── */
+
+.chip-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.chip-attach,
+.chip-action {
+  border: 0;
+  border-radius: 999px;
+  padding: 2px 8px;
+  font: 500 10.5px var(--font);
+  color: var(--ink-2);
+  background: rgba(255, 255, 255, 0.07);
+  cursor: default;
+  white-space: nowrap;
+}
+
+.chip-attach { color: #a5b4fc; }
+.chip-action:hover,
+.chip-attach:hover { background: rgba(255, 255, 255, 0.12); }
+
+/* ── Push-to-talk ────────────────────────────────────────────────────────────── */
+
+.mic-btn {
+  border: 0;
+  background: transparent;
+  font-size: 12px;
+  opacity: 0.6;
+  cursor: default;
+  padding: 0 4px;
+}
+
+.mic-btn:hover { opacity: 1; }
+.mic-btn.on { opacity: 1; animation: mic-pulse 1s ease-in-out infinite; }
+
+@keyframes mic-pulse {
+  50% { transform: scale(1.18); }
+}

@@ -58,6 +58,30 @@ pub struct Settings {
     /// Look for a newer release on GitHub at launch and once a day.
     #[serde(default = "yes")]
     pub check_updates: bool,
+
+    /// "Other provider" chat engine: preset id, server (blank = the preset's) and model.
+    #[serde(default = "default_provider")]
+    pub provider_id: String,
+    #[serde(default)]
+    pub provider_base_url: String,
+    #[serde(default)]
+    pub provider_model: String,
+
+    /// Interface language: "system", "en" or "es".
+    #[serde(default = "default_language")]
+    pub language: String,
+
+    /// Mochi reads its chat replies aloud.
+    #[serde(default)]
+    pub speak_replies: bool,
+}
+
+fn default_provider() -> String {
+    "openai".into()
+}
+
+fn default_language() -> String {
+    "system".into()
 }
 
 fn yes() -> bool {
@@ -106,6 +130,11 @@ impl Default for Settings {
             inbox_linear: true,
             inbox_kinds: all_kinds(),
             check_updates: true,
+            provider_id: default_provider(),
+            provider_base_url: String::new(),
+            provider_model: String::new(),
+            language: default_language(),
+            speak_replies: false,
         }
     }
 }

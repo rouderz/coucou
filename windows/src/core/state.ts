@@ -3,6 +3,8 @@
 import type { BotEmoteName, BotStateName, IslandMode, IslandViewName } from "./layout";
 import type { EyeShape } from "../mochi/engine";
 import type { EditPreview } from "../claude/preview.ts";
+import type { CodeContext } from "./bridge";
+import type { SavedChat } from "./chats";
 
 export type AgentSource = "claudeCode" | "n8n";
 export type PillBadge = "approval" | "finished" | "error";
@@ -146,8 +148,15 @@ export interface Settings {
   hooksInstalled: boolean;
   /** Claude model used by the chat. */
   model: string;
-  /** "api": Anthropic API key. "claude-code": the user's Claude Code subscription. */
-  chatEngine: "api" | "claude-code";
+  /** "api": Anthropic API key. "claude-code": the user's Claude Code subscription. "provider": OpenAI-compatible. */
+  chatEngine: "api" | "claude-code" | "provider";
+  providerId: string;
+  providerBaseUrl: string;
+  providerModel: string;
+  /** "system", "en" or "es" (applied at the next launch of the window). */
+  language: "system" | "en" | "es";
+  /** Mochi reads its chat replies aloud. */
+  speakReplies: boolean;
   /** Preferred editor command; "" = the first one installed. */
   editor: string;
   /** Auto-approve per project folder: "low" or "medium" (absent = always ask). */
@@ -190,6 +199,11 @@ export const DEFAULT_SETTINGS: Settings = {
   inboxLinear: true,
   inboxKinds: ["review", "mention", "assigned", "comment", "other"],
   checkUpdates: true,
+  providerId: "openai",
+  providerBaseUrl: "",
+  providerModel: "",
+  language: "system",
+  speakReplies: false,
 };
 
 type Listener = () => void;
@@ -228,6 +242,13 @@ class AppState {
 
   /** GitHub / Linear notifications that need you. */
   inbox: InboxItem[] = [];
+  /** Saved chats, newest first, and the one on screen. */
+  chats: SavedChat[] = [];
+  currentChatId: string | null = null;
+  /** The editor's latest context (VS Code / Cursor extension), and the one attached to the chat. */
+  editorContext: (CodeContext & { at: number }) | null = null;
+  codeContext: CodeContext | null = null;
+
   /** A newer release, from the update check. */
   update: { latest: string; url: string } | null = null;
 

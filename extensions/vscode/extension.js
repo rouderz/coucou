@@ -1,5 +1,8 @@
-// Coucou editor extension: sends the active editor's context to Coucou over its local Unix
-// socket (~/Library/Application Support/NotchBuddy/nb.sock). Nothing leaves the Mac.
+// Coucou editor extension: sends the active editor's context to Coucou over its local
+// connection — nothing leaves the computer:
+//   macOS    ~/Library/Application Support/NotchBuddy/nb.sock
+//   Windows  \\.\pipe\coucou-<your SID>
+//   Linux    $XDG_RUNTIME_DIR/coucou.sock (or /tmp/coucou-<uid>/coucou.sock)
 //
 //   EditorContext  on editor / selection / diagnostics changes (debounced) — Coucou keeps the
 //                  latest one and uses it when you press ⌃⌥M or drop Mochi on the window.
@@ -9,15 +12,40 @@ const vscode = require('vscode');
 const net = require('net');
 const os = require('os');
 const path = require('path');
+const fs = require('fs');
+const { execFileSync } = require('child_process');
 
-const SOCKET = path.join(os.homedir(), 'Library', 'Application Support', 'NotchBuddy', 'nb.sock');
+let socketCache = null;
+
+/** Where Coucou listens on this system (same names as the app and its hook relay). */
+function socketPath() {
+  if (socketCache) return socketCache;
+  if (process.platform === 'darwin') {
+    socketCache = path.join(os.homedir(), 'Library', 'Application Support', 'NotchBuddy', 'nb.sock');
+  } else if (process.platform === 'win32') {
+    // The pipe carries the user's SID, so two accounts never share it.
+    let key = process.env.USERNAME || 'user';
+    try {
+      const out = execFileSync('whoami', ['/user', '/fo', 'csv', '/nh'], { encoding: 'utf8', windowsHide: true });
+      const m = out.match(/"(S-1-[^"]+)"/);
+      if (m) key = m[1];
+    } catch (_) { /* fall back to the user name, like the app */ }
+    socketCache = '\\\\.\\pipe\\coucou-' + key;
+  } else {
+    const runtime = process.env.XDG_RUNTIME_DIR;
+    socketCache = runtime && path.isAbsolute(runtime) && fs.existsSync(runtime)
+      ? path.join(runtime, 'coucou.sock')
+      : path.join('/tmp', 'coucou-' + process.getuid(), 'coucou.sock');
+  }
+  return socketCache;
+}
 const MAX_SELECTION = 8000;
 let timer = null;
 let statusItem = null;
 
 function send(event, payload) {
   return new Promise((resolve) => {
-    const client = net.createConnection({ path: SOCKET });
+    const client = net.createConnection({ path: socketPath() });
     client.setTimeout(1500);
     client.on('connect', () => {
       client.end(JSON.stringify({ hook_event_name: event, ...payload }) + '\n');

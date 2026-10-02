@@ -13,10 +13,12 @@ mod island;
 mod linear;
 mod log;
 mod pipe;
+mod provider;
 mod platform;
 mod secrets;
 mod settings;
 mod tray;
+mod voice;
 
 use std::sync::atomic::Ordering;
 use std::sync::{Arc, Mutex};
@@ -229,24 +231,123 @@ async fn chat_send(
     shared: State<'_, Shared>,
     chat: State<'_, Chat>,
     code_chat: State<'_, ClaudeCodeChat>,
+    provider_chat: State<'_, provider::ProviderChat>,
     query: String,
     context: Option<ChatContext>,
 ) -> Result<ChatReply, String> {
-    let (model, engine) = {
-        let s = shared.settings.lock().unwrap();
-        (s.model.clone(), s.chat_engine.clone())
-    };
-    if engine == "claude-code" {
-        claude_code::send(&code_chat, &model, query, context).await
-    } else {
-        claude::send(&chat, &model, query, context).await
+    let s = shared.settings.lock().unwrap().clone();
+    match s.chat_engine.as_str() {
+        "claude-code" => claude_code::send(&code_chat, &s.model, query, context).await,
+        "provider" => {
+            let cfg = provider::config(&s.provider_id, &s.provider_base_url, &s.provider_model);
+            provider::send(&provider_chat, cfg, query, context).await
+        }
+        _ => claude::send(&chat, &s.model, query, context).await,
     }
 }
 
 #[tauri::command]
-fn chat_reset(chat: State<Chat>, code_chat: State<ClaudeCodeChat>) {
+fn chat_reset(chat: State<Chat>, code_chat: State<ClaudeCodeChat>, provider_chat: State<provider::ProviderChat>) {
     chat.reset();
     code_chat.reset();
+    provider_chat.reset();
+}
+
+#[derive(serde::Deserialize)]
+struct SavedTurn {
+    user: bool,
+    text: String,
+}
+
+/// Picks a saved chat back up in every engine (text for the API and providers,
+/// the session for Claude Code).
+#[tauri::command]
+fn chat_restore(
+    chat: State<Chat>,
+    code_chat: State<ClaudeCodeChat>,
+    provider_chat: State<provider::ProviderChat>,
+    messages: Vec<SavedTurn>,
+    session_id: Option<String>,
+    work_dir: Option<String>,
+) {
+    let turns: Vec<(bool, String)> = messages.into_iter().map(|m| (m.user, m.text)).collect();
+    chat.restore(&turns);
+    provider_chat.restore(&turns);
+    code_chat.restore(session_id, work_dir);
+}
+
+#[derive(Serialize)]
+#[serde(rename_all = "camelCase")]
+struct ChatSessionInfo {
+    session_id: Option<String>,
+    work_dir: Option<String>,
+}
+
+/// What to save with a chat so Claude Code can resume it.
+#[tauri::command]
+fn chat_session_info(code_chat: State<ClaudeCodeChat>) -> ChatSessionInfo {
+    let (session_id, work_dir) = code_chat.snapshot();
+    ChatSessionInfo { session_id, work_dir }
+}
+
+fn chats_path() -> std::path::PathBuf {
+    settings::local_dir().join("chats.json")
+}
+
+/// Saved chats (the newest 50), kept on this computer only.
+#[tauri::command]
+fn chats_load() -> serde_json::Value {
+    std::fs::read(chats_path())
+        .ok()
+        .and_then(|b| serde_json::from_slice::<serde_json::Value>(&b).ok())
+        .filter(|v| v.is_array())
+        .unwrap_or_else(|| serde_json::json!([]))
+}
+
+#[tauri::command]
+fn chats_save(chats: serde_json::Value) -> Result<(), String> {
+    let list = chats.as_array().ok_or("not a list")?;
+    let kept: Vec<serde_json::Value> = list.iter().take(50).cloned().collect();
+    let dir = settings::local_dir();
+    std::fs::create_dir_all(&dir).map_err(|e| e.to_string())?;
+    let text = serde_json::to_vec(&kept).map_err(|e| e.to_string())?;
+    let temp = chats_path().with_extension("json.tmp");
+    std::fs::write(&temp, text).map_err(|e| e.to_string())?;
+    std::fs::rename(&temp, chats_path()).map_err(|e| e.to_string())
+}
+
+/// A deleted chat takes its Claude Code folder with it — only ever one of ours.
+#[tauri::command]
+fn chat_delete_dir(dir: String) {
+    let root = settings::local_dir().join("chats");
+    let path = std::path::PathBuf::from(&dir);
+    if let (Ok(root), Ok(path)) = (root.canonicalize(), path.canonicalize()) {
+        if path.starts_with(&root) && path != root {
+            let _ = std::fs::remove_dir_all(path);
+        }
+    }
+}
+
+/// Push-to-talk: one spoken question, as text (Windows' own speech recognition).
+#[tauri::command]
+async fn voice_listen() -> Result<String, String> {
+    voice::listen().await
+}
+
+#[tauri::command]
+fn voice_available() -> bool {
+    voice::can_listen()
+}
+
+#[tauri::command]
+fn provider_presets() -> Vec<provider::Preset> {
+    provider::PRESETS.to_vec()
+}
+
+#[tauri::command]
+async fn provider_models(shared: State<'_, Shared>) -> Result<Vec<String>, String> {
+    let s = shared.settings.lock().unwrap().clone();
+    provider::list_models(provider::config(&s.provider_id, &s.provider_base_url, &s.provider_model)).await
 }
 
 // ── Linear, inbox, phone alerts, updates, shortcuts (phase 2 of parity) ──────
@@ -485,6 +586,7 @@ pub fn run() {
         .manage(Pending::default())
         .manage(Chat::default())
         .manage(ClaudeCodeChat::default())
+        .manage(provider::ProviderChat::default())
         .manage(inbox::Inbox::default())
         .plugin(
             tauri_plugin_global_shortcut::Builder::new()
@@ -540,6 +642,15 @@ pub fn run() {
             new_ntfy_topic,
             check_update,
             approval_shortcuts,
+            chat_restore,
+            chat_session_info,
+            chats_load,
+            chats_save,
+            chat_delete_dir,
+            provider_presets,
+            provider_models,
+            voice_listen,
+            voice_available,
         ])
         .setup(move |app| {
             let handle = app.handle().clone();

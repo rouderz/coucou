@@ -3,6 +3,7 @@
 // integrations land here too in a later stage.
 
 import "./settings.css";
+import { setLanguage, startTranslating } from "../core/i18n.ts";
 import { Bridge, onEvent, type HookStatus } from "../core/bridge";
 import { DEFAULT_SETTINGS, type Settings } from "../core/state";
 import { h, clear } from "../views/dom";
@@ -238,7 +239,81 @@ const MODELS: [string, string][] = [
   ["claude-haiku-4-5", "Claude Haiku 4.5"],
 ];
 
-function apiSection(hasKey: boolean, claudeCode: { installed: boolean; path: string | null }): HTMLElement {
+type Preset = { id: string; name: string; baseUrl: string; needsKey: boolean; defaultModel: string; keyHint: string };
+
+/** "Other provider": OpenAI, Gemini, OpenRouter, Ollama, LM Studio or any OpenAI-compatible server. */
+function providerBlock(presets: Preset[], present: Record<string, boolean>): HTMLElement {
+  const box = h("div", { style: "display:flex;flex-direction:column;gap:10px" });
+  const pick = h("select", {}) as HTMLSelectElement;
+  for (const p of presets) pick.append(h("option", { value: p.id, text: p.name }));
+  pick.value = settings.providerId || "openai";
+  const server = h("input", { type: "text", spellcheck: "false", style: "flex:1 1 auto;min-width:0" }) as HTMLInputElement;
+  const modelInput = h("input", { type: "text", spellcheck: "false", style: "flex:1 1 auto;min-width:0" }) as HTMLInputElement;
+  const models = h("datalist", { id: "provider-models" });
+  modelInput.setAttribute("list", "provider-models");
+  const key = h("input", { type: "password", autocomplete: "off", spellcheck: "false", style: "flex:1 1 auto;min-width:0" }) as HTMLInputElement;
+  const keyDot = statusDot(false);
+  const note = h("div", {});
+  const current = () => presets.find((p) => p.id === pick.value) ?? presets[0];
+  function fill() {
+    const p = current();
+    server.placeholder = p.baseUrl || "https://your-server/v1";
+    server.value = settings.providerBaseUrl ?? "";
+    modelInput.placeholder = p.defaultModel || "model name";
+    modelInput.value = settings.providerModel ?? "";
+    const k = `provider-key-${p.id}`;
+    key.placeholder = present[k] ? "••••••••  (stored)" : p.keyHint || "not needed";
+    keyDot.style.background = present[k] ? "#22c55e" : p.needsKey ? "#f4505e" : "#8e939c";
+  }
+  pick.addEventListener("change", () => {
+    settings.providerId = pick.value;
+    settings.providerBaseUrl = "";
+    settings.providerModel = "";
+    void save();
+    fill();
+  });
+  server.addEventListener("change", () => { settings.providerBaseUrl = server.value.trim(); void save(); });
+  modelInput.addEventListener("change", () => { settings.providerModel = modelInput.value.trim(); void save(); });
+  const saveKey = h("button", { text: "Save", onclick: async () => {
+    const k = `provider-key-${current().id}`;
+    try {
+      await Bridge.secretSet(k, key.value.trim());
+      present[k] = key.value.trim().length > 0;
+      key.value = "";
+      fill();
+    } catch (err) {
+      clear(note);
+      note.append(h("div", { class: "notice err", text: String(err) }));
+    }
+  } });
+  const load = h("button", { text: "Load models", onclick: async () => {
+    clear(note);
+    try {
+      const list = await Bridge.providerModels();
+      clear(models);
+      for (const m of list) models.append(h("option", { value: m }));
+      note.append(h("div", { class: "hint", text: `${list.length} models — pick one in the field.` }));
+    } catch (err) {
+      note.append(h("div", { class: "notice err", text: String(err).replace(/^Error:\s*/, "") }));
+    }
+  } });
+  fill();
+  box.append(
+    h("div", { class: "row" }, h("label", { text: "Provider" }), pick),
+    h("div", { class: "row" }, h("label", { text: "Server" }), server),
+    h("div", { class: "row" }, h("label", { text: "Model" }), modelInput, load, models),
+    h("div", { class: "row" }, h("label", { text: "API key" }), key, saveKey, keyDot),
+    note,
+  );
+  return box;
+}
+
+function apiSection(
+  hasKey: boolean,
+  claudeCode: { installed: boolean; path: string | null },
+  presets: Preset[],
+  present: Record<string, boolean>,
+): HTMLElement {
   const dot = statusDot(hasKey);
   const state = h("span", { class: "hint", text: hasKey ? `Key saved in ${keychainName}.` : "No key yet — the chat needs one." });
 
@@ -307,7 +382,9 @@ function apiSection(hasKey: boolean, claudeCode: { installed: boolean; path: str
   engine.append(
     h("option", { value: "api", text: "Anthropic API key" }),
     h("option", { value: "claude-code", text: "Claude Code (your subscription)" }),
+    h("option", { value: "provider", text: "Other provider (OpenAI, Gemini, Ollama…)" }),
   );
+  const providerBox = providerBlock(presets, present);
   engine.value = settings.chatEngine ?? "api";
   const keyRow = h("div", { class: "row" }, h("label", { text: "API key" }), field, saveBtn, clearBtn);
   const codeNote = h("div", {
@@ -316,11 +393,15 @@ function apiSection(hasKey: boolean, claudeCode: { installed: boolean; path: str
       ? `Uses ${claudeCode.path}, signed in with your Claude plan. No key needed; nothing about your sign-in is read or stored.`
       : "Claude Code isn't installed (or not on PATH). Install it and sign in with `claude`, then reopen Settings.",
   });
+  const modelRow = h("div", { class: "row" }, h("label", { text: "Model" }), model);
   function showEngine() {
     const code = engine.value === "claude-code";
-    keyRow.style.display = code ? "none" : "";
-    state.style.display = code ? "none" : "";
+    const other = engine.value === "provider";
+    keyRow.style.display = code || other ? "none" : "";
+    state.style.display = code || other ? "none" : "";
     codeNote.style.display = code ? "" : "none";
+    providerBox.style.display = other ? "" : "none";
+    modelRow.style.display = other ? "none" : "";
     dot.style.background = code ? (claudeCode.installed ? "#22c55e" : "#f4505e") : dot.style.background;
   }
   engine.addEventListener("change", () => {
@@ -339,7 +420,8 @@ function apiSection(hasKey: boolean, claudeCode: { installed: boolean; path: str
     state,
     codeNote,
     keyRow,
-    h("div", { class: "row" }, h("label", { text: "Model" }), model),
+    modelRow,
+    providerBox,
     feedback,
   );
 }
@@ -518,6 +600,19 @@ function inboxSection(): HTMLElement {
   );
 }
 
+// ── Voice ─────────────────────────────────────────────────────────────────────
+
+function voiceSection(canListen: boolean): HTMLElement {
+  return h("section", {},
+    h("h2", {}, h("span", { text: "Voice" })),
+    h("div", { class: "row" }, h("label", { text: "Read replies aloud" }),
+      toggle(settings.speakReplies, (v) => { settings.speakReplies = v; void save(); })),
+    h("div", { class: "hint", text: canListen
+      ? "🎙 in the chat: say your question and Mochi sends it (Windows speech recognition; dictation needs online speech recognition on in Windows Settings → Privacy & security → Speech)."
+      : "Speaking your questions isn't available on Linux: it has no built-in speech recognition. Mochi can still read its replies aloud." }),
+  );
+}
+
 // ── Updates ───────────────────────────────────────────────────────────────────
 
 function updatesSection(): HTMLElement {
@@ -577,6 +672,19 @@ function generalSection(editors: { id: string; name: string }[]): HTMLElement {
     void save();
   });
 
+  const language = h("select", {}) as HTMLSelectElement;
+  language.append(
+    h("option", { value: "system", text: "Same as the system" }),
+    h("option", { value: "en", text: "English" }),
+    h("option", { value: "es", text: "Español" }),
+  );
+  language.value = settings.language ?? "system";
+  language.addEventListener("change", async () => {
+    settings.language = language.value as Settings["language"];
+    await save();
+    window.location.reload();
+  });
+
   const screen = h("select", {}) as HTMLSelectElement;
   screen.append(
     h("option", { value: "primary", text: "Main display" }),
@@ -603,6 +711,10 @@ function generalSection(editors: { id: string; name: string }[]): HTMLElement {
       h("span", { class: "hint", text: "seconds after you leave the island" }),
     ),
     h("div", { class: "row" },
+      h("label", { text: "Language" }),
+      language,
+    ),
+    h("div", { class: "row" },
       h("label", { text: "Island lives on" }),
       screen,
     ),
@@ -626,6 +738,7 @@ async function main() {
     version = boot.version;
     if (boot.platform === "linux") keychainName = "your keyring (Secret Service)";
   }
+  setLanguage(settings.language);
   const status = (await Bridge.hooksStatus()) ?? {
     installed: false, settingsPath: "", hookPath: "", hookReady: false,
   };
@@ -634,6 +747,8 @@ async function main() {
   const claudeCode = (await Bridge.claudeCodeStatus()) ?? { installed: false, path: null };
   const editors = (await Bridge.editorsInstalled()) ?? [];
   const codex = (await Bridge.codexStatus()) ?? { found: false, installed: false, hooksPath: "" };
+  const presets = (await Bridge.providerPresets()) ?? [];
+  const canListen = (await Bridge.voiceAvailable()) ?? false;
 
   const keys = [
     "stripe-api-key", "github-token", "vercel-token",
@@ -641,16 +756,20 @@ async function main() {
   ];
   const present: Record<string, boolean> = {};
   for (const k of keys) present[k] = (await Bridge.secretPresent(k)) ?? false;
+  for (const p of ["openai", "gemini", "openrouter", "ollama", "lmstudio", "custom"]) {
+    present[`provider-key-${p}`] = (await Bridge.secretPresent(`provider-key-${p}`)) ?? false;
+  }
 
   clear(root);
   root.append(
     h("h1", {}, h("span", { text: "Coucou" }), h("span", { class: "version", text: version })),
     claudeSection(status),
     codexSection(codex),
-    apiSection(hasKey, claudeCode),
+    apiSection(hasKey, claudeCode, presets, present),
     integrationsSection(present),
     phoneSection(),
     inboxSection(),
+    voiceSection(canListen),
     updatesSection(),
     generalSection(editors),
     h("div", {
@@ -658,6 +777,8 @@ async function main() {
       text: "No telemetry. Network requests only go to the services you configure yourself.",
     }),
   );
+
+  startTranslating(document.body);
 
   void onEvent<Settings>("settings-changed", (s) => {
     settings = { ...settings, ...s };

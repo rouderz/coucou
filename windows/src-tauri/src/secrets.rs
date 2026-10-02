@@ -18,6 +18,12 @@ pub const KNOWN_KEYS: &[&str] = &[
     "notion-api-key",
     "calcom-api-key",
     "linear-api-key",
+    "provider-key-openai",
+    "provider-key-gemini",
+    "provider-key-openrouter",
+    "provider-key-ollama",
+    "provider-key-lmstudio",
+    "provider-key-custom",
 ];
 
 fn entry(key: &str) -> Option<Entry> {

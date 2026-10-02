@@ -38,6 +38,21 @@ impl Chat {
         self.messages.lock().unwrap().clear();
     }
 
+    /// A saved conversation, from its text (attachments aren't kept). The API
+    /// needs turns that alternate and end on an answer.
+    pub fn restore(&self, turns: &[(bool, String)]) {
+        let mut m: Vec<Value> = turns
+            .iter()
+            .map(|(user, text)| {
+                json!({ "role": if *user { "user" } else { "assistant" }, "content": [{ "type": "text", "text": text }] })
+            })
+            .collect();
+        while m.last().and_then(|v| v.get("role")).and_then(Value::as_str) == Some("user") {
+            m.pop();
+        }
+        *self.messages.lock().unwrap() = m;
+    }
+
     fn is_empty(&self) -> bool {
         self.messages.lock().unwrap().is_empty()
     }
@@ -59,7 +74,56 @@ impl Chat {
 #[serde(tag = "kind", rename_all = "camelCase")]
 pub enum ChatContext {
     File { name: String, path: String },
+    #[serde(rename_all = "camelCase")]
     Window { app_name: String, title: String, url: Option<String> },
+    /// From the VS Code / Cursor extension: the file, cursor, selection and problems.
+    Code {
+        file: String,
+        workspace: Option<String>,
+        language: Option<String>,
+        line: Option<u32>,
+        selection: Option<String>,
+        diagnostics: Option<Vec<Value>>,
+    },
+}
+
+/// The editor context as text. `inline_file` adds the file's content (servers
+/// that take text only); the API engine sends the file as its own block instead.
+pub(crate) fn code_preamble(context: &ChatContext, inline_file: bool) -> String {
+    let ChatContext::Code { file, workspace, language, line, selection, diagnostics } = context else {
+        return String::new();
+    };
+    let mut t = format!("Code context — file: {file}");
+    if let Some(l) = language {
+        t.push_str(&format!(" ({l})"));
+    }
+    if let Some(n) = line {
+        t.push_str(&format!(", cursor on line {n}"));
+    }
+    if let Some(w) = workspace {
+        t.push_str(&format!(", project: {w}"));
+    }
+    t.push('\n');
+    if let Some(sel) = selection.as_deref().filter(|s| !s.is_empty()) {
+        t.push_str(&format!("Selected text:\n```\n{sel}\n```\n"));
+    }
+    if let Some(list) = diagnostics.as_ref().filter(|d| !d.is_empty()) {
+        t.push_str("Problems the editor reports:\n");
+        for d in list.iter().take(20) {
+            let line = d.get("line").and_then(Value::as_u64).unwrap_or(0);
+            let sev = d.get("severity").and_then(Value::as_str).unwrap_or("problem");
+            let msg = d.get("message").and_then(Value::as_str).unwrap_or("");
+            t.push_str(&format!("- line {line}, {sev}: {msg}\n"));
+        }
+    }
+    if inline_file {
+        if let Ok(text) = std::fs::read_to_string(file) {
+            if text.len() as u64 <= MAX_INLINE_TEXT {
+                t.push_str(&format!("File contents:\n```\n{text}\n```\n"));
+            }
+        }
+    }
+    t + "\n"
 }
 
 #[derive(Serialize)]
@@ -97,6 +161,12 @@ pub async fn send(
                     text.push_str(&format!(", URL: {url}"));
                 }
                 content.push(json!({ "type": "text", "text": text }));
+            }
+            Some(ctx @ ChatContext::Code { file, .. }) => {
+                if let Some(block) = file_block(file) {
+                    content.push(block);
+                }
+                content.push(json!({ "type": "text", "text": code_preamble(ctx, false) }));
             }
             None => {}
         }
