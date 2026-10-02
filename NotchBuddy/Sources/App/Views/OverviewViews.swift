@@ -126,7 +126,7 @@ struct OverviewView: View {
         case "integration_linear":
             AppLinks.open("https://linear.app")
         case "integration_whaticket":
-            if let url = WhaTicketAPI.webURL(nil) { NSWorkspace.shared.open(url) }
+            if let url = WhaTicketRules.webURL(nil) { NSWorkspace.shared.open(url) }
         case "integration_gmail":
             AppLinks.open("https://mail.google.com")
         case "integration_calcom":

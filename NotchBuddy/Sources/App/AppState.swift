@@ -73,13 +73,16 @@ final class AppState: ObservableObject {
     /// A skill picked with "/" in the chat; its SKILL.md goes with the next question.
     @Published var chatSkill: SkillRef? = nil
 
-    // WhaTicket (pending queue, my tickets, what Coucou accepted on its own)
+    // WhaTicket, as of the browser extension's last check-in (pending queue, my tickets)
     @Published var whaticketUser: String? = nil
+    @Published var whaticketQueues: [WhaTicketQueue] = []
     @Published var whaticketPending: [WhaTicketTicket] = []
     @Published var whaticketPendingCount = 0
     @Published var whaticketMine: [WhaTicketTicket] = []
     @Published var whaticketMineCount = 0
-    @Published var whaticketUndoable: Set<String> = []
+    /// Accept clicked (or picked by auto-accept), waiting for the extension.
+    @Published var whaticketAccepting: Set<String> = []
+    @Published var whaticketSeenAt: Date? = nil
     @Published var whaticketError: String? = nil
     @Published var whaticketLoaded = false
 
@@ -813,9 +816,11 @@ struct IntegrationStatus {
             let email = UserDefaults.standard.string(forKey: "googleEmail") ?? ""
             return .init(colorHex: green, help: email.isEmpty ? "Connected" : L("Signed in as \(email)"))
         case "integration_whaticket":
-            guard WhaTicketAPI.isConfigured else { return notSet }
+            guard BrowserExtension.isSetUp else { return notSet }
             if let e = s.whaticketError { return .init(colorHex: red, help: e) }
-            guard s.whaticketLoaded else { return checking }
+            guard let seen = s.whaticketSeenAt, Date.now.timeIntervalSince(seen) < WhaTicketBridge.staleAfter else {
+                return .init(colorHex: amber, help: L("Open whaticket.com in Chrome or Edge"))
+            }
             return .init(colorHex: green, help: s.whaticketUser.map { L("Signed in as \($0)") } ?? "Connected")
         case "integration_notion":
             guard key("notion-api-key") else { return notSet }

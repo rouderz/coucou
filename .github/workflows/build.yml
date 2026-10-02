@@ -5,7 +5,7 @@ name: Build and test
 on:
   pull_request:
     branches: [main]
-    paths: ["NotchBuddy/**", ".github/workflows/build.yml"]
+    paths: ["NotchBuddy/**", "extensions/**", ".github/workflows/build.yml"]
   workflow_dispatch:
 
 concurrency:

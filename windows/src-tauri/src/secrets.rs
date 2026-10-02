@@ -18,11 +18,6 @@ pub const KNOWN_KEYS: &[&str] = &[
     "notion-api-key",
     "calcom-api-key",
     "linear-api-key",
-    "whaticket-url",
-    "whaticket-web-url",
-    "whaticket-email",
-    "whaticket-password",
-    "whaticket-token",
     "google-client-id",
     "google-client-secret",
     "google-refresh-token",
@@ -60,6 +55,27 @@ pub fn clear(key: &str) -> Result<(), String> {
         Ok(()) | Err(keyring::Error::NoEntry) => Ok(()),
         Err(e) => Err(e.to_string()),
     }
+}
+
+/// The WhaTicket credentials earlier builds stored. Coucou no longer signs in to
+/// WhaTicket (the browser extension uses the tab's own session), so they go.
+const RETIRED_KEYS: &[&str] = &[
+    "whaticket-url",
+    "whaticket-web-url",
+    "whaticket-email",
+    "whaticket-password",
+    "whaticket-token",
+];
+
+/// Deletes the retired keys, off the main thread (the keychain can be slow).
+pub fn forget_retired() {
+    std::thread::spawn(|| {
+        for key in RETIRED_KEYS {
+            if let Ok(entry) = Entry::new(SERVICE, key) {
+                let _ = entry.delete_credential();
+            }
+        }
+    });
 }
 
 pub fn present(key: &str) -> bool {

@@ -29,7 +29,7 @@ struct IntegrationCardView: View {
         case "integration_notion":  return Secrets.store.get("notion-api-key") != nil
         case "integration_calcom":  return Secrets.store.get("calcom-api-key") != nil
         case "integration_linear":  return LinearAPI.hasKey
-        case "integration_whaticket": return WhaTicketAPI.isConfigured
+        case "integration_whaticket": return BrowserExtension.isSetUp
         case "integration_gmail": return GoogleAPI.isConnected
         default: return false
         }
@@ -55,7 +55,7 @@ struct IntegrationCardView: View {
         case "integration_notion":  return URL(string: "https://www.notion.so")
         case "integration_calcom":  return URL(string: "https://app.cal.com/bookings")
         case "integration_linear":  return URL(string: "https://linear.app")
-        case "integration_whaticket": return WhaTicketAPI.webURL(nil)
+        case "integration_whaticket": return WhaTicketRules.webURL(nil)
         case "integration_gmail": return URL(string: "https://mail.google.com")
         default: return nil
         }

@@ -1,14 +1,11 @@
 import AppKit
 import SwiftUI
 
-/// WhaTicket on the overview card: what Coucou just accepted (with Undo), the queue (with Accept)
-/// and my open tickets. Same layout as LinearCardView.
+/// WhaTicket on the overview card: the queue (with Accept) and my open tickets, as of the browser
+/// extension's last check-in. Same layout as LinearCardView.
 struct WhaTicketCardView: View {
     @ObservedObject private var appState = AppState.shared
     @State private var busy: Set<String> = []
-
-    private var justAccepted: [WhaTicketTicket] { appState.whaticketMine.filter { appState.whaticketUndoable.contains($0.id) } }
-    private var otherMine: [WhaTicketTicket] { appState.whaticketMine.filter { !appState.whaticketUndoable.contains($0.id) } }
 
     private var subtitle: String {
         var s = L("Waiting \(appState.whaticketPendingCount) · Mine \(appState.whaticketMineCount)")
@@ -16,10 +13,15 @@ struct WhaTicketCardView: View {
         return s
     }
 
+    /// The tab is closed or asleep: the extension stopped checking in.
+    private var stale: Bool {
+        appState.whaticketSeenAt.map { Date.now.timeIntervalSince($0) > WhaTicketBridge.staleAfter } ?? true
+    }
+
     var body: some View {
         VStack(alignment: .leading, spacing: 0) {
             HStack(spacing: 6) {
-                StatusDot(id: WhaTicketPoller.id)
+                StatusDot(id: WhaTicketBridge.id)
                 Text("WhaTicket").font(.system(size: 12, weight: .semibold)).foregroundColor(Color(hex: "#F5F6F8"))
                 Text(verbatim: subtitle).font(.system(size: 11)).foregroundColor(Color(hex: "#8E939C"))
             }
@@ -27,24 +29,21 @@ struct WhaTicketCardView: View {
 
             if let error = appState.whaticketError {
                 NotionHint(dot: "#F4505E", text: error)
+            } else if stale {
+                NotionHint(dot: "#F5A524", text: L("Open whaticket.com in Chrome or Edge"))
             } else if appState.whaticketPending.isEmpty && appState.whaticketMine.isEmpty {
                 NotionHint(dot: "#25D366", text: L("No tickets waiting."))
             }
 
             ScrollView(.vertical, showsIndicators: false) {
                 VStack(alignment: .leading, spacing: 2) {
-                    ForEach(justAccepted.prefix(1)) { t in
-                        row(t, color: "#25D366", tag: L("Accepted")) {
-                            action(L("Undo"), t.id) { try await WhaTicketPoller.shared.undo(t.id) }
-                        }
-                    }
                     ForEach(appState.whaticketPending.prefix(4)) { t in
                         row(t, color: t.queueColor.isEmpty ? "#F5A524" : t.queueColor,
                             tag: [t.queue, t.updatedAt.map(Self.ago) ?? ""].filter { !$0.isEmpty }.joined(separator: " · ")) {
-                            action(L("Accept"), t.id) { try await WhaTicketPoller.shared.accept(t.id) }
+                            acceptButton(t.id)
                         }
                     }
-                    ForEach(otherMine.prefix(4)) { t in
+                    ForEach(appState.whaticketMine.prefix(4)) { t in
                         row(t, color: "#25D366", tag: t.unread > 0 ? L("\(t.unread) new") : (t.updatedAt.map(Self.ago) ?? "")) {
                             EmptyView()
                         }
@@ -70,21 +69,21 @@ struct WhaTicketCardView: View {
         .padding(.horizontal, 6).padding(.vertical, 3)
         .contentShape(Rectangle())
         .help(t.lastMessage)
-        .onTapGesture { if let url = WhaTicketAPI.webURL(t.id) { NSWorkspace.shared.open(url) } }
+        .onTapGesture { if let url = WhaTicketRules.webURL(t.id) { NSWorkspace.shared.open(url) } }
     }
 
-    private func action(_ title: String, _ id: String, _ run: @escaping @MainActor () async throws -> Void) -> some View {
-        Button {
+    /// Accept is queued here and sent by the extension at its next check-in (a few seconds).
+    private func acceptButton(_ id: String) -> some View {
+        let waiting = busy.contains(id) || appState.whaticketAccepting.contains(id)
+        return Button {
             busy.insert(id)
-            Task { @MainActor in
-                defer { busy.remove(id) }
-                do { try await run() } catch {
-                    appState.noteMessage = error.localizedDescription
-                    NotificationCenter.default.post(name: .hookExpand, object: IslandView.note)
-                }
+            do { try WhaTicketBridge.shared.accept(id) } catch {
+                busy.remove(id)
+                appState.noteMessage = error.localizedDescription
+                NotificationCenter.default.post(name: .hookExpand, object: IslandView.note)
             }
         } label: {
-            Text(verbatim: busy.contains(id) ? "…" : title)
+            Text(verbatim: waiting ? "…" : L("Accept"))
                 .font(.system(size: 10.5, weight: .semibold))
                 .foregroundColor(Color(hex: "#6EE7A0"))
                 .padding(.horizontal, 8).padding(.vertical, 2)
@@ -92,7 +91,10 @@ struct WhaTicketCardView: View {
                 .clipShape(Capsule())
         }
         .buttonStyle(.plain)
-        .disabled(busy.contains(id))
+        .disabled(waiting || stale)
+        .onChange(of: appState.whaticketAccepting) { _, now in
+            if !now.contains(id) { busy.remove(id) }
+        }
     }
 
     private static func ago(_ date: Date) -> String {

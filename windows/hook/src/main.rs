@@ -15,6 +15,11 @@
 //!   asks in the terminal exactly as if Coucou were not installed.
 //!
 //! Usage: `coucou-hook <EventName>` (the name is also read from the JSON).
+//!
+//! It is also the native-messaging host of the WhaTicket browser extension: the
+//! browser starts it with the extension's origin (`chrome-extension://…/`) as the
+//! first argument, hands it one length-prefixed JSON message on stdin, and reads
+//! one length-prefixed answer from stdout. See `native_host()`.
 
 use std::io::{Read, Write};
 use std::sync::mpsc;
@@ -26,6 +31,11 @@ const CONNECT_TIMEOUT: Duration = Duration::from_millis(300);
 const FIRE_AND_FORGET_BUDGET: Duration = Duration::from_secs(2);
 /// How long a permission prompt may stay on screen before the terminal takes over.
 const DECISION_BUDGET: Duration = Duration::from_secs(110);
+/// How long the browser extension waits for Coucou's answer to a check-in.
+const BROWSER_BUDGET: Duration = Duration::from_secs(10);
+/// The browser never sends us more than this in one message for our purposes
+/// (a queue snapshot); anything larger is not ours.
+const MAX_BROWSER_MESSAGE: usize = 1 << 20;
 
 /// `ERROR_PIPE_BUSY` — every instance is serving someone else right now. This is
 /// the one error worth retrying: the server exists and a slot will free up.
@@ -119,6 +129,11 @@ fn main() {
         status_line();
         std::process::exit(0);
     }
+    // Started by Chrome/Edge for the WhaTicket extension.
+    if let Some(origin) = std::env::args().nth(1).filter(|a| a.starts_with("chrome-extension://")) {
+        native_host(&origin);
+        std::process::exit(0);
+    }
     let Some((payload, event)) = read_event() else { std::process::exit(0) };
 
     let waits_for_answer = event == "PermissionRequest";
@@ -142,6 +157,53 @@ fn main() {
     }
     // Nothing printed: Claude Code asks in the terminal, as if we were not here.
     std::process::exit(0);
+}
+
+/// Native-messaging mode: one message in, one answer out, each a 4-byte
+/// native-endian length followed by UTF-8 JSON. The browser already checked the
+/// origin against `allowed_origins` in our host manifest.
+fn native_host(origin: &str) {
+    let mut stdin = std::io::stdin();
+    let answer = match read_message(&mut stdin) {
+        Some(mut message) if message.is_object() => {
+            message["hook_event_name"] = "WhaTicketBrowser".into();
+            message["origin"] = origin.into();
+            let line = message.to_string() + "\n";
+            let (tx, rx) = mpsc::channel::<Option<String>>();
+            std::thread::spawn(move || {
+                let _ = tx.send(talk(&line, true));
+            });
+            rx.recv_timeout(BROWSER_BUDGET)
+                .ok()
+                .flatten()
+                .and_then(|text| serde_json::from_str::<serde_json::Value>(&text).ok())
+                .filter(|v| v.is_object())
+                .unwrap_or_else(|| serde_json::json!({ "unreachable": "Coucou isn't running" }))
+        }
+        _ => serde_json::json!({ "error": "bad message" }),
+    };
+    let mut out = std::io::stdout();
+    let _ = out.write_all(&frame(&answer));
+    let _ = out.flush();
+}
+
+fn read_message(input: &mut impl Read) -> Option<serde_json::Value> {
+    let mut len = [0u8; 4];
+    input.read_exact(&mut len).ok()?;
+    let len = u32::from_ne_bytes(len) as usize;
+    if len == 0 || len > MAX_BROWSER_MESSAGE {
+        return None;
+    }
+    let mut body = vec![0u8; len];
+    input.read_exact(&mut body).ok()?;
+    serde_json::from_slice(&body).ok()
+}
+
+fn frame(value: &serde_json::Value) -> Vec<u8> {
+    let body = value.to_string().into_bytes();
+    let mut out = (body.len() as u32).to_ne_bytes().to_vec();
+    out.extend_from_slice(&body);
+    out
 }
 
 /// The documented PermissionRequest output. Anything we do not recognise prints
@@ -395,6 +457,18 @@ mod tests {
         assert!(decision_json("maybe").is_none());
         // The shape the app used to send must not be mistaken for a decision.
         assert!(decision_json(r#"{"permissionDecision":"allow"}"#).is_none());
+    }
+
+    #[test]
+    fn browser_messages_are_length_prefixed() {
+        let v = serde_json::json!({ "kind": "snapshot", "pending": [] });
+        let bytes = frame(&v);
+        assert_eq!(u32::from_ne_bytes(bytes[..4].try_into().unwrap()) as usize, bytes.len() - 4);
+        assert_eq!(read_message(&mut &bytes[..]).unwrap(), v);
+        // Truncated or oversized input is refused, not waited on.
+        assert!(read_message(&mut &bytes[..6]).is_none());
+        let huge = ((MAX_BROWSER_MESSAGE + 1) as u32).to_ne_bytes();
+        assert!(read_message(&mut &huge[..]).is_none());
     }
 
     #[test]
