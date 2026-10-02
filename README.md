@@ -50,6 +50,11 @@ using your Claude Code subscription, no API key needed.
 
 ## Install
 
+**Download:** the latest DMG is on the [Releases](https://github.com/rouderz/coucou/releases) page. Open it and
+drag Coucou to Applications. The app isn't notarized yet, so the first launch needs right-click → **Open**.
+Coucou checks for new releases itself (Settings → Updates).
+
+**Build from source:**
 Requirements: macOS 15+, Xcode 16+ (Xcode 27 works), [XcodeGen](https://github.com/yonaskolb/XcodeGen), and
 [Claude Code](https://docs.claude.com/en/docs/claude-code) signed in for the subscription chat.
 

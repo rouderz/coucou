@@ -290,3 +290,26 @@ final class WakeWordTests: XCTestCase {
         XCTAssertEqual(WakeWord.clean("  "), "")
     }
 }
+
+@MainActor
+final class UpdatesTests: XCTestCase {
+    func testVersionComparison() {
+        XCTAssertTrue(Updates.isNewer("0.10.0", than: "0.9.3"))
+        XCTAssertTrue(Updates.isNewer("1.2.1", than: "1.2"))
+        XCTAssertFalse(Updates.isNewer("1.2", than: "1.2.0"))
+        XCTAssertFalse(Updates.isNewer("0.2.0", than: "0.2.0"))
+        XCTAssertFalse(Updates.isNewer("0.1.9", than: "0.2.0"))
+    }
+
+    func testParsesALatestRelease() throws {
+        let json = """
+        {"tag_name":"v0.3.0","html_url":"https://github.com/rouderz/coucou/releases/tag/v0.3.0","draft":false,
+         "prerelease":false,"body":"Notes","published_at":"2026-10-02T10:00:00Z",
+         "assets":[{"name":"Coucou-0.3.0.dmg","browser_download_url":"https://github.com/x/Coucou-0.3.0.dmg"}]}
+        """
+        let r = try XCTUnwrap(Updates.parse(Data(json.utf8)))
+        XCTAssertEqual(r.version, "0.3.0")
+        XCTAssertEqual(r.dmgURL, "https://github.com/x/Coucou-0.3.0.dmg")
+        XCTAssertNil(Updates.parse(Data(#"{"tag_name":"v9","prerelease":true}"#.utf8)), "pre-releases are ignored")
+    }
+}

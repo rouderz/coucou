@@ -315,6 +315,11 @@ final class AppState: ObservableObject {
     @Published var notionLoaded: Bool = false
     @Published var notionError: String? = nil
 
+    // Update check against GitHub releases (#40)
+    @Published var updateChecks: Bool = true {
+        didSet { UserDefaults.standard.set(updateChecks, forKey: "updateChecks") }
+    }
+
     // Inbox: reviews, mentions and assignments from GitHub and Linear
     @Published var inboxEnabled: Bool = true {
         didSet { UserDefaults.standard.set(inboxEnabled, forKey: "inboxEnabled") }
@@ -410,6 +415,7 @@ final class AppState: ObservableObject {
         if let v = ud.object(forKey: "dndUntil") as? Date, v > .now { dndUntil = v }
         if let v = ud.object(forKey: "phoneAlertsEnabled") as? Bool { phoneAlertsEnabled = v }
         if let v = ud.object(forKey: "inboxEnabled") as? Bool { inboxEnabled = v }
+        if let v = ud.object(forKey: "updateChecks") as? Bool { updateChecks = v }
         if let v = ud.object(forKey: "inboxGitHub") as? Bool { inboxGitHub = v }
         if let v = ud.object(forKey: "inboxLinear") as? Bool { inboxLinear = v }
         if let v = ud.object(forKey: "inboxSpeak") as? Bool { inboxSpeak = v }

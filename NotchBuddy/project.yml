@@ -71,7 +71,7 @@ targets:
         CFBundleDisplayName: Coucou
         CFBundleIdentifier: fr.louisraille.NotchBuddy
         CFBundleVersion: "2"
-        CFBundleShortVersionString: "0.1.1"
+        CFBundleShortVersionString: "0.2.0"
         CFBundlePackageType: APPL
         CFBundleDevelopmentRegion: en
         CFBundleLocalizations: [en, es]
