@@ -677,6 +677,8 @@ struct ClaudeSession: Identifiable, Equatable {
     let id: String
     var project: String
     var cwd: String
+    /// "claude" or "codex" (#44).
+    var agent: String = "claude"
     var state: BotState = .idle
     var steps: [String] = []
     var updatedAt: Date = .now

@@ -75,6 +75,22 @@ final class HookScriptTests: XCTestCase {
         XCTAssertEqual(server2.received()?["coucou_internal"] as? Bool, true)
     }
 
+    // MARK: Codex CLI (#44)
+
+    func testCodexEventsAreTagged() throws {
+        let server = try FakeCoucou(path: socketPath, reply: #"{"ok":true}"#)
+        _ = try exec(["hook_event_name": "PreToolUse", "tool_name": "apply_patch", "session_id": "c1"],
+                     args: ["--agent", "codex"])
+        XCTAssertEqual(server.received()?["agent"] as? String, "codex")
+    }
+
+    func testAlwaysWithoutSuggestionsIsAPlainAllow() throws {
+        let out = try run(event: permission, reply: #"{"permissionDecision":"always"}"#)
+        let d = decision(out)
+        XCTAssertEqual(d?["behavior"] as? String, "allow")
+        XCTAssertNil(d?["updatedPermissions"], "Codex has no rules to save")
+    }
+
     // MARK: Helpers
 
     private var permission: [String: Any] {
@@ -88,10 +104,10 @@ final class HookScriptTests: XCTestCase {
         return try exec(event)
     }
 
-    private func exec(_ event: [String: Any], fromChat: Bool = false) throws -> String {
+    private func exec(_ event: [String: Any], fromChat: Bool = false, args: [String] = []) throws -> String {
         let p = Process()
         p.executableURL = URL(fileURLWithPath: "/usr/bin/python3")
-        p.arguments = [script.path]
+        p.arguments = [script.path] + args
         var env = ProcessInfo.processInfo.environment
         env["COUCOU_SOCKET"] = socketPath
         env["COUCOU_INTERNAL"] = fromChat ? "1" : nil

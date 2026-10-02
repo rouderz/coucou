@@ -227,6 +227,13 @@ ES = {
 "Mochi's chat goes to %@ with your key. Files and the code you're on are sent as text; edits and web search stay with the Claude engines.":"El chat de Mochi va a %@ con tu clave. Los archivos y el código se envían como texto; la edición y la búsqueda web siguen siendo de los motores de Claude.",
 "Runs on your Mac: nothing leaves it. Start %@ first, then Load models.":"Funciona en tu Mac: nada sale de él. Abre primero %@ y luego Cargar modelos.",
 # hook status
+# Codex CLI (#44)
+"Codex hooks installed":"Hooks de Codex instalados","Codex CLI not found":"No se encontró Codex CLI","Codex hooks not installed":"Hooks de Codex sin instalar",
+"Run /hooks in Codex once to review and trust them. Codex sessions then show up next to Claude Code's.":"Ejecuta /hooks en Codex una vez para revisarlos y confiar en ellos. Después, las sesiones de Codex aparecen junto a las de Claude Code.",
+"Install Codex CLI and run it once to see its sessions and approvals here too.":"Instala Codex CLI y ejecútalo una vez para ver aquí también sus sesiones y aprobaciones.",
+"Coucou can follow Codex CLI sessions and approve them from the island. Codex is never blocked if Coucou isn't running.":"Coucou puede seguir las sesiones de Codex CLI y aprobarlas desde la isla. Codex nunca se bloquea si Coucou no está abierto.",
+"Reinstall":"Reinstalar","Install Codex hooks":"Instalar hooks de Codex",
+"deletes the file":"borra el archivo","+1 more file":"+1 archivo más","+%lld more files":"+%lld archivos más",
 "Reinstall…":"Reinstalar…","Hooks installed, but out of date":"Hooks instalados, pero desactualizados","Hooks not installed":"Hooks sin instalar",
 "Claude Code sessions, approvals and plan usage are connected to Coucou.":"Las sesiones de Claude Code, las aprobaciones y el uso del plan están conectados a Coucou.",
 "Update them to get the latest: approvals that don't time out, plan usage bars.":"Actualízalos para tener lo último: aprobaciones sin tiempo agotado y barras de uso del plan.",

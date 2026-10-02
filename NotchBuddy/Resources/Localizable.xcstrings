@@ -112,12 +112,32 @@
         }
       }
     },
+    "+%lld more files": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "+%lld archivos más"
+          }
+        }
+      }
+    },
     "+1 more edit": {
       "localizations": {
         "es": {
           "stringUnit": {
             "state": "translated",
             "value": "+1 cambio más"
+          }
+        }
+      }
+    },
+    "+1 more file": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "+1 archivo más"
           }
         }
       }
@@ -962,6 +982,36 @@
         }
       }
     },
+    "Codex CLI not found": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No se encontró Codex CLI"
+          }
+        }
+      }
+    },
+    "Codex hooks installed": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Hooks de Codex instalados"
+          }
+        }
+      }
+    },
+    "Codex hooks not installed": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Hooks de Codex sin instalar"
+          }
+        }
+      }
+    },
     "Comments": {
       "localizations": {
         "es": {
@@ -1258,6 +1308,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "Coucou puede responder Permitir por ti, por proyecto. Las peticiones de riesgo alto siempre preguntan. Lo permitido automáticamente aparece en la cronología."
+          }
+        }
+      }
+    },
+    "Coucou can follow Codex CLI sessions and approve them from the island. Codex is never blocked if Coucou isn't running.": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Coucou puede seguir las sesiones de Codex CLI y aprobarlas desde la isla. Codex nunca se bloquea si Coucou no está abierto."
           }
         }
       }
@@ -1778,6 +1838,26 @@
           "stringUnit": {
             "state": "translated",
             "value": "Bandeja: nada pendiente"
+          }
+        }
+      }
+    },
+    "Install Codex CLI and run it once to see its sessions and approvals here too.": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Instala Codex CLI y ejecútalo una vez para ver aquí también sus sesiones y aprobaciones."
+          }
+        }
+      }
+    },
+    "Install Codex hooks": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Instalar hooks de Codex"
           }
         }
       }
@@ -2892,6 +2972,16 @@
         }
       }
     },
+    "Reinstall": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Reinstalar"
+          }
+        }
+      }
+    },
     "Reinstall…": {
       "localizations": {
         "es": {
@@ -2968,6 +3058,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "Reviews"
+          }
+        }
+      }
+    },
+    "Run /hooks in Codex once to review and trust them. Codex sessions then show up next to Claude Code's.": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ejecuta /hooks en Codex una vez para revisarlos y confiar en ellos. Después, las sesiones de Codex aparecen junto a las de Claude Code."
           }
         }
       }
@@ -3898,6 +3998,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "borra archivos de forma recursiva"
+          }
+        }
+      }
+    },
+    "deletes the file": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "borra el archivo"
           }
         }
       }

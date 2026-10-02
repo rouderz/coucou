@@ -121,6 +121,7 @@ final class HookServer: @unchecked Sendable {
         let cwd = payload["cwd"] as? String ?? ""
         let rawName = URL(fileURLWithPath: cwd).lastPathComponent
         let projectName = aliasProjectName(rawName.isEmpty ? "Session" : rawName)
+        let agent = payload["agent"] as? String ?? "claude"
 
         // Sessions from any terminal count (VS Code, Cursor, iTerm, Terminal, Ghostty, Warp…).
 
@@ -131,7 +132,7 @@ final class HookServer: @unchecked Sendable {
 
         // Several sessions (#24): only the focused one drives the card; the others update their record.
         if name != "StatusLine", sessionId != "unknown" {
-            if !routeSession(sessionId, project: projectName, cwd: cwd, event: name) {
+            if !routeSession(sessionId, project: projectName, cwd: cwd, event: name, agent: agent) {
                 updateBackgroundSession(sessionId, event: name, payload: payload)
                 return
             }
@@ -231,7 +232,7 @@ final class HookServer: @unchecked Sendable {
             if !state.liveActivities.isEmpty {
                 state.liveActivities.append(ToolActivity(tool: "Done", detail: nil, toolUseID: nil, status: .done))
             }
-            if let message = payload["message"] as? String, !message.isEmpty {
+            if let message = Self.stopMessage(payload) {
                 appendStep(id: "integration_claude", step: String(message.prefix(60)))
             } else {
                 appendStep(id: "integration_claude", step: "Done")
@@ -321,10 +322,7 @@ final class HookServer: @unchecked Sendable {
 
 
         let tool = payload["tool_name"] as? String ?? "Tool"
-        var command = tool
-        if let input = payload["tool_input"] as? [String: Any] {
-            command = input["command"] as? String ?? tool
-        }
+        let command = Self.approvalCommand(tool: tool, input: payload["tool_input"] as? [String: Any] ?? [:])
         // Mochi's own chat asking to edit a file (Allow edits on): approve from the island,
         // without touching the Claude Code session card.
         let fromChat = payload["coucou_internal"] as? Bool == true
@@ -354,7 +352,8 @@ final class HookServer: @unchecked Sendable {
         approvalFromChat = fromChat
         if !fromChat {
             // Bring the asking session onto the card.
-            _ = routeSession(sessionId, project: projectName, cwd: cwd, event: "PermissionRequest")
+            _ = routeSession(sessionId, project: projectName, cwd: cwd, event: "PermissionRequest",
+                             agent: payload["agent"] as? String ?? "claude")
             if state.focusedClaudeSession != sessionId { focusSession(sessionId) }
             activeSessionId = sessionId
             upsertTask(projectName: projectName, cwd: cwd)
@@ -477,15 +476,17 @@ final class HookServer: @unchecked Sendable {
     /// Records the session and decides whether this event drives the card. The focused session
     /// does; another session takes over when the focused one is idle and it starts working.
     @MainActor
-    private func routeSession(_ id: String, project: String, cwd: String, event: String) -> Bool {
+    private func routeSession(_ id: String, project: String, cwd: String, event: String,
+                              agent: String = "claude") -> Bool {
         let state = AppState.shared
         pruneSessions()
         if let i = state.claudeSessions.firstIndex(where: { $0.id == id }) {
+            state.claudeSessions[i].agent = agent
             state.claudeSessions[i].project = project
             if !cwd.isEmpty { state.claudeSessions[i].cwd = cwd }
             state.claudeSessions[i].updatedAt = .now
         } else {
-            state.claudeSessions.append(ClaudeSession(id: id, project: project, cwd: cwd))
+            state.claudeSessions.append(ClaudeSession(id: id, project: project, cwd: cwd, agent: agent))
         }
         // Linear (#27): the issue named by the session's branch (re-checked when a turn starts).
         let turnStart = ["SessionStart", "UserPromptSubmit"].contains(event)
@@ -562,7 +563,7 @@ final class HookServer: @unchecked Sendable {
         case "Stop":
             state.claudeSessions[i].state = .finished
             state.claudeSessions[i].unseen = true
-            step((payload["message"] as? String).map { String($0.prefix(60)) } ?? "Done")
+            step(Self.stopMessage(payload).map { String($0.prefix(60)) } ?? "Done")
             SoundEngine.shared.play("finish")
             setPillBadge(id: "integration_claude", badge: .finished)
         case "StopFailure":
@@ -674,6 +675,9 @@ final class HookServer: @unchecked Sendable {
     }
 
     private func liveDetail(tool: String, input: [String: Any]) -> String? {
+        if let patch = CodexPatch.text(from: input) {
+            return CodexPatch.parse(patch).map { ($0.path as NSString).lastPathComponent }.joined(separator: ", ")
+        }
         if let cmd = input["command"] as? String { return String(cmd.prefix(120)) }
         if let file = input["file_path"] as? String { return (file as NSString).lastPathComponent }
         if let path = input["path"] as? String { return (path as NSString).lastPathComponent }
@@ -690,6 +694,26 @@ final class HookServer: @unchecked Sendable {
         state.tasks[idx].steps.append(step)
         if state.tasks[idx].steps.count > 20 { state.tasks[idx].steps.removeFirst() }
         state.tasks[idx].stepIndex = state.tasks[idx].steps.count - 1
+    }
+
+    /// The turn's last message: Claude Code sends `message`, Codex `last_assistant_message`.
+    static func stopMessage(_ payload: [String: Any]) -> String? {
+        for key in ["message", "last_assistant_message"] {
+            if let m = payload[key] as? String, !m.isEmpty { return m }
+        }
+        return nil
+    }
+
+    /// What the approval shows: the command, the files a Codex patch edits, or Codex's description.
+    static func approvalCommand(tool: String, input: [String: Any]) -> String {
+        if let patch = CodexPatch.text(from: input) {
+            let files = CodexPatch.parse(patch).map(\.path)
+            if !files.isEmpty { return "Edit " + files.joined(separator: ", ") }
+        }
+        if let cmd = input["command"] as? String { return cmd }
+        if let cmd = input["command"] as? [String] { return cmd.joined(separator: " ") }
+        if let text = input["description"] as? String, !text.isEmpty { return text }
+        return tool
     }
 
     // MARK: - Project name alias mapping
@@ -720,8 +744,14 @@ final class HookServer: @unchecked Sendable {
             "LS":         "List",
             "MultiEdit":  "Edit",
             "NotebookEdit": "Notebook",
+            "apply_patch": "Edit",   // Codex
+            "shell":       "Run",
         ]
         let label = labels[tool] ?? tool
+        if let patch = CodexPatch.text(from: input) {
+            let names = CodexPatch.parse(patch).map { ($0.path as NSString).lastPathComponent }
+            return names.isEmpty ? label : "\(label) · \(names.joined(separator: ", "))"
+        }
         if let cmd = input["command"] as? String {
             let short = String(cmd.prefix(40))
             return "\(label) · \(short)"
@@ -1076,9 +1106,15 @@ extension Notification.Name {
 
 private let nbHookScript = """
 #!/usr/bin/env python3
-# nb-hook — Coucou hook relay for Claude Code
+# nb-hook — Coucou hook relay for Claude Code (and Codex CLI with --agent codex)
 # Reads JSON from stdin, forwards to Coucou via Unix socket, translates response.
 import sys, json, os, socket
+
+def agent_name():
+    args = sys.argv[1:]
+    if '--agent' in args and args.index('--agent') + 1 < len(args):
+        return args[args.index('--agent') + 1]
+    return ''
 
 def main():
     # Coucou's own chat runs through Claude Code too: never report its activity,
@@ -1091,6 +1127,9 @@ def main():
         payload = json.loads(raw)
     except Exception:
         return
+    agent = agent_name()
+    if agent:
+        payload['agent'] = agent
     if internal:
         if payload.get('hook_event_name') != 'PermissionRequest':
             return
@@ -1141,8 +1180,11 @@ def main():
                     sys.exit(0)
                 elif decision == 'always':
                     # Let Claude Code persist the rule via updatedPermissions
-                    suggestions = payload.get('permission_suggestions', [])
-                    out = {'hookSpecificOutput': {'hookEventName': 'PermissionRequest', 'decision': {'behavior': 'allow', 'updatedPermissions': suggestions}}}
+                    suggestions = payload.get('permission_suggestions') or []
+                    decision_obj = {'behavior': 'allow'}
+                    if suggestions:
+                        decision_obj['updatedPermissions'] = suggestions
+                    out = {'hookSpecificOutput': {'hookEventName': 'PermissionRequest', 'decision': decision_obj}}
                     sys.stdout.write(json.dumps(out) + '\\n')
                     sys.stdout.flush()
                     sys.exit(0)

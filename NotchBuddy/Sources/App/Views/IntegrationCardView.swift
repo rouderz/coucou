@@ -494,6 +494,11 @@ struct SessionChip: View {
         Button { HookServer.shared.focusSession(session.id) } label: {
             HStack(spacing: 4) {
                 Circle().fill(color).frame(width: 6, height: 6)
+                if session.agent == "codex" {
+                    Text("Codex")
+                        .font(.system(size: 9, weight: .bold))
+                        .foregroundColor(Color(hex: "#10A37F"))
+                }
                 Text(session.project)
                     .font(.system(size: 11, weight: focused ? .semibold : .regular))
                     .foregroundColor(Color(hex: focused ? "#F5F6F8" : "#A3A8B0"))
