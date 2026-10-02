@@ -91,6 +91,21 @@ final class HookScriptTests: XCTestCase {
         XCTAssertNil(d?["updatedPermissions"], "Codex has no rules to save")
     }
 
+    // MARK: Transport (#17)
+
+    func testUnixSocketTransportCarriesTheDecision() throws {
+        let transport = UnixSocketTransport(path: socketPath)
+        let got = Got()
+        transport.start { raw, connection in
+            got.set((try? JSONSerialization.jsonObject(with: raw)) as? [String: Any])
+            connection.reply(#"{"permissionDecision":"deny"}"#)
+        }
+        Thread.sleep(forTimeInterval: 0.3)  // let it bind
+        let out = try exec(permission)
+        XCTAssertEqual(decision(out)?["behavior"] as? String, "deny")
+        XCTAssertEqual(got.value?["tool_name"] as? String, "Bash")
+    }
+
     // MARK: Helpers
 
     private var permission: [String: Any] {
@@ -128,6 +143,13 @@ final class HookScriptTests: XCTestCase {
               let specific = json["hookSpecificOutput"] as? [String: Any] else { return nil }
         return specific["decision"] as? [String: Any]
     }
+}
+
+private final class Got: @unchecked Sendable {
+    private let lock = NSLock()
+    private var stored: [String: Any]?
+    func set(_ v: [String: Any]?) { lock.withLock { stored = v } }
+    var value: [String: Any]? { lock.withLock { stored } }
 }
 
 /// A one-shot Unix socket server standing in for Coucou: reads one line, answers `reply`.

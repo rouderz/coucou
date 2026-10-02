@@ -24,7 +24,7 @@ struct SettingsIslandView: View {
     private var apiConnected: Bool {
         switch state.chatEngine {
         case .claudeCode: return ClaudeCodeChat.install != nil
-        case .apiKey:     return KeychainStore.shared.get("anthropic-api-key") != nil
+        case .apiKey:     return Secrets.store.get("anthropic-api-key") != nil
         case .provider:   return !ProviderSettings.preset.needsKey || ProviderSettings.key != nil
         }
     }

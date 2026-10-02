@@ -729,28 +729,16 @@ enum IntegrationRefresher {
         switch id {
         case "integration_github":
             if fromUser { AppState.shared.githubConnection = .checking }
-            GithubPoller.shared.pollNow()
         case "integration_notion":
             AppState.shared.notionError = nil
-            NotionPoller.shared.pollNow()
-        case "integration_linear":
-            LinearPoller.shared.pollNow()
-        case "integration_vercel":  VercelPoller.shared.pollNow()
-        case "integration_resend":  ResendPoller.shared.pollNow()
-        case "integration_n8n":     N8nPoller.shared.pollNow()
-        case "integration_stripe":  StripePoller.shared.pollNow()
-        case "integration_calcom":  CalcomPoller.shared.pollNow()
-        case "integration_claude":  PlanUsagePoller.shared.pollNow()
         default: break
         }
+        Integrations.source(id)?.pollNow()
     }
 
     @MainActor
     static func refreshAll() {
-        for id in ["integration_github", "integration_notion", "integration_linear", "integration_vercel", "integration_resend",
-                   "integration_n8n", "integration_stripe", "integration_calcom", "integration_claude"] {
-            refresh(id)
-        }
+        for source in Integrations.all { refresh(source.integrationID) }
     }
 }
 
@@ -776,7 +764,7 @@ struct IntegrationStatus {
 
     @MainActor
     static func of(_ id: String, _ s: AppState = .shared) -> IntegrationStatus {
-        func key(_ k: String) -> Bool { KeychainStore.shared.get(k).map { !$0.isEmpty } ?? false }
+        func key(_ k: String) -> Bool { Secrets.store.get(k).map { !$0.isEmpty } ?? false }
         let notSet = IntegrationStatus(colorHex: red, help: L("Not configured · add it in Settings"))
         let checking = IntegrationStatus(colorHex: grey, help: L("Checking connection…"))
 

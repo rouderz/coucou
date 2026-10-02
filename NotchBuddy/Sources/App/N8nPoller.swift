@@ -30,8 +30,8 @@ final class N8nPoller: @unchecked Sendable {
     func pollNow() { DispatchQueue.global(qos: .utility).async { [weak self] in self?.poll() } }
 
     private func poll() {
-        guard let apiKey  = KeychainStore.shared.get("n8n-api-key"),
-              let rawBase = KeychainStore.shared.get("n8n-url") else {
+        guard let apiKey  = Secrets.store.get("n8n-api-key"),
+              let rawBase = Secrets.store.get("n8n-url") else {
             n8nLog("No API key or URL configured")
             return
         }

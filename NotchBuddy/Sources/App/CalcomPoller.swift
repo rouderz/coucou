@@ -20,7 +20,7 @@ final class CalcomPoller: @unchecked Sendable {
     func pollNow() { poll() }
 
     private func poll() {
-        guard let key = KeychainStore.shared.get("calcom-api-key") else { return }
+        guard let key = Secrets.store.get("calcom-api-key") else { return }
         let cal = Calendar.current
         let today = cal.startOfDay(for: Date())
         let future = cal.date(byAdding: .day, value: 60, to: today)!

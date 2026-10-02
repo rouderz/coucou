@@ -21,7 +21,7 @@ final class ResendPoller: @unchecked Sendable {
     func pollNow() { DispatchQueue.global(qos: .utility).async { [weak self] in self?.poll() } }
 
     private func poll() {
-        guard let apiKey = KeychainStore.shared.get("resend-api-key") else { return }
+        guard let apiKey = Secrets.store.get("resend-api-key") else { return }
         guard let url = URL(string: "https://api.resend.com/emails?limit=100") else { return }
         var req = URLRequest(url: url, timeoutInterval: 10)
         req.setValue("Bearer \(apiKey)", forHTTPHeaderField: "Authorization")

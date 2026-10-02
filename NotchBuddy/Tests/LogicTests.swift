@@ -376,3 +376,31 @@ final class CodexTests: XCTestCase {
         XCTAssertEqual((hooks?["PreToolUse"] as? [[String: Any]])?.count, 1)
     }
 }
+
+/// Ports (#17): secrets, integrations and agents behind one interface each.
+@MainActor
+final class PortsTests: XCTestCase {
+    func testInMemorySecrets() {
+        let store = InMemorySecretStore(["a": "1"])
+        XCTAssertEqual(store.get("a"), "1")
+        store.set("b", value: "2")
+        store.remove("a")
+        XCTAssertNil(store.get("a"))
+        XCTAssertEqual(store.get("b"), "2")
+    }
+
+    func testEveryCardHasOneIntegration() {
+        let ids = Integrations.all.map(\.integrationID)
+        XCTAssertEqual(Set(ids).count, ids.count, "no duplicates")
+        for id in ["integration_github", "integration_linear", "integration_stripe", "integration_claude"] {
+            XCTAssertNotNil(Integrations.source(id), id)
+        }
+        XCTAssertNil(Integrations.source("integration_nope"))
+    }
+
+    func testAgentsByEventTag() {
+        XCTAssertEqual(Agents.named("claude")?.name, "Claude Code")
+        XCTAssertEqual(Agents.named("codex")?.name, "Codex")
+        XCTAssertNil(Agents.named("other"))
+    }
+}

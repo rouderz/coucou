@@ -21,7 +21,7 @@ final class GithubPoller: @unchecked Sendable {
         // Prefer the user's signed-in GitHub CLI; fall back to a saved token.
         if pollWithCLI() { return }
         let ghStatus = GitHubCLI.status()
-        guard let token = KeychainStore.shared.get("github-token"), !token.isEmpty else {
+        guard let token = Secrets.store.get("github-token"), !token.isEmpty else {
             let state: GitHubConnection
             switch ghStatus {
             case .signedOut: state = .ghSignedOut

@@ -27,8 +27,7 @@ final class HookServer: @unchecked Sendable {
 
     // No approval blocking state — notch is notification-only, user answers in VS Code
 
-    private var serverFD: Int32 = -1
-    private var pendingApprovalFD: Int32 = -1   // held open while user decides
+    private var pendingConnection: (any HookConnection)?   // held open while the user decides
     /// The pending approval came from Mochi's own chat (Allow edits), not a terminal session.
     private var approvalFromChat = false
     private var activeSessionId: String? = nil  // current Claude Code session
@@ -37,74 +36,33 @@ final class HookServer: @unchecked Sendable {
 
     // MARK: - Start
 
+    /// Where the relays connect (#17): a Unix socket here, a named pipe on Windows.
+    private let transport: any HookTransport = UnixSocketTransport(path: HookServer.socketPath)
+
     func start() {
         #if !APPSTORE
         installHookScript()
         #endif
-        Thread.detachNewThread { self.serverThread() }
+        transport.start { [weak self] raw, connection in self?.handle(raw, from: connection) }
     }
 
-    // MARK: - Socket server (background thread)
+    // MARK: - Messages (background thread)
 
-    private func serverThread() {
-        let path = Self.socketPath
-        try? FileManager.default.removeItem(atPath: path)
-
-        let fd = socket(AF_UNIX, SOCK_STREAM, 0)
-        guard fd >= 0 else { return }
-        serverFD = fd
-
-        var addr = sockaddr_un()
-        addr.sun_family = sa_family_t(AF_UNIX)
-        let cpath = Array(path.utf8CString)
-        withUnsafeMutableBytes(of: &addr.sun_path) { raw in
-            for (i, c) in cpath.enumerated() where i < raw.count { raw[i] = UInt8(bitPattern: c) }
-        }
-
-        let bindRC = withUnsafePointer(to: &addr) { ptr in
-            ptr.withMemoryRebound(to: sockaddr.self, capacity: 1) { Darwin.bind(fd, $0, socklen_t(MemoryLayout<sockaddr_un>.size)) }
-        }
-        guard bindRC == 0 else { close(fd); return }
-        guard Darwin.listen(fd, 10) == 0 else { close(fd); return }
-
-        while true {
-            let clientFD = Darwin.accept(fd, nil, nil)
-            guard clientFD >= 0 else { break }
-            Thread.detachNewThread { self.handleClient(fd: clientFD) }
-        }
-    }
-
-    // MARK: - Client handler (background thread)
-
-    private func handleClient(fd: Int32) {
-        // Read newline-delimited JSON
-        var raw = Data()
-        var buf = [UInt8](repeating: 0, count: 4096)
-        outer: while true {
-            let n = recv(fd, &buf, buf.count, 0)
-            if n <= 0 { break }
-            for i in 0..<n {
-                if buf[i] == UInt8(ascii: "\n") { break outer }
-                raw.append(buf[i])
-            }
-        }
-
+    private func handle(_ raw: Data, from connection: any HookConnection) {
         guard !raw.isEmpty,
               let payload = try? JSONSerialization.jsonObject(with: raw) as? [String: Any] else {
-            sendLine(fd: fd, text: #"{"ok":true}"#)
-            close(fd)
+            connection.reply(#"{"ok":true}"#)
             return
         }
 
         let eventName = payload["hook_event_name"] as? String ?? ""
 
         if eventName == "PermissionRequest" {
-            // Hold fd open — Claude Code waits for our decision (up to 120s)
-            Task { @MainActor in self.processPermissionRequest(fd: fd, payload: payload) }
+            // Keep the connection open: the agent waits for our decision (up to 120s)
+            Task { @MainActor in self.processPermissionRequest(connection, payload: payload) }
         } else {
             Task { @MainActor in self.processEvent(name: eventName, payload: payload) }
-            sendLine(fd: fd, text: #"{"ok":true}"#)
-            close(fd)
+            connection.reply(#"{"ok":true}"#)
         }
     }
 
@@ -313,7 +271,7 @@ final class HookServer: @unchecked Sendable {
     // MARK: - Permission request (blocking — Claude Code waits for decision)
 
     @MainActor
-    private func processPermissionRequest(fd: Int32, payload: [String: Any]) {
+    private func processPermissionRequest(_ connection: any HookConnection, payload: [String: Any]) {
         let state = AppState.shared
         let sessionId = payload["session_id"] as? String ?? "unknown"
         let cwd       = payload["cwd"]        as? String ?? ""
@@ -333,10 +291,7 @@ final class HookServer: @unchecked Sendable {
             let input = payload["tool_input"] as? [String: Any] ?? [:]
             let (risk, reason) = ApprovalRiskClassifier.classify(tool: tool, input: input, cwd: cwd)
             if AutoApprove.shouldAllow(risk: risk, cwd: cwd, fromChat: fromChat) {
-                Task.detached { [weak self] in
-                    self?.sendLine(fd: fd, text: #"{"permissionDecision":"allow"}"#)
-                    close(fd)
-                }
+                Task.detached { connection.reply(#"{"permissionDecision":"allow"}"#) }
                 TimelineStore.shared.recordAutoApproval(sessionId: sessionId, tool: tool, command: command,
                                                         reason: "\(risk.title) · \(reason)")
                 return
@@ -344,11 +299,11 @@ final class HookServer: @unchecked Sendable {
         }
 
         // Another request is on screen: wait in line (shown right after the current decision).
-        if pendingApprovalFD >= 0 {
-            queueApproval(fd: fd, payload: payload)
+        if pendingConnection != nil {
+            queueApproval(connection, payload: payload)
             return
         }
-        pendingApprovalFD = fd
+        pendingConnection = connection
         approvalFromChat = fromChat
         if !fromChat {
             // Bring the asking session onto the card.
@@ -387,9 +342,8 @@ final class HookServer: @unchecked Sendable {
             expandIfNeeded(to: editPreview != nil ? .live : .approval)
         }
 
-        let captured = fd
         DispatchQueue.main.asyncAfter(deadline: .now() + 115) { [weak self] in
-            guard let self, self.pendingApprovalFD == captured else { return }
+            guard let self, self.pendingConnection === connection else { return }
             // "ask" → nb-hook outputs nothing → Claude Code re-asks rather than denying
             self.sendApprovalDecision("ask")
         }
@@ -398,8 +352,8 @@ final class HookServer: @unchecked Sendable {
     /// Called by ApprovalView buttons. Writes the decision to the waiting nb-hook and cleans up.
     @MainActor
     func sendApprovalDecision(_ decision: String) {
-        let fd = pendingApprovalFD
-        pendingApprovalFD = -1
+        let connection = pendingConnection
+        pendingConnection = nil
 
         let json: String
         switch decision {
@@ -409,11 +363,8 @@ final class HookServer: @unchecked Sendable {
         default:       json = #"{"permissionDecision":"deny"}"#
         }
 
-        if fd >= 0 {
-            Task.detached { [weak self] in
-                self?.sendLine(fd: fd, text: json)
-                close(fd)
-            }
+        if let connection {
+            Task.detached { connection.reply(json) }
         }
 
         let state = AppState.shared
@@ -609,12 +560,12 @@ final class HookServer: @unchecked Sendable {
 
     // MARK: - Approval queue (several sessions can ask at once)
 
-    private struct QueuedApproval { let fd: Int32; let payload: [String: Any]; let since: Date }
+    private struct QueuedApproval { let connection: any HookConnection; let payload: [String: Any]; let since: Date }
     private var approvalQueue: [QueuedApproval] = []
 
     @MainActor
-    private func queueApproval(fd: Int32, payload: [String: Any]) {
-        approvalQueue.append(QueuedApproval(fd: fd, payload: payload, since: .now))
+    private func queueApproval(_ connection: any HookConnection, payload: [String: Any]) {
+        approvalQueue.append(QueuedApproval(connection: connection, payload: payload, since: .now))
         nbLog("PermissionRequest queued (\(approvalQueue.count) waiting)")
         let sessionId = payload["session_id"] as? String ?? ""
         let state = AppState.shared
@@ -624,20 +575,17 @@ final class HookServer: @unchecked Sendable {
         }
         // Claude Code gives up after ~120 s: let it re-ask instead of answering too late.
         DispatchQueue.main.asyncAfter(deadline: .now() + 112) { [weak self] in
-            guard let self, let i = self.approvalQueue.firstIndex(where: { $0.fd == fd }) else { return }
+            guard let self, let i = self.approvalQueue.firstIndex(where: { $0.connection === connection }) else { return }
             self.approvalQueue.remove(at: i)
-            Task.detached { [weak self] in
-                self?.sendLine(fd: fd, text: #"{"permissionDecision":"ask"}"#)
-                close(fd)
-            }
+            Task.detached { connection.reply(#"{"permissionDecision":"ask"}"#) }
         }
     }
 
     @MainActor
     private func showNextQueuedApproval() {
-        guard pendingApprovalFD < 0, !approvalQueue.isEmpty else { return }
+        guard pendingConnection == nil, !approvalQueue.isEmpty else { return }
         let next = approvalQueue.removeFirst()
-        processPermissionRequest(fd: next.fd, payload: next.payload)
+        processPermissionRequest(next.connection, payload: next.payload)
     }
 
     // MARK: - Live view feed
@@ -787,17 +735,6 @@ final class HookServer: @unchecked Sendable {
         }
     }
 
-    private func sendLine(fd: Int32, text: String) {
-        let bytes = Array((text + "\n").utf8)
-        bytes.withUnsafeBytes { buffer in
-            var sent = 0
-            while sent < buffer.count {
-                let n = Darwin.send(fd, buffer.baseAddress! + sent, buffer.count - sent, 0)
-                if n <= 0 { break }
-                sent += n
-            }
-        }
-    }
 
     /// The nb-hook relay as installed in ~/Library/Application Support (exposed for the tests).
     static var hookScriptSource: String { nbHookScript }
