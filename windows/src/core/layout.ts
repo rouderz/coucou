@@ -8,6 +8,7 @@ export type IslandViewName =
   | "overview"
   | "empty"
   | "approval"
+  | "review"
   | "question"
   | "error"
   | "finished"
@@ -21,6 +22,7 @@ export type IslandViewName =
   | "result"
   | "note"
   | "settings"
+  | "timeline"
   | "greeting";
 
 export type BotStateName =
@@ -69,7 +71,10 @@ export const WAKE_STRIP_H = 6;
 export const VIEW_LAYOUTS: Record<IslandViewName, ViewLayout> = {
   overview: { height: 160, botX: 68, botY: null, botDiameter: 58, agentMode: "pills" },
   empty: { height: 160, botX: 70, botY: null, botDiameter: 62, agentMode: "none" },
-  approval: { height: 160, botX: 62, botY: null, botDiameter: 56, agentMode: "column" },
+  // Taller than macOS by one row: the risk chip and the auto-approve choices.
+  approval: { height: 184, botX: 62, botY: null, botDiameter: 56, agentMode: "column" },
+  // An edit to approve: the diff of what would change (the macOS live view).
+  review: { height: 300, botX: 52, botY: 52, botDiameter: 44, agentMode: "none" },
   question: { height: 160, botX: 62, botY: null, botDiameter: 56, agentMode: "column" },
   error: { height: 160, botX: 62, botY: null, botDiameter: 58, agentMode: "column" },
   finished: { height: 160, botX: 62, botY: null, botDiameter: 58, agentMode: "column" },
@@ -85,6 +90,7 @@ export const VIEW_LAYOUTS: Record<IslandViewName, ViewLayout> = {
   result: { height: 160, botX: 52, botY: null, botDiameter: 44, agentMode: "column" },
   note: { height: 160, botX: 60, botY: null, botDiameter: 50, agentMode: "column" },
   settings: { height: 160, botX: 54, botY: null, botDiameter: 46, agentMode: "none" },
+  timeline: { height: 240, botX: 44, botY: 40, botDiameter: 36, agentMode: "none" },
   greeting: { height: 150, botX: 320, botY: 90, botDiameter: 0, agentMode: "none" },
 };
 

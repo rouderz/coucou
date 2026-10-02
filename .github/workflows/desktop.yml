@@ -62,6 +62,9 @@ jobs:
       - name: Type check the front end
         run: npx tsc --noEmit
 
+      - name: Front-end logic tests (risk, auto-approve, timeline, Codex)
+        run: npm test
+
       # The front end must exist before the app crate compiles (tauri embeds it).
       - name: Unit tests
         run: |

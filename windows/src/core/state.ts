@@ -2,6 +2,7 @@
 
 import type { BotEmoteName, BotStateName, IslandMode, IslandViewName } from "./layout";
 import type { EyeShape } from "../mochi/engine";
+import type { EditPreview } from "../claude/preview.ts";
 
 export type AgentSource = "claudeCode" | "n8n";
 export type PillBadge = "approval" | "finished" | "error";
@@ -26,6 +27,37 @@ export interface ApprovalInfo {
   sessionId: string;
   tool: string;
   command: string;
+  /** How risky it is, and why in a few words (#21 on macOS). */
+  risk: "low" | "medium" | "high";
+  riskReason: string;
+  /** The session's folder: auto-approve rules are per project. */
+  cwd: string;
+  project: string;
+  /** "claude" or "codex". */
+  agent: string;
+  /** The change an edit would make, shown as a diff in the review card. */
+  preview: EditPreview | null;
+}
+
+/** Plan usage from Claude Code's status line (the macOS bars). */
+export interface PlanUsage {
+  fiveHour: { percent: number; resetsAt: number } | null;
+  sevenDay: { percent: number; resetsAt: number } | null;
+  context: number | null;
+  model: string | null;
+}
+
+/** One Claude Code / Codex session (#24 on macOS). The focused one drives the card. */
+export interface ClaudeSession {
+  id: string;
+  agent: string;
+  project: string;
+  cwd: string;
+  state: BotStateName;
+  steps: string[];
+  updatedAt: number;
+  /** Something happened here while another session was on the card. */
+  unseen: boolean;
 }
 
 export interface ChatMessage {
@@ -96,6 +128,8 @@ export interface Settings {
   chatEngine: "api" | "claude-code";
   /** Preferred editor command; "" = the first one installed. */
   editor: string;
+  /** Auto-approve per project folder: "low" or "medium" (absent = always ask). */
+  autoApprove: Record<string, string>;
 }
 
 export const DEFAULT_SETTINGS: Settings = {
@@ -112,6 +146,7 @@ export const DEFAULT_SETTINGS: Settings = {
   model: "claude-opus-5-5",
   chatEngine: "api",
   editor: "",
+  autoApprove: {},
 };
 
 type Listener = () => void;
@@ -143,6 +178,14 @@ class AppState {
   searchResult: SearchResult | null = null;
   chatHistory: ChatMessage[] = [];
   pendingApproval: ApprovalInfo | null = null;
+  /** Requests waiting behind the one on screen. */
+  approvalQueue: ApprovalInfo[] = [];
+
+  planUsage: PlanUsage | null = null;
+
+  /** Claude Code / Codex sessions, and the one on the card. */
+  sessions: ClaudeSession[] = [];
+  focusedSession: string | null = null;
 
   integrations: Record<string, IntegrationInfo> = {};
 

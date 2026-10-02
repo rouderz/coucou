@@ -1358,3 +1358,259 @@ input[type="range"]::-webkit-slider-thumb {
 .int-card.detail {
   padding-top: 8px;
 }
+
+/* ── Approvals: risk, queue, auto-approve (#21, #29 on macOS) ───────────────── */
+
+.risk-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font: 500 10.5px var(--font);
+  color: var(--risk);
+  background: color-mix(in srgb, var(--risk) 14%, transparent);
+  border-radius: 999px;
+  padding: 2px 8px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 260px;
+}
+
+.who-row .queue {
+  font: 500 10.5px var(--font);
+  color: var(--dim-2);
+}
+
+.auto-row {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  flex-wrap: wrap;
+}
+
+.auto-label {
+  font: 400 10.5px var(--font);
+  color: var(--dim-2);
+  margin-right: 2px;
+}
+
+.auto-opt {
+  border: 0;
+  border-radius: 999px;
+  padding: 2px 8px;
+  font: 500 10.5px var(--font);
+  color: var(--ink-2);
+  background: rgba(255, 255, 255, 0.06);
+  cursor: default;
+}
+
+.auto-opt.on {
+  color: #0b0c0e;
+  background: var(--ink);
+}
+
+/* ── Sessions (#24 on macOS) ─────────────────────────────────────────────────── */
+
+.session-chips {
+  display: flex;
+  gap: 4px;
+  padding: 2px 36px 0 108px;
+  overflow: hidden;
+}
+
+.session-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  border: 0;
+  border-radius: 999px;
+  padding: 2px 7px;
+  font: 400 11px var(--font);
+  color: #a3a8b0;
+  background: rgba(255, 255, 255, 0.04);
+  max-width: 130px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  cursor: default;
+}
+
+.session-chip:hover {
+  background: rgba(255, 255, 255, 0.08);
+}
+
+.session-chip.on {
+  color: #f5f6f8;
+  font-weight: 600;
+  background: rgba(255, 255, 255, 0.14);
+}
+
+.session-chip .agent {
+  font: 700 9px var(--font);
+  color: #10a37f;
+}
+
+.session-chip .unseen {
+  width: 4px;
+  height: 4px;
+  border-radius: 50%;
+  background: #f5f6f8;
+}
+
+.timeline-btn {
+  color: var(--dim-2);
+  margin-left: auto;
+}
+
+/* ── Timeline (#22 on macOS) ─────────────────────────────────────────────────── */
+
+.tl {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 10px 16px 12px 72px;
+  height: 100%;
+  min-height: 0;
+}
+
+.tl-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.tl-title {
+  font: 600 13px var(--font);
+  color: var(--ink);
+}
+
+.tl-sub {
+  font: 400 11px var(--font);
+  color: var(--dim-2);
+}
+
+.tl-list {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.tl-row {
+  display: grid;
+  grid-template-columns: 56px 16px 1fr;
+  gap: 6px;
+  font: 400 11.5px var(--font);
+  color: var(--ink-2);
+}
+
+.tl-row .tl-time {
+  font: 400 10.5px var(--mono);
+  color: var(--dim-2);
+}
+
+.tl-row .tl-text {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.tl-row.prompt .tl-text { color: var(--ink); font-weight: 600; }
+.tl-row.approval .tl-text { color: #f5a524; }
+.tl-row.auto .tl-text { color: #22c55e; }
+.tl-row.failed .tl-text,
+.tl-row.error .tl-text { color: #f4505e; }
+
+.tl-empty {
+  font: 400 11.5px var(--font);
+  color: var(--dim-2);
+}
+
+/* ── Review: the diff of an edit to approve ───────────────────────────────────── */
+
+.review {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 10px 16px 10px 104px;
+  height: 100%;
+  min-height: 0;
+}
+
+.diff {
+  flex: 1 1 auto;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  border-radius: 10px;
+  background: rgba(0, 0, 0, 0.35);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  overflow: hidden;
+}
+
+.diff-file {
+  display: flex;
+  gap: 8px;
+  align-items: baseline;
+  padding: 5px 10px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+  font: 400 11px var(--font);
+  color: var(--dim-2);
+  white-space: nowrap;
+  overflow: hidden;
+}
+
+.diff-file .name { font-weight: 600; color: var(--ink); }
+.diff-file .path { overflow: hidden; text-overflow: ellipsis; }
+.diff-file .note { margin-left: auto; }
+
+.diff-body {
+  overflow: auto;
+  padding: 4px 0;
+  font: 400 11px var(--mono);
+}
+
+.diff-line {
+  display: flex;
+  gap: 8px;
+  padding: 0 10px;
+  white-space: pre;
+  color: var(--ink-2);
+}
+
+.diff-line .sign { width: 8px; flex: none; opacity: 0.7; }
+.diff-line.added { background: rgba(34, 197, 94, 0.12); color: #a7f3c0; }
+.diff-line.removed { background: rgba(244, 80, 94, 0.12); color: #fdb4bb; }
+
+/* ── Plan usage bars ─────────────────────────────────────────────────────────── */
+
+.usage-row {
+  display: flex;
+  gap: 12px;
+  padding: 2px 36px 0 108px;
+}
+
+.usage {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font: 500 10px var(--font);
+  color: var(--dim-2);
+}
+
+.usage .bar {
+  width: 44px;
+  height: 4px;
+  border-radius: 2px;
+  background: rgba(255, 255, 255, 0.1);
+  overflow: hidden;
+}
+
+.usage .bar .fill {
+  display: block;
+  height: 100%;
+  border-radius: 2px;
+}

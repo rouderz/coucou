@@ -63,6 +63,9 @@ export const Bridge = {
   editorsInstalled: () => call<{ id: string; name: string }[]>("editors_installed"),
   /** Is `claude` installed, for the subscription chat? */
   claudeCodeStatus: () => call<{ installed: boolean; path: string | null }>("claude_code_status"),
+  /** Codex CLI hooks in ~/.codex/hooks.json. */
+  codexStatus: () => call<{ found: boolean; installed: boolean; hooksPath: string }>("codex_status"),
+  codexInstall: (install: boolean) => callOrThrow<void>("codex_install", { install }),
   /** GitHub without a token: the GitHub CLI's own sign-in. */
   githubCliStatus: () => call<{ installed: boolean; signedIn: boolean; user: string | null }>("github_cli_status"),
 

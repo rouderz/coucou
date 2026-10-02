@@ -183,6 +183,10 @@ npx tauri build         # .deb, .rpm and .AppImage in target/release/bundle/
   attach it as context, and jumping to a specific terminal window — "Open
   terminal" opens the working folder in the editor picked in Settings (VS Code,
   Cursor, Windsurf or Zed, whichever are on your `PATH`).
+- Claude Code works like on the Mac: approvals with their risk, a queue when
+  several ask at once, auto-approve per project, several sessions as chips, a
+  timeline per session (Copy as Markdown), the diff of an edit before you allow
+  it, plan usage bars, and Codex CLI sessions (Settings → Codex CLI).
 - The chat runs on an Anthropic API key or on your own Claude Code (Settings →
   Chat → Engine), signed in with your Claude plan; GitHub works with a token or
   with a signed-in GitHub CLI (`gh auth login`).

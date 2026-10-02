@@ -2,6 +2,7 @@
 // No secret ever lands here — API keys live in the system keychain (secrets.rs).
 
 use serde::{Deserialize, Serialize};
+use std::collections::HashMap;
 use std::path::PathBuf;
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -26,6 +27,9 @@ pub struct Settings {
     /// Preferred editor command ("code", "cursor", "windsurf", "zed"); empty = first installed.
     #[serde(default)]
     pub editor: String,
+    /// Auto-approve per project folder (normalised path → "low" | "medium").
+    #[serde(default)]
+    pub auto_approve: HashMap<String, String>,
 }
 
 fn default_engine() -> String {
@@ -55,6 +59,7 @@ impl Default for Settings {
             model: default_model(),
             chat_engine: default_engine(),
             editor: String::new(),
+            auto_approve: HashMap::new(),
         }
     }
 }

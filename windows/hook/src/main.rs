@@ -113,6 +113,12 @@ fn main() {
     if std::env::var("COUCOU_INTERNAL").as_deref() == Ok("1") {
         std::process::exit(0);
     }
+    // Claude Code's status line (`coucou-hook --statusline`): forward the plan
+    // usage to the island, print a short line for the terminal.
+    if std::env::args().any(|a| a == "--statusline") {
+        status_line();
+        std::process::exit(0);
+    }
     let Some((payload, event)) = read_event() else { std::process::exit(0) };
 
     let waits_for_answer = event == "PermissionRequest";
@@ -168,9 +174,14 @@ fn read_event() -> Option<(String, String)> {
     let mut payload = serde_json::from_slice::<serde_json::Value>(&raw).ok()?;
     let map = payload.as_object_mut()?;
 
-    // The event name is passed as argv[1] by the hook command; the JSON usually
-    // carries it too. Trust argv when the JSON is missing it.
-    let arg_event = std::env::args().nth(1).unwrap_or_default();
+    // The event name is passed as an argument by the Claude Code hook command; the
+    // JSON usually carries it too. Trust the argument when the JSON is missing it.
+    // `--agent codex` marks the relay installed for Codex CLI.
+    let args: Vec<String> = std::env::args().skip(1).collect();
+    let (arg_event, agent) = parse_args(&args);
+    if let Some(agent) = agent {
+        map.insert("agent".into(), serde_json::Value::String(agent));
+    }
     let event = map
         .get("hook_event_name")
         .and_then(|v| v.as_str())
@@ -217,6 +228,77 @@ fn read_event() -> Option<(String, String)> {
     let mut line = payload.to_string();
     line.push('\n');
     Some((line, event))
+}
+
+/// Status line mode. Claude Code only hands rate limits to its status line, so
+/// this is how the island gets the plan usage bars. Never waits more than the
+/// connect budget, and always prints something for the terminal.
+fn status_line() {
+    let mut raw = Vec::new();
+    let _ = std::io::stdin().read_to_end(&mut raw);
+    if raw.starts_with(&[0xEF, 0xBB, 0xBF]) {
+        raw.drain(..3);
+    }
+    let Ok(v) = serde_json::from_slice::<serde_json::Value>(&raw) else { return };
+    let mut out = std::io::stdout();
+    let _ = writeln!(out, "{}", status_text(&v));
+    let _ = out.flush();
+
+    let mut forward = serde_json::Map::new();
+    forward.insert("hook_event_name".into(), "StatusLine".into());
+    for key in ["session_id", "cwd", "model", "rate_limits", "context_window"] {
+        if let Some(value) = v.get(key) {
+            forward.insert(key.into(), value.clone());
+        }
+    }
+    let line = serde_json::Value::Object(forward).to_string() + "\n";
+    let (tx, rx) = mpsc::channel::<()>();
+    std::thread::spawn(move || {
+        let _ = talk(&line, false);
+        let _ = tx.send(());
+    });
+    let _ = rx.recv_timeout(CONNECT_TIMEOUT * 2);
+}
+
+/// "Opus 5.5 · ctx 34% · 5h 42%" — what the terminal shows.
+fn status_text(v: &serde_json::Value) -> String {
+    let mut parts: Vec<String> = Vec::new();
+    if let Some(name) = v.pointer("/model/display_name").and_then(|x| x.as_str()) {
+        parts.push(name.to_string());
+    }
+    if let Some(p) = v.pointer("/context_window/used_percentage").and_then(|x| x.as_f64()) {
+        parts.push(format!("ctx {}%", p.round()));
+    }
+    if let Some(p) = v.pointer("/rate_limits/five_hour/used_percentage").and_then(|x| x.as_f64()) {
+        parts.push(format!("5h {}%", p.round()));
+    }
+    if let Some(p) = v.pointer("/rate_limits/seven_day/used_percentage").and_then(|x| x.as_f64()) {
+        parts.push(format!("7d {}%", p.round()));
+    }
+    if parts.is_empty() {
+        "Coucou".into()
+    } else {
+        parts.join(" · ")
+    }
+}
+
+/// `[Event] [--agent NAME]`, in any order.
+fn parse_args(args: &[String]) -> (String, Option<String>) {
+    let mut event = String::new();
+    let mut agent = None;
+    let mut i = 0;
+    while i < args.len() {
+        if args[i] == "--agent" {
+            agent = args.get(i + 1).filter(|a| !a.is_empty()).cloned();
+            i += 2;
+            continue;
+        }
+        if event.is_empty() && !args[i].starts_with("--") {
+            event = args[i].clone();
+        }
+        i += 1;
+    }
+    (event, agent)
 }
 
 /// Caps every string in the payload. A single Write can carry a whole file.
@@ -286,6 +368,25 @@ mod tests {
         );
         // "always" is an island concept; Claude Code just gets an allow.
         assert!(decision_json("always").unwrap().contains(r#""behavior":"allow""#));
+    }
+
+    #[test]
+    fn the_status_line_reads_like_the_island() {
+        let v = serde_json::json!({
+            "model": { "display_name": "Opus 5.5" },
+            "context_window": { "used_percentage": 33.6 },
+            "rate_limits": { "five_hour": { "used_percentage": 42.0 }, "seven_day": { "used_percentage": 18.2 } }
+        });
+        assert_eq!(status_text(&v), "Opus 5.5 · ctx 34% · 5h 42% · 7d 18%");
+        assert_eq!(status_text(&serde_json::json!({})), "Coucou");
+    }
+
+    #[test]
+    fn arguments_give_the_event_and_the_agent() {
+        let a = |v: &[&str]| parse_args(&v.iter().map(|s| s.to_string()).collect::<Vec<_>>());
+        assert_eq!(a(&["Stop"]), ("Stop".to_string(), None));
+        assert_eq!(a(&["--agent", "codex"]), (String::new(), Some("codex".to_string())));
+        assert_eq!(a(&["PreToolUse", "--agent", "codex"]), ("PreToolUse".to_string(), Some("codex".to_string())));
     }
 
     #[test]
