@@ -21,6 +21,8 @@ pub const PANEL_H: f64 = 320.0;
 /// Logical size of the invisible strip that wakes the island when it is hidden.
 pub const STRIP_W: f64 = 240.0;
 pub const STRIP_H: f64 = 6.0;
+/// Taller when the idle notch is shown, so the whole notch is visible and hoverable.
+pub const NOTCH_STRIP_H: f64 = 12.0;
 
 pub const WINDOW_LABEL: &str = "island";
 
@@ -60,6 +62,8 @@ pub struct PollGate {
     cv: Condvar,
     pub collapsed: AtomicBool,
     pub rect: Mutex<IslandRect>,
+    /// Keep a small notch on screen when the island is hidden (like the Mac's).
+    pub idle_notch: AtomicBool,
     /// Mirrors the window flag so we only call into Win32 when it changes.
     ignoring: AtomicBool,
 }
@@ -71,6 +75,7 @@ impl PollGate {
             cv: Condvar::new(),
             collapsed: AtomicBool::new(true),
             rect: Mutex::new(IslandRect::default()),
+            idle_notch: AtomicBool::new(true),
             ignoring: AtomicBool::new(false),
         }
     }
@@ -158,7 +163,11 @@ pub fn apply_geometry(app: &AppHandle, pref: &str, collapsed: bool) {
     let mp = *m.position();
     let ms = *m.size();
 
-    let (lw, lh) = if collapsed { (STRIP_W, STRIP_H) } else { (PANEL_W, PANEL_H) };
+    let strip_h = app
+        .try_state::<crate::Shared>()
+        .map(|s| if s.gate.idle_notch.load(Ordering::Relaxed) { NOTCH_STRIP_H } else { STRIP_H })
+        .unwrap_or(STRIP_H);
+    let (lw, lh) = if collapsed { (STRIP_W, strip_h) } else { (PANEL_W, PANEL_H) };
     let pw = (lw * scale).round().max(1.0) as u32;
     let ph = (lh * scale).round().max(1.0) as u32;
     let x = mp.x + (ms.width as i32 - pw as i32) / 2;
@@ -309,4 +318,16 @@ pub fn apply_input_region(app: &AppHandle, gate: &PollGate) {
             r.h + 2.0 * HIT_MARGIN,
         )),
     );
+}
+
+/// Other always-on-top windows (and some full-screen apps) can push the island
+/// under them, after which nothing reaches the wake strip and Coucou looks gone.
+/// Re-assert our place every couple of seconds: one cheap call, no polling of the
+/// cursor, so a hidden island still costs nothing.
+pub fn spawn_topmost_keeper(app: AppHandle) {
+    std::thread::spawn(move || loop {
+        std::thread::sleep(Duration::from_secs(2));
+        let Some(win) = window(&app) else { continue };
+        platform::keep_on_top(&win);
+    });
 }

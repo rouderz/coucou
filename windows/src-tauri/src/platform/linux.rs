@@ -115,6 +115,10 @@ pub fn make_non_activating(win: &WebviewWindow) {
     });
 }
 
+/// GTK keeps a keep-above window above; layer-shell surfaces sit on the overlay
+/// layer. Nothing to re-assert.
+pub fn keep_on_top(_win: &WebviewWindow) {}
+
 /// Temporarily accept the keyboard so the chat field can be typed in.
 pub fn set_activating(win: &WebviewWindow, activating: bool) {
     let wayland = is_wayland();

@@ -157,6 +157,8 @@ export interface Settings {
   language: "system" | "en" | "es";
   /** Mochi reads its chat replies aloud. */
   speakReplies: boolean;
+  /** A small notch stays at the top when the island hides (like the Mac's). */
+  idleNotch: boolean;
   /** Preferred editor command; "" = the first one installed. */
   editor: string;
   /** Auto-approve per project folder: "low" or "medium" (absent = always ask). */
@@ -204,6 +206,7 @@ export const DEFAULT_SETTINGS: Settings = {
   providerModel: "",
   language: "system",
   speakReplies: false,
+  idleNotch: true,
 };
 
 type Listener = () => void;

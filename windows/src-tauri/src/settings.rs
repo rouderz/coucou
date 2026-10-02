@@ -74,6 +74,11 @@ pub struct Settings {
     /// Mochi reads its chat replies aloud.
     #[serde(default)]
     pub speak_replies: bool,
+
+    /// When the island hides, a small notch stays at the top of the screen (like
+    /// the Mac's), instead of nothing but an invisible strip.
+    #[serde(default = "yes")]
+    pub idle_notch: bool,
 }
 
 fn default_provider() -> String {
@@ -135,6 +140,7 @@ impl Default for Settings {
             provider_model: String::new(),
             language: default_language(),
             speak_replies: false,
+            idle_notch: true,
         }
     }
 }

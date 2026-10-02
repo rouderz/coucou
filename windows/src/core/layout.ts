@@ -66,6 +66,11 @@ export const EXPANDED_W = 640;
 export const ROUNDED_CORNER = 14; // hidden / compact
 export const EXPANDED_CORNER = 22;
 
+/** The small notch left on screen when the island hides (Settings → General). */
+export const IDLE = { notch: true };
+export const IDLE_NOTCH_W = 150;
+export const IDLE_NOTCH_H = 10;
+
 /** Invisible hover strip that wakes the island when hidden. */
 export const WAKE_STRIP_W = 240;
 export const WAKE_STRIP_H = 6;
@@ -115,9 +120,10 @@ export function islandSize(
 ): { w: number; h: number } {
   switch (mode) {
     case "hidden":
-      // No notch to hide inside on a PC: the island retracts to zero height and
-      // slides into the top edge of the screen instead of sitting there as a bar.
-      return { w: NOTCH_W, h: 0 };
+      // No notch to hide inside on a PC. By default a small notch stays at the
+      // top centre, like the Mac's, so Coucou never seems gone; without it the
+      // island retracts into the top edge and only the wake strip remains.
+      return IDLE.notch ? { w: IDLE_NOTCH_W, h: IDLE_NOTCH_H } : { w: NOTCH_W, h: 0 };
     case "compact":
       return { w: COMPACT_W, h: NOTCH_H };
     case "expanded": {

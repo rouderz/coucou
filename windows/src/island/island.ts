@@ -6,7 +6,7 @@ import { Bridge, IS_TAURI, onDragDrop } from "../core/bridge";
 import {
   EXPANDED_CORNER, EXPANDED_W, NOTCH_W, PANEL_H, PANEL_W,
   ROUNDED_CORNER, VIEW_LAYOUTS, botGlowColor, botGlowOpacity, botPosition, chatPromptHeight,
-  islandSize,
+  IDLE, IDLE_NOTCH_H, islandSize,
   type IslandMode, type IslandViewName,
 } from "../core/layout";
 import { Sound } from "../core/sound";
@@ -900,6 +900,9 @@ export class Island {
 
   /** Applies settings coming from Rust at boot. */
   applySettings() {
+    // The notch left on screen when hidden, and a wake strip that covers it.
+    IDLE.notch = State.settings.idleNotch !== false;
+    this.wakeStrip.style.height = `${IDLE.notch ? IDLE_NOTCH_H + 2 : 6}px`;
     Sound.setEnabled(State.settings.soundEnabled);
     Sound.setVolume(State.settings.soundVolume);
     this.fsm.homeToPetitDelay = State.settings.autoCloseInterval;
