@@ -68,24 +68,24 @@ enum Integrations {
 
 // MARK: Agents
 
-enum AgentHookState: Equatable { case unavailable, notInstalled, needsUpdate, installed }
+enum CodingAgentHookState: Equatable { case unavailable, notInstalled, needsUpdate, installed }
 
 /// A coding agent whose sessions Coucou follows through hooks.
 @MainActor
-protocol AgentSource {
+protocol CodingAgent {
     /// Matches the "agent" field nb-hook adds to events ("claude" when absent).
     var id: String { get }
     var name: String { get }
-    var hookState: AgentHookState { get }
+    var hookState: CodingAgentHookState { get }
     func installHooks() throws
     func uninstallHooks() throws
 }
 
-struct ClaudeCodeAgent: AgentSource {
+struct ClaudeCodeAgent: CodingAgent {
     let id = "claude"
     let name = "Claude Code"
 
-    var hookState: AgentHookState {
+    var hookState: CodingAgentHookState {
         switch HookServer.installState() {
         case .installed: return .installed
         case .needsUpdate: return .needsUpdate
@@ -102,11 +102,11 @@ struct ClaudeCodeAgent: AgentSource {
 }
 
 #if !APPSTORE
-struct CodexAgent: AgentSource {
+struct CodexAgent: CodingAgent {
     let id = "codex"
     let name = "Codex"
 
-    var hookState: AgentHookState {
+    var hookState: CodingAgentHookState {
         switch CodexHooks.state() {
         case .noCodex: return .unavailable
         case .notInstalled: return .notInstalled
@@ -121,7 +121,7 @@ struct CodexAgent: AgentSource {
 
 @MainActor
 enum Agents {
-    static var all: [any AgentSource] {
+    static var all: [any CodingAgent] {
         #if APPSTORE
         return [ClaudeCodeAgent()]
         #else
@@ -129,5 +129,5 @@ enum Agents {
         #endif
     }
 
-    static func named(_ id: String) -> (any AgentSource)? { all.first { $0.id == id } }
+    static func named(_ id: String) -> (any CodingAgent)? { all.first { $0.id == id } }
 }
