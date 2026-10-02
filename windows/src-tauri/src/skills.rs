@@ -670,7 +670,7 @@ pub async fn preview(source: &str, target: &str) -> Result<Preview, String> {
             dest: dest.to_string_lossy().to_string(),
             name,
         });
-        manifest.push(serde_json::json!({ "from": dir, "dest": dest }));
+        manifest.push(serde_json::json!({ "from": dir.to_string_lossy(), "dest": dest.to_string_lossy() }));
     }
     std::fs::write(stage.join("manifest.json"), serde_json::to_vec(&manifest).unwrap_or_default())
         .map_err(|e| e.to_string())?;
