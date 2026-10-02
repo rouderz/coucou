@@ -81,6 +81,9 @@ final class HookServer: @unchecked Sendable {
         let projectName = aliasProjectName(rawName.isEmpty ? "Session" : rawName)
         let agent = payload["agent"] as? String ?? "claude"
 
+        // Remember the projects sessions run in: their .claude/skills show in Settings → Skills.
+        if name == "SessionStart" || name == "UserPromptSubmit" { SkillsStore.noteProject(cwd) }
+
         // Sessions from any terminal count (VS Code, Cursor, iTerm, Terminal, Ghostty, Warp…).
 
         let focused = state.focusId == "integration_claude"

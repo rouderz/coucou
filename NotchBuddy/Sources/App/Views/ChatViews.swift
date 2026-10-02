@@ -9,6 +9,12 @@ struct PromptView: View {
     @State private var text: String = ""
     @State private var showHistory = false
     @FocusState private var focused: Bool
+    @ObservedObject private var skillsStore = SkillsStore.shared
+    @State private var pickIndex = 0
+
+    /// "/" at the start of the field lists the skills, in the chat's place.
+    private var picking: Bool { text.hasPrefix("/") && !text.contains(" ") }
+    private var matches: [SkillInfo] { SkillFiles.match(skillsStore.skills, typed: text) }
 
     var body: some View {
         ZStack(alignment: .leading) {
@@ -38,6 +44,18 @@ struct PromptView: View {
                                   : L("Mochi can only read this project. Click to let it propose edits."))
                         }
                     }
+                    if let skill = state.chatSkill {
+                        Button { state.chatSkill = nil } label: {
+                            Text(verbatim: "✦ \(skill.name) ×")
+                                .font(.system(size: 11, weight: .medium))
+                                .foregroundColor(Color(hex: "#C4B5FD"))
+                                .padding(.horizontal, 9).padding(.vertical, 4)
+                                .background(Color(hex: "#A78BFA").opacity(0.14))
+                                .clipShape(Capsule())
+                        }
+                        .buttonStyle(.plain)
+                        .help(L("Remove the skill"))
+                    }
                     Spacer(minLength: 4)
                     if state.voiceSpeaking {
                         HeaderIconButton(symbol: "speaker.slash.fill", active: true, help: L("Stop reading aloud")) {
@@ -58,6 +76,9 @@ struct PromptView: View {
 
                 if showHistory {
                     ChatHistoryList(state: state) { showHistory = false; focused = true }
+                        .frame(maxHeight: .infinity)
+                } else if picking {
+                    SkillPickerList(matches: matches, selected: pickIndex, hasAny: !skillsStore.skills.isEmpty) { choose($0) }
                         .frame(maxHeight: .infinity)
                 } else if !state.chatHistory.isEmpty {
                     ScrollViewReader { proxy in
@@ -102,11 +123,33 @@ struct PromptView: View {
                     if state.voicePhase != .idle {
                         VoiceListeningLabel(phase: state.voicePhase, transcript: state.voiceTranscript)
                     } else {
-                        TextField(state.chatHistory.isEmpty ? "Ask me anything…" : "Continue…", text: $text)
+                        TextField(state.chatSkill != nil ? "What should it do?"
+                                  : state.chatHistory.isEmpty ? "Ask me anything… (/ for skills)" : "Continue…", text: $text)
                             .textFieldStyle(.plain)
                             .font(.system(size: 13))
                             .focused($focused)
-                            .onSubmit { sendMessage() }
+                            .onSubmit {
+                                if picking, matches.indices.contains(pickIndex) { choose(matches[pickIndex]) } else { sendMessage() }
+                            }
+                            .onChange(of: text) { old, new in
+                                if new == "/", !old.hasPrefix("/") { skillsStore.refresh() }
+                                pickIndex = 0
+                            }
+                            .onKeyPress(.downArrow) {
+                                guard picking, !matches.isEmpty else { return .ignored }
+                                pickIndex = (pickIndex + 1) % matches.count
+                                return .handled
+                            }
+                            .onKeyPress(.upArrow) {
+                                guard picking, !matches.isEmpty else { return .ignored }
+                                pickIndex = (pickIndex + matches.count - 1) % matches.count
+                                return .handled
+                            }
+                            .onKeyPress(.tab) {
+                                guard picking, matches.indices.contains(pickIndex) else { return .ignored }
+                                choose(matches[pickIndex])
+                                return .handled
+                            }
                     }
 
                     if state.voiceEnabled && text.isEmpty {
@@ -143,6 +186,13 @@ struct PromptView: View {
         .onAppear { focused = true }
     }
 
+    private func choose(_ skill: SkillInfo) {
+        state.chatSkill = SkillRef(name: skill.name, path: skill.path)
+        text = ""
+        pickIndex = 0
+        focused = true
+    }
+
     private func sendMessage() {
         let query = text.trimmingCharacters(in: .whitespacesAndNewlines)
         guard !query.isEmpty else { return }
@@ -152,6 +202,45 @@ struct PromptView: View {
     }
 }
 
+
+/// The skills matching what follows "/" in the chat field.
+struct SkillPickerList: View {
+    let matches: [SkillInfo]
+    let selected: Int
+    let hasAny: Bool
+    let choose: (SkillInfo) -> Void
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 2) {
+            Spacer(minLength: 0)
+            if matches.isEmpty {
+                Text(hasAny ? "No skill matches." : "No skills installed. Add some in Settings → Skills.")
+                    .font(.system(size: 11.5))
+                    .foregroundColor(Color(hex: "#8E939C"))
+                    .padding(.horizontal, 9)
+            }
+            ForEach(Array(matches.enumerated()), id: \.element.id) { index, skill in
+                Button { choose(skill) } label: {
+                    HStack(spacing: 8) {
+                        Text(verbatim: "/\(skill.name)")
+                            .font(.system(size: 11.5, weight: .semibold))
+                            .foregroundColor(Color(hex: "#C4B5FD"))
+                        Text(verbatim: skill.description)
+                            .font(.system(size: 11.5))
+                            .foregroundColor(Color.white.opacity(0.5))
+                            .lineLimit(1)
+                        Spacer(minLength: 0)
+                    }
+                    .padding(.horizontal, 9).padding(.vertical, 5)
+                    .background(Color.white.opacity(index == selected ? 0.08 : 0))
+                    .clipShape(RoundedRectangle(cornerRadius: 8))
+                    .contentShape(Rectangle())
+                }
+                .buttonStyle(.plain)
+            }
+        }
+    }
+}
 
 struct ChatBubble: View {
     let message: ChatMessage

@@ -96,6 +96,18 @@ export const Bridge = {
   voiceListen: () => callOrThrow<string>("voice_listen"),
   voiceAvailable: () => call<boolean>("voice_available"),
 
+  // ── Skills (Claude Code / Codex) ────────────────────────────────────────────
+  skillsList: () => call<SkillInfo[]>("skills_list"),
+  /** Where a new skill can go: "personal", "codex" or a project folder. */
+  skillsTargets: () => call<{ id: string; label: string }[]>("skills_targets"),
+  skillRead: (path: string) => callOrThrow<SkillText>("skill_read", { path }),
+  skillSetEnabled: (path: string, enabled: boolean) => callOrThrow<void>("skill_set_enabled", { path, enabled }),
+  /** Stages a folder, .zip / .skill file or GitHub link; nothing is installed yet. */
+  skillsPreview: (source: string, target: string) => callOrThrow<SkillPreview>("skills_preview", { source, target }),
+  skillsInstall: (token: string, replace: boolean) => callOrThrow<string[]>("skills_install", { token, replace }),
+  skillCreate: (name: string, target: string) => callOrThrow<string>("skill_create", { name, target }),
+  skillReveal: (path: string) => call<void>("skill_reveal", { path }),
+
   /** Codex CLI hooks in ~/.codex/hooks.json. */
   codexStatus: () => call<{ found: boolean; installed: boolean; hooksPath: string }>("codex_status"),
   codexInstall: (install: boolean) => callOrThrow<void>("codex_install", { install }),
@@ -169,6 +181,32 @@ export interface CodeContext {
   selection?: string;
   diagnostics?: { line: number; severity: string; message: string; source?: string }[];
   appName?: string;
+}
+
+export interface SkillInfo {
+  name: string;
+  description: string;
+  source: "personal" | "project" | "plugin" | "codex";
+  /** The project folder, or the plugin's name. */
+  origin: string | null;
+  path: string;
+  enabled: boolean;
+  /** Plugin skills can't be turned off one by one. */
+  editable: boolean;
+  hasScripts: boolean;
+  modified: number;
+}
+
+export interface SkillText {
+  name: string;
+  path: string;
+  content: string;
+  files: string[];
+}
+
+export interface SkillPreview {
+  token: string;
+  skills: { name: string; description: string; files: string[]; hasScripts: boolean; dest: string; exists: boolean }[];
 }
 
 export interface DroppedFile {

@@ -67,6 +67,8 @@ final class AppState: ObservableObject {
     // Mochi's chat may edit the attached project (each change approved in the island).
     // Per conversation: reset when a new chat starts.
     @Published var chatAllowEdits: Bool = false
+    /// A skill picked with "/" in the chat; its SKILL.md goes with the next question.
+    @Published var chatSkill: SkillRef? = nil
 
     // Claude plan usage (5-hour / weekly limits, context), from Claude Code's status line data
     @Published var planUsage: PlanUsage? = nil

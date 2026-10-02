@@ -190,6 +190,13 @@ async fn handle<S: AsyncRead + AsyncWrite + Unpin>(app: AppHandle, mut pipe: S) 
         .unwrap_or_default()
         .to_string();
 
+    // Remember the projects sessions run in: their .claude/skills show in Settings → Skills.
+    if matches!(event.as_str(), "SessionStart" | "UserPromptSubmit") {
+        if let Some(cwd) = payload.get("cwd").and_then(Value::as_str) {
+            crate::skills::note_project(cwd);
+        }
+    }
+
     if event != "PermissionRequest" {
         log::line(format!("hook {event}"));
         let _ = app.emit_to(WINDOW_LABEL, "hook", payload);

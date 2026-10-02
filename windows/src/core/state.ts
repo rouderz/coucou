@@ -251,6 +251,8 @@ class AppState {
   /** The editor's latest context (VS Code / Cursor extension), and the one attached to the chat. */
   editorContext: (CodeContext & { at: number }) | null = null;
   codeContext: CodeContext | null = null;
+  /** A skill picked with "/" in the chat; its SKILL.md goes with the next question. */
+  chatSkill: { name: string; path: string } | null = null;
 
   /** A newer release, from the update check. */
   update: { latest: string; url: string; canInstall: boolean; installing?: boolean } | null = null;

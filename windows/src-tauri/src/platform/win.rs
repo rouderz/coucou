@@ -218,3 +218,21 @@ pub fn claude_fallbacks() -> Vec<PathBuf> {
     }
     list
 }
+
+/// Extracts a .zip with the `tar` Windows ships (bsdtar, Windows 10 1803+), which
+/// refuses `..` and absolute paths.
+pub fn unzip(zip: &std::path::Path, dest: &std::path::Path) -> Result<(), String> {
+    let tar = std::env::var_os("SystemRoot")
+        .map(|r| PathBuf::from(r).join("System32").join("tar.exe"))
+        .filter(|p| p.is_file())
+        .ok_or("Windows' tar.exe is missing, so the archive can't be opened.")?;
+    let status = Command::new(tar)
+        .arg("-xf")
+        .arg(zip)
+        .arg("-C")
+        .arg(dest)
+        .creation_flags(CREATE_NO_WINDOW)
+        .status()
+        .map_err(|e| e.to_string())?;
+    if status.success() { Ok(()) } else { Err("The archive couldn't be opened.".into()) }
+}

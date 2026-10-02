@@ -4,7 +4,7 @@
 
 import "./settings.css";
 import { setLanguage, startTranslating } from "../core/i18n.ts";
-import { Bridge, onEvent, type HookStatus } from "../core/bridge";
+import { Bridge, onDragDrop, onEvent, type HookStatus, type SkillInfo, type SkillPreview } from "../core/bridge";
 import { DEFAULT_SETTINGS, type Settings } from "../core/state";
 import { h, clear } from "../views/dom";
 
@@ -600,6 +600,202 @@ function inboxSection(): HTMLElement {
   );
 }
 
+// ── Skills ────────────────────────────────────────────────────────────────────
+
+const SOURCE_LABEL: Record<SkillInfo["source"], string> = {
+  personal: "Personal",
+  project: "Project",
+  plugin: "Plugin",
+  codex: "Codex",
+};
+
+function skillsSection(targets: { id: string; label: string }[]): HTMLElement {
+  const head = h("h2", {}, h("span", { text: "Skills" }));
+  const count = h("span", { class: "hint", text: "" });
+  head.append(count);
+  const search = h("input", { type: "text", placeholder: "Search skills…", style: "flex:1" }) as HTMLInputElement;
+  const list = h("div", { class: "skill-list" });
+  let all: SkillInfo[] = [];
+
+  function groupLabel(s: SkillInfo): string {
+    if (s.source === "project" || s.source === "plugin") return `${SOURCE_LABEL[s.source]} · ${s.origin ?? ""}`;
+    return SOURCE_LABEL[s.source];
+  }
+
+  function row(s: SkillInfo): HTMLElement {
+    const viewer = h("div", { class: "skill-md", style: "display:none" });
+    const view = h("button", { class: "small", text: "View" });
+    view.addEventListener("click", async () => {
+      if (viewer.style.display !== "none") {
+        viewer.style.display = "none";
+        return;
+      }
+      clear(viewer);
+      try {
+        const text = await Bridge.skillRead(s.path);
+        viewer.append(
+          h("pre", { text: text.content }),
+          h("div", { class: "hint", text: `${text.files.length} files: ${text.files.slice(0, 15).join(", ")}${text.files.length > 15 ? "…" : ""}` }),
+        );
+      } catch (err) {
+        viewer.append(h("div", { class: "notice err", text: String(err).replace(/^Error:\s*/, "") }));
+      }
+      viewer.style.display = "";
+    });
+    const actions = h("div", { class: "skill-actions" },
+      view,
+      h("button", { class: "small", text: "Open", title: "Open in the editor", onclick: () => void Bridge.openInVSCode(s.path) }),
+      h("button", { class: "small", text: "Folder", onclick: () => void Bridge.skillReveal(s.path) }),
+    );
+    if (s.editable) {
+      actions.append(toggle(s.enabled, async (v) => {
+        try {
+          await Bridge.skillSetEnabled(s.path, v);
+        } catch (err) {
+          list.prepend(h("div", { class: "notice err", text: String(err).replace(/^Error:\s*/, "") }));
+        }
+        await refresh();
+      }));
+    }
+    const title = h("div", { class: "skill-title" }, h("b", { text: s.name }));
+    if (s.hasScripts) title.append(h("span", { class: "tag", text: "scripts" }));
+    if (!s.enabled) title.append(h("span", { class: "tag off", text: "off" }));
+    return h("div", { class: s.enabled ? "skill" : "skill disabled" },
+      h("div", { class: "skill-main" }, title, h("div", { class: "hint skill-desc", text: s.description || "No description." })),
+      actions,
+      viewer,
+    );
+  }
+
+  function draw() {
+    const q = search.value.trim().toLowerCase();
+    const shown = all.filter((s) => !q || `${s.name} ${s.description} ${s.origin ?? ""}`.toLowerCase().includes(q));
+    count.textContent = all.length ? `· ${all.length}` : "";
+    clear(list);
+    if (!all.length) {
+      list.append(h("div", { class: "hint", text: "No skills on this computer yet. Add one below." }));
+      return;
+    }
+    let group = "";
+    for (const s of shown) {
+      const g = groupLabel(s);
+      if (g !== group) {
+        group = g;
+        list.append(h("div", { class: "skill-group", text: g }));
+      }
+      list.append(row(s));
+    }
+  }
+
+  async function refresh() {
+    all = (await Bridge.skillsList()) ?? [];
+    draw();
+  }
+  search.addEventListener("input", draw);
+
+  // Adding: a folder, a .zip / .skill file or a GitHub link → preview → Install.
+  const target = h("select", {}) as HTMLSelectElement;
+  for (const t of targets) target.append(h("option", { value: t.id, text: t.label }));
+  const source = h("input", {
+    type: "text",
+    placeholder: "Folder, .zip / .skill file, or a GitHub link",
+    style: "flex:1;min-width:220px",
+  }) as HTMLInputElement;
+  const previewBox = h("div", { class: "skill-preview" });
+  const previewBtn = h("button", { class: "primary", text: "Preview" }) as HTMLButtonElement;
+
+  function showPreview(p: SkillPreview) {
+    clear(previewBox);
+    for (const sk of p.skills) {
+      const files = sk.files.slice(0, 12).join(", ") + (sk.files.length > 12 ? ` and ${sk.files.length - 12} more` : "");
+      previewBox.append(h("div", { class: "skill" },
+        h("div", { class: "skill-main" },
+          h("div", { class: "skill-title" }, h("b", { text: sk.name })),
+          h("div", { class: "hint skill-desc", text: sk.description || "No description." }),
+          h("div", { class: "hint", text: `${sk.files.length} files: ${files}` }),
+          h("div", { class: "hint" }, h("span", { text: "Installs to " }), h("span", { class: "path", text: sk.dest })),
+          sk.hasScripts
+            ? h("div", { class: "notice warn", text: "It has scripts. Coucou never runs them, but Claude may when it uses the skill — read them first." })
+            : h("span", {}),
+          sk.exists
+            ? h("div", { class: "notice warn", text: "A skill with this name is already there; installing replaces it (the old one is kept in Coucou's trash)." })
+            : h("span", {}),
+        ),
+      ));
+    }
+    const replace = p.skills.some((sk) => sk.exists);
+    const install = h("button", { class: "primary", text: p.skills.length > 1 ? `Install ${p.skills.length} skills` : "Install" });
+    install.addEventListener("click", async () => {
+      try {
+        await Bridge.skillsInstall(p.token, replace);
+        clear(previewBox);
+        source.value = "";
+        previewBox.append(h("div", { class: "notice ok", text: "Installed. Claude Code picks it up in its next session." }));
+        await refresh();
+      } catch (err) {
+        previewBox.append(h("div", { class: "notice err", text: String(err).replace(/^Error:\s*/, "") }));
+      }
+    });
+    previewBox.append(h("div", { class: "row" },
+      install,
+      h("button", { text: "Cancel", onclick: () => clear(previewBox) }),
+    ));
+  }
+
+  async function runPreview() {
+    if (!source.value.trim()) return;
+    previewBtn.disabled = true;
+    clear(previewBox);
+    previewBox.append(h("div", { class: "hint", text: "Looking…" }));
+    try {
+      showPreview(await Bridge.skillsPreview(source.value.trim(), target.value));
+    } catch (err) {
+      clear(previewBox);
+      previewBox.append(h("div", { class: "notice err", text: String(err).replace(/^Error:\s*/, "") }));
+    } finally {
+      previewBtn.disabled = false;
+    }
+  }
+  previewBtn.addEventListener("click", () => void runPreview());
+  source.addEventListener("keydown", (e) => {
+    if ((e as KeyboardEvent).key === "Enter") void runPreview();
+  });
+  // Dropping a folder or an archive on the window previews it.
+  void onDragDrop((e) => {
+    if (e.type === "drop" && e.paths?.length) {
+      source.value = e.paths[0];
+      void runPreview();
+    }
+  });
+
+  const newName = h("input", { type: "text", placeholder: "New skill name", style: "flex:1;min-width:160px" }) as HTMLInputElement;
+  const createBtn = h("button", { text: "Create" });
+  createBtn.addEventListener("click", async () => {
+    if (!newName.value.trim()) return;
+    try {
+      await Bridge.skillCreate(newName.value.trim(), target.value);
+      newName.value = "";
+      await refresh();
+    } catch (err) {
+      previewBox.append(h("div", { class: "notice err", text: String(err).replace(/^Error:\s*/, "") }));
+    }
+  });
+
+  void refresh();
+  return h("section", {},
+    head,
+    h("div", { class: "hint", text: "What Claude Code and Codex can use on this computer: your own skills, each project's, and the ones that come with plugins. Turning one off moves it aside; nothing is deleted." }),
+    h("div", { class: "row" }, search, h("button", { text: "Refresh", onclick: () => void refresh() })),
+    list,
+    h("div", { class: "skill-group", text: "Add a skill" }),
+    h("div", { class: "row" }, h("label", { text: "Install to" }), target),
+    h("div", { class: "row" }, source, previewBtn),
+    h("div", { class: "hint", text: "Or drop a skill folder or a .zip / .skill file on this window. You see what's inside before anything is installed." }),
+    previewBox,
+    h("div", { class: "row" }, newName, createBtn),
+  );
+}
+
 // ── Voice ─────────────────────────────────────────────────────────────────────
 
 function voiceSection(canListen: boolean): HTMLElement {
@@ -771,6 +967,7 @@ async function main() {
   const codex = (await Bridge.codexStatus()) ?? { found: false, installed: false, hooksPath: "" };
   const presets = (await Bridge.providerPresets()) ?? [];
   const canListen = (await Bridge.voiceAvailable()) ?? false;
+  const skillTargets = (await Bridge.skillsTargets()) ?? [{ id: "personal", label: "Claude Code — personal (~/.claude/skills)" }];
 
   const keys = [
     "stripe-api-key", "github-token", "vercel-token",
@@ -787,6 +984,7 @@ async function main() {
     h("h1", {}, h("span", { text: "Coucou" }), h("span", { class: "version", text: version })),
     claudeSection(status),
     codexSection(codex),
+    skillsSection(skillTargets),
     apiSection(hasKey, claudeCode, presets, present),
     integrationsSection(present),
     phoneSection(),
