@@ -572,6 +572,16 @@
         }
       }
     },
+    "Approved": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Aprobado"
+          }
+        }
+      }
+    },
     "Ask": {
       "localizations": {
         "es": {
@@ -952,6 +962,26 @@
         }
       }
     },
+    "Changes requested": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Cambios solicitados"
+          }
+        }
+      }
+    },
+    "Changes were requested": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Se solicitaron cambios"
+          }
+        }
+      }
+    },
     "Chat": {
       "localizations": {
         "es": {
@@ -1048,6 +1078,26 @@
           "stringUnit": {
             "state": "translated",
             "value": "Comprobando…"
+          }
+        }
+      }
+    },
+    "Checks are failing": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Las comprobaciones fallan"
+          }
+        }
+      }
+    },
+    "Checks are still running": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Las comprobaciones siguen en marcha"
           }
         }
       }
@@ -2022,6 +2072,16 @@
         }
       }
     },
+    "Draft pull request": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Pull request en borrador"
+          }
+        }
+      }
+    },
     "Drop a file or window, or ask me anything.": {
       "localizations": {
         "es": {
@@ -2842,6 +2902,16 @@
         }
       }
     },
+    "Invalid pull request number": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Número de pull request no válido"
+          }
+        }
+      }
+    },
     "Invalid server address": {
       "localizations": {
         "es": {
@@ -3182,6 +3252,16 @@
         }
       }
     },
+    "Mine": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Míos"
+          }
+        }
+      }
+    },
     "Missing recipient.": {
       "localizations": {
         "es": {
@@ -3478,6 +3558,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "Sin conexión a internet. Revisa tu red y vuelve a intentarlo."
+          }
+        }
+      }
+    },
+    "No merge method is allowed on this repository": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Este repositorio no permite ningún método de fusión"
           }
         }
       }
@@ -4402,6 +4492,16 @@
         }
       }
     },
+    "Repository must look like owner/name": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "El repositorio debe tener la forma propietario/nombre"
+          }
+        }
+      }
+    },
     "Resend error — check API key & sender.": {
       "localizations": {
         "es": {
@@ -4458,6 +4558,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "Te pidieron review"
+          }
+        }
+      }
+    },
+    "Review required": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Revisión pendiente"
           }
         }
       }
@@ -5182,6 +5292,16 @@
         }
       }
     },
+    "To review": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Por revisar"
+          }
+        }
+      }
+    },
     "Token": {
       "localizations": {
         "es": {
@@ -5588,6 +5708,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "Trabajando…"
+          }
+        }
+      }
+    },
+    "Write a comment first": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Escribe antes un comentario"
           }
         }
       }

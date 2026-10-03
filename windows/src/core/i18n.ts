@@ -257,6 +257,20 @@ const ES: Record<string, string> = {
   "Add your Linear API key in Settings": "Añade tu clave de API de Linear en Ajustes",
   "Linear didn't accept the issue": "Linear no aceptó la incidencia", "The issue isn't ready to create": "La incidencia no está lista para crearse",
   "No priority": "Sin prioridad", "Urgent": "Urgente", "High": "Alta", "Medium": "Media", "Low": "Baja",
+  // github pull requests (#113)
+  "To review": "Por revisar",
+  "Mine": "Míos",
+  "Approved": "Aprobado",
+  "Changes requested": "Cambios solicitados",
+  "Review required": "Revisión pendiente",
+  "Draft pull request": "Pull request en borrador",
+  "Checks are failing": "Las comprobaciones fallan",
+  "Checks are still running": "Las comprobaciones siguen en marcha",
+  "Changes were requested": "Se solicitaron cambios",
+  "No merge method is allowed on this repository": "Este repositorio no permite ningún método de fusión",
+  "Write a comment first": "Escribe antes un comentario",
+  "Repository must look like owner/name": "El repositorio debe tener la forma propietario/nombre",
+  "Invalid pull request number": "Número de pull request no válido",
 };
 
 /** Texts with something in them that changes: [pattern, Spanish with $1, $2…]. */
