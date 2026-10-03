@@ -360,12 +360,8 @@ struct AgentPillsView: View {
     @ObservedObject var state: AppState
     @State private var swapping = false
 
-    private var others: [AgentTask] {
-        state.tasks.filter { $0.id != state.focusId }
-    }
-
     private var displayTasks: [AgentTask] {
-        Array(others.prefix(4))
+        state.visiblePills
     }
 
     private let columns = [
@@ -500,12 +496,12 @@ struct ColumnAgentsView: View {
     @ObservedObject var state: AppState
 
     var others: [AgentTask] {
-        state.tasks.filter { $0.id != state.focusId }
+        state.visiblePills
     }
 
     var body: some View {
         VStack(spacing: 0) {
-            ForEach(Array(others.prefix(4).enumerated()), id: \.1.id) { idx, task in
+            ForEach(Array(others.enumerated()), id: \.1.id) { idx, task in
                 MiniBotCanvasView(task: task)
                     .frame(width: 16 / 0.6, height: 16 / 0.6)
                     .frame(width: 16, height: 16)

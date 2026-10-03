@@ -32,6 +32,16 @@
         }
       }
     },
+    "%lld active · the island shows 4 at a time": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%lld activas · la isla muestra 4 a la vez"
+          }
+        }
+      }
+    },
     "%lld approvals": {
       "localizations": {
         "es": {
@@ -108,16 +118,6 @@
           "stringUnit": {
             "state": "translated",
             "value": "%lld guardados · se conservan los últimos %lld"
-          }
-        }
-      }
-    },
-    "%lld/4 slots used": {
-      "localizations": {
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "%lld/4 huecos usados"
           }
         }
       }
@@ -1982,6 +1982,36 @@
         }
       }
     },
+    "Every 10 s": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Cada 10 s"
+          }
+        }
+      }
+    },
+    "Every 30 s": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Cada 30 s"
+          }
+        }
+      }
+    },
+    "Every minute": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Cada minuto"
+          }
+        }
+      }
+    },
     "Everything Claude did in this session, with times": {
       "localizations": {
         "es": {
@@ -3342,6 +3372,16 @@
         }
       }
     },
+    "Off": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Desactivado"
+          }
+        }
+      }
+    },
     "On during your calendar event": {
       "localizations": {
         "es": {
@@ -4068,6 +4108,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "Reviews"
+          }
+        }
+      }
+    },
+    "Rotate the rest": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Rotar las demás"
           }
         }
       }

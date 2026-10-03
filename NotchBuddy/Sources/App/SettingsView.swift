@@ -454,28 +454,33 @@ struct SettingsView: View {
 
                         Divider()
 
-                        Text("\(state.activeIntegrations.count)/4 slots used")
+                        Text("\(state.activeIntegrations.count) active · the island shows 4 at a time")
                             .font(.system(size: 11))
-                            .foregroundColor(state.activeIntegrations.count >= 4 ? .orange : .secondary)
+                            .foregroundColor(.secondary)
+                        Picker("Rotate the rest", selection: $state.pillRotationSeconds) {
+                            Text("Off").tag(0)
+                            Text("Every 10 s").tag(10)
+                            Text("Every 30 s").tag(30)
+                            Text("Every minute").tag(60)
+                        }
+                        .font(.system(size: 11))
 
                         ForEach(AgentTask.toggleableIntegrationIds, id: \.self) { id in
                             let task = AgentTask.integrationAgents.first { $0.id == id }!
                             let isOn = state.activeIntegrations.contains(id)
-                            let atMax = state.activeIntegrations.count >= 4 && !isOn
                             HStack(spacing: 8) {
                                 Circle()
                                     .fill(Color(hex: task.color))
                                     .frame(width: 10, height: 10)
                                 Text(task.name)
                                     .font(.system(size: 12))
-                                    .foregroundColor(atMax ? .secondary : .primary)
+                                    .foregroundColor(.primary)
                                 Spacer()
                                 Toggle("", isOn: Binding(
                                     get: { isOn },
                                     set: { _ in state.toggleIntegration(id) }
                                 ))
                                 .labelsHidden()
-                                .disabled(atMax)
                             }
                         }
                     }
