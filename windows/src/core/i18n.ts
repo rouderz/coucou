@@ -236,6 +236,18 @@ const ES: Record<string, string> = {
     "Claude Code no está instalado. Instálalo, o cambia el chat a una clave de API en Ajustes.",
   "Claude Code isn't signed in. Run `claude` in a terminal and sign in with /login.":
     "Claude Code no tiene sesión iniciada. Ejecuta `claude` en una terminal e inicia sesión con /login.",
+  "Codex isn't installed. Install it, or pick another chat engine in Settings.":
+    "Codex no está instalado. Instálalo, o elige otro motor de chat en Ajustes.",
+  "Codex isn't signed in. Run `codex login` in a terminal, then ask again.":
+    "Codex no tiene sesión iniciada. Ejecuta `codex login` en una terminal y vuelve a preguntar.",
+  "Codex says you hit its usage limit. Wait a bit, or pick another chat engine.":
+    "Codex dice que alcanzaste su límite de uso. Espera un poco o elige otro motor de chat.",
+  "Gemini CLI isn't installed. Install it, or pick another chat engine in Settings.":
+    "Gemini CLI no está instalado. Instálalo, o elige otro motor de chat en Ajustes.",
+  "Gemini CLI isn't signed in. Run `gemini` in a terminal and sign in, then ask again.":
+    "Gemini CLI no tiene sesión iniciada. Ejecuta `gemini` en una terminal, inicia sesión y vuelve a preguntar.",
+  "Gemini says you hit its usage limit. Wait a bit, or pick another chat engine.":
+    "Gemini dice que alcanzaste su límite de uso. Espera un poco o elige otro motor de chat.",
   "No ntfy topic yet": "Aún no hay tema de ntfy", "Can't reach GitHub": "No se puede conectar con GitHub",
   "Can't reach Linear": "No se puede conectar con Linear", "Invalid API key (401)": "Clave de API no válida (401)",
   "Add your Linear API key in Settings": "Añade tu clave de API de Linear en Ajustes",
