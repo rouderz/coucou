@@ -62,6 +62,16 @@
         }
       }
     },
+    "%lld active · the island shows 4 at a time": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%lld activas · la isla muestra 4 a la vez"
+          }
+        }
+      }
+    },
     "%lld approvals": {
       "localizations": {
         "es": {
@@ -138,16 +148,6 @@
           "stringUnit": {
             "state": "translated",
             "value": "%lld guardados · se conservan los últimos %lld"
-          }
-        }
-      }
-    },
-    "%lld/4 slots used": {
-      "localizations": {
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "%lld/4 huecos usados"
           }
         }
       }
@@ -1332,6 +1332,36 @@
         }
       }
     },
+    "Codex isn't installed. Install it, or pick another chat engine in Settings.": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Codex no está instalado. Instálalo, o elige otro motor de chat en Ajustes."
+          }
+        }
+      }
+    },
+    "Codex isn't signed in. Run `codex login` in a terminal, then ask again.": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Codex no tiene sesión iniciada. Ejecuta `codex login` en una terminal y vuelve a preguntar."
+          }
+        }
+      }
+    },
+    "Codex says you hit its usage limit. Wait a bit, or pick another chat engine.": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Codex dice que alcanzaste su límite de uso. Espera un poco o elige otro motor de chat."
+          }
+        }
+      }
+    },
     "Comments": {
       "localizations": {
         "es": {
@@ -2042,6 +2072,36 @@
         }
       }
     },
+    "Every 10 s": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Cada 10 s"
+          }
+        }
+      }
+    },
+    "Every 30 s": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Cada 30 s"
+          }
+        }
+      }
+    },
+    "Every minute": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Cada minuto"
+          }
+        }
+      }
+    },
     "Everything Claude did in this session, with times": {
       "localizations": {
         "es": {
@@ -2098,6 +2158,36 @@
           "stringUnit": {
             "state": "translated",
             "value": "Remitente  (tu@tudominio.com)"
+          }
+        }
+      }
+    },
+    "Gemini CLI isn't installed. Install it, or pick another chat engine in Settings.": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Gemini CLI no está instalado. Instálalo, o elige otro motor de chat en Ajustes."
+          }
+        }
+      }
+    },
+    "Gemini CLI isn't signed in. Run `gemini` in a terminal and sign in, then ask again.": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Gemini CLI no tiene sesión iniciada. Ejecuta `gemini` en una terminal, inicia sesión y vuelve a preguntar."
+          }
+        }
+      }
+    },
+    "Gemini says you hit its usage limit. Wait a bit, or pick another chat engine.": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Gemini dice que alcanzaste su límite de uso. Espera un poco o elige otro motor de chat."
           }
         }
       }
@@ -2338,6 +2428,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "Ocultar tras"
+          }
+        }
+      }
+    },
+    "High": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Alta"
           }
         }
       }
@@ -2722,6 +2822,16 @@
         }
       }
     },
+    "Linear didn't accept the issue": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Linear no aceptó la incidencia"
+          }
+        }
+      }
+    },
     "Linear → Settings → Security & access → Personal API keys. Shows your open issues and links each Claude Code session to the issue in its branch name.": {
       "localizations": {
         "es": {
@@ -2832,6 +2942,16 @@
         }
       }
     },
+    "Low": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Baja"
+          }
+        }
+      }
+    },
     "Low risk": {
       "localizations": {
         "es": {
@@ -2888,6 +3008,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "Máxima (16.000)"
+          }
+        }
+      }
+    },
+    "Medium": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Media"
           }
         }
       }
@@ -3262,6 +3392,16 @@
         }
       }
     },
+    "No priority": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sin prioridad"
+          }
+        }
+      }
+    },
     "No saved chats yet": {
       "localizations": {
         "es": {
@@ -3448,6 +3588,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "OK"
+          }
+        }
+      }
+    },
+    "Off": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Desactivado"
           }
         }
       }
@@ -3892,6 +4042,16 @@
         }
       }
     },
+    "Pin (always visible)": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Fijar (siempre visible)"
+          }
+        }
+      }
+    },
     "Plugin · %@": {
       "localizations": {
         "es": {
@@ -4188,6 +4348,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "Reviews"
+          }
+        }
+      }
+    },
+    "Rotate the rest": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Rotar las demás"
           }
         }
       }
@@ -4762,6 +4932,16 @@
         }
       }
     },
+    "The issue isn't ready to create": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "La incidencia no está lista para crearse"
+          }
+        }
+      }
+    },
     "The provider answered with an error (%lld).": {
       "localizations": {
         "es": {
@@ -4982,6 +5162,16 @@
         }
       }
     },
+    "Unpin": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Dejar de fijar"
+          }
+        }
+      }
+    },
     "Unread · %lld": {
       "localizations": {
         "es": {
@@ -5058,6 +5248,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "Subiendo %@"
+          }
+        }
+      }
+    },
+    "Urgent": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Urgente"
           }
         }
       }

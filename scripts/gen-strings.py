@@ -3,6 +3,13 @@
 import json
 ES = {
 # status / integrations
+# chat engines (other agent CLIs)
+"Codex isn't installed. Install it, or pick another chat engine in Settings.":"Codex no está instalado. Instálalo, o elige otro motor de chat en Ajustes.",
+"Codex isn't signed in. Run `codex login` in a terminal, then ask again.":"Codex no tiene sesión iniciada. Ejecuta `codex login` en una terminal y vuelve a preguntar.",
+"Codex says you hit its usage limit. Wait a bit, or pick another chat engine.":"Codex dice que alcanzaste su límite de uso. Espera un poco o elige otro motor de chat.",
+"Gemini CLI isn't installed. Install it, or pick another chat engine in Settings.":"Gemini CLI no está instalado. Instálalo, o elige otro motor de chat en Ajustes.",
+"Gemini CLI isn't signed in. Run `gemini` in a terminal and sign in, then ask again.":"Gemini CLI no tiene sesión iniciada. Ejecuta `gemini` en una terminal, inicia sesión y vuelve a preguntar.",
+"Gemini says you hit its usage limit. Wait a bit, or pick another chat engine.":"Gemini dice que alcanzaste su límite de uso. Espera un poco o elige otro motor de chat.",
 "just now":"ahora mismo",
 "Not configured · add it in Settings":"Sin configurar · añádelo en Ajustes",
 "Checking connection…":"Comprobando conexión…",
@@ -128,7 +135,7 @@ ES = {
 "API key  (cal_live_…)":"Clave de API  (cal_live_…)","Integration token  (secret_…)":"Token de integración  (secret_…)",
 "Save integrations":"Guardar integraciones","Enable sounds":"Activar sonidos","Volume":"Volumen","Behavior":"Comportamiento",
 "Close after":"Cerrar tras","s inactive":"s de inactividad","Hide after":"Ocultar tras","min without movement":"min sin movimiento",
-"Active pills":"Pastillas activas","Always active":"Siempre activa","%lld/4 slots used":"%lld/4 huecos usados","Hotkey":"Atajo",
+"Active pills":"Pastillas activas","Always active":"Siempre activa","%lld active · the island shows 4 at a time":"%lld activas · la isla muestra 4 a la vez","Rotate the rest":"Rotar las demás","Pin (always visible)":"Fijar (siempre visible)","Unpin":"Dejar de fijar","Off":"Desactivado","Every 10 s":"Cada 10 s","Every 30 s":"Cada 30 s","Every minute":"Cada minuto","Hotkey":"Atajo",
 "Show island with shortcut":"Mostrar la isla con un atajo","Shortcut":"Atajo","presses this → island opens":"al pulsarlo → se abre la isla",
 "Ask Mochi about the file you're editing":"Preguntar a Mochi por el archivo que editas","attaches the open file + selection":"adjunta el archivo abierto + la selección",
 "Mochi can read and search that project but never edits it.":"Mochi puede leer y buscar en ese proyecto, pero nunca lo edita.",
@@ -194,7 +201,8 @@ ES = {
 "You'll get approvals here when you're away from the Mac.":"Aquí recibirás las aprobaciones cuando no estés en el Mac.",
 # linear
 "Add your Linear API key in Settings":"Añade tu clave de API de Linear en Ajustes","Can't reach Linear":"No se puede conectar con Linear",
-"Linear didn't accept the comment":"Linear no aceptó el comentario","Connected · nothing assigned to you":"Conectado · no tienes nada asignado",
+"Linear didn't accept the comment":"Linear no aceptó el comentario","Linear didn't accept the issue":"Linear no aceptó la incidencia","The issue isn't ready to create":"La incidencia no está lista para crearse",
+"No priority":"Sin prioridad","Urgent":"Urgente","High":"Alta","Medium":"Media","Low":"Baja","Connected · nothing assigned to you":"Conectado · no tienes nada asignado",
 "Connected · %lld open issues":"Conectado · %lld issues abiertas","Assigned to you":"Asignadas a ti","Assigned to you · %lld":"Asignadas a ti · %lld",
 "Nothing open is assigned to you.":"No tienes nada abierto asignado.","A Claude Code session is working on it":"Una sesión de Claude Code está trabajando en ella",
 "Open in Linear":"Abrir en Linear","Copy branch name":"Copiar nombre de la rama","Copy identifier":"Copiar identificador",

@@ -82,7 +82,7 @@ targets:
         LSUIElement: YES
         NSHighResolutionCapable: YES
         NSSupportsAutomaticGraphicsSwitching: YES
-        NSAppleEventsUsageDescription: "To jump to your terminal and send emails."
+        NSAppleEventsUsageDescription: "To jump to your terminal, send emails and control Music and Spotify."
         NSAccessibilityUsageDescription: "To read the active window and the file you're editing, and attach them as context."
         NSAppTransportSecurity:
           NSAllowsLocalNetworking: true

@@ -7,13 +7,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "To jump to your terminal and send emails."
+            "value": "To jump to your terminal, send emails and control Music and Spotify."
           }
         },
         "es": {
           "stringUnit": {
             "state": "translated",
-            "value": "Para saltar a tu terminal y enviar correos."
+            "value": "Para saltar a tu terminal, enviar correos y controlar Music y Spotify."
           }
         }
       }
