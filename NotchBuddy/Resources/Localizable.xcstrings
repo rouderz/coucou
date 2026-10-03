@@ -2302,6 +2302,16 @@
         }
       }
     },
+    "High": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Alta"
+          }
+        }
+      }
+    },
     "High risk": {
       "localizations": {
         "es": {
@@ -2672,6 +2682,16 @@
         }
       }
     },
+    "Linear didn't accept the issue": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Linear no aceptó la incidencia"
+          }
+        }
+      }
+    },
     "Linear → Settings → Security & access → Personal API keys. Shows your open issues and links each Claude Code session to the issue in its branch name.": {
       "localizations": {
         "es": {
@@ -2782,6 +2802,16 @@
         }
       }
     },
+    "Low": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Baja"
+          }
+        }
+      }
+    },
     "Low risk": {
       "localizations": {
         "es": {
@@ -2838,6 +2868,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "Máxima (16.000)"
+          }
+        }
+      }
+    },
+    "Medium": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Media"
           }
         }
       }
@@ -3188,6 +3228,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "Aún no hay páginas compartidas con tu integración. En Notion: página → ••• → Conexiones → añádela y pulsa ↻."
+          }
+        }
+      }
+    },
+    "No priority": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sin prioridad"
           }
         }
       }
@@ -4692,6 +4742,16 @@
         }
       }
     },
+    "The issue isn't ready to create": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "La incidencia no está lista para crearse"
+          }
+        }
+      }
+    },
     "The provider answered with an error (%lld).": {
       "localizations": {
         "es": {
@@ -4998,6 +5058,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "Subiendo %@"
+          }
+        }
+      }
+    },
+    "Urgent": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Urgente"
           }
         }
       }

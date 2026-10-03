@@ -194,7 +194,8 @@ ES = {
 "You'll get approvals here when you're away from the Mac.":"Aquí recibirás las aprobaciones cuando no estés en el Mac.",
 # linear
 "Add your Linear API key in Settings":"Añade tu clave de API de Linear en Ajustes","Can't reach Linear":"No se puede conectar con Linear",
-"Linear didn't accept the comment":"Linear no aceptó el comentario","Connected · nothing assigned to you":"Conectado · no tienes nada asignado",
+"Linear didn't accept the comment":"Linear no aceptó el comentario","Linear didn't accept the issue":"Linear no aceptó la incidencia","The issue isn't ready to create":"La incidencia no está lista para crearse",
+"No priority":"Sin prioridad","Urgent":"Urgente","High":"Alta","Medium":"Media","Low":"Baja","Connected · nothing assigned to you":"Conectado · no tienes nada asignado",
 "Connected · %lld open issues":"Conectado · %lld issues abiertas","Assigned to you":"Asignadas a ti","Assigned to you · %lld":"Asignadas a ti · %lld",
 "Nothing open is assigned to you.":"No tienes nada abierto asignado.","A Claude Code session is working on it":"Una sesión de Claude Code está trabajando en ella",
 "Open in Linear":"Abrir en Linear","Copy branch name":"Copiar nombre de la rama","Copy identifier":"Copiar identificador",
