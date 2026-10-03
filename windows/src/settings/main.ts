@@ -462,15 +462,13 @@ const INTEGRATIONS: IntegrationDef[] = [
   { id: "integration_gmail", name: "Gmail", color: "#EA4335", fields: [] },
 ];
 
-const MAX_ACTIVE = 4;
-
 function integrationsSection(present: Record<string, boolean>): HTMLElement {
   const note = h("div", { class: "hint" });
   const list = h("div", { style: "display:flex;flex-direction:column;gap:14px" });
 
   function updateNote() {
     const used = settings.activeIntegrations.length;
-    note.textContent = `Pick up to ${MAX_ACTIVE} pills to show next to Mochi — ${used}/${MAX_ACTIVE} in use. Keys are stored in ${keychainName}, never on disk.`;
+    note.textContent = `${used} active — the island shows 4 at a time and rotates the rest. Keys are stored in ${keychainName}, never on disk.`;
   }
 
   for (const def of INTEGRATIONS) {
@@ -481,7 +479,6 @@ function integrationsSection(present: Record<string, boolean>): HTMLElement {
       if (on) {
         settings.activeIntegrations = settings.activeIntegrations.filter((x) => x !== def.id);
       } else {
-        if (settings.activeIntegrations.length >= MAX_ACTIVE) return;
         settings.activeIntegrations = [...settings.activeIntegrations, def.id];
       }
       sw.classList.toggle("on", !on);
@@ -532,8 +529,21 @@ function integrationsSection(present: Record<string, boolean>): HTMLElement {
     );
   }
 
+  // How often the pills that don't fit in the island rotate in (#111).
+  const rotation = h("select", {}) as HTMLSelectElement;
+  for (const [secs, label] of [[0, "Off"], [10, "Every 10 s"], [30, "Every 30 s"], [60, "Every minute"]] as const) {
+    rotation.append(h("option", { value: String(secs), text: label }));
+  }
+  rotation.value = String(settings.pillRotationSeconds ?? 30);
+  rotation.addEventListener("change", () => {
+    settings.pillRotationSeconds = Number(rotation.value);
+    void save();
+  });
+  const rotationRow = h("div", { style: "display:flex;align-items:center;gap:10px;margin:8px 0" },
+    h("label", { text: "Rotate the rest" }), rotation);
+
   updateNote();
-  return h("section", {}, h("h2", {}, h("span", { text: "Integrations" })), note, list);
+  return h("section", {}, h("h2", {}, h("span", { text: "Integrations" })), note, rotationRow, list);
 }
 
 // ── Phone alerts (#31 on macOS) ───────────────────────────────────────────────

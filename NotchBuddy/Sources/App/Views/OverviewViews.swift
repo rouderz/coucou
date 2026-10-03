@@ -360,12 +360,8 @@ struct AgentPillsView: View {
     @ObservedObject var state: AppState
     @State private var swapping = false
 
-    private var others: [AgentTask] {
-        state.tasks.filter { $0.id != state.focusId }
-    }
-
     private var displayTasks: [AgentTask] {
-        Array(others.prefix(4))
+        state.visiblePills
     }
 
     private let columns = [
@@ -390,6 +386,28 @@ struct AgentPillsView: View {
             Spacer(minLength: 0)
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
+        .overlay(alignment: .bottomTrailing) { overflowMenu }
+    }
+
+    /// "+N": how many more are active; the menu lists them to bring one to the front.
+    @ViewBuilder private var overflowMenu: some View {
+        let hidden = state.overflowPills
+        if !hidden.isEmpty {
+            Menu {
+                ForEach(hidden) { task in
+                    Button(task.name) { state.setFocus(task.id) }
+                }
+            } label: {
+                Text("+\(hidden.count)")
+                    .font(.system(size: 9, weight: .semibold))
+                    .foregroundColor(Color(hex: "#6B7079"))
+            }
+            .menuStyle(.borderlessButton)
+            .menuIndicator(.hidden)
+            .fixedSize()
+            .padding(.trailing, 10)
+            .padding(.bottom, 2)
+        }
     }
 }
 
@@ -449,6 +467,12 @@ struct AgentPill: View {
             }
         }
         .buttonStyle(.plain)
+        .contextMenu {
+            Button(state.pinnedPills.contains(task.id) ? "Unpin" : "Pin (always visible)") { state.togglePinned(task.id) }
+            if task.id != "integration_claude" && task.isIntegration {
+                Button("Hide") { state.toggleIntegration(task.id) }
+            }
+        }
         .scaleEffect(isHovered ? 1.04 : 1.0)
         .brightness(isHovered ? 0.06 : 0)
         .onHover { newHover in
@@ -500,12 +524,12 @@ struct ColumnAgentsView: View {
     @ObservedObject var state: AppState
 
     var others: [AgentTask] {
-        state.tasks.filter { $0.id != state.focusId }
+        state.visiblePills
     }
 
     var body: some View {
         VStack(spacing: 0) {
-            ForEach(Array(others.prefix(4).enumerated()), id: \.1.id) { idx, task in
+            ForEach(Array(others.enumerated()), id: \.1.id) { idx, task in
                 MiniBotCanvasView(task: task)
                     .frame(width: 16 / 0.6, height: 16 / 0.6)
                     .frame(width: 16, height: 16)

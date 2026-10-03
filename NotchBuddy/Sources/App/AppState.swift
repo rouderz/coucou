@@ -4,7 +4,7 @@ import Combine
 
 // Integration pills — always-present, never purged
 extension AgentTask {
-    /// All available integration pills. Claude is always active; others are opt-in (max 4).
+    /// All available integration pills. Claude is always active; others are opt-in.
     static let integrationAgents: [AgentTask] = [
         AgentTask(id: "integration_claude",  name: "Claude Code",   color: "#F5F6F8", state: .idle, steps: [], source: .claudeCode, isIntegration: true),
         AgentTask(id: "integration_resend",  name: "Resend",    color: "#22C55E", state: .idle, steps: [], source: .n8n, isIntegration: true),
@@ -37,6 +37,7 @@ final class AppState: ObservableObject {
         didSet {
             guard mode != oldValue else { return }
             PollGate.shared.setIslandHidden(mode == .hidden)
+            updatePillRotation()
             // Opening the island refreshes integrations whose data went stale while it was away.
             if mode == .expanded { PollGate.shared.catchUp() }
         }
@@ -290,13 +291,69 @@ final class AppState: ObservableObject {
         }
     }
 
-    // Active integration pills (Claude Code excluded — always on). Max 4.
+    // Active integration pills (Claude Code excluded — always on). The island shows 4 at a time (#111).
     @Published var activeIntegrations: Set<String> = ["integration_resend", "integration_n8n", "integration_vercel", "integration_github"] {
         didSet {
             if let data = try? JSONEncoder().encode(Array(activeIntegrations)) {
                 UserDefaults.standard.set(data, forKey: "activeIntegrations")
             }
         }
+    }
+
+    /// Seconds between pill rotations when more than 4 are active; 0 = no rotation (#111).
+    @Published var pillRotationSeconds: Int = 30 {
+        didSet {
+            UserDefaults.standard.set(pillRotationSeconds, forKey: "pillRotationSeconds")
+            updatePillRotation()
+        }
+    }
+    @Published private(set) var pillRotationOffset: Int = 0
+    private var pillRotationTimer: Timer?
+
+    /// Pills that never rotate out of the island (context menu on a pill).
+    @Published var pinnedPills: Set<String> = [] {
+        didSet {
+            UserDefaults.standard.set(Array(pinnedPills), forKey: "pinnedPills")
+            updatePillRotation()
+        }
+    }
+
+    func togglePinned(_ id: String) {
+        if pinnedPills.contains(id) { pinnedPills.remove(id) } else { pinnedPills.insert(id) }
+    }
+
+    /// The pills the island shows next to the focused one: up to 4, rotating through the rest.
+    var visiblePills: [AgentTask] {
+        let others = tasks.filter { $0.id != focusId }
+        let news = Set(others.filter { $0.pillBadge != nil }.map(\.id))
+        let ids = PillRotation.visible(ids: others.map(\.id), pinned: pinnedPills, news: news, offset: pillRotationOffset)
+        return others.filter { ids.contains($0.id) }
+    }
+
+    /// Active pills that aren't in the island right now (the "+N" strip).
+    var overflowPills: [AgentTask] {
+        let shown = Set(visiblePills.map(\.id))
+        return tasks.filter { $0.id != focusId && !shown.contains($0.id) }
+    }
+
+    /// How many active pills don't fit in the island right now.
+    var hiddenPillCount: Int { max(0, tasks.filter { $0.id != focusId }.count - PillRotation.slots) }
+
+    /// The rotation timer exists only while the island is showing and there is something to rotate: 0 % CPU otherwise.
+    func updatePillRotation() {
+        pillRotationTimer?.invalidate()
+        pillRotationTimer = nil
+        guard mode != .hidden, pillRotationSeconds > 0, hiddenPillCount > 0 else { return }
+        let timer = Timer(timeInterval: TimeInterval(pillRotationSeconds), repeats: true) { _ in
+            MainActor.assumeIsolated {
+                let s = AppState.shared
+                guard s.hiddenPillCount > 0 else { s.updatePillRotation(); return }
+                s.pillRotationOffset += 1
+            }
+        }
+        timer.tolerance = 1
+        RunLoop.main.add(timer, forMode: .common)
+        pillRotationTimer = timer
     }
 
     // Pending API result
@@ -453,6 +510,8 @@ final class AppState: ObservableObject {
         if let v = ud.object(forKey: "voiceHotkeyCode")   as? Int    { voiceHotkeyCode = UInt16(v) }
         if let v = ud.object(forKey: "voiceLanguage")     as? String { voiceLanguage = v }
         if let v = ud.object(forKey: "voiceSpeakReplies") as? Bool   { voiceSpeakReplies = v }
+        if let v = ud.object(forKey: "pillRotationSeconds") as? Int { pillRotationSeconds = v }
+        if let v = ud.stringArray(forKey: "pinnedPills") { pinnedPills = Set(v) }
         if let v = ud.object(forKey: "wakeWordEnabled") as? Bool { wakeWordEnabled = v }
         if let v = ud.object(forKey: "wakeWordOnlyOnPower") as? Bool { wakeWordOnlyOnPower = v }
         if let d = ud.data(forKey: "vercelProjectFilter"),
@@ -532,9 +591,10 @@ final class AppState: ObservableObject {
         }
         if focusId == nil { focusId = "integration_claude" }
         syncMode()
+        updatePillRotation()
     }
 
-    /// Toggle an integration pill on/off. Claude Code cannot be toggled. Max 4 active at once.
+    /// Toggle an integration pill on/off. Claude Code cannot be toggled.
     func toggleIntegration(_ id: String) {
         guard id != "integration_claude" else { return }
         if activeIntegrations.contains(id) {
@@ -542,7 +602,6 @@ final class AppState: ObservableObject {
             tasks.removeAll { $0.id == id }
             if focusId == id { focusId = "integration_claude" }
         } else {
-            guard activeIntegrations.count < 4 else { return }
             activeIntegrations.insert(id)
             if let task = AgentTask.integrationAgents.first(where: { $0.id == id }),
                !tasks.contains(where: { $0.id == id }) {
@@ -550,6 +609,7 @@ final class AppState: ObservableObject {
             }
         }
         syncMode()
+        updatePillRotation()
     }
 
 }

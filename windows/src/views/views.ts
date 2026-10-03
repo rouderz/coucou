@@ -282,16 +282,62 @@ function buildOverview(actions: ViewActions): ViewHost {
 
       jump.style.display = detailOpen ? "none" : "";
 
-      const others = State.otherTasks.slice(0, 4);
-      const pillKey = others.map((t) => `${t.id}:${t.pillBadge ?? ""}`).join("|");
+      const others = State.visiblePills;
+      const overflow = State.overflowPills;
+      const pillKey = others.map((t) => `${t.id}:${t.pillBadge ?? ""}:${State.settings.pinnedPills?.includes(t.id) ? 1 : 0}`).join("|")
+        + `+${overflow.map((t) => t.id).join(",")}`;
       if (pillKey !== pillIds) {
         pillIds = pillKey;
         clear(pills);
         for (const t of others) pills.append(buildPill(t, actions));
+        if (overflow.length > 0) pills.append(buildMore(overflow, actions));
         pruneMiniBots();
       }
     },
   };
+}
+
+interface PillMenuItem { label: string; run: () => void }
+
+function persistPills() {
+  void Bridge.saveSettings(State.settings);
+}
+
+/** A small menu at the cursor; any click elsewhere (or Escape) closes it. */
+function showPillMenu(x: number, y: number, items: PillMenuItem[]) {
+  document.querySelector(".pill-menu")?.remove();
+  const menu = h("div", { class: "pill-menu" });
+  const close = () => {
+    menu.remove();
+    document.removeEventListener("pointerdown", onOutside, true);
+    document.removeEventListener("keydown", onKey, true);
+  };
+  const onOutside = (e: Event) => { if (!menu.contains(e.target as Node)) close(); };
+  const onKey = (e: KeyboardEvent) => { if (e.key === "Escape") close(); };
+  for (const item of items) {
+    menu.append(h("button", { text: item.label, onclick: () => { close(); item.run(); } }));
+  }
+  document.body.append(menu);
+  menu.style.left = `${Math.max(2, Math.min(x, window.innerWidth - menu.offsetWidth - 2))}px`;
+  menu.style.top = `${Math.max(2, Math.min(y, window.innerHeight - menu.offsetHeight - 2))}px`;
+  document.addEventListener("pointerdown", onOutside, true);
+  document.addEventListener("keydown", onKey, true);
+}
+
+/** "+N": how many more are active; the menu brings one to the front. */
+function buildMore(overflow: AgentTask[], actions: ViewActions): HTMLElement {
+  return h("button", {
+    class: "pills-more",
+    text: `+${overflow.length}`,
+    title: overflow.map((t) => t.name).join(", "),
+    onclick: (e: Event) => {
+      const r = (e.currentTarget as HTMLElement).getBoundingClientRect();
+      showPillMenu(r.left, r.top, overflow.map((t) => ({
+        label: t.id === "integration_claude" ? "VS Code" : t.name,
+        run: () => actions.setFocus(t.id),
+      })));
+    },
+  });
 }
 
 function buildPill(task: AgentTask, actions: ViewActions): HTMLElement {
@@ -304,6 +350,17 @@ function buildPill(task: AgentTask, actions: ViewActions): HTMLElement {
     h("span", { class: "lbl", text: label }),
   );
   pill.style.borderColor = `${task.color}24`;
+  pill.addEventListener("contextmenu", (e) => {
+    e.preventDefault();
+    const pinned = State.settings.pinnedPills?.includes(task.id) ?? false;
+    const items: PillMenuItem[] = [
+      { label: pinned ? "Unpin" : "Pin (always visible)", run: () => { State.togglePinned(task.id); persistPills(); } },
+    ];
+    if (task.id !== "integration_claude") {
+      items.push({ label: "Hide", run: () => { State.toggleIntegration(task.id); persistPills(); } });
+    }
+    showPillMenu(e.clientX, e.clientY, items);
+  });
   pill.addEventListener("mouseenter", () => {
     pill.style.background = `${task.color}2e`;
     pill.style.borderColor = `${task.color}8c`;

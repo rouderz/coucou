@@ -128,7 +128,7 @@ ES = {
 "API key  (cal_live_…)":"Clave de API  (cal_live_…)","Integration token  (secret_…)":"Token de integración  (secret_…)",
 "Save integrations":"Guardar integraciones","Enable sounds":"Activar sonidos","Volume":"Volumen","Behavior":"Comportamiento",
 "Close after":"Cerrar tras","s inactive":"s de inactividad","Hide after":"Ocultar tras","min without movement":"min sin movimiento",
-"Active pills":"Pastillas activas","Always active":"Siempre activa","%lld/4 slots used":"%lld/4 huecos usados","Hotkey":"Atajo",
+"Active pills":"Pastillas activas","Always active":"Siempre activa","%lld active · the island shows 4 at a time":"%lld activas · la isla muestra 4 a la vez","Rotate the rest":"Rotar las demás","Pin (always visible)":"Fijar (siempre visible)","Unpin":"Dejar de fijar","Off":"Desactivado","Every 10 s":"Cada 10 s","Every 30 s":"Cada 30 s","Every minute":"Cada minuto","Hotkey":"Atajo",
 "Show island with shortcut":"Mostrar la isla con un atajo","Shortcut":"Atajo","presses this → island opens":"al pulsarlo → se abre la isla",
 "Ask Mochi about the file you're editing":"Preguntar a Mochi por el archivo que editas","attaches the open file + selection":"adjunta el archivo abierto + la selección",
 "Mochi can read and search that project but never edits it.":"Mochi puede leer y buscar en ese proyecto, pero nunca lo edita.",
