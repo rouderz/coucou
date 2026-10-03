@@ -237,6 +237,8 @@ const ES: Record<string, string> = {
   "No ntfy topic yet": "Aún no hay tema de ntfy", "Can't reach GitHub": "No se puede conectar con GitHub",
   "Can't reach Linear": "No se puede conectar con Linear", "Invalid API key (401)": "Clave de API no válida (401)",
   "Add your Linear API key in Settings": "Añade tu clave de API de Linear en Ajustes",
+  "Linear didn't accept the issue": "Linear no aceptó la incidencia", "The issue isn't ready to create": "La incidencia no está lista para crearse",
+  "No priority": "Sin prioridad", "Urgent": "Urgente", "High": "Alta", "Medium": "Media", "Low": "Baja",
 };
 
 /** Texts with something in them that changes: [pattern, Spanish with $1, $2…]. */
