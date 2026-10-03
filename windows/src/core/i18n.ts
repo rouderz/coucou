@@ -169,6 +169,10 @@ const ES: Record<string, string> = {
   "Unknown ticket": "Ticket desconocido", "Someone already took that ticket.": "Alguien ya tomó ese ticket.",
   "Your WhaTicket profile isn't allowed to do that (403).": "Tu perfil de WhaTicket no tiene permiso para eso (403).",
   // Google
+  "Google Calendar": "Google Calendar", "Next meeting": "Próxima reunión", "Join": "Unirse", "Open event": "Abrir evento",
+  "Calendars": "Calendarios", "(No title)": "(Sin título)", "Do not disturb during meetings": "No molestar durante las reuniones",
+  "Meeting pill and Do not disturb during meetings (read-only). Turning it on asks Google for one more permission.":
+    "Pastilla de reunión y No molestar durante las reuniones (solo lectura). Al activarlo, Google pide un permiso más.",
   "Google": "Google", "Gmail": "Gmail", "Disconnect": "Desconectar", "Connect Google…": "Conectar Google…",
   "Not connected yet.": "Aún no está conectado.", "Add your OAuth client first (steps above).": "Primero agrega tu cliente OAuth (pasos de arriba).",
   "Finish signing in in your browser…": "Termina de iniciar sesión en tu navegador…", "Connected.": "Conectado.",
@@ -282,6 +286,11 @@ const PATTERNS: [RegExp, string][] = [
   [/^Auto-approve in (.+):$/, "Auto-aprobar en $1:"],
   [/^Install (\d+) skills$/, "Instalar $1 skills"],
   [/^Connected as (.+)\.$/, "Conectado como $1."],
+  [/^Now: (.+) \(until (\d\d:\d\d)\)$/, "Ahora: $1 (hasta las $2)"],
+  [/^(.+) in (\d+) h (\d+) min$/, "$1 en $2 h $3 min"],
+  [/^(.+) in (\d+) h$/, "$1 en $2 h"],
+  [/^(.+) in (\d+) min$/, "$1 en $2 min"],
+  [/^Starting in 5 min · (.+)$/, "Empieza en 5 min · $1"],
   [/^Unread · (\d+)$/, "Sin leer · $1"],
   [/^Mail · (.+)$/, "Correo · $1"],
   [/^Ready for (.+)\. Extension folder: (.+)$/, "Lista para $1. Carpeta de la extensión: $2"],
