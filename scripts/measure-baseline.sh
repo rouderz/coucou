@@ -2,6 +2,7 @@
 # Baseline measurements for issue #1 (compare against them after the F2 work).
 #
 #   bash scripts/measure-baseline.sh cpu [seconds]   Sample Coucou's CPU and memory (default 60 s)
+#   bash scripts/measure-baseline.sh heymochi [seconds]  Same as cpu, default 300 s (#112: Hey Mochi on, quiet room → target ≤ 2 %)
 #   bash scripts/measure-baseline.sh tokens          Stream per-request token usage from the chat
 #
 # Suggested runs:
@@ -14,8 +15,8 @@ set -euo pipefail
 mode="${1:-cpu}"
 
 case "$mode" in
-  cpu)
-    secs="${2:-60}"
+  cpu|heymochi)
+    if [ "$mode" = heymochi ]; then secs="${2:-300}"; else secs="${2:-60}"; fi
     pid=$(pgrep -x Coucou | head -1) || { echo "Coucou is not running." >&2; exit 1; }
     echo "Sampling Coucou (pid $pid) for ${secs}s…"
     # top's first sample has no CPU delta, so take one extra and drop it.
@@ -47,7 +48,7 @@ case "$mode" in
       --predicate 'subsystem == "fr.louisraille.NotchBuddy" AND category == "claude"'
     ;;
   *)
-    echo "Usage: $0 cpu [seconds] | tokens" >&2
+    echo "Usage: $0 cpu [seconds] | heymochi [seconds] | tokens" >&2
     exit 2
     ;;
 esac

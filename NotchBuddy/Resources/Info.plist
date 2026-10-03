@@ -35,7 +35,7 @@
 		<true/>
 	</dict>
 	<key>NSAppleEventsUsageDescription</key>
-	<string>To jump to your terminal and send emails.</string>
+	<string>To jump to your terminal, send emails and control Music and Spotify.</string>
 	<key>NSCalendarsFullAccessUsageDescription</key>
 	<string>Do not disturb: Coucou stays quiet while you're in a calendar event.</string>
 	<key>NSHighResolutionCapable</key>
