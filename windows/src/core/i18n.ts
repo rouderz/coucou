@@ -236,7 +236,20 @@ const ES: Record<string, string> = {
     "Claude Code no tiene sesión iniciada. Ejecuta `claude` en una terminal e inicia sesión con /login.",
   "No ntfy topic yet": "Aún no hay tema de ntfy", "Can't reach GitHub": "No se puede conectar con GitHub",
   "Can't reach Linear": "No se puede conectar con Linear", "Invalid API key (401)": "Clave de API no válida (401)",
-  "Add your Linear API key in Settings": "Añade tu clave de API de Linear en Ajustes",
+  "Add your Linear API key in Settings": "Añade tu clave de API de Linear en Ajustes",  // github pull requests (#113)
+  "To review": "Por revisar",
+  "Mine": "Míos",
+  "Approved": "Aprobado",
+  "Changes requested": "Cambios solicitados",
+  "Review required": "Revisión pendiente",
+  "Draft pull request": "Pull request en borrador",
+  "Checks are failing": "Las comprobaciones fallan",
+  "Checks are still running": "Las comprobaciones siguen en marcha",
+  "Changes were requested": "Se solicitaron cambios",
+  "No merge method is allowed on this repository": "Este repositorio no permite ningún método de fusión",
+  "Write a comment first": "Escribe antes un comentario",
+  "Repository must look like owner/name": "El repositorio debe tener la forma propietario/nombre",
+  "Invalid pull request number": "Número de pull request no válido",
 };
 
 /** Texts with something in them that changes: [pattern, Spanish with $1, $2…]. */

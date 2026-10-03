@@ -156,6 +156,15 @@ enum GitHubCLI {
         return out.status == 0
     }
 
+    /// Any read-only `gh` command that prints JSON (e.g. `gh search prs … --json …`), parsed.
+    /// Blocking: call it off the main thread.
+    static func json(_ args: [String]) -> Any? {
+        guard let gh = locate(),
+              let out = CLITool.run(gh.path, args, environment: environment(for: gh), timeout: 25),
+              out.status == 0 else { return nil }
+        return try? JSONSerialization.jsonObject(with: out.stdoutData)
+    }
+
     // MARK: Conditional requests (#8)
 
     private static let etagLock = NSLock()
