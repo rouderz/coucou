@@ -193,8 +193,8 @@ enum CICore {
             .components(separatedBy: "\n")
             .map { line -> String in
                 var l = line
-                l = l.replacingOccurrences(of: #"^\u{FEFF}?\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(\.\d+)?Z ?"#, with: "", options: .regularExpression)
-                l = l.replacingOccurrences(of: #"\u{1B}\[[0-9;?]*[ -/]*[@-~]"#, with: "", options: .regularExpression)
+                l = l.replacingOccurrences(of: #"^\x{FEFF}?\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(\.\d+)?Z ?"#, with: "", options: .regularExpression)
+                l = l.replacingOccurrences(of: #"\x{1B}\[[0-9;?]*[ -/]*[@-~]"#, with: "", options: .regularExpression)
                 while l.last == " " || l.last == "\t" { l.removeLast() }
                 return l
             }
