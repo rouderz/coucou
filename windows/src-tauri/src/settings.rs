@@ -13,6 +13,12 @@ pub struct Settings {
     pub auto_close_interval: f64,
     pub absence_interval: f64,
     pub active_integrations: Vec<String>,
+    /// Pills that never rotate out of the island (more than 4 can be active).
+    #[serde(default)]
+    pub pinned_pills: Vec<String>,
+    /// Seconds between pill rotations when more than 4 are active; 0 = off.
+    #[serde(default = "default_pill_rotation")]
+    pub pill_rotation_seconds: u32,
     /// "primary" = the main display, "cursor" = whichever display the mouse is on.
     pub screen: String,
     pub autostart: bool,
@@ -113,6 +119,10 @@ fn default_gmail_query() -> String {
     "is:unread in:inbox".into()
 }
 
+fn default_pill_rotation() -> u32 {
+    30
+}
+
 fn default_provider() -> String {
     "openai".into()
 }
@@ -167,6 +177,8 @@ impl Default for Settings {
             inbox_linear: true,
             inbox_kinds: all_kinds(),
             check_updates: true,
+            pinned_pills: Vec::new(),
+            pill_rotation_seconds: default_pill_rotation(),
             provider_id: default_provider(),
             provider_base_url: String::new(),
             provider_model: String::new(),
@@ -226,5 +238,16 @@ mod tests {
         assert_eq!(old.whaticket_queues, vec!["1".to_string(), "q-2".to_string()]);
         let none: Settings = serde_json::from_str(r#"{"soundEnabled":true,"soundVolume":0.1,"autoCloseInterval":15,"absenceInterval":180,"activeIntegrations":[],"screen":"primary","autostart":false,"hooksInstalled":false}"#).unwrap();
         assert!(none.whaticket_queues.is_empty());
+    }
+
+    #[test]
+    fn pill_settings_default_for_older_files_and_round_trip() {
+        let old: Settings = serde_json::from_str(r#"{"soundEnabled":true,"soundVolume":0.1,"autoCloseInterval":15,"absenceInterval":180,"activeIntegrations":[],"screen":"primary","autostart":false,"hooksInstalled":false}"#).unwrap();
+        assert!(old.pinned_pills.is_empty());
+        assert_eq!(old.pill_rotation_seconds, 30);
+        let json = serde_json::to_string(&Settings { pinned_pills: vec!["integration_github".into()], pill_rotation_seconds: 0, ..Settings::default() }).unwrap();
+        let back: Settings = serde_json::from_str(&json).unwrap();
+        assert_eq!(back.pinned_pills, vec!["integration_github".to_string()]);
+        assert_eq!(back.pill_rotation_seconds, 0);
     }
 }

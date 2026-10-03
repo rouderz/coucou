@@ -1,5 +1,6 @@
 // App state — mirror of AppState.swift (the parts the island needs).
 
+import { visiblePillIds, PILL_SLOTS } from "./pills";
 import type { BotEmoteName, BotStateName, IslandMode, IslandViewName } from "./layout";
 import type { EyeShape } from "../mochi/engine";
 import type { EditPreview } from "../claude/preview.ts";
@@ -146,6 +147,10 @@ export interface Settings {
   autoCloseInterval: number;
   absenceInterval: number;
   activeIntegrations: string[];
+  /** Pills that never rotate out of the island. */
+  pinnedPills: string[];
+  /** Seconds between pill rotations when more than 4 are active; 0 = off. */
+  pillRotationSeconds: number;
   screen: "primary" | "cursor";
   autostart: boolean;
   hooksInstalled: boolean;
@@ -194,6 +199,8 @@ export const DEFAULT_SETTINGS: Settings = {
   activeIntegrations: [
     "integration_resend", "integration_n8n", "integration_vercel", "integration_github",
   ],
+  pinnedPills: [],
+  pillRotationSeconds: 30,
   screen: "primary",
   autostart: false,
   hooksInstalled: false,
@@ -234,6 +241,10 @@ class AppState {
   focusId: string | null = null;
 
   stateOverride: BotStateName | null = null;
+
+  private pillOffset = 0;
+  private pillTimer: number | null = null;
+  private pillTimerSecs = 0;
 
   /** Cursor in logical screen pixels, origin top-left (like AppState.mousePosition). */
   mouse = { x: 0, y: 0 };
@@ -293,6 +304,7 @@ class AppState {
 
   /** Marks the UI dirty; the island re-renders on the next frame. */
   notify() {
+    this.syncPillTimer();
     for (const fn of this.listeners) fn();
   }
 
@@ -306,6 +318,48 @@ class AppState {
 
   get otherTasks(): AgentTask[] {
     return this.tasks.filter((t) => t.id !== this.focusId);
+  }
+
+  /** The pills shown next to the focused one: up to 4, rotating through the rest (#111). */
+  get visiblePills(): AgentTask[] {
+    const others = this.otherTasks;
+    const ids = visiblePillIds(
+      others.map((t) => t.id),
+      {
+        pinned: this.settings.pinnedPills,
+        news: others.filter((t) => t.pillBadge).map((t) => t.id),
+        offset: this.pillOffset,
+      },
+    );
+    return others.filter((t) => ids.includes(t.id));
+  }
+
+  /** Active pills that aren't in the island right now (the "+N" menu). */
+  get overflowPills(): AgentTask[] {
+    const shown = new Set(this.visiblePills.map((t) => t.id));
+    return this.otherTasks.filter((t) => !shown.has(t.id));
+  }
+
+  togglePinned(id: string) {
+    const pinned = this.settings.pinnedPills ?? [];
+    this.settings.pinnedPills = pinned.includes(id) ? pinned.filter((x) => x !== id) : [...pinned, id];
+    this.notify();
+  }
+
+  /** The timer exists only while the island shows and some pills don't fit: nothing runs otherwise. */
+  private syncPillTimer() {
+    const secs = this.settings.pillRotationSeconds ?? 0;
+    const want = this.mode !== "hidden" && secs > 0 && this.otherTasks.length > PILL_SLOTS ? secs : 0;
+    if (want === this.pillTimerSecs) return;
+    if (this.pillTimer !== null) window.clearInterval(this.pillTimer);
+    this.pillTimer = null;
+    this.pillTimerSecs = want;
+    if (want > 0) {
+      this.pillTimer = window.setInterval(() => {
+        this.pillOffset += 1;
+        this.notify();
+      }, want * 1000);
+    }
   }
 
   setFocus(id: string) {
@@ -339,7 +393,7 @@ class AppState {
     this.notify();
   }
 
-  /** loadIntegrationTasks() — VS Code always on, the rest opt-in (max 4). */
+  /** loadIntegrationTasks() — VS Code always on, the rest opt-in . */
   loadIntegrationTasks() {
     for (const proto of INTEGRATION_AGENTS) {
       const shouldLoad =
@@ -362,7 +416,6 @@ class AppState {
       this.settings.activeIntegrations = active.filter((x) => x !== id);
       if (this.focusId === id) this.focusId = "integration_claude";
     } else {
-      if (active.length >= 4) return;
       this.settings.activeIntegrations = [...active, id];
     }
     this.loadIntegrationTasks();
