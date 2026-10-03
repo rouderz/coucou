@@ -85,11 +85,13 @@ enum CICore {
     static let slowInterval: TimeInterval = 300
     static let maxBackoff: TimeInterval = 30 * 60
 
-    private static let isoFractional: ISO8601DateFormatter = {
-        let f = ISO8601DateFormatter(); f.formatOptions = [.withInternetDateTime, .withFractionalSeconds]; return f
-    }()
-    private static let iso = ISO8601DateFormatter()
-    static func date(_ text: String) -> Date? { iso.date(from: text) ?? isoFractional.date(from: text) }
+    /// Formatters are built per call: ISO8601DateFormatter isn't Sendable, so Swift 6 refuses a shared static one.
+    static func date(_ text: String) -> Date? {
+        if let d = ISO8601DateFormatter().date(from: text) { return d }
+        let fractional = ISO8601DateFormatter()
+        fractional.formatOptions = [.withInternetDateTime, .withFractionalSeconds]
+        return fractional.date(from: text)
+    }
 
     /// Re-runs list a check twice: keep the newest run of each name.
     static func latestRuns(_ runs: [CheckRun]) -> [CheckRun] {
