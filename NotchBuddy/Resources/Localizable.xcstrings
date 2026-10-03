@@ -12,6 +12,36 @@
         }
       }
     },
+    "%@ in %lld h": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@ en %lld h"
+          }
+        }
+      }
+    },
+    "%@ in %lld h %lld min": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@ en %lld h %lld min"
+          }
+        }
+      }
+    },
+    "%@ in %lld min": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@ en %lld min"
+          }
+        }
+      }
+    },
     "%@ is ready.": {
       "localizations": {
         "es": {
@@ -118,6 +148,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "%lld guardados · se conservan los últimos %lld"
+          }
+        }
+      }
+    },
+    "(No title)": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "(Sin título)"
           }
         }
       }
@@ -798,6 +838,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "Acceso al calendario concedido"
+          }
+        }
+      }
+    },
+    "Calendars": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Calendarios"
           }
         }
       }
@@ -1852,6 +1902,16 @@
         }
       }
     },
+    "Do not disturb during meetings": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No molestar durante las reuniones"
+          }
+        }
+      }
+    },
     "Do not disturb: no sounds, the island doesn't open by itself": {
       "localizations": {
         "es": {
@@ -2258,6 +2318,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "Google"
+          }
+        }
+      }
+    },
+    "Google Calendar": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Google Calendar"
           }
         }
       }
@@ -2702,6 +2772,16 @@
         }
       }
     },
+    "Join": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Unirse"
+          }
+        }
+      }
+    },
     "Language": {
       "localizations": {
         "es": {
@@ -2962,6 +3042,16 @@
         }
       }
     },
+    "Meeting pill and Do not disturb during meetings (read-only). Turning it on asks Google for one more permission.": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Pastilla de reunión y No molestar durante las reuniones (solo lectura). Al activarlo, Google pide un permiso más."
+          }
+        }
+      }
+    },
     "Mentioned you": {
       "localizations": {
         "es": {
@@ -3178,6 +3268,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "Ticket nuevo · %@"
+          }
+        }
+      }
+    },
+    "Next meeting": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Próxima reunión"
           }
         }
       }
@@ -3472,6 +3572,16 @@
         }
       }
     },
+    "Now: %@ (until %@)": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ahora: %@ (hasta las %@)"
+          }
+        }
+      }
+    },
     "OK": {
       "localizations": {
         "es": {
@@ -3618,6 +3728,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "Abrir %@"
+          }
+        }
+      }
+    },
+    "Open event": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Abrir evento"
           }
         }
       }
@@ -4628,6 +4748,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "El reconocimiento de voz no está disponible para %@ en este Mac."
+          }
+        }
+      }
+    },
+    "Starting in 5 min · %@": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Empieza en 5 min · %@"
           }
         }
       }
