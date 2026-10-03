@@ -5,7 +5,7 @@ import XCTest
 final class FocusTimerTests: XCTestCase {
     private let t0 = Date(timeIntervalSince1970: 1_790_000_000)
     private func at(_ minutes: Double) -> Date { t0.addingTimeInterval(minutes * 60) }
-    private func fresh(_ config: FocusConfig = FocusConfig()) -> FocusState { FocusState(now: t0, config: config) }
+    private func fresh(_ config: FocusConfig = FocusConfig()) -> FocusTimerState { FocusTimerState(now: t0, config: config) }
 
     func testIdleDoesNothingAndRunsNoTimer() {
         let s = fresh()
@@ -24,7 +24,7 @@ final class FocusTimerTests: XCTestCase {
         XCTAssertEqual(step.event, .focusStarted)
         XCTAssertEqual(step.dnd, .some(at(25)))
         XCTAssertEqual(step.state.nextWake(at: t0), 25 * 60)
-        XCTAssertEqual(FocusState.format(step.state.remaining(at: at(1))), "24:00")
+        XCTAssertEqual(FocusTimerState.format(step.state.remaining(at: at(1))), "24:00")
         XCTAssertEqual(step.state.progress(at: at(5)), 0.2, accuracy: 0.0001)
 
         XCTAssertEqual(step.state.tick(now: at(24), currentDnd: at(25)).state.phase, .focus)
@@ -137,7 +137,7 @@ final class FocusTimerTests: XCTestCase {
         XCTAssertEqual(s.blocksToday, 1)
         XCTAssertEqual(s.skip(now: at(24 * 60), currentDnd: nil).state.blocksToday, 0)
         XCTAssertEqual(FocusConfig(focusMinutes: 0, breakMinutes: -3).sanitized().focusMinutes, 1)
-        XCTAssertEqual(FocusState.format(0), "00:00")
-        XCTAssertEqual(FocusState.format(0.2), "00:01")
+        XCTAssertEqual(FocusTimerState.format(0), "00:00")
+        XCTAssertEqual(FocusTimerState.format(0.2), "00:01")
     }
 }

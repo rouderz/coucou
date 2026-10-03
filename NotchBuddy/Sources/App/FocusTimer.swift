@@ -2,7 +2,7 @@ import Foundation
 import os
 
 // Focus timer (#119): work blocks led by Mochi.
-// FocusState is a pure value type with no clock and no timer (mirrors windows/src/core/focus.ts).
+// FocusTimerState is a pure value type with no clock and no timer (mirrors windows/src/core/focus.ts).
 // FocusTimer (below) owns the single one-shot Timer, which only exists while a phase is running,
 // and applies the Do not disturb writes a step asks for.
 //
@@ -44,18 +44,18 @@ enum FocusEvent: Sendable, Equatable {
 /// The result of a transition. `dnd` is nil when DND must stay as it is, `.some(nil)` for "turn off",
 /// `.some(date)` for "on until".
 struct FocusStep: Sendable, Equatable {
-    var state: FocusState
+    var state: FocusTimerState
     var dnd: Date??
     var event: FocusEvent?
 
-    init(_ state: FocusState, dnd: Date?? = nil, event: FocusEvent? = nil) {
+    init(_ state: FocusTimerState, dnd: Date?? = nil, event: FocusEvent? = nil) {
         self.state = state
         self.dnd = dnd
         self.event = event
     }
 }
 
-struct FocusState: Sendable, Equatable {
+struct FocusTimerState: Sendable, Equatable {
     var config: FocusConfig
     var phase: FocusPhase = .idle
     var paused = false
@@ -145,7 +145,7 @@ struct FocusState: Sendable, Equatable {
         var s = self
         s.rollDay(now, calendar)
         guard s.phase != .idle else { return FocusStep(s) }
-        let restore = FocusState.release(now: now, current: currentDnd, lease: s.lease)
+        let restore = FocusTimerState.release(now: now, current: currentDnd, lease: s.lease)
         var idle = s.idled()
         idle.cycle = 0
         return FocusStep(idle, dnd: restore, event: .stopped)
@@ -157,7 +157,7 @@ struct FocusState: Sendable, Equatable {
         s.rollDay(now, calendar)
         guard s.isRunning else { return FocusStep(s) }
         let left = s.remaining(at: now)
-        let restore = s.phase == .focus ? FocusState.release(now: now, current: currentDnd, lease: s.lease) : nil
+        let restore = s.phase == .focus ? FocusTimerState.release(now: now, current: currentDnd, lease: s.lease) : nil
         s.paused = true
         s.endsAt = nil
         s.pausedRemaining = left
@@ -174,14 +174,14 @@ struct FocusState: Sendable, Equatable {
         s.endsAt = end
         s.pausedRemaining = nil
         guard s.phase == .focus else { return FocusStep(s, event: .resumed) }
-        let (lease, write) = FocusState.acquire(now: now, current: currentDnd, until: end)
+        let (lease, write) = FocusTimerState.acquire(now: now, current: currentDnd, until: end)
         s.lease = lease
         return FocusStep(s, dnd: write, event: .resumed)
     }
 
     // MARK: Internals
 
-    private func idled() -> FocusState {
+    private func idled() -> FocusTimerState {
         var s = self
         s.phase = .idle
         s.paused = false
@@ -203,13 +203,13 @@ struct FocusState: Sendable, Equatable {
         s.pausedRemaining = nil
         s.lease = nil
         guard phase == .focus, let end = s.endsAt else { return FocusStep(s) }
-        let (lease, write) = FocusState.acquire(now: now, current: currentDnd, until: end)
+        let (lease, write) = FocusTimerState.acquire(now: now, current: currentDnd, until: end)
         s.lease = lease
         return FocusStep(s, dnd: write)
     }
 
     private func endFocus(now: Date, currentDnd: Date?, counted: Bool) -> FocusStep {
-        let restore = FocusState.release(now: now, current: currentDnd, lease: lease)
+        let restore = FocusTimerState.release(now: now, current: currentDnd, lease: lease)
         var s = self
         let newCycle = cycle + (counted ? 1 : 0)
         let long = counted && newCycle >= config.blocksBeforeLong

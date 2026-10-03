@@ -394,7 +394,7 @@ final class AppState: ObservableObject {
     var dndSkippedMeetingEnd: Date? = nil
 
     // Focus timer (#119). Driven by FocusTimer.shared; not persisted (a block doesn't survive a relaunch).
-    @Published var focus = FocusState()
+    @Published var focus = FocusTimerState()
 
     // Claude Code sessions running at the same time (#24). The card shows the focused one.
     @Published var claudeSessions: [ClaudeSession] = []
