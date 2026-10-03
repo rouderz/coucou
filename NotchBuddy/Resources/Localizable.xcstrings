@@ -102,6 +102,16 @@
         }
       }
     },
+    "%lld nodes · %lld edges": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%lld nodos · %lld aristas"
+          }
+        }
+      }
+    },
     "%lld saved · last %lld kept": {
       "localizations": {
         "es": {
@@ -778,6 +788,26 @@
           "stringUnit": {
             "state": "translated",
             "value": "Comportamiento"
+          }
+        }
+      }
+    },
+    "Build cancelled.": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Compilación cancelada."
+          }
+        }
+      }
+    },
+    "Build graph": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Crear grafo"
           }
         }
       }
@@ -1642,6 +1672,16 @@
         }
       }
     },
+    "Coucou doesn't install it. Run this in a terminal, then press Refresh:": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Coucou no lo instala. Ejecuta esto en una terminal y pulsa Actualizar:"
+          }
+        }
+      }
+    },
     "Coucou is connected": {
       "localizations": {
         "es": {
@@ -1748,6 +1788,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "No se pudo abrir un puerto local para iniciar sesión."
+          }
+        }
+      }
+    },
+    "Couldn't start graphify.": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No se pudo iniciar graphify."
           }
         }
       }
@@ -2238,6 +2288,46 @@
           "stringUnit": {
             "state": "translated",
             "value": "Dar acceso…"
+          }
+        }
+      }
+    },
+    "Graph is up to date": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "El grafo está al día"
+          }
+        }
+      }
+    },
+    "Graph present, freshness unknown": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Hay grafo, no se sabe si está al día"
+          }
+        }
+      }
+    },
+    "Graph updated.": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Grafo actualizado."
+          }
+        }
+      }
+    },
+    "Graphify builds a knowledge graph of a project that Claude can query instead of re-reading whole files. Builds run locally (code only, no LLM, no network) and write only into the project's graphify-out folder.": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Graphify crea un grafo de conocimiento de un proyecto que Claude puede consultar en vez de releer archivos enteros. Las compilaciones son locales (solo código, sin LLM ni red) y solo escriben en la carpeta graphify-out del proyecto."
           }
         }
       }
@@ -3142,6 +3232,16 @@
         }
       }
     },
+    "No graph yet": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Aún no hay grafo"
+          }
+        }
+      }
+    },
     "No internet connection. Check your network and try again.": {
       "localizations": {
         "es": {
@@ -3158,6 +3258,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "Aún no hay páginas compartidas con tu integración. En Notion: página → ••• → Conexiones → añádela y pulsa ↻."
+          }
+        }
+      }
+    },
+    "No projects yet. They appear here once a Claude Code or Codex session has run in a folder.": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Aún no hay proyectos. Aparecen aquí cuando una sesión de Claude Code o Codex se ha ejecutado en una carpeta."
           }
         }
       }
@@ -3468,6 +3578,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "Abrir %@"
+          }
+        }
+      }
+    },
+    "Open graph": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Abrir grafo"
           }
         }
       }
@@ -3848,6 +3968,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "Proyecto — %@"
+          }
+        }
+      }
+    },
+    "Projects": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Proyectos"
           }
         }
       }
@@ -4462,6 +4592,16 @@
         }
       }
     },
+    "Stale: %lld files changed (%@)": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Desactualizado: %lld archivos cambiaron (%@)"
+          }
+        }
+      }
+    },
     "Startup": {
       "localizations": {
         "es": {
@@ -4888,6 +5028,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "Novedad"
+          }
+        }
+      }
+    },
+    "Update graph": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Actualizar grafo"
           }
         }
       }
@@ -5388,6 +5538,56 @@
           "stringUnit": {
             "state": "translated",
             "value": "hace push forzado"
+          }
+        }
+      }
+    },
+    "graphify %@ found": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "graphify %@ encontrado"
+          }
+        }
+      }
+    },
+    "graphify %@ is too old (%@ or newer needed)": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "graphify %@ es demasiado antiguo (se necesita %@ o más reciente)"
+          }
+        }
+      }
+    },
+    "graphify found at %@, but its version can't be read": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "graphify encontrado en %@, pero no se puede leer su versión"
+          }
+        }
+      }
+    },
+    "graphify isn't installed": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "graphify no está instalado"
+          }
+        }
+      }
+    },
+    "graphify stopped with an error. Run it in a terminal to see why.": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "graphify terminó con un error. Ejecútalo en una terminal para ver el motivo."
           }
         }
       }

@@ -779,6 +779,13 @@ struct SettingsView: View {
                 }
                 #endif
 
+                #if !APPSTORE
+                // MARK: Graphify
+                GroupBox("Graphify") {
+                    GraphifySettingsSection()
+                }
+                #endif
+
                 // MARK: Updates
                 GroupBox("Updates") {
                     UpdatesSection(state: state).padding(6)

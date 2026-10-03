@@ -327,6 +327,22 @@ ES = {
 "Pick where to create it.":"Elige dónde crearla.","A skill with that name already exists.":"Ya existe una skill con ese nombre.",
 "Remove the skill":"Quitar la skill","What should it do?":"¿Qué debe hacer?","Ask me anything… (/ for skills)":"Pregúntame lo que quieras… (/ para skills)",
 "No skill matches.":"Ninguna skill coincide.","No skills installed. Add some in Settings → Skills.":"No hay skills instaladas. Agrégalas en Ajustes → Skills.",
+# graphify
+"Graphify builds a knowledge graph of a project that Claude can query instead of re-reading whole files. Builds run locally (code only, no LLM, no network) and write only into the project's graphify-out folder.":"Graphify crea un grafo de conocimiento de un proyecto que Claude puede consultar en vez de releer archivos enteros. Las compilaciones son locales (solo código, sin LLM ni red) y solo escriben en la carpeta graphify-out del proyecto.",
+"Coucou doesn't install it. Run this in a terminal, then press Refresh:":"Coucou no lo instala. Ejecuta esto en una terminal y pulsa Actualizar:",
+"Projects":"Proyectos",
+"No projects yet. They appear here once a Claude Code or Codex session has run in a folder.":"Aún no hay proyectos. Aparecen aquí cuando una sesión de Claude Code o Codex se ha ejecutado en una carpeta.",
+"graphify isn't installed":"graphify no está instalado",
+"graphify found at %@, but its version can't be read":"graphify encontrado en %@, pero no se puede leer su versión",
+"graphify %@ is too old (%@ or newer needed)":"graphify %@ es demasiado antiguo (se necesita %@ o más reciente)",
+"graphify %@ found":"graphify %@ encontrado",
+"No graph yet":"Aún no hay grafo","Graph present, freshness unknown":"Hay grafo, no se sabe si está al día","Graph is up to date":"El grafo está al día",
+"Stale: %lld files changed (%@)":"Desactualizado: %lld archivos cambiaron (%@)",
+"%lld nodes · %lld edges":"%lld nodos · %lld aristas",
+"Open graph":"Abrir grafo","Build graph":"Crear grafo","Update graph":"Actualizar grafo",
+"Couldn't start graphify.":"No se pudo iniciar graphify.","Build cancelled.":"Compilación cancelada.",
+"graphify stopped with an error. Run it in a terminal to see why.":"graphify terminó con un error. Ejecútalo en una terminal para ver el motivo.",
+"Graph updated.":"Grafo actualizado.",
 }
 catalog = {"sourceLanguage": "en", "version": "1.0", "strings": {
     k: {"localizations": {"es": {"stringUnit": {"state": "translated", "value": v}}}} for k, v in sorted(ES.items())
