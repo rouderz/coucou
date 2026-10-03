@@ -393,6 +393,9 @@ final class AppState: ObservableObject {
     var dndMeetingEnd: Date? = nil
     var dndSkippedMeetingEnd: Date? = nil
 
+    // Focus timer (#119). Driven by FocusTimer.shared; not persisted (a block doesn't survive a relaunch).
+    @Published var focus = FocusState()
+
     // Claude Code sessions running at the same time (#24). The card shows the focused one.
     @Published var claudeSessions: [ClaudeSession] = []
     /// The live view shows the session's timeline instead of the diff (#22).
