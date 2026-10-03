@@ -4,7 +4,7 @@ import Foundation
 // steps (review, merge, delete) will use. Mirrors windows/src/core/github-prs.ts.
 // Nothing here writes to GitHub: reviews, merges and deletes are not wired.
 
-enum PRCIState: String, Sendable, Equatable { case success, failure, pending, none }
+enum PRChecksState: String, Sendable, Equatable { case success, failure, pending, none }
 enum PRReviewState: String, Sendable, Equatable { case approved, changes, review, none }
 
 struct PRItem: Identifiable, Equatable, Sendable {
@@ -20,7 +20,7 @@ struct PRItem: Identifiable, Equatable, Sendable {
 
 struct PRRow: Identifiable, Equatable, Sendable {
     let item: PRItem
-    let ci: PRCIState
+    let ci: PRChecksState
     let review: PRReviewState
     var id: String { item.id }
 }
@@ -61,7 +61,7 @@ enum GitHubPRs {
     }
 
     /// CI from check-runs and the combined status: failure wins, then anything running, then success.
-    static func ciState(checkRuns: Any?, combined: Any?) -> PRCIState {
+    static func ciState(checkRuns: Any?, combined: Any?) -> PRChecksState {
         let runs = ((checkRuns as? [String: Any])?["check_runs"] as? [[String: Any]]) ?? []
         let statuses = ((combined as? [String: Any])?["statuses"] as? [[String: Any]]) ?? []
         if runs.isEmpty && statuses.isEmpty { return .none }
@@ -82,7 +82,7 @@ enum GitHubPRs {
         return pending ? .pending : .success
     }
 
-    static func ciSymbol(_ s: PRCIState) -> String {
+    static func ciSymbol(_ s: PRChecksState) -> String {
         switch s { case .success: "✓"; case .failure: "✗"; case .pending: "●"; case .none: "" }
     }
 
@@ -113,7 +113,7 @@ enum GitHubPRs {
 
     /// "To review" hides drafts and your own PRs; "Mine" keeps drafts. Newest first.
     static func buildLists(requested: [PRItem], mine: [PRItem],
-                           details: [String: (ci: PRCIState, review: PRReviewState)] = [:]) -> PRLists {
+                           details: [String: (ci: PRChecksState, review: PRReviewState)] = [:]) -> PRLists {
         func row(_ p: PRItem) -> PRRow {
             let d = details[p.id]
             return PRRow(item: p, ci: d?.ci ?? .none, review: d?.review ?? .none)
@@ -139,7 +139,7 @@ enum GitHubPRs {
         guard let reqJSON = GitHubCLI.json(requestedArgs),
               let mineJSON = GitHubCLI.json(mineArgs) else { return nil }
         let requested = parseSearch(reqJSON), mine = parseSearch(mineJSON)
-        var details: [String: (ci: PRCIState, review: PRReviewState)] = [:]
+        var details: [String: (ci: PRChecksState, review: PRReviewState)] = [:]
         for p in mine.prefix(15) {
             guard let pr = GitHubCLI.api("repos/\(p.repo)/pulls/\(p.number)") as? [String: Any],
                   let sha = (pr["head"] as? [String: Any])?["sha"] as? String else { continue }
@@ -211,7 +211,7 @@ enum GitHubPRs {
     }
 
     /// Why Merge is disabled (nil when it can be clicked; the click is still required).
-    static func mergeBlocker(draft: Bool, ci: PRCIState, review: PRReviewState, allowed: [MergeMethod]) -> String? {
+    static func mergeBlocker(draft: Bool, ci: PRChecksState, review: PRReviewState, allowed: [MergeMethod]) -> String? {
         if allowed.isEmpty { return L("No merge method is allowed on this repository") }
         if draft { return L("Draft pull request") }
         if ci == .failure { return L("Checks are failing") }

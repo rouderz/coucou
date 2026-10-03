@@ -40,7 +40,7 @@ final class GithubPRsTests: XCTestCase {
     }
 
     func testCIState() throws {
-        func ci(_ runs: String, _ statuses: String = "[]") throws -> PRCIState {
+        func ci(_ runs: String, _ statuses: String = "[]") throws -> PRChecksState {
             GitHubPRs.ciState(checkRuns: try json(#"{"check_runs":\#(runs)}"#),
                               combined: try json(#"{"statuses":\#(statuses)}"#))
         }
@@ -51,7 +51,7 @@ final class GithubPRsTests: XCTestCase {
         XCTAssertEqual(try ci(#"[{"status":"completed","conclusion":"success"}]"#, #"[{"state":"error"}]"#), .failure)
         XCTAssertEqual(try ci("[]"), .none)
         XCTAssertEqual(GitHubPRs.ciState(checkRuns: nil, combined: nil), .none)
-        XCTAssertEqual([PRCIState.success, .failure, .pending].map(GitHubPRs.ciSymbol), ["✓", "✗", "●"])
+        XCTAssertEqual([PRChecksState.success, .failure, .pending].map(GitHubPRs.ciSymbol), ["✓", "✗", "●"])
     }
 
     func testReviewState() throws {
@@ -108,7 +108,7 @@ final class GithubPRsTests: XCTestCase {
     }
 
     func testMergeBlockers() {
-        func b(draft: Bool = false, ci: PRCIState = .success, review: PRReviewState = .approved,
+        func b(draft: Bool = false, ci: PRChecksState = .success, review: PRReviewState = .approved,
                allowed: [GitHubPRs.MergeMethod] = [.merge]) -> String? {
             GitHubPRs.mergeBlocker(draft: draft, ci: ci, review: review, allowed: allowed)
         }
