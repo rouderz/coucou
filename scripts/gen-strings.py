@@ -351,6 +351,12 @@ ES = {
 "Couldn't start graphify.":"No se pudo iniciar graphify.","Build cancelled.":"Compilación cancelada.",
 "graphify stopped with an error. Run it in a terminal to see why.":"graphify terminó con un error. Ejecútalo en una terminal para ver el motivo.",
 "Graph updated.":"Grafo actualizado.",
+# google calendar
+"Google Calendar":"Google Calendar","Next meeting":"Próxima reunión","Join":"Unirse","Open event":"Abrir evento","Calendars":"Calendarios",
+"(No title)":"(Sin título)","Do not disturb during meetings":"No molestar durante las reuniones",
+"Now: %@ (until %@)":"Ahora: %@ (hasta las %@)","%@ in %lld min":"%@ en %lld min","%@ in %lld h":"%@ en %lld h","%@ in %lld h %lld min":"%@ en %lld h %lld min",
+"Starting in 5 min · %@":"Empieza en 5 min · %@",
+"Meeting pill and Do not disturb during meetings (read-only). Turning it on asks Google for one more permission.":"Pastilla de reunión y No molestar durante las reuniones (solo lectura). Al activarlo, Google pide un permiso más.",
 }
 catalog = {"sourceLanguage": "en", "version": "1.0", "strings": {
     k: {"localizations": {"es": {"stringUnit": {"state": "translated", "value": v}}}} for k, v in sorted(ES.items())
