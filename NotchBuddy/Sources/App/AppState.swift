@@ -310,12 +310,30 @@ final class AppState: ObservableObject {
     @Published private(set) var pillRotationOffset: Int = 0
     private var pillRotationTimer: Timer?
 
+    /// Pills that never rotate out of the island (context menu on a pill).
+    @Published var pinnedPills: Set<String> = [] {
+        didSet {
+            UserDefaults.standard.set(Array(pinnedPills), forKey: "pinnedPills")
+            updatePillRotation()
+        }
+    }
+
+    func togglePinned(_ id: String) {
+        if pinnedPills.contains(id) { pinnedPills.remove(id) } else { pinnedPills.insert(id) }
+    }
+
     /// The pills the island shows next to the focused one: up to 4, rotating through the rest.
     var visiblePills: [AgentTask] {
         let others = tasks.filter { $0.id != focusId }
         let news = Set(others.filter { $0.pillBadge != nil }.map(\.id))
-        let ids = PillRotation.visible(ids: others.map(\.id), news: news, offset: pillRotationOffset)
+        let ids = PillRotation.visible(ids: others.map(\.id), pinned: pinnedPills, news: news, offset: pillRotationOffset)
         return others.filter { ids.contains($0.id) }
+    }
+
+    /// Active pills that aren't in the island right now (the "+N" strip).
+    var overflowPills: [AgentTask] {
+        let shown = Set(visiblePills.map(\.id))
+        return tasks.filter { $0.id != focusId && !shown.contains($0.id) }
     }
 
     /// How many active pills don't fit in the island right now.
@@ -493,6 +511,7 @@ final class AppState: ObservableObject {
         if let v = ud.object(forKey: "voiceLanguage")     as? String { voiceLanguage = v }
         if let v = ud.object(forKey: "voiceSpeakReplies") as? Bool   { voiceSpeakReplies = v }
         if let v = ud.object(forKey: "pillRotationSeconds") as? Int { pillRotationSeconds = v }
+        if let v = ud.stringArray(forKey: "pinnedPills") { pinnedPills = Set(v) }
         if let v = ud.object(forKey: "wakeWordEnabled") as? Bool { wakeWordEnabled = v }
         if let v = ud.object(forKey: "wakeWordOnlyOnPower") as? Bool { wakeWordOnlyOnPower = v }
         if let d = ud.data(forKey: "vercelProjectFilter"),

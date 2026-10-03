@@ -3812,6 +3812,16 @@
         }
       }
     },
+    "Pin (always visible)": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Fijar (siempre visible)"
+          }
+        }
+      }
+    },
     "Plugin · %@": {
       "localizations": {
         "es": {
@@ -4898,6 +4908,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "Ticket desconocido"
+          }
+        }
+      }
+    },
+    "Unpin": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Dejar de fijar"
           }
         }
       }
