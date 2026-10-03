@@ -19,6 +19,9 @@ test("spanish: exact, patterns, pieces; the rest untouched", () => {
   assert.equal(t("Key saved in the Windows Credential Manager."), "Clave guardada en el Administrador de credenciales de Windows.");
   assert.equal(t("Auto-close · 15s"), "Cierre automático · 15 s");
   assert.equal(t("fix the login bug"), "fix the login bug");
+  assert.equal(t("Standup in 12 min"), "Standup en 12 min");
+  assert.equal(t("Review in 1 h 5 min"), "Review en 1 h 5 min");
+  assert.equal(t("Now: Standup (until 10:15)"), "Ahora: Standup (hasta las 10:15)");
   _test.setLang("en");
   assert.equal(t("Allow"), "Allow");
 });
