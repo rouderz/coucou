@@ -3,6 +3,13 @@
 import json
 ES = {
 # status / integrations
+# chat engines (other agent CLIs)
+"Codex isn't installed. Install it, or pick another chat engine in Settings.":"Codex no está instalado. Instálalo, o elige otro motor de chat en Ajustes.",
+"Codex isn't signed in. Run `codex login` in a terminal, then ask again.":"Codex no tiene sesión iniciada. Ejecuta `codex login` en una terminal y vuelve a preguntar.",
+"Codex says you hit its usage limit. Wait a bit, or pick another chat engine.":"Codex dice que alcanzaste su límite de uso. Espera un poco o elige otro motor de chat.",
+"Gemini CLI isn't installed. Install it, or pick another chat engine in Settings.":"Gemini CLI no está instalado. Instálalo, o elige otro motor de chat en Ajustes.",
+"Gemini CLI isn't signed in. Run `gemini` in a terminal and sign in, then ask again.":"Gemini CLI no tiene sesión iniciada. Ejecuta `gemini` en una terminal, inicia sesión y vuelve a preguntar.",
+"Gemini says you hit its usage limit. Wait a bit, or pick another chat engine.":"Gemini dice que alcanzaste su límite de uso. Espera un poco o elige otro motor de chat.",
 "just now":"ahora mismo",
 "Not configured · add it in Settings":"Sin configurar · añádelo en Ajustes",
 "Checking connection…":"Comprobando conexión…",
