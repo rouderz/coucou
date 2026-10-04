@@ -282,6 +282,21 @@ const ES: Record<string, string> = {
   "Write a comment first": "Escribe antes un comentario",
   "Repository must look like owner/name": "El repositorio debe tener la forma propietario/nombre",
   "Invalid pull request number": "Número de pull request no válido",
+  // time per issue (#114)
+  "Time": "Tiempo", "Day": "Día", "Period": "Periodo", "Total": "Total", "Add": "Agregar",
+  "Active time of your Claude Code sessions per Linear issue (from the session's branch), or per repo @ branch when there's no issue. Gaps over 10 minutes aren't counted. Kept only on this computer.":
+    "Tiempo activo de tus sesiones de Claude Code por issue de Linear (según la rama de la sesión), o por repo @ rama cuando no hay issue. Las pausas de más de 10 minutos no cuentan. Se guarda solo en este equipo.",
+  "Record time per issue": "Registrar el tiempo por issue",
+  "No time recorded today yet.": "Aún no hay tiempo registrado hoy.",
+  "Remove 15 minutes": "Quitar 15 minutos", "Add 15 minutes": "Sumar 15 minutos",
+  "Add an entry (work outside Claude Code)": "Agregar una entrada (trabajo fuera de Claude Code)",
+  "Issue or task (SHO-123)": "Issue o tarea (SHO-123)", "Description (optional)": "Descripción (opcional)",
+  "Entry added.": "Entrada agregada.",
+  "Couldn't read the time file.": "No se pudo leer el archivo de tiempo.",
+  "No time recorded in this period.": "No hay tiempo registrado en este periodo.",
+  "Copy as text": "Copiar como texto",
+  "CSV copied. Paste it into your spreadsheet.": "CSV copiado. Pégalo en tu hoja de cálculo.",
+  "Exports stay on this computer: nothing is sent anywhere.": "Las exportaciones se quedan en este equipo: no se envía nada a ningún sitio.",
 };
 
 /** Texts with something in them that changes: [pattern, Spanish with $1, $2…]. */

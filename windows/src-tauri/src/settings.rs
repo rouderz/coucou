@@ -101,6 +101,10 @@ pub struct Settings {
     pub google_email: String,
     #[serde(default = "default_gmail_query")]
     pub gmail_query: String,
+
+    /// Time per Linear issue (#114): record session time in a local file (never uploaded).
+    #[serde(default = "yes")]
+    pub time_tracking: bool,
 }
 
 fn ids_as_text<'de, D: serde::Deserializer<'de>>(d: D) -> Result<Vec<String>, D::Error> {
@@ -190,6 +194,7 @@ impl Default for Settings {
             whaticket_hours: String::new(),
             google_email: String::new(),
             gmail_query: default_gmail_query(),
+            time_tracking: true,
         }
     }
 }

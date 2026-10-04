@@ -472,12 +472,52 @@
         }
       }
     },
+    "Active time of your Claude Code sessions per Linear issue (from the session's branch), or per repo @ branch when there's no issue. Gaps over 10 minutes aren't counted. Kept only on this Mac.": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tiempo activo de tus sesiones de Claude Code por issue de Linear (según la rama de la sesión), o por repo @ rama cuando no hay issue. Las pausas de más de 10 minutos no cuentan. Se guarda solo en este Mac."
+          }
+        }
+      }
+    },
+    "Add": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Agregar"
+          }
+        }
+      }
+    },
+    "Add 15 minutes": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sumar 15 minutos"
+          }
+        }
+      }
+    },
     "Add a skill": {
       "localizations": {
         "es": {
           "stringUnit": {
             "state": "translated",
             "value": "Agregar una skill"
+          }
+        }
+      }
+    },
+    "Add an entry (work outside Claude Code)": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Agregar una entrada (trabajo fuera de Claude Code)"
           }
         }
       }
@@ -948,6 +988,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "Por hora del día"
+          }
+        }
+      }
+    },
+    "CSV saved.": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "CSV guardado."
           }
         }
       }
@@ -1802,6 +1852,16 @@
         }
       }
     },
+    "Copy as text": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Copiar como texto"
+          }
+        }
+      }
+    },
     "Copy branch name": {
       "localizations": {
         "es": {
@@ -2052,6 +2112,16 @@
         }
       }
     },
+    "Day": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Día"
+          }
+        }
+      }
+    },
     "Delete all WhaTicket stats?": {
       "localizations": {
         "es": {
@@ -2088,6 +2158,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "Despliegues"
+          }
+        }
+      }
+    },
+    "Description (optional)": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Descripción (opcional)"
           }
         }
       }
@@ -2292,6 +2372,16 @@
         }
       }
     },
+    "Entry added.": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Entrada agregada."
+          }
+        }
+      }
+    },
     "Every 10 s": {
       "localizations": {
         "es": {
@@ -2338,6 +2428,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "Exportar CSV"
+          }
+        }
+      }
+    },
+    "Exports stay on this Mac: nothing is sent anywhere.": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Las exportaciones se quedan en este Mac: no se envía nada a ningún sitio."
           }
         }
       }
@@ -3058,6 +3158,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "Dirección del servidor no válida"
+          }
+        }
+      }
+    },
+    "Issue or task (SHO-123)": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Issue o tarea (SHO-123)"
           }
         }
       }
@@ -3862,6 +3972,26 @@
         }
       }
     },
+    "No time recorded in this period.": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No hay tiempo registrado en este periodo."
+          }
+        }
+      }
+    },
+    "No time recorded today yet.": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Aún no hay tiempo registrado hoy."
+          }
+        }
+      }
+    },
     "Nobody finished signing in within 5 minutes.": {
       "localizations": {
         "es": {
@@ -4362,6 +4492,16 @@
         }
       }
     },
+    "Period": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Periodo"
+          }
+        }
+      }
+    },
     "Personal": {
       "localizations": {
         "es": {
@@ -4652,6 +4792,16 @@
         }
       }
     },
+    "Record time per issue": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Registrar el tiempo por issue"
+          }
+        }
+      }
+    },
     "Refresh": {
       "localizations": {
         "es": {
@@ -4678,6 +4828,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "Reinstalar…"
+          }
+        }
+      }
+    },
+    "Remove 15 minutes": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Quitar 15 minutos"
           }
         }
       }
@@ -4858,6 +5018,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "Guardar"
+          }
+        }
+      }
+    },
+    "Save CSV…": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Guardar CSV…"
           }
         }
       }
@@ -5512,6 +5682,16 @@
         }
       }
     },
+    "Time": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tiempo"
+          }
+        }
+      }
+    },
     "Timeline": {
       "localizations": {
         "es": {
@@ -5608,6 +5788,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "Tema"
+          }
+        }
+      }
+    },
+    "Total": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Total"
           }
         }
       }

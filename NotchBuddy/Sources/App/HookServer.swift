@@ -105,7 +105,10 @@ final class HookServer: @unchecked Sendable {
 
         // Several sessions (#24): only the focused one drives the card; the others update their record.
         if name != "StatusLine", sessionId != "unknown" {
-            if !routeSession(sessionId, project: projectName, cwd: cwd, event: name, agent: agent) {
+            let onCard = routeSession(sessionId, project: projectName, cwd: cwd, event: name, agent: agent)
+            // Time per Linear issue (#114): every session, on the card or not (local file only).
+            TimeTracker.shared.record(hook: name, sessionId: sessionId, cwd: cwd, payload: payload)
+            if !onCard {
                 updateBackgroundSession(sessionId, event: name, payload: payload)
                 return
             }
@@ -300,6 +303,7 @@ final class HookServer: @unchecked Sendable {
         // without touching the Claude Code session card.
         let fromChat = payload["coucou_internal"] as? Bool == true
         nbLog("PermissionRequest \(tool): \(command)\(fromChat ? " (chat)" : "")")
+        if !fromChat { TimeTracker.shared.record(hook: "PermissionRequest", sessionId: sessionId, cwd: cwd, payload: payload) }
 
         // Auto-approval for this project (#29): answer at once, no island, logged in the timeline.
         do {

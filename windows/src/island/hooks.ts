@@ -15,6 +15,7 @@ import { approvalTarget, lastPathComponent, stepLabel, stopMessage } from "../cl
 import { recordApproval, recordAutoApproval, recordEvent } from "../claude/timeline.ts";
 import { buildPreview } from "../claude/preview.ts";
 import { dndActive } from "../core/dnd.ts";
+import { recordTime } from "../claude/timetracker.ts";
 
 /** Seconds an approval waits before the phone is told (#31 on macOS). */
 const PHONE_DELAY_MS = 20_000;
@@ -145,6 +146,8 @@ function handleHook(island: Island, payload: HookPayload) {
   // Several sessions: only the focused one drives the card.
   const routed = sessionId ? routeSession(sessionId, agent, projectName, cwd, name) : true;
   if (sessionId) linkLinear(sessionId, cwd, name === "SessionStart" || name === "UserPromptSubmit");
+  // Time per Linear issue (#114): every session, on the card or not (local file only).
+  void recordTime(name, sessionId, cwd, raw);
   if (!routed) {
     updateBackground(sessionId, name, raw);
     return;
@@ -289,6 +292,7 @@ function permissionRequest(island: Island, payload: HookPayload, project: string
   const tool = payload.tool_name ?? "Tool";
   const input = payload.tool_input ?? {};
   const verdict = classify(tool, input, cwd);
+  void recordTime("PermissionRequest", sessionId, cwd, payload as unknown as Record<string, unknown>);
   const approval: ApprovalInfo = {
     requestId, sessionId, tool,
     command: approvalTarget(tool, input),

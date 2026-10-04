@@ -390,3 +390,37 @@ export function addAdjustment(store: TimeStore, adj: Adjustment): TimeStore {
 export function rowsFromStore(store: TimeStore, opts: TimeOptions = {}): DayRow[] {
   return applyAdjustments(aggregate(store.events, opts), store.adjustments);
 }
+
+// MARK: - Hook events and periods (the app side)
+
+/** The time event a Claude Code / Codex hook event stands for; null when it doesn't change the time. */
+export function hookTimeKind(name: string, payload: Record<string, unknown> = {}): TimeEventKind | null {
+  switch (name) {
+    case "SessionStart": return "start";
+    case "UserPromptSubmit": return "prompt";
+    case "PreToolUse": case "PostToolUse": case "PostToolUseFailure":
+    case "SubagentStart": case "SubagentStop": case "PermissionRequest":
+      return "activity";
+    case "Stop": case "StopFailure": case "SessionEnd": return "stop";
+    case "Notification": {
+      // Claude Code waiting for the user after a while: the session is idle.
+      const type = typeof payload.notification_type === "string" ? payload.notification_type : "";
+      const message = typeof payload.message === "string" ? payload.message.toLowerCase() : "";
+      return type === "idle_prompt" || message.includes("waiting for your input") ? "idle" : null;
+    }
+    default: return null;
+  }
+}
+
+/** The half-month a date is in and the ones before it, newest first. */
+export function recentPeriods(date: Date, count: number): { from: string; to: string }[] {
+  const out: { from: string; to: string }[] = [];
+  let d = new Date(date.getFullYear(), date.getMonth(), date.getDate(), 12);
+  for (let i = 0; i < count; i++) {
+    const p = halfMonth(d);
+    out.push(p);
+    const [y, m, day] = p.from.split("-").map(Number);
+    d = new Date(y, m - 1, day - 1, 12);
+  }
+  return out;
+}
