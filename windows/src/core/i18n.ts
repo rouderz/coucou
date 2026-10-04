@@ -141,6 +141,9 @@ const ES: Record<string, string> = {
   "File manager (no editor found)": "Explorador de archivos (no hay editor)", "Language": "Idioma", "Same as the system": "Igual que el sistema",
   "Rotate the rest": "Rotar las demás", "Every 10 s": "Cada 10 s", "Every 30 s": "Cada 30 s", "Every minute": "Cada minuto",
   "Pin (always visible)": "Fijar (siempre visible)", "Unpin": "Dejar de fijar", "Hide": "Ocultar",
+  "Mochi moves with the music": "Mochi se mueve con la música",
+  "bobs along while music plays; off in Do not disturb and with reduced motion. Music detection isn't available on this system yet":
+    "se balancea mientras suena música; se desactiva en No molestar y con movimiento reducido. La detección de música aún no está disponible en este sistema",
   "Idle notch": "Notch en reposo", "a small notch stays at the top when the island hides": "una pequeña notch queda arriba cuando la isla se esconde",
   // WhaTicket
   "WhaTicket": "WhaTicket",

@@ -4122,6 +4122,16 @@
         }
       }
     },
+    "Mochi moves with the music": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Mochi se mueve con la música"
+          }
+        }
+      }
+    },
     "Mochi says it out loud": {
       "localizations": {
         "es": {
@@ -7008,6 +7018,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "¿Qué buscador usar?"
+          }
+        }
+      }
+    },
+    "While Music or Spotify plays, Mochi bobs along and puts on headphones when the song changes. Off in Do not disturb and with Reduce Motion.": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Mientras suena Música o Spotify, Mochi se balancea al ritmo y se pone los auriculares cuando cambia la canción. Se desactiva en No molestar y con Reducir movimiento."
           }
         }
       }

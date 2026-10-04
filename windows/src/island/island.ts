@@ -92,6 +92,9 @@ export class Island {
   private uploadTens = 0;
   private uploadDone = false;
 
+  /** Last State.musicTrackChanges seen (#117): a new value means a new song → headphones. */
+  private seenTrackChanges = 0;
+
   constructor(root: HTMLElement) {
     this.root = root;
     this.build();
@@ -101,8 +104,23 @@ export class Island {
     this.greeting.onComplete = () => this.fsm.greetComplete();
     State.subscribe(() => {
       this.dirty = true;
+      if (State.musicTrackChanges !== this.seenTrackChanges) {
+        this.seenTrackChanges = State.musicTrackChanges;
+        if (State.mochiDancing && State.mode !== "hidden") this.engine.headphones();
+      }
       this.ensureRunning();
     });
+    // Reduced motion (Windows "Animation effects", GNOME / KDE settings) stops the dance (#117).
+    const reduced = typeof window.matchMedia === "function"
+      ? window.matchMedia("(prefers-reduced-motion: reduce)")
+      : null;
+    if (reduced) {
+      State.reduceMotion = reduced.matches;
+      reduced.addEventListener("change", (e) => {
+        State.reduceMotion = e.matches;
+        State.notify();
+      });
+    }
   }
 
   // ── DOM ─────────────────────────────────────────────────────────────────────
@@ -819,6 +837,8 @@ export class Island {
     this.engine.particleOverhang = BOT_OVERHANG;
     this.engine.lookX = this.lookX();
     this.engine.lookY = this.lookY();
+    // Bobs to the music (#117) while idle; the engine eases it in and out.
+    this.engine.dancing = State.mochiDancing;
     if (this.engine.morph > 0.3) {
       this.engine.slotHTarget = State.fileDragOver ? 0.2 : 0;
     } else {

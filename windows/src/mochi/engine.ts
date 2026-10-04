@@ -5,6 +5,7 @@
 // arc angles produce a different shape.
 
 import { Ease, lerp, type EaseFn } from "../core/anim";
+import { REST_POSE, dancePose, type DancePose } from "../core/dance";
 import { Sound } from "../core/sound";
 import type { BotEmoteName, BotStateName } from "../core/layout";
 
@@ -36,7 +37,7 @@ interface Tween {
 
 type PropKey =
   | "yaw" | "pitch" | "roll" | "tilt" | "open" | "sx" | "sy"
-  | "oy" | "ox" | "tint" | "morph" | "hands" | "blush" | "es" | "badgeS";
+  | "oy" | "ox" | "tint" | "morph" | "hands" | "blush" | "es" | "badgeS" | "phones";
 
 interface BotStateCfg {
   color: RGB;
@@ -53,7 +54,7 @@ interface BotStateCfg {
 }
 
 interface Particle {
-  type: "heart" | "star" | "spark" | "sweat" | "z";
+  type: "heart" | "star" | "spark" | "sweat" | "z" | "note";
   x: number; y: number; vx: number; vy: number;
   age: number; life: number; rot: number; size: number;
 }
@@ -217,6 +218,14 @@ export class BotEngine {
   private miniLookTarget = { x: 0, y: 0 };
   private miniLookNextTime = 0;
 
+  // Mochi moves with the music (#117). `dancing` is set every frame by the island;
+  // `danceAmt` eases the bob in and out; `dancePose` is added to the body when drawing.
+  dancing = false;
+  danceAmt = 0;
+  dancePose: DancePose = { ...REST_POSE };
+  /** Headphones emote on a track change (0 = off, 1 = on). */
+  phones = 0;
+
   /** Fired when three slaps land inside 1.7 s (→ dizzy + confused view). */
   onDizzy: (() => void) | null = null;
 
@@ -352,6 +361,15 @@ export class BotEngine {
     }, 1750);
   }
 
+  /** New song while dancing (#117): headphones pop on, happy eyes, two notes, then off again. */
+  headphones() {
+    if (this.isMini) return;
+    this.eyeOverride = "happy";
+    this.eyeOverrideUntil = now() + 1.4;
+    this.anim("phones", [[1, 260, Ease.back], [1, 1100, Ease.lin], [0, 240, Ease.inOut]]);
+    this.emit("note", 2);
+  }
+
   interruptGreet() {
     if (this.hands <= 0.01 && now() >= this.waveUntil) return;
     this.greetToken++;
@@ -458,6 +476,7 @@ export class BotEngine {
       this.tweens.size > 0 ||
       this.particles.length > 0 ||
       this.cfg.bounces || this.cfg.scans || this.cfg.breathes || this.cfg.zz || this.cfg.sweat ||
+      this.danceAmt > 0 || this.danceWanted ||
       this.isMini ||
       Math.abs(this.tgYaw - this.yaw) > 0.002 ||
       Math.abs(this.tgPitch - this.pitch) > 0.002 ||
@@ -470,6 +489,11 @@ export class BotEngine {
       Math.abs(this.col[1] - this.colT[1]) > 0.003 ||
       Math.abs(this.col[2] - this.colT[2]) > 0.003
     );
+  }
+
+  /** Dance only for the main Mochi, only idle, never while it's a mailbox. */
+  private get danceWanted(): boolean {
+    return this.dancing && !this.isMini && this.state === "idle" && this.morph < 0.05;
   }
 
   // ── Tweens ──────────────────────────────────────────────────────────────────
@@ -543,6 +567,12 @@ export class BotEngine {
     const bounce = this.cfg.bounces ? -Math.abs(Math.sin(t * 5.2)) * 0.07 : 0;
     const kGen = 1 - Math.pow(0.0008, dt);
     if (!this.locks.has("oy")) this.oy += (bounce - this.oy) * kGen;
+
+    // Dance (#117): eased in and out (~0.3 s) so starting or pausing the music never jumps.
+    const danceOn = this.danceWanted;
+    this.danceAmt += ((danceOn ? 1 : 0) - this.danceAmt) * (1 - Math.pow(0.02, dt));
+    if (!danceOn && this.danceAmt < 0.001) this.danceAmt = 0;
+    this.dancePose = dancePose(n, this.danceAmt);
 
     if (this.cfg.breathes) {
       const amp = this.isMini ? 0.07 : 0.035;
@@ -645,14 +675,15 @@ export class BotEngine {
     const rx = R * 1.14;
     const ry = R * 0.88;
     const cx = W / 2 + this.ox * R;
-    const cy = H / 2 + this.particleOverhang / 2 + this.oy * R + R * 0.06;
+    const cy = H / 2 + this.particleOverhang / 2 + (this.oy + this.dancePose.oy) * R + R * 0.06;
 
     this.drawHandsBehind(x, R, rx, ry, cx, cy);
 
     x.save();
     x.translate(cx, cy);
-    if (this.tilt !== 0) x.rotate(this.tilt);
-    x.scale(this.sx, this.sy);
+    const bodyTilt = this.tilt + this.dancePose.tilt;
+    if (bodyTilt !== 0) x.rotate(bodyTilt);
+    x.scale(this.sx * this.dancePose.sx, this.sy * this.dancePose.sy);
 
     const body = this.bodyPath(rx, ry, R);
     this.drawBody(x, body, R, rx, ry);
@@ -673,6 +704,7 @@ export class BotEngine {
 
     this.drawEyes(x, body, R, rx, ry);
     if (this.morph > 0.05) this.drawMouth(x, body, R);
+    if (this.phones > 0.01 && this.morph < 0.25 && !this.isMini) this.drawHeadphones(x, R, rx, ry);
 
     x.restore();
 
@@ -943,8 +975,8 @@ export class BotEngine {
     const bodyH = 2 * ry;
     const hew = 0.3 * ry * this.hands;
     const heh = 0.26 * ry * this.hands;
-    const hwB = rx * this.sx;
-    const hhB = ry * this.sy;
+    const hwB = rx * this.sx * this.dancePose.sx;
+    const hhB = ry * this.sy * this.dancePose.sy;
     const isWaving = n >= this.waveStart && this.waveStart > 0 && n < this.waveUntil;
 
     for (const sd of [-1, 1]) {
@@ -974,8 +1006,8 @@ export class BotEngine {
         localY = hhB * 0.7;
       }
 
-      const cosT = Math.cos(this.tilt);
-      const sinT = Math.sin(this.tilt);
+      const cosT = Math.cos(this.tilt + this.dancePose.tilt);
+      const sinT = Math.sin(this.tilt + this.dancePose.tilt);
       const worldX = cx + cosT * localX - sinT * localY;
       const worldY = cy + sinT * localX + cosT * localY;
 
@@ -999,6 +1031,42 @@ export class BotEngine {
       x.stroke();
       x.restore();
     }
+  }
+
+  /**
+   * Headphones (#117): ink band over the head and two ink ear cups with a violet pad (the
+   * prototype's flat style: the eyes' ink, the wink emote's #A78BFA). Pops on from above.
+   */
+  private drawHeadphones(x: CanvasRenderingContext2D, R: number, rx: number, ry: number) {
+    const p = Math.max(0, this.phones);
+    const shown = Math.min(1, p);
+    x.save();
+    x.globalAlpha *= shown;
+    x.translate(0, -(1 - shown) * R * 0.25);
+
+    x.strokeStyle = INK;
+    x.lineWidth = R * 0.1;
+    x.lineCap = "round";
+    x.beginPath();
+    x.moveTo(-rx * 0.96, -ry * 0.12);
+    x.quadraticCurveTo(0, -ry * 2.05, rx * 0.96, -ry * 0.12);
+    x.stroke();
+
+    for (const sd of [-1, 1]) {
+      const cupX = sd * rx * 0.97;
+      const cupY = ry * 0.02;
+      const cupW = R * 0.28 * p;
+      const cupH = R * 0.5 * p;
+      x.fillStyle = INK;
+      roundRectPath(x, cupX - cupW / 2, cupY - cupH / 2, cupW, cupH, cupW * 0.45);
+      x.fill();
+      const padW = cupW * 0.42;
+      const padH = cupH * 0.62;
+      x.fillStyle = "#A78BFA";
+      roundRectPath(x, cupX - padW / 2 + sd * cupW * 0.12, cupY - padH / 2, padW, padH, padW / 2);
+      x.fill();
+    }
+    x.restore();
   }
 
   private drawBadge(x: CanvasRenderingContext2D, badge: Badge, R: number, cx: number, cy: number) {
@@ -1106,6 +1174,22 @@ export class BotEngine {
           x.quadraticCurveTo(sz * 0.8, sz * 0.2, 0, sz * 0.6);
           x.quadraticCurveTo(-sz * 0.8, sz * 0.2, 0, -sz);
           x.fill();
+          break;
+        case "note":
+          // Eighth note, violet like the headphone pads (#117)
+          x.rotate(Math.sin(p.age * 5) * 0.25);
+          x.fillStyle = "#A78BFA";
+          x.strokeStyle = "#A78BFA";
+          x.beginPath();
+          x.ellipse(-sz * 0.2, sz * 0.45, sz * 0.35, sz * 0.25, 0, 0, Math.PI * 2);
+          x.fill();
+          x.fillRect(sz * 0.05, -sz * 0.75, sz * 0.12, sz * 1.2);
+          x.lineWidth = sz * 0.12;
+          x.lineCap = "round";
+          x.beginPath();
+          x.moveTo(sz * 0.11, -sz * 0.75);
+          x.quadraticCurveTo(sz * 0.6, -sz * 0.55, sz * 0.55, -sz * 0.2);
+          x.stroke();
           break;
         case "z":
           x.fillStyle = "rgb(209,219,235)";

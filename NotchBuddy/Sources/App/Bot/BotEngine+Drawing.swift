@@ -16,12 +16,15 @@ extension BotEngine {
         let cx = W / 2 + ox * R
         // particleOverhang shifts the bot body down in canvas coords so hearts can fly into
         // the extended canvas above without clipping (BotPlacement compensates with position offset)
-        let cy = H / 2 + particleOverhang / 2 + oy * R + R * 0.06
+        let cy = H / 2 + particleOverhang / 2 + (oy + dancePose.oy) * R + R * 0.06
 
         var ctx = context
         ctx.translateBy(x: cx, y: cy)
-        if tilt != 0 { ctx.rotate(by: .radians(tilt)) }
-        ctx.scaleBy(x: sx, y: sy)
+        let bodyTilt = tilt + dancePose.tilt
+        if bodyTilt != 0 { ctx.rotate(by: .radians(bodyTilt)) }
+        ctx.scaleBy(x: sx * dancePose.sx, y: sy * dancePose.sy)
+        // Blush and eyes clip `ctx` to the body; the headphones (#117) reach outside it.
+        let unclipped = ctx
 
         // Body path (superellipse for Mochi, morph to rect for upload)
         let bodyPath = mochiPath(rx: rx, ry: ry, morph: morph, R: R)
@@ -82,8 +85,51 @@ extension BotEngine {
             }
         }
 
+        // Headphones emote (#117), on top of the head and ears
+        if phones > 0.01 && morph < 0.25 && !isMini {
+            drawHeadphones(context: unclipped, R: R, rx: rx, ry: ry)
+        }
+
         // Reset transform for hands, badge, particles which need world coords
         // (We'll pass world-space cx/cy to these helpers)
+    }
+
+    // MARK: - Headphones (#117)
+
+    /// Ink band over the head and two ink ear cups with a violet pad (the prototype's flat
+    /// style: same ink as the eyes, the wink emote's #A78BFA). Pops on from just above the head.
+    func drawHeadphones(context: GraphicsContext, R: CGFloat, rx: CGFloat, ry: CGFloat) {
+        let p = max(0, phones)
+        let shown = min(1, p)
+        var ctx = context
+        ctx.opacity = Double(shown)
+        ctx.translateBy(x: 0, y: -(1 - shown) * R * 0.25)
+        let ink = Color(cgColor: MochiConst.ink)
+        let pad = Color(hex: "#A78BFA")
+
+        var band = Path()
+        band.move(to: CGPoint(x: -rx * 0.96, y: -ry * 0.12))
+        band.addQuadCurve(to: CGPoint(x: rx * 0.96, y: -ry * 0.12), control: CGPoint(x: 0, y: -ry * 2.05))
+        ctx.stroke(band, with: .color(ink), style: StrokeStyle(lineWidth: R * 0.1, lineCap: .round))
+
+        for sd in [-1.0, 1.0] {
+            let s = CGFloat(sd)
+            let cupX = s * rx * 0.97
+            let cupY = ry * 0.02
+            let cupW = R * 0.28 * p
+            let cupH = R * 0.5 * p
+            var cup = Path()
+            cup.addRoundedRect(in: CGRect(x: cupX - cupW / 2, y: cupY - cupH / 2, width: cupW, height: cupH),
+                               cornerSize: CGSize(width: cupW * 0.45, height: cupW * 0.45))
+            ctx.fill(cup, with: .color(ink))
+            let padW = cupW * 0.42
+            let padH = cupH * 0.62
+            var inner = Path()
+            inner.addRoundedRect(in: CGRect(x: cupX - padW / 2 + s * cupW * 0.12, y: cupY - padH / 2,
+                                            width: padW, height: padH),
+                                 cornerSize: CGSize(width: padW / 2, height: padW / 2))
+            ctx.fill(inner, with: .color(pad))
+        }
     }
 
     // MARK: - Draw hands behind body (called before draw() so hands appear under Mochi)
@@ -97,7 +143,7 @@ extension BotEngine {
         let rx = R * 1.14
         let ry = R * 0.88
         let cx = W / 2 + ox * R
-        let cy = H / 2 + particleOverhang / 2 + oy * R + R * 0.06
+        let cy = H / 2 + particleOverhang / 2 + (oy + dancePose.oy) * R + R * 0.06
 
         let now = CACurrentMediaTime()
         let bodyH = 2 * ry   // full body height
@@ -107,8 +153,8 @@ extension BotEngine {
         let heh = 0.26 * ry * hands   // half-height
 
         // Body half-dims with current squash scale
-        let hwB = rx * sx
-        let hhB = ry * sy
+        let hwB = rx * sx * dancePose.sx
+        let hhB = ry * sy * dancePose.sy
 
         let isWaving = now >= waveStart && waveStart > 0 && now < waveUntil
 
@@ -147,7 +193,8 @@ extension BotEngine {
             }
 
             // Apply body tilt to get world position
-            let cosT = cos(tilt), sinT = sin(tilt)
+            let bodyTilt = tilt + dancePose.tilt
+            let cosT = cos(bodyTilt), sinT = sin(bodyTilt)
             let worldX = cx + cosT * localX - sinT * localY
             let worldY = cy + sinT * localX + cosT * localY
 
@@ -191,7 +238,7 @@ extension BotEngine {
         let rx = R * 1.14
         let ry = R * 0.88
         let cx = W / 2 + ox * R
-        let cy = H / 2 + particleOverhang / 2 + oy * R + R * 0.06
+        let cy = H / 2 + particleOverhang / 2 + (oy + dancePose.oy) * R + R * 0.06
 
         // Badge — hidden while morphing to mailbox
         if let badge = badge, badgeS > 0.01, morph < 0.25 {
@@ -569,6 +616,20 @@ extension BotEngine {
                 drop.addQuadCurve(to: CGPoint(x: 0, y: sz*0.6), control: CGPoint(x: sz*0.8, y: sz*0.2))
                 drop.addQuadCurve(to: CGPoint(x: 0, y: -sz), control: CGPoint(x: -sz*0.8, y: sz*0.2))
                 pctx.fill(drop, with: .color(Color(hex: "#7CC7FF")))
+            case .note:
+                // Eighth note, violet like the headphone pads (#117)
+                pctx.rotate(by: .radians(sin(CGFloat(p.age) * 5) * 0.25))
+                let noteColor = Color(hex: "#A78BFA")
+                var head = Path()
+                head.addEllipse(in: CGRect(x: -sz * 0.55, y: sz * 0.2, width: sz * 0.7, height: sz * 0.5))
+                pctx.fill(head, with: .color(noteColor))
+                var stem = Path()
+                stem.addRect(CGRect(x: sz * 0.05, y: -sz * 0.75, width: sz * 0.12, height: sz * 1.2))
+                pctx.fill(stem, with: .color(noteColor))
+                var flag = Path()
+                flag.move(to: CGPoint(x: sz * 0.11, y: -sz * 0.75))
+                flag.addQuadCurve(to: CGPoint(x: sz * 0.55, y: -sz * 0.2), control: CGPoint(x: sz * 0.6, y: -sz * 0.55))
+                pctx.stroke(flag, with: .color(noteColor), style: StrokeStyle(lineWidth: sz * 0.12, lineCap: .round))
             case .z:
                 pctx.draw(Text("z").font(.system(size: sz*1.9, weight: .bold)).foregroundColor(Color(red: 0.82, green: 0.86, blue: 0.92)),
                           at: .zero)

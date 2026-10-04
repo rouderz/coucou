@@ -482,6 +482,11 @@ struct SettingsView: View {
                                 .frame(width: 48)
                             Text("min without movement")
                         }
+                        Toggle("Mochi moves with the music", isOn: $state.mochiDance)
+                        Text("While Music or Spotify plays, Mochi bobs along and puts on headphones when the song changes. Off in Do not disturb and with Reduce Motion.")
+                            .font(.system(size: 11))
+                            .foregroundColor(.secondary)
+                            .fixedSize(horizontal: false, vertical: true)
                     }
                     .padding(6)
                 }

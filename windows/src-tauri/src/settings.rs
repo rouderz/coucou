@@ -86,6 +86,10 @@ pub struct Settings {
     #[serde(default = "yes")]
     pub idle_notch: bool,
 
+    /// Mochi moves with the music (#117). Off by default.
+    #[serde(default)]
+    pub mochi_dance: bool,
+
     /// WhaTicket: accept new tickets on their own (off by default), only from these
     /// queues (empty = any of mine), only during these hours ("09:00-18:00"; empty = always).
     #[serde(default)]
@@ -227,6 +231,7 @@ impl Default for Settings {
             language: default_language(),
             speak_replies: false,
             idle_notch: true,
+            mochi_dance: false,
             whaticket_auto_accept: false,
             whaticket_queues: Vec::new(),
             whaticket_hours: String::new(),
@@ -306,5 +311,15 @@ mod tests {
         let old: Settings = serde_json::from_str(r#"{"soundEnabled":true,"soundVolume":0.1,"autoCloseInterval":15,"absenceInterval":180,"activeIntegrations":[],"screen":"primary","autostart":false,"hooksInstalled":false}"#).unwrap();
         assert_eq!(old.capture_shortcut, "Ctrl+Alt+L");
         assert!(old.linear_default_team.is_empty());
+    }
+
+    #[test]
+    fn mochi_dance_is_off_for_older_files_and_round_trips() {
+        let old: Settings = serde_json::from_str(r#"{"soundEnabled":true,"soundVolume":0.1,"autoCloseInterval":15,"absenceInterval":180,"activeIntegrations":[],"screen":"primary","autostart":false,"hooksInstalled":false}"#).unwrap();
+        assert!(!old.mochi_dance);
+        let json = serde_json::to_string(&Settings { mochi_dance: true, ..Settings::default() }).unwrap();
+        assert!(json.contains(r#""mochiDance":true"#));
+        let back: Settings = serde_json::from_str(&json).unwrap();
+        assert!(back.mochi_dance);
     }
 }
