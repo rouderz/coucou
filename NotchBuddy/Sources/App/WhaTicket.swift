@@ -32,6 +32,8 @@ struct WhaTicketTicket: Identifiable, Equatable, Sendable {
     let isGroup: Bool
     /// An AI agent is answering it: never auto-accepted.
     let aiHandling: Bool
+    /// "whatsapp", "instagram"… when the extension sends it (for the stats).
+    var channel: String? = nil
 }
 
 // MARK: - Pure helpers (tested in WhaTicketTests)
@@ -91,7 +93,8 @@ enum WhaTicketRules {
                 queueColor: text(t["queueColor"], max: 20),
                 updatedAt: (t["updatedAt"] as? String).flatMap(LinearAPI.date),
                 isGroup: t["isGroup"] as? Bool ?? false,
-                aiHandling: t["aiHandling"] as? Bool ?? false)
+                aiHandling: t["aiHandling"] as? Bool ?? false,
+                channel: (t["channel"] as? String).flatMap { $0.isEmpty ? nil : String($0.prefix(40)) })
         }
         return Array(list.prefix(200))
     }
@@ -207,6 +210,9 @@ final class WhaTicketBridge {
         for t in pending + mine { names[t.id] = t.name }
         var event: (label: String, detail: String?)?
 
+        // Stats: arrivals and accepts (the first snapshot after a gap logs the queue as backlog).
+        WhaTicketLog.shared.observe(pending: pending, mine: mine, backlog: seen == nil)
+
         // New tickets in the queue (the first snapshot only fills the card).
         let fresh = seen.map { seen in pending.filter { !seen.contains($0.id) } } ?? []
         seen = Set(pending.map(\.id))
@@ -258,6 +264,7 @@ final class WhaTicketBridge {
             let name = names[id] ?? "?"
             if r["ok"] as? Bool == true {
                 log.info("\(wasAuto ? "auto-accepted" : "accepted", privacy: .public) ticket \(id, privacy: .public)")
+                WhaTicketLog.shared.accepted(id, how: wasAuto ? "auto" : "click")
                 event = (L("Accepted · \(name)"), nil, true)
             } else {
                 let why = WhaTicketRules.errorText(r["error"] as? String ?? "")

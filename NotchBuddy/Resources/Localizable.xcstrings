@@ -82,6 +82,16 @@
         }
       }
     },
+    "%lld arrived · %lld accepted": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%lld llegaron · %lld aceptados"
+          }
+        }
+      }
+    },
     "%lld commands": {
       "localizations": {
         "es": {
@@ -158,6 +168,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "%lld guardados · se conservan los últimos %lld"
+          }
+        }
+      }
+    },
+    "%lld were already waiting when the tab opened (not in the per-hour chart or the waits).": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%lld ya estaban esperando cuando se abrió la pestaña (no cuentan en el gráfico por hora ni en las esperas)."
           }
         }
       }
@@ -392,6 +412,26 @@
         }
       }
     },
+    "Acceptance rate": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tasa de aceptación"
+          }
+        }
+      }
+    },
+    "Accepted": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Aceptados"
+          }
+        }
+      }
+    },
     "Accepted · %@": {
       "localizations": {
         "es": {
@@ -578,6 +618,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "Aprobado"
+          }
+        }
+      }
+    },
+    "Arrived": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Llegaron"
           }
         }
       }
@@ -812,6 +862,16 @@
         }
       }
     },
+    "Average wait": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Espera media"
+          }
+        }
+      }
+    },
     "Back": {
       "localizations": {
         "es": {
@@ -868,6 +928,26 @@
           "stringUnit": {
             "state": "translated",
             "value": "El build tardó %@"
+          }
+        }
+      }
+    },
+    "By day": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Por día"
+          }
+        }
+      }
+    },
+    "By hour of day": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Por hora del día"
           }
         }
       }
@@ -1932,6 +2012,16 @@
         }
       }
     },
+    "Counts only cover the time your whaticket.com tab was open with the extension. Kept on this Mac for a year, never uploaded: ticket ids, queues and times only — no names, phone numbers or messages.": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Los conteos solo cubren el tiempo en que tu pestaña de whaticket.com estuvo abierta con la extensión. Se guardan en este Mac durante un año y nunca se suben: solo ids de ticket, colas y horas, sin nombres, teléfonos ni mensajes."
+          }
+        }
+      }
+    },
     "Create": {
       "localizations": {
         "es": {
@@ -1942,12 +2032,32 @@
         }
       }
     },
+    "Custom": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Personalizado"
+          }
+        }
+      }
+    },
     "Custom…": {
       "localizations": {
         "es": {
           "stringUnit": {
             "state": "translated",
             "value": "Personalizado…"
+          }
+        }
+      }
+    },
+    "Delete all WhaTicket stats?": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "¿Borrar todas las estadísticas de WhaTicket?"
           }
         }
       }
@@ -2222,6 +2332,16 @@
         }
       }
     },
+    "Export CSV": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Exportar CSV"
+          }
+        }
+      }
+    },
     "Finish signing in in your browser…": {
       "localizations": {
         "es": {
@@ -2258,6 +2378,26 @@
           "stringUnit": {
             "state": "translated",
             "value": "Durante 1 hora"
+          }
+        }
+      }
+    },
+    "From": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Desde"
+          }
+        }
+      }
+    },
+    "From Coucou %lld · Auto-accepted %lld · Elsewhere %lld": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Desde Coucou %lld · Auto-aceptados %lld · En otro lugar %lld"
           }
         }
       }
@@ -2952,6 +3092,26 @@
         }
       }
     },
+    "Last 30 days": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Últimos 30 días"
+          }
+        }
+      }
+    },
+    "Last 7 days": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Últimos 7 días"
+          }
+        }
+      }
+    },
     "Last build: %@ · %@": {
       "localizations": {
         "es": {
@@ -3168,6 +3328,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "Máxima (16.000)"
+          }
+        }
+      }
+    },
+    "Median wait": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Espera mediana"
           }
         }
       }
@@ -3602,6 +3772,16 @@
         }
       }
     },
+    "No queue": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sin cola"
+          }
+        }
+      }
+    },
     "No saved chats yet": {
       "localizations": {
         "es": {
@@ -3658,6 +3838,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "No se encontró un editor compatible. Los proyectos se abren en Finder."
+          }
+        }
+      }
+    },
+    "No tickets in this period.": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No hay tickets en este período."
           }
         }
       }
@@ -4382,6 +4572,16 @@
         }
       }
     },
+    "Queue": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Cola"
+          }
+        }
+      }
+    },
     "Ran": {
       "localizations": {
         "es": {
@@ -4508,6 +4708,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "Error de Resend: revisa la clave de API y el remitente."
+          }
+        }
+      }
+    },
+    "Reset stats": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Restablecer estadísticas"
           }
         }
       }
@@ -5022,6 +5232,16 @@
         }
       }
     },
+    "Stats": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Estadísticas"
+          }
+        }
+      }
+    },
     "Stop and send": {
       "localizations": {
         "es": {
@@ -5282,6 +5502,16 @@
         }
       }
     },
+    "This can't be undone.": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No se puede deshacer."
+          }
+        }
+      }
+    },
     "Timeline": {
       "localizations": {
         "es": {
@@ -5292,12 +5522,52 @@
         }
       }
     },
+    "To": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Hasta"
+          }
+        }
+      }
+    },
     "To review": {
       "localizations": {
         "es": {
           "stringUnit": {
             "state": "translated",
             "value": "Por revisar"
+          }
+        }
+      }
+    },
+    "Today": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Hoy"
+          }
+        }
+      }
+    },
+    "Today · Arrived %lld · Accepted %lld": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Hoy · Llegaron %lld · Aceptados %lld"
+          }
+        }
+      }
+    },
+    "Today · Arrived %lld · Accepted %lld (%lld auto)": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Hoy · Llegaron %lld · Aceptados %lld (%lld auto)"
           }
         }
       }

@@ -383,6 +383,18 @@ fn whaticket_queues() -> serde_json::Value {
     whaticket::queues()
 }
 
+/// The local arrival / accept log, for Settings → WhaTicket → Stats.
+#[tauri::command]
+fn whaticket_stats() -> serde_json::Value {
+    whaticket::stats_events()
+}
+
+/// Settings → WhaTicket → Reset stats, after the user confirmed.
+#[tauri::command]
+fn whaticket_stats_reset() {
+    whaticket::stats_reset();
+}
+
 /// Writes the browser extension and its native-messaging host, and registers the host
 /// with every Chromium browser found. Returns where the unpacked extension lives.
 #[tauri::command]
@@ -843,6 +855,8 @@ pub fn run() {
             whaticket_accept,
             whaticket_open,
             whaticket_queues,
+            whaticket_stats,
+            whaticket_stats_reset,
             browser_install,
             browser_status,
             browser_reveal,
