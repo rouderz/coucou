@@ -598,7 +598,7 @@ pub async fn drive_to_file(id: &str, name: &str, mime: &str) -> Result<files::Dr
 }
 
 /// Writes into the inbox (swept after a week, like dropped files) under a safe name.
-fn save_text(name: &str, ext: &str, bytes: &[u8]) -> Result<files::DroppedFile, String> {
+pub(crate) fn save_text(name: &str, ext: &str, bytes: &[u8]) -> Result<files::DroppedFile, String> {
     let safe: String = name
         .chars()
         .map(|c| if c.is_alphanumeric() || " -_().,".contains(c) { c } else { '_' })

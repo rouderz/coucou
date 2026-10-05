@@ -2,6 +2,7 @@
 
 mod claude;
 mod alerts;
+mod ci;
 mod claude_code;
 mod codex;
 mod editors;
@@ -482,6 +483,32 @@ async fn drive_attach(id: String, name: String, mime: String) -> Result<files::D
     google::drive_to_file(&id, &name, &mime).await
 }
 
+// ── CI pill (#115) ────────────────────────────────────────────────────────────
+
+/// One of the CI pill's GitHub reads (your open PRs, a PR, a commit's check runs), with ETags.
+#[tauri::command]
+async fn ci_get(app: AppHandle, path: String) -> Result<serde_json::Value, String> {
+    ci::get(&app, &path).await
+}
+
+/// The end of a failed job's log, for "Ask Mochi why" (on a click).
+#[tauri::command]
+async fn ci_job_log(app: AppHandle, repo: String, job_id: u64) -> Result<String, String> {
+    ci::job_log(&app, &repo, job_id).await
+}
+
+/// Re-runs a workflow run's failed jobs (on a click).
+#[tauri::command]
+async fn ci_rerun_failed(app: AppHandle, repo: String, run_id: u64) -> Result<(), String> {
+    ci::rerun_failed(&app, &repo, run_id).await
+}
+
+/// The trimmed log tail as a text file, to attach to the chat.
+#[tauri::command]
+fn ci_save_log(name: String, text: String) -> Result<files::DroppedFile, String> {
+    ci::save_log(&name, &text)
+}
+
 // ── Skills ────────────────────────────────────────────────────────────────────
 
 #[tauri::command]
@@ -901,6 +928,10 @@ pub fn run() {
             gmail_attach,
             drive_search,
             drive_attach,
+            ci_get,
+            ci_job_log,
+            ci_rerun_failed,
+            ci_save_log,
         ])
         .setup(move |app| {
             let handle = app.handle().clone();

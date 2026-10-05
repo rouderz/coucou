@@ -3,6 +3,7 @@ import assert from "node:assert/strict";
 import {
   checkState, summarize, latestRuns, durationSeconds, nextPill, emptyMemory, pollInterval,
   trimLogTail, parseJobUrl, rerunFailedPath, GREEN_MS, FAST_MS, SLOW_MS, MAX_BACKOFF_MS,
+  parseCheckRuns, cardRuns, formatDuration, logAttachment, MY_OPEN_PRS_PATH, pullPath,
 } from "./ci.ts";
 import type { CheckRun, PrCI, CommitSummary } from "./ci.ts";
 
@@ -146,4 +147,45 @@ test("parseJobUrl and API paths", () => {
   assert.equal(parseJobUrl("https://github.com/o/r/runs/789"), null);
   assert.equal(parseJobUrl(null), null);
   assert.equal(rerunFailedPath("o", "r", 123), "repos/o/r/actions/runs/123/rerun-failed-jobs");
+});
+
+test("parseCheckRuns reads the REST payload and skips broken entries", () => {
+  const runs = parseCheckRuns({ total_count: 3, check_runs: [
+    { id: 7, name: "build", status: "completed", conclusion: "failure", started_at: "2026-10-01T10:00:00Z",
+      completed_at: "2026-10-01T10:02:05Z", html_url: "https://github.com/o/r/actions/runs/11/job/22" },
+    { id: 8, name: "lint", status: "in_progress", conclusion: null },
+    { name: "no id", status: "queued" },
+  ] });
+  assert.equal(runs.length, 2);
+  assert.deepEqual(runs[0], { id: 7, name: "build", status: "completed", conclusion: "failure",
+    startedAt: "2026-10-01T10:00:00Z", completedAt: "2026-10-01T10:02:05Z",
+    htmlUrl: "https://github.com/o/r/actions/runs/11/job/22" });
+  assert.equal(runs[1].conclusion, null);
+  assert.equal(runs[1].startedAt, null);
+  assert.equal(durationSeconds(runs[0]), 125);
+  assert.deepEqual(parseCheckRuns(null), []);
+  assert.deepEqual(parseCheckRuns({ check_runs: "x" }), []);
+});
+
+test("cardRuns: newest per name, failed then running then passed, by name", () => {
+  const order = cardRuns([
+    done("b-pass", "success"), run("a-run", "queued"), done("z-fail", "failure"), done("a-fail", "timed_out"),
+    done("skip", "skipped"), run("dup", "completed", "failure", "2026-10-01T10:00:00Z"),
+    run("dup", "completed", "success", "2026-10-01T11:00:00Z"),
+  ]).map((r) => r.name);
+  assert.deepEqual(order, ["a-fail", "z-fail", "a-run", "b-pass", "dup", "skip"]);
+});
+
+test("formatDuration and the API paths", () => {
+  assert.equal(formatDuration(null), "");
+  assert.equal(formatDuration(45), "45s");
+  assert.equal(formatDuration(187), "3m 07s");
+  assert.equal(formatDuration(3720), "1h 02m");
+  assert.ok(MY_OPEN_PRS_PATH.startsWith("search/issues?q=is%3Apr+is%3Aopen+author%3A%40me"));
+  assert.equal(pullPath("o/r", 5), "repos/o/r/pulls/5");
+});
+
+test("logAttachment says what failed before the log tail", () => {
+  const text = logAttachment({ pr: "o/r#5", title: "Fix it", job: "build", sha: "abcdef123456", url: "https://x/y", tail: "error: boom" });
+  assert.equal(text, "CI check failed: build\nPull request: o/r#5 · Fix it\nCommit: abcdef1\nRun: https://x/y\n\nLast lines of the job log:\nerror: boom");
 });

@@ -8,6 +8,7 @@ import { Island } from "./island/island";
 import { registerHookHandlers } from "./island/hooks";
 import { registerIntegrationHandlers, refreshConfigured } from "./island/integrations";
 import { registerInboxHandlers } from "./island/inbox";
+import { CI_ID, refreshCI, startCIPoller } from "./core/ciPoller";
 import { dndActive } from "./core/dnd.ts";
 import { setLanguage, startTranslating } from "./core/i18n.ts";
 import { speak } from "./core/voice.ts";
@@ -70,15 +71,19 @@ async function main() {
       window.location.reload();
       return;
     }
+    const ciWasOn = State.settings.activeIntegrations.includes(CI_ID);
     State.settings = { ...State.settings, ...s };
     island.applySettings();
     State.loadIntegrationTasks();
     void refreshConfigured();
+    // The CI pill just switched on: poll now rather than at the next check.
+    if (!ciWasOn) refreshCI();
   });
 
   registerHookHandlers(island);
   registerIntegrationHandlers(island);
   registerInboxHandlers(island);
+  startCIPoller(() => island.reveal());
 
   // Mochi reads replies aloud (Settings → Voice), never in Do not disturb.
   setSpeaker((text) => { if (!dndActive(State.settings.dndUntil)) speak(text); });

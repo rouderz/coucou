@@ -52,6 +52,7 @@ extension N8nPoller: IntegrationSource { var integrationID: String { "integratio
 extension StripePoller: IntegrationSource { var integrationID: String { "integration_stripe" } }
 extension CalcomPoller: IntegrationSource { var integrationID: String { "integration_calcom" } }
 extension GmailPoller: IntegrationSource { var integrationID: String { "integration_gmail" } }
+extension CIPoller: IntegrationSource { var integrationID: String { "integration_ci" } }
 extension PlanUsagePoller: IntegrationSource { var integrationID: String { "integration_claude" } }
 
 @MainActor
@@ -59,7 +60,7 @@ enum Integrations {
     static let all: [any IntegrationSource] = [
         GithubPoller.shared, NotionPoller.shared, LinearPoller.shared, VercelPoller.shared,
         ResendPoller.shared, N8nPoller.shared, StripePoller.shared, CalcomPoller.shared,
-        GmailPoller.shared, PlanUsagePoller.shared,
+        GmailPoller.shared, CIPoller.shared, PlanUsagePoller.shared,
     ]
 
     static func source(_ id: String) -> (any IntegrationSource)? {

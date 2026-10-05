@@ -297,10 +297,40 @@ const ES: Record<string, string> = {
   "Copy as text": "Copiar como texto",
   "CSV copied. Paste it into your spreadsheet.": "CSV copiado. Pégalo en tu hoja de cálculo.",
   "Exports stay on this computer: nothing is sent anywhere.": "Las exportaciones se quedan en este equipo: no se envía nada a ningún sitio.",
+
+  // CI pill (#115)
+  "CI failed": "CI falló", "All checks passed": "Todas las comprobaciones pasaron",
+  "No open pull requests.": "No hay pull requests abiertos.", "Your open PRs": "Tus PRs abiertos",
+  "No checks on this commit": "No hay comprobaciones en este commit",
+  "Open log": "Abrir log", "Ask Mochi why": "Preguntar a Mochi por qué", "Re-run": "Relanzar",
+  "Re-running…": "Relanzando…", "Re-run failed jobs": "Relanzar los jobs fallidos",
+  "queued": "en cola", "skipped": "omitido", "cancelled": "cancelado", "neutral": "neutral",
+  "Not connected to GitHub · sign in with gh or add a token in Settings":
+    "Sin conexión con GitHub · inicia sesión con gh o añade un token en Ajustes",
+  "Token rejected · check it in Settings": "Token rechazado · revísalo en Ajustes",
+  "Unexpected response from GitHub": "Respuesta inesperada de GitHub",
+  "Couldn't fetch the job log": "No se pudo obtener el log del job",
+  "Couldn't re-run the failed jobs": "No se pudieron relanzar los jobs fallidos",
+  "GitHub refused the re-run (403) · the token needs the Actions permission":
+    "GitHub rechazó el relanzamiento (403) · el token necesita el permiso de Actions",
+  "The CI pill is off": "La pastilla CI está desactivada", "Coucou is paused": "Coucou está en pausa",
+  "Not a CI request": "No es una petición de CI",
+  "This check isn't a GitHub Actions job, so there's no log to fetch.":
+    "Esta comprobación no es un job de GitHub Actions, así que no hay log que obtener.",
+  "This check isn't a GitHub Actions job, so it can't be re-run from here.":
+    "Esta comprobación no es un job de GitHub Actions, así que no se puede relanzar desde aquí.",
+  "GitHub Actions on your open PRs. Uses the GitHub connection above (gh or the token).":
+    "GitHub Actions en tus PRs abiertos. Usa la conexión de GitHub de arriba (gh o el token).",
 };
 
 /** Texts with something in them that changes: [pattern, Spanish with $1, $2…]. */
 const PATTERNS: [RegExp, string][] = [
+  [/^(\d+) PRs failing$/, "$1 PRs fallando"],
+  [/^(\d+) running$/, "$1 en marcha"],
+  [/^Failing · (\d+)$/, "Fallando · $1"],
+  [/^Running · (\d+)$/, "En marcha · $1"],
+  [/^Open PRs · (\d+)$/, "PRs abiertos · $1"],
+  [/^GitHub error (\d+)$/, "Error de GitHub $1"],
   [/^On until (\d\d:\d\d)$/, "Activado hasta las $1"],
   [/^On until tomorrow (\d\d:\d\d)$/, "Activado hasta mañana a las $1"],
   [/^until (\d\d:\d\d)$/, "hasta las $1"],

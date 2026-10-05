@@ -17,13 +17,14 @@ extension AgentTask {
         AgentTask(id: "integration_linear",  name: "Linear",    color: "#5E6AD2", state: .idle, steps: [], source: .n8n, isIntegration: true),
         AgentTask(id: "integration_whaticket", name: "WhaTicket", color: "#25D366", state: .idle, steps: [], source: .n8n, isIntegration: true),
         AgentTask(id: "integration_gmail", name: "Gmail", color: "#EA4335", state: .idle, steps: [], source: .n8n, isIntegration: true),
+        AgentTask(id: "integration_ci", name: "CI", color: "#2F81F7", state: .idle, steps: [], source: .n8n, isIntegration: true),
     ]
 
     /// IDs that can be toggled (VS Code is always on and excluded from this list)
     static let toggleableIntegrationIds: [String] = [
         "integration_resend", "integration_n8n", "integration_vercel", "integration_github",
         "integration_notion", "integration_calcom", "integration_stripe", "integration_linear",
-        "integration_whaticket", "integration_gmail",
+        "integration_whaticket", "integration_gmail", "integration_ci",
     ]
 
 }
@@ -92,6 +93,12 @@ final class AppState: ObservableObject {
     @Published var gmailTotal = 0
     @Published var gmailError: String? = nil
     @Published var gmailLoaded = false
+
+    // CI pill (#115): GitHub Actions on your open PRs (set by CIPoller)
+    @Published var ciPRs: [CIPullRequest] = []
+    @Published var ciPill = PillState(color: .idle, count: 0)
+    @Published var ciError: String? = nil
+    @Published var ciLoaded = false
 
     // Claude plan usage (5-hour / weekly limits, context), from Claude Code's status line data
     @Published var planUsage: PlanUsage? = nil
@@ -878,6 +885,16 @@ struct IntegrationStatus {
             guard s.gmailLoaded else { return checking }
             let email = UserDefaults.standard.string(forKey: "googleEmail") ?? ""
             return .init(colorHex: green, help: email.isEmpty ? "Connected" : L("Signed in as \(email)"))
+        case "integration_ci":
+            guard s.githubConnection.isConnected || key("github-token") else {
+                if case .checking = s.githubConnection { return checking }
+                return .init(colorHex: red, help: CIGitHub.notConnected)
+            }
+            if let e = s.ciError { return .init(colorHex: red, help: e) }
+            guard s.ciLoaded else { return checking }
+            return s.ciPRs.isEmpty
+                ? .init(colorHex: amber, help: L("Connected · no open pull requests"))
+                : .init(colorHex: green, help: L("Connected · \(s.ciPRs.count) open PRs"))
         case "integration_whaticket":
             guard BrowserExtension.isSetUp else { return notSet }
             if let e = s.whaticketError { return .init(colorHex: red, help: e) }

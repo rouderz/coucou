@@ -154,6 +154,7 @@ enum IslandConst {
         .init(id: "integration_linear",  name: "Linear",  color: "#5E6AD2"),
         .init(id: "integration_whaticket", name: "WhaTicket", color: "#25D366"),
         .init(id: "integration_gmail", name: "Gmail", color: "#EA4335"),
+        .init(id: "integration_ci", name: "CI", color: "#2F81F7"),
     ]
 
     /// Returns the fixed project color for a display name, or a stable fallback.

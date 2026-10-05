@@ -1874,3 +1874,46 @@ input[type="range"]::-webkit-slider-thumb {
 .int-mini.mail:hover {
   background: rgba(234, 67, 53, 0.3);
 }
+
+/* CI pill (#115): PRs and their check runs, scrolling like the macOS card. */
+.ci-rows {
+  max-height: 84px;
+  overflow-y: auto;
+  scrollbar-width: none;
+}
+
+.ci-rows::-webkit-scrollbar {
+  display: none;
+}
+
+.ci-run {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  padding: 1px 6px 1px 20px;
+  min-width: 0;
+}
+
+.ci-run .int-name {
+  font-size: 10.5px;
+  font-weight: 400;
+}
+
+.ci-sym {
+  width: 10px;
+  flex: 0 0 auto;
+  font: 700 9px var(--font);
+  text-align: center;
+}
+
+.ci-acts {
+  display: flex;
+  gap: 6px;
+  padding: 1px 6px 2px 35px;
+}
+
+.ci-acts .int-mini {
+  margin-left: 0;
+  padding: 1px 7px;
+  font-size: 10px;
+}

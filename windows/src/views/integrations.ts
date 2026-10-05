@@ -10,6 +10,8 @@ import { State, type AgentTask } from "../core/state";
 import { startNewChat } from "../core/chats";
 import { Bridge } from "../core/bridge";
 import { todayLine } from "../core/whaticketStats.ts";
+import { CI_ID, ciLogFile, ciRerunFailed, refreshCI, type CIPr } from "../core/ciPoller";
+import { checkState, durationSeconds, formatDuration, parseJobUrl, type CheckRun, type CheckState, type PillState, type PrState } from "../core/ci.ts";
 
 /** Same shape as the Swift `timeAgo` computed properties. */
 export function timeAgo(value: unknown): string {
@@ -54,6 +56,7 @@ const OPEN_URLS: Record<string, string> = {
   integration_notion: "https://notion.so",
   integration_calcom: "https://app.cal.com/bookings",
   integration_whaticket: "https://app.whaticket.com/tickets",
+  integration_ci: "https://github.com/pulls",
 };
 
 function idleCard(task: AgentTask, openSettings: () => void): HTMLElement {
@@ -104,7 +107,8 @@ function idleCard(task: AgentTask, openSettings: () => void): HTMLElement {
         class: "link-btn",
         style: `color:${task.color}d9`,
         text: "Refresh",
-        onclick: () => void Bridge.refreshIntegration(task.id),
+        // The CI pill is polled by the page (core/ciPoller.ts), not by Rust.
+        onclick: () => (task.id === CI_ID ? refreshCI() : void Bridge.refreshIntegration(task.id)),
       }),
     );
   } else if (!configured) {
@@ -462,6 +466,105 @@ function gmailCard(): HTMLElement {
   return h("div", { class: "int-card" }, header("#EA4335", "Gmail", total ? `Unread · ${total}` : "Inbox"), rows);
 }
 
+// ── CI (#115) ─────────────────────────────────────────────────────────────────
+
+const CI_COLOR: Record<CheckState | PrState, string> = {
+  failed: "#F4505E", running: "#4C8DFF", passed: "#22C55E", cancelled: "#6B7079", neutral: "#6B7079", skipped: "#6B7079",
+};
+const CI_SYMBOL: Record<CheckState, string> = {
+  failed: "✗", running: "●", passed: "✓", cancelled: "–", neutral: "–", skipped: "–",
+};
+
+/** Duration when known; otherwise what the check is doing. */
+function ciStatusText(run: CheckRun): string {
+  const s = checkState(run);
+  const duration = formatDuration(durationSeconds(run));
+  if (s === "running") return run.startedAt ? duration : "queued";
+  if (s === "skipped") return "skipped";
+  if (s === "cancelled") return "cancelled";
+  if (s === "neutral") return duration || "neutral";
+  return duration;
+}
+
+/** Re-runs asked for since the card was built (a run id), so the button says so. */
+const ciRerunning = new Set<number>();
+
+function ciShowError(err: unknown) {
+  State.noteMessage = String(err).replace(/^Error:\s*/, "");
+  State.view = "note";
+  State.notify();
+}
+
+function ciAction(label: string, title: string, run: () => Promise<void> | void): HTMLButtonElement {
+  const b = h("button", { class: "int-mini mail", text: label, title }) as HTMLButtonElement;
+  b.addEventListener("click", async (e) => {
+    e.stopPropagation();
+    b.textContent = "…";
+    b.disabled = true;
+    try {
+      await run();
+    } catch (err) {
+      ciShowError(err);
+    } finally {
+      b.textContent = label;
+      b.disabled = false;
+    }
+  });
+  return b;
+}
+
+function ciRunRows(pr: CIPr, run: CheckRun): HTMLElement[] {
+  const s = checkState(run);
+  const rows: HTMLElement[] = [h("div", { class: "ci-run" },
+    h("span", { class: "ci-sym", style: `color:${CI_COLOR[s]}`, text: CI_SYMBOL[s] }),
+    h("span", { class: "int-name", text: run.name }),
+    h("span", { class: "int-ago", style: "margin-left:auto", text: ciStatusText(run) }),
+  )];
+  if (s !== "failed") return rows;
+  const acts = h("div", { class: "ci-acts" });
+  if (run.htmlUrl) {
+    const url = run.htmlUrl;
+    acts.append(ciAction("Open log", "Open log", () => void Bridge.openUrl(url)));
+  }
+  acts.append(ciAction("Ask Mochi why", "Ask Mochi why", async () => attachToChat(await ciLogFile(pr, run), true)));
+  const job = parseJobUrl(run.htmlUrl);
+  if (job) {
+    const label = ciRerunning.has(job.runId) ? "Re-running…" : "Re-run";
+    const b = ciAction(label, "Re-run failed jobs", async () => {
+      ciRerunning.add(await ciRerunFailed(pr, run));
+    });
+    if (ciRerunning.has(job.runId)) b.disabled = true;
+    acts.append(b);
+  }
+  rows.push(acts);
+  return rows;
+}
+
+function ciCard(): HTMLElement {
+  const d = get(CI_ID);
+  const prs = (Array.isArray(d.prs) ? d.prs : []) as CIPr[];
+  const pill = (d.pill ?? { color: "idle", count: 0 }) as PillState;
+  const rows = h("div", { class: "int-rows tight ci-rows" });
+  if (!prs.length) rows.append(h("div", { class: "int-empty", text: "No open pull requests." }));
+  for (const pr of prs) {
+    rows.append(h("button", {
+      class: "int-page",
+      title: pr.summary.total ? pr.title : "No checks on this commit",
+      onclick: () => void Bridge.openUrl(pr.url),
+    },
+      dot(CI_COLOR[pr.summary.state], 6),
+      h("span", { class: "int-time", style: "color:#8e939c", text: `${pr.repo.split("/")[1] ?? pr.repo}#${pr.number}` }),
+      h("span", { class: "int-name", text: pr.title }),
+      pr.summary.total ? h("span", { class: "int-ago", style: "margin-left:auto", text: `${pr.summary.passed}/${pr.summary.total}` }) : null,
+    ));
+    for (const run of pr.runs) rows.append(...ciRunRows(pr, run));
+  }
+  const kind = pill.color === "failed" ? `Failing · ${pill.count}`
+    : pill.color === "running" ? `Running · ${pill.count}`
+    : prs.length ? `Open PRs · ${prs.length}` : "Your open PRs";
+  return h("div", { class: "int-card" }, header("#2F81F7", "CI", kind), rows);
+}
+
 // ── n8n ───────────────────────────────────────────────────────────────────────
 
 function n8nCard(task: AgentTask, onDetail: () => void, openSettings: () => void): HTMLElement {
@@ -548,6 +651,7 @@ export function hasIntegrationData(id: string): boolean {
     case "integration_linear":
     case "integration_whaticket":
     case "integration_gmail":
+    case CI_ID:
       return info.loaded;
     default:
       return false;
@@ -583,6 +687,8 @@ export function renderIntegrationCard(task: AgentTask, hooks: IntegrationCardHoo
       return whaticketCard();
     case "integration_gmail":
       return gmailCard();
+    case CI_ID:
+      return ciCard();
     default:
       return idleCard(task, hooks.openSettings);
   }

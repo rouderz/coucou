@@ -439,6 +439,8 @@ interface IntegrationDef {
   color: string;
   /** Credential Manager keys, in the order they are shown. */
   fields: { key: string; label: string; placeholder: string; secret: boolean }[];
+  /** A line under the name when there is nothing to fill in. */
+  hint?: string;
 }
 
 const INTEGRATIONS: IntegrationDef[] = [
@@ -465,6 +467,9 @@ const INTEGRATIONS: IntegrationDef[] = [
   { id: "integration_whaticket", name: "WhaTicket", color: "#25D366", fields: [] },
   // Connected in the Google section below.
   { id: "integration_gmail", name: "Gmail", color: "#EA4335", fields: [] },
+  // GitHub Actions on your open PRs (#115): no key of its own.
+  { id: "integration_ci", name: "CI", color: "#2F81F7", fields: [],
+    hint: "GitHub Actions on your open PRs. Uses the GitHub connection above (gh or the token)." },
 ];
 
 function integrationsSection(present: Record<string, boolean>): HTMLElement {
@@ -492,6 +497,7 @@ function integrationsSection(present: Record<string, boolean>): HTMLElement {
     });
 
     const rows = h("div", { style: "display:flex;flex-direction:column;gap:6px;flex:1 1 auto;min-width:0" });
+    if (def.hint) rows.append(h("div", { class: "hint", style: "padding-top:4px", text: def.hint }));
     for (const field of def.fields) {
       const input = h("input", {
         type: field.secret ? "password" : "text",

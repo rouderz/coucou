@@ -192,3 +192,68 @@ export function trimLogTail(log: string, maxLines = 120, maxChars = 6000): strin
   const cut = kept.length < lines.length;
   return (cut ? ["… (log cut, last lines only)"] : []).concat(kept).join("\n");
 }
+
+// ── Poller and card helpers (the rest of #115) ────────────────────────────────
+
+/** Your open PRs, newest first (REST search; `@me` is whoever the token or gh belongs to). */
+export const MAX_PRS = 10;
+export const MY_OPEN_PRS_PATH =
+  `search/issues?q=is%3Apr+is%3Aopen+author%3A%40me+archived%3Afalse&sort=updated&order=desc&per_page=${MAX_PRS}`;
+export const pullPath = (repo: string, number: number) => `repos/${repo}/pulls/${number}`;
+/** "Ask Mochi why" keeps this much of the failed job's log. */
+export const LOG_LINES = 150;
+export const LOG_CHARS = 12_000;
+
+type Obj = Record<string, unknown>;
+const asObj = (v: unknown): Obj => (v && typeof v === "object" && !Array.isArray(v) ? (v as Obj) : {});
+const optStr = (v: unknown): string | null => (typeof v === "string" ? v : null);
+
+/** The `check_runs` of GET …/check-runs. Entries without an id, name or status are skipped. */
+export function parseCheckRuns(json: unknown): CheckRun[] {
+  const list = asObj(json).check_runs;
+  if (!Array.isArray(list)) return [];
+  const out: CheckRun[] = [];
+  for (const raw of list) {
+    const o = asObj(raw);
+    if (typeof o.id !== "number" || typeof o.name !== "string" || typeof o.status !== "string") continue;
+    out.push({
+      id: o.id, name: o.name, status: o.status,
+      conclusion: optStr(o.conclusion),
+      startedAt: optStr(o.started_at),
+      completedAt: optStr(o.completed_at),
+      htmlUrl: optStr(o.html_url),
+    });
+  }
+  return out;
+}
+
+const CARD_RANK: Record<CheckState, number> = { failed: 0, running: 1, passed: 2, cancelled: 3, neutral: 4, skipped: 5 };
+
+/** The runs shown on the card: newest per name, failed first, then running, then the rest, by name. */
+export function cardRuns(runs: CheckRun[]): CheckRun[] {
+  return latestRuns(runs).sort((a, b) =>
+    CARD_RANK[checkState(a)] - CARD_RANK[checkState(b)] || (a.name < b.name ? -1 : a.name > b.name ? 1 : 0));
+}
+
+/** "45s", "3m 07s", "1h 02m"; "" when unknown. */
+export function formatDuration(seconds: number | null): string {
+  if (seconds == null || seconds < 0) return "";
+  const s = Math.round(seconds);
+  const pad = (n: number) => String(n).padStart(2, "0");
+  if (s < 60) return `${s}s`;
+  if (s < 3600) return `${Math.floor(s / 60)}m ${pad(s % 60)}s`;
+  return `${Math.floor(s / 3600)}h ${pad(Math.floor(s / 60) % 60)}m`;
+}
+
+/** The file attached to Mochi's chat by "Ask Mochi why": what failed, where, and the log's end. */
+export function logAttachment(o: { pr: string; title: string; job: string; sha: string; url: string; tail: string }): string {
+  return [
+    `CI check failed: ${o.job}`,
+    `Pull request: ${o.pr}${o.title ? ` · ${o.title}` : ""}`,
+    `Commit: ${o.sha.slice(0, 7)}`,
+    ...(o.url ? [`Run: ${o.url}`] : []),
+    "",
+    "Last lines of the job log:",
+    o.tail,
+  ].join("\n");
+}
