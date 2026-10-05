@@ -96,6 +96,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         islandController?.fsm.launch()
         PollGate.shared.start()
         DoNotDisturb.shared.start()
+        MochiDanceController.shared.start()
         HookServer.shared.start()
         for source in Integrations.all { source.start() }
         // WhaTicket credentials from earlier builds: the browser extension needs none.

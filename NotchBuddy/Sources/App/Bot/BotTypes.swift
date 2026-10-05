@@ -33,7 +33,7 @@ struct Tween {
 // MARK: - Particle
 
 struct Particle {
-    enum ParticleType { case heart, star, spark, sweat, z }
+    enum ParticleType { case heart, star, spark, sweat, z, note }
     var type: ParticleType
     var x, y, vx, vy: CGFloat
     var age: Double        // seconds

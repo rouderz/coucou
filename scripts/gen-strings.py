@@ -416,6 +416,9 @@ ES = {
 "(No title)":"(Sin título)","Do not disturb during meetings":"No molestar durante las reuniones",
 "Now: %@ (until %@)":"Ahora: %@ (hasta las %@)","%@ in %lld min":"%@ en %lld min","%@ in %lld h":"%@ en %lld h","%@ in %lld h %lld min":"%@ en %lld h %lld min",
 "Starting in 5 min · %@":"Empieza en 5 min · %@",
+# mochi dance (#117)
+"Mochi moves with the music":"Mochi se mueve con la música",
+"While Music or Spotify plays, Mochi bobs along and puts on headphones when the song changes. Off in Do not disturb and with Reduce Motion.":"Mientras suena Música o Spotify, Mochi se balancea al ritmo y se pone los auriculares cuando cambia la canción. Se desactiva en No molestar y con Reducir movimiento.",
 "Meeting pill and Do not disturb during meetings (read-only). Turning it on asks Google for one more permission.":"Pastilla de reunión y No molestar durante las reuniones (solo lectura). Al activarlo, Google pide un permiso más.",
 # time per issue (#114)
 "Time":"Tiempo","Day":"Día","Period":"Periodo","Total":"Total","Add":"Agregar",

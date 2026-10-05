@@ -40,6 +40,7 @@ extension BotEngine {
         case "blush":  blush  = value
         case "es":     es     = value
         case "badgeS": badgeS = value
+        case "phones": phones = value
         default: break
         }
     }
@@ -61,6 +62,7 @@ extension BotEngine {
         case "blush":  return blush
         case "es":     return es
         case "badgeS": return badgeS
+        case "phones": return phones
         default:       return 0
         }
     }

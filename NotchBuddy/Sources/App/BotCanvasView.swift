@@ -32,6 +32,8 @@ struct BotCanvasView: View {
                 engine.bodyColor = (state.focusTask?.isIntegration == true)
                     ? cgColorFromHex(state.focusTask!.color)
                     : nil
+                // Bobs to the music (#117) while idle; the engine eases it in and out.
+                engine.dancing = state.mochiDancing
                 engine.update(dt: dt)
                 engine.drawHandsBehind(context: context, size: size)
                 engine.draw(context: context, size: size)
@@ -44,6 +46,10 @@ struct BotCanvasView: View {
         }
         .onChange(of: state.focus.phase) { _, _ in applyFocusLook() }
         .onChange(of: state.focus.paused) { _, _ in applyFocusLook() }
+        .onChange(of: state.musicTrackChanges) { _, _ in
+            // New song (#117): headphones, only when Mochi is dancing and can be seen.
+            if state.mochiDancing && state.mode != .hidden { engine.headphones() }
+        }
         .onChange(of: state.view) { _, newView in
             // Morph up when upload view is active
             if state.mode == .expanded && newView == .upload {

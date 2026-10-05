@@ -93,6 +93,14 @@ final class BotEngine: ObservableObject {
     var miniLookTarget: CGPoint = .zero
     var miniLookNextTime: Double = 0
 
+    // Mochi moves with the music (#117). `dancing` is set every frame by BotCanvasView;
+    // `danceAmt` eases the bob in and out; `dancePose` is added to the body when drawing.
+    var dancing: Bool = false
+    var danceAmt: CGFloat = 0
+    var dancePose = MochiDance.Pose.rest
+    // Headphones emote on a track change (0 = off, 1 = on)
+    var phones: CGFloat = 0
+
     // MARK: - Public API
 
     func setState(_ newState: BotState, force: Bool = false) {
@@ -354,6 +362,19 @@ final class BotEngine: ObservableObject {
             self.eyeOverride = .happy
             self.eyeOverrideUntil = CACurrentMediaTime() + 0.30
         }
+    }
+
+    /// New song while dancing (#117): headphones pop on, happy eyes, two notes, then off again.
+    func headphones() {
+        guard !isMini else { return }
+        eyeOverride = .happy
+        eyeOverrideUntil = CACurrentMediaTime() + 1.4
+        anim("phones", keys: [
+            TweenKey(target: 1, duration: 260,  ease: Ease.back),
+            TweenKey(target: 1, duration: 1100, ease: Ease.lin),
+            TweenKey(target: 0, duration: 240,  ease: Ease.inOut),
+        ])
+        emit(.note, count: 2)
     }
 
     /// Immediately interrupts an in-progress greeting (hands retract in 150 ms).

@@ -7,6 +7,9 @@ import type { EditPreview } from "../claude/preview.ts";
 import type { CodeContext } from "./bridge";
 import type { SavedChat } from "./chats";
 import { initialFocus, type FocusState } from "./focus.ts";
+import { DanceTracker, shouldDance } from "./dance";
+import { dndActive } from "./dnd";
+import type { NowPlayingState } from "./nowplaying";
 
 export type AgentSource = "claudeCode" | "n8n";
 export type PillBadge = "approval" | "finished" | "error";
@@ -208,6 +211,8 @@ export interface Settings {
   longBreakMin: number;
   blocksBeforeLong: number;
   focusShortcut: boolean;
+  /** Mochi moves with the music (#117); off by default. */
+  mochiDance: boolean;
 }
 
 export const DEFAULT_SETTINGS: Settings = {
@@ -238,6 +243,7 @@ export const DEFAULT_SETTINGS: Settings = {
   inboxKinds: ["review", "mention", "assigned", "comment", "other"],
   checkUpdates: true,
   timeTracking: true,
+  mochiDance: false,
   providerId: "openai",
   providerBaseUrl: "",
   providerModel: "",
@@ -327,6 +333,17 @@ class AppState {
 
   lastActivity = performance.now();
 
+  /**
+   * Mochi moves with the music (#117). Fed through setNowPlaying() — no music source exists on
+   * Windows / Linux yet (GSMTC / MPRIS are #107), so for now nothing calls it and Mochi never
+   * dances here. `reduceMotion` follows `prefers-reduced-motion` (set by the island).
+   */
+  musicPlaying = false;
+  /** Goes up each time a new song starts playing (the headphones emote). */
+  musicTrackChanges = 0;
+  reduceMotion = false;
+  private danceTracker = new DanceTracker();
+
   settings: Settings = { ...DEFAULT_SETTINGS };
 
   private listeners = new Set<Listener>();
@@ -348,6 +365,27 @@ class AppState {
 
   get effectiveState(): BotStateName {
     return this.stateOverride ?? this.focusTask?.state ?? "idle";
+  }
+
+  /** Mochi bobs to the music right now: setting on, something playing, idle, no DND, no reduced motion. */
+  get mochiDancing(): boolean {
+    return shouldDance({
+      enabled: this.settings.mochiDance === true,
+      playing: this.musicPlaying,
+      doNotDisturb: dndActive(this.settings.dndUntil),
+      reduceMotion: this.reduceMotion,
+      state: this.effectiveState,
+    });
+  }
+
+  /** The active player's latest state, from whatever music source exists (none yet here). */
+  setNowPlaying(s: NowPlayingState | null) {
+    this.danceTracker.apply(s);
+    const { playing, changes } = this.danceTracker;
+    if (playing === this.musicPlaying && changes === this.musicTrackChanges) return;
+    this.musicPlaying = playing;
+    this.musicTrackChanges = changes;
+    this.notify();
   }
 
   get otherTasks(): AgentTask[] {

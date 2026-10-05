@@ -482,6 +482,21 @@ final class AppState: ObservableObject {
     var dndMeetingEnd: Date? = nil
     var dndSkippedMeetingEnd: Date? = nil
 
+    // Mochi moves with the music (#117). Off by default; Music / Spotify are only followed while on.
+    @Published var mochiDance: Bool = false {
+        didSet {
+            UserDefaults.standard.set(mochiDance, forKey: "mochiDance")
+            // Deferred, like dndDuringMeetings: this also runs while AppState.shared is being created.
+            if mochiDance != oldValue { DispatchQueue.main.async { MochiDanceController.shared.update() } }
+        }
+    }
+    /// Set by MochiDanceController from the active player (no track details: that's #107's card).
+    @Published var musicPlaying: Bool = false
+    /// Goes up each time a new song starts playing (the headphones emote).
+    @Published var musicTrackChanges: Int = 0
+    /// macOS Accessibility › Display › Reduce motion.
+    @Published var reduceMotion: Bool = false
+
     // Focus timer (#119). Driven by FocusTimer.shared; not persisted (a block doesn't survive a relaunch).
     @Published var focus = FocusTimerState()
     /// Block lengths (Settings → Focus) — persisted.
@@ -572,6 +587,7 @@ final class AppState: ObservableObject {
         if let v = ud.string(forKey: "phoneAlertsServer"), !v.isEmpty { phoneAlertsServer = v }
         if let v = ud.object(forKey: "phoneAlertsOnlyWhenAway") as? Bool { phoneAlertsOnlyWhenAway = v }
         if let v = ud.object(forKey: "dndDuringMeetings") as? Bool { dndDuringMeetings = v }
+        if let v = ud.object(forKey: "mochiDance") as? Bool { mochiDance = v }
         if let v = ud.object(forKey: "voiceEnabled")      as? Bool   { voiceEnabled = v }
         if let v = ud.object(forKey: "voiceHotkeyFlags")  as? Int    { voiceHotkeyFlags = UInt(v) }
         if let v = ud.object(forKey: "voiceHotkeyCode")   as? Int    { voiceHotkeyCode = UInt16(v) }
@@ -612,6 +628,14 @@ final class AppState: ObservableObject {
 
     var effectiveState: BotState {
         stateOverride ?? focusTask?.state ?? .idle
+    }
+
+    /// Mochi bobs to the music right now (#117): setting on, something playing, idle, no Do not
+    /// disturb, no Reduce Motion.
+    var mochiDancing: Bool {
+        MochiDance.shouldDance(enabled: mochiDance, playing: musicPlaying,
+                               doNotDisturb: DoNotDisturb.shared.isActive,
+                               reduceMotion: reduceMotion, state: effectiveState)
     }
 
     // MARK: - Task management

@@ -78,6 +78,14 @@ extension BotEngine {
         // oy tween can override if not locked
         if !locks.contains("oy") { oy += (bounce - oy) * CGFloat(1 - pow(0.0008, dt)) }
 
+        // Dance (#117): only the main Mochi, only idle, never while it's a mailbox. Eased in and
+        // out (~0.3 s) so starting or pausing the music never makes it jump.
+        let danceOn = dancing && !isMini && state == .idle && morph < 0.05
+        let danceTarget: CGFloat = danceOn ? 1 : 0
+        danceAmt += (danceTarget - danceAmt) * CGFloat(1 - pow(0.02, dt))
+        if !danceOn && danceAmt < 0.001 { danceAmt = 0 }
+        dancePose = MochiDance.pose(at: now, amount: danceAmt)
+
         if cfg.breathes {
             let amp: CGFloat = isMini ? 0.07 : 0.035
             tgSy = 1 + sin(t * 1.8) * amp
