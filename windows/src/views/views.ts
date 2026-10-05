@@ -9,6 +9,7 @@ import { State, type AgentTask } from "../core/state";
 import { washRGBA, type IslandViewName, type Wash } from "../core/layout";
 import { createMiniBot, pruneMiniBots } from "../mochi/minibots";
 import { buildPrompt } from "./chat";
+import { beginCapture, buildCapture } from "./capture";
 import { buildChoose, buildUpload, buildUploading } from "./upload";
 import { renderIntegrationCard, type IntegrationCardHooks } from "./integrations";
 import { AUTO_LEVELS, levelFor, withLevel, type AutoLevel } from "../claude/autoApprove.ts";
@@ -214,6 +215,10 @@ function buildOverview(actions: ViewActions): ViewHost {
       State.notify();
     },
     openSettings: () => actions.openSettingsWindow(),
+    openCapture: () => {
+      beginCapture();
+      actions.setView("capture");
+    },
   };
 
   return {
@@ -950,7 +955,8 @@ export function buildViews(
   map.set("settings", buildSettings(actions));
   map.set("timeline", buildTimeline(actions));
   map.set("inbox", buildInbox(actions));
-  map.set("prompt", buildPrompt(onChatHeightChange, () => actions.setView("history")));
+  map.set("prompt", buildPrompt(onChatHeightChange, () => actions.setView("history"), () => actions.setView("capture")));
+  map.set("capture", buildCapture(actions));
   map.set("history", buildHistory(actions));
   map.set("upload", buildUpload());
   map.set("uploading", buildUploading());

@@ -125,8 +125,13 @@ export function parseTeams(data: any): { viewerId: string | null; teams: TeamInf
   return { viewerId: typeof data?.viewer?.id === "string" ? data.viewer.id : null, teams };
 }
 
-/** The `variables` for ISSUE_CREATE_MUTATION. Throws if the chip isn't ready, or "@me" has no viewer id. */
-export function buildIssueCreateVariables(chip: PreviewChip, viewerId: string | null): { input: Record<string, unknown> } {
+/**
+ * The `variables` for ISSUE_CREATE_MUTATION. Throws if the chip isn't ready, or "@me" has no viewer id.
+ * `description` (Markdown: the context the user chose to attach) is sent only when it has text.
+ */
+export function buildIssueCreateVariables(
+  chip: PreviewChip, viewerId: string | null, description: string | null = null,
+): { input: Record<string, unknown> } {
   if (!chip.ready || !chip.team) throw new Error("The issue isn't ready to create");
   const input: Record<string, unknown> = { teamId: chip.team.id, title: chip.title };
   if (chip.priority > 0) input.priority = chip.priority;
@@ -135,6 +140,7 @@ export function buildIssueCreateVariables(chip: PreviewChip, viewerId: string | 
     input.assigneeId = viewerId;
   }
   if (chip.dueDate) input.dueDate = chip.dueDate;
+  if (description && description.trim()) input.description = description.trim();
   return { input };
 }
 
@@ -204,7 +210,70 @@ export function reduce(s: CaptureState, e: CaptureEvent, ctx: CaptureContext): {
   }
 }
 
-/** Branch to copy for "Start a Claude Code session on it": Linear's own name, else the identifier. */
+/** "Fix the cart total rounding" → "fix-the-cart-total-rounding": ASCII, accents dropped, at most 50 characters. */
+export function slug(text: string): string {
+  return text
+    .normalize("NFD").replace(/[̀-ͯ]/g, "")
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-+|-+$/g, "")
+    .slice(0, 50)
+    .replace(/-+$/, "");
+}
+
+/** Branch to copy for "Start a Claude Code session on it": Linear's own name, else "<identifier>-<slug of the title>". */
 export function branchToCopy(issue: CreatedIssue): string {
-  return issue.branchName ?? issue.identifier.toLowerCase();
+  if (issue.branchName) return issue.branchName;
+  const tail = slug(issue.title);
+  return tail ? `${issue.identifier.toLowerCase()}-${tail}` : issue.identifier.toLowerCase();
+}
+
+// MARK: Context and chat drafts
+
+/** What can be attached to the issue's description: the editor's file / selection, or a window. */
+export type CaptureSource =
+  | { kind: "code"; file: string; line?: number | null; selection?: string | null }
+  | { kind: "window"; app: string; title: string; url?: string | null };
+
+export interface CaptureAttachment {
+  /** Shown on the chip ("app.ts:42", "Safari — Pricing"). */
+  label: string;
+  /** Markdown for the issue's description. */
+  text: string;
+}
+
+const MAX_SELECTION = 4000;
+
+/** The chip label and the Markdown for the description; null when there's nothing worth attaching. */
+export function describeSource(src: CaptureSource): CaptureAttachment | null {
+  if (src.kind === "code") {
+    if (!src.file) return null;
+    const name = src.file.split(/[\\/]/).pop() || src.file;
+    const where = src.line ? `${src.file}:${src.line}` : src.file;
+    let text = "`" + where + "`";
+    const sel = (src.selection ?? "").trim();
+    if (sel) text += "\n\n```\n" + (sel.length > MAX_SELECTION ? sel.slice(0, MAX_SELECTION) + "\n…" : sel) + "\n```";
+    return { label: src.line ? `${name}:${src.line}` : name, text };
+  }
+  const app = src.app.trim();
+  const title = src.title.trim();
+  if (!app && !title) return null;
+  const label = app && title ? `${app} — ${title}` : app || title;
+  let text = app && title ? `${app}: ${title}` : app || title;
+  if (src.url) text += `\n\n${src.url}`;
+  return { label, text };
+}
+
+/** "Make this a Linear issue" from a chat answer: its first line is the title, the whole answer the description. */
+export function draftFromAnswer(answer: string): { line: string; description: string } | null {
+  const text = answer.trim();
+  if (!text) return null;
+  const first = text.split("\n").map((l) => l.trim()).find((l) => l.length > 0) ?? "";
+  let line = first
+    .replace(/^(#{1,6}\s+|[-*+>]\s+|\d+[.)]\s+)+/, "")
+    .replace(/[*_`]/g, "")
+    .replace(/\s+/g, " ")
+    .trim();
+  if (line.length > 120) line = line.slice(0, 119).trimEnd() + "…";
+  return { line, description: text };
 }

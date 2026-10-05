@@ -162,9 +162,64 @@ pub async fn comment(issue_id: &str, body: &str) -> Result<(), String> {
     }
 }
 
+// ── Quick capture (#118) ──────────────────────────────────────────────────────
+// The page (src/core/capture.ts) parses the line, shows the preview and builds the
+// `input`; the requests themselves are made here, with the key from the keychain.
+
+const TEAMS_QUERY: &str = "query { viewer { id } teams(first: 100) { nodes { id key name } } }";
+const ISSUE_CREATE_MUTATION: &str = "mutation($input: IssueCreateInput!) { issueCreate(input: $input) \
+     { success issue { id identifier title url branchName } } }";
+
+/// The only `IssueCreateInput` fields quick capture sends.
+const CAPTURE_FIELDS: [&str; 6] = ["teamId", "title", "priority", "assigneeId", "dueDate", "description"];
+
+/// Your teams and your user id (for "@me"), as Linear returns them. Read-only.
+pub async fn teams() -> Result<Value, String> {
+    query(TEAMS_QUERY, json!({})).await
+}
+
+/// Keeps the known fields; None without a team or a title.
+pub fn capture_input(input: &Value) -> Option<Value> {
+    let obj = input.as_object()?;
+    let filled = |k: &str| obj.get(k).and_then(Value::as_str).is_some_and(|v| !v.trim().is_empty());
+    if !filled("teamId") || !filled("title") {
+        return None;
+    }
+    let kept: serde_json::Map<String, Value> = obj
+        .iter()
+        .filter(|(k, _)| CAPTURE_FIELDS.contains(&k.as_str()))
+        .map(|(k, v)| (k.clone(), v.clone()))
+        .collect();
+    Some(Value::Object(kept))
+}
+
+/// Creates the issue. Only ever called after the second Enter / click on the preview.
+pub async fn create_issue(input: &Value) -> Result<Value, String> {
+    let input = capture_input(input).ok_or("The issue isn't ready to create")?;
+    let data = query(ISSUE_CREATE_MUTATION, json!({ "input": input })).await?;
+    if data.pointer("/issueCreate/success").and_then(Value::as_bool) == Some(true) {
+        Ok(data)
+    } else {
+        Err("Linear didn't accept the issue".into())
+    }
+}
+
 #[cfg(test)]
 mod tests {
-    use super::identifier_in;
+    use super::{capture_input, identifier_in};
+    use serde_json::json;
+
+    #[test]
+    fn capture_sends_only_known_fields_and_needs_team_and_title() {
+        let input = json!({ "teamId": "t", "title": "Fix it", "priority": 2, "stateId": "x", "description": "ctx" });
+        assert_eq!(
+            capture_input(&input),
+            Some(json!({ "teamId": "t", "title": "Fix it", "priority": 2, "description": "ctx" }))
+        );
+        assert_eq!(capture_input(&json!({ "teamId": "t", "title": " " })), None);
+        assert_eq!(capture_input(&json!({ "title": "Fix it" })), None);
+        assert_eq!(capture_input(&json!("Fix it")), None);
+    }
 
     #[test]
     fn finds_the_issue_in_a_branch_name() {

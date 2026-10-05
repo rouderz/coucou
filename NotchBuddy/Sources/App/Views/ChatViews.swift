@@ -68,6 +68,17 @@ struct PromptView: View {
                             VoiceOutput.shared.stop()
                         }
                     }
+                    // "Make this a Linear issue" (#118): the last answer as a draft, same preview and Enter twice.
+                    if LinearAPI.hasKey, state.stateOverride == nil,
+                       let last = state.chatHistory.last, last.role == .assistant,
+                       let draft = QuickCapture.draft(fromAnswer: last.content) {
+                        HeaderIconButton(symbol: "checklist", active: false, help: L("Make this a Linear issue")) {
+                            QuickCaptureModel.shared.begin(line: draft.line,
+                                                           attachment: CaptureAttachment(label: L("Chat answer"), text: draft.description),
+                                                           attach: true)
+                            withAnimation(.spring(response: 0.3, dampingFraction: 0.8)) { state.view = .capture }
+                        }
+                    }
                     HeaderIconButton(symbol: "clock.arrow.circlepath", active: showHistory,
                                      help: L("Chat history")) { showHistory.toggle() }
                     if !state.chatHistory.isEmpty || state.promptContext != nil {

@@ -221,6 +221,31 @@ final class AppState: ObservableObject {
         }
     }
 
+    // Quick capture (#118): one line in the island becomes a Linear issue (default ⌃⌥L).
+    // Registered only while a Linear API key is saved.
+    @Published var captureHotkeyEnabled: Bool = true {
+        didSet {
+            UserDefaults.standard.set(captureHotkeyEnabled, forKey: "captureHotkeyEnabled")
+            NotificationCenter.default.post(name: .captureHotkeyChanged, object: nil)
+        }
+    }
+    var captureHotkeyFlags: UInt = NSEvent.ModifierFlags([.control, .option]).rawValue {
+        didSet {
+            UserDefaults.standard.set(Int(captureHotkeyFlags), forKey: "captureHotkeyFlags")
+            NotificationCenter.default.post(name: .captureHotkeyChanged, object: nil)
+        }
+    }
+    var captureHotkeyCode: UInt16 = 37 {  // 'l'
+        didSet {
+            UserDefaults.standard.set(Int(captureHotkeyCode), forKey: "captureHotkeyCode")
+            NotificationCenter.default.post(name: .captureHotkeyChanged, object: nil)
+        }
+    }
+    /// Team key ("SHO") used when the line has no #TEAM; empty = the only team, if there's one.
+    @Published var linearDefaultTeam: String = "" {
+        didSet { UserDefaults.standard.set(linearDefaultTeam, forKey: "linearDefaultTeam") }
+    }
+
     // ⌥⏎ Allow / ⌥⌫ Deny while an approval is waiting.
     @Published var approvalShortcutsEnabled: Bool = true {
         didSet {
@@ -502,6 +527,10 @@ final class AppState: ObservableObject {
         if let v = ud.object(forKey: "assistantHotkeyEnabled") as? Bool { assistantHotkeyEnabled = v }
         if let v = ud.object(forKey: "assistantHotkeyFlags")   as? Int  { assistantHotkeyFlags = UInt(v) }
         if let v = ud.object(forKey: "assistantHotkeyCode")    as? Int  { assistantHotkeyCode = UInt16(v) }
+        if let v = ud.object(forKey: "captureHotkeyEnabled") as? Bool { captureHotkeyEnabled = v }
+        if let v = ud.object(forKey: "captureHotkeyFlags")   as? Int  { captureHotkeyFlags = UInt(v) }
+        if let v = ud.object(forKey: "captureHotkeyCode")    as? Int  { captureHotkeyCode = UInt16(v) }
+        if let v = ud.string(forKey: "linearDefaultTeam") { linearDefaultTeam = v }
         if let v = ud.object(forKey: "approvalShortcutsEnabled") as? Bool { approvalShortcutsEnabled = v }
         if let v = ud.object(forKey: "dndUntil") as? Date, v > .now { dndUntil = v }
         if let v = ud.object(forKey: "phoneAlertsEnabled") as? Bool { phoneAlertsEnabled = v }

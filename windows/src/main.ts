@@ -13,6 +13,8 @@ import { dndActive } from "./core/dnd.ts";
 import { setLanguage, startTranslating } from "./core/i18n.ts";
 import { speak } from "./core/voice.ts";
 import { setSpeaker, setListening } from "./views/chat";
+import { beginCapture, captureBusy } from "./views/capture";
+import { describeSource } from "./core/capture";
 
 async function main() {
   const root = document.getElementById("root");
@@ -63,6 +65,22 @@ async function main() {
   });
 
   await onEvent<null>("screen-changed", () => void Bridge.reposition());
+
+  // Quick capture (#118): the global shortcut opens a one-line input for a Linear issue.
+  await onEvent<null>("quick-capture", () => {
+    setPaused(false);
+    const typing = State.mode === "expanded" && State.view === "capture" && !captureBusy();
+    if (!typing) {
+      // The editor's file / selection is offered, attached only if its chip is clicked.
+      const ed = State.editorContext;
+      const recent = ed && Date.now() - ed.at < 10 * 60_000;
+      const offer = recent && ed ? describeSource({ kind: "code", file: ed.file, line: ed.line, selection: ed.selection }) : null;
+      beginCapture("", offer, false);
+      Sound.play("blip");
+      island.alert("capture");
+    }
+    island.focusView();
+  });
 
   // The settings window writes preferences; apply them here without a restart.
   await onEvent<Settings>("settings-changed", (s) => {

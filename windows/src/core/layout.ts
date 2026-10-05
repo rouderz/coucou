@@ -25,6 +25,7 @@ export type IslandViewName =
   | "timeline"
   | "inbox"
   | "history"
+  | "capture"
   | "greeting";
 
 export type BotStateName =
@@ -101,6 +102,8 @@ export const VIEW_LAYOUTS: Record<IslandViewName, ViewLayout> = {
   timeline: { height: 240, botX: 44, botY: 40, botDiameter: 36, agentMode: "none" },
   inbox: { height: 240, botX: 44, botY: 40, botDiameter: 36, agentMode: "none" },
   history: { height: 240, botX: 44, botY: 40, botDiameter: 36, agentMode: "none" },
+  // Quick capture (#118): one line becomes a Linear issue (the macOS `.capture` view).
+  capture: { height: 160, botX: 52, botY: null, botDiameter: 44, agentMode: "none" },
   greeting: { height: 150, botX: 320, botY: 90, botDiameter: 0, agentMode: "none" },
 };
 

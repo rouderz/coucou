@@ -157,4 +157,51 @@ final class QuickCaptureTests: XCTestCase {
         guard case .preview = r.state else { return XCTFail("expected a preview") }
         XCTAssertNil(r.effect)
     }
+
+    func testBranchToCopyFallsBackToIdentifierAndSlug() {
+        XCTAssertEqual(QuickCapture.slug("Fix the cart total rounding!"), "fix-the-cart-total-rounding")
+        XCTAssertEqual(QuickCapture.slug("Arreglar el menú — ¿ya?"), "arreglar-el-menu-ya")
+        XCTAssertEqual(QuickCapture.slug(String(repeating: "x", count: 30) + " " + String(repeating: "y", count: 30)),
+                       String(repeating: "x", count: 30) + "-" + String(repeating: "y", count: 19))
+        XCTAssertEqual(QuickCapture.slug("***"), "")
+        XCTAssertEqual(CreatedIssue(id: "i", identifier: "SHO-9", title: "Fix the cart", url: "", branchName: nil).branchToCopy,
+                       "sho-9-fix-the-cart")
+        XCTAssertEqual(CreatedIssue(id: "i", identifier: "SHO-9", title: "Fix", url: "", branchName: "me/sho-9-fix").branchToCopy,
+                       "me/sho-9-fix")
+    }
+
+    func testDescriptionIsSentOnlyWithText() {
+        let chip = PreviewChip.make(parse("Fix it"), teams: teams, defaultTeamKey: "ENG")
+        XCTAssertNil(LinearAPI.issueCreateInput(chip, viewerID: nil, description: "  ")?["description"])
+        XCTAssertEqual(LinearAPI.issueCreateInput(chip, viewerID: nil, description: " `a.ts:3` ")?["description"] as? String, "`a.ts:3`")
+    }
+
+    func testContextAttachments() {
+        XCTAssertEqual(QuickCapture.describeCode(file: "/p/src/app.ts", line: 42, selection: " x = 1 "),
+                       CaptureAttachment(label: "app.ts:42", text: "`/p/src/app.ts:42`\n\n```\nx = 1\n```"))
+        XCTAssertEqual(QuickCapture.describeCode(file: "/p/main.rs", line: nil, selection: nil),
+                       CaptureAttachment(label: "main.rs", text: "`/p/main.rs`"))
+        XCTAssertNil(QuickCapture.describeCode(file: "", line: nil, selection: nil))
+        XCTAssertEqual(QuickCapture.describeWindow(app: "Safari", title: "Pricing", url: "https://x.dev"),
+                       CaptureAttachment(label: "Safari — Pricing", text: "Safari: Pricing\n\nhttps://x.dev"))
+        XCTAssertEqual(QuickCapture.describeWindow(app: "Finder", title: "", url: nil), CaptureAttachment(label: "Finder", text: "Finder"))
+        XCTAssertNil(QuickCapture.describeWindow(app: "", title: " ", url: nil))
+        XCTAssertNil(QuickCapture.attachment(for: .file(name: "a.pdf", fileURL: nil)))
+        let long = QuickCapture.describeCode(file: "a.ts", line: nil, selection: String(repeating: "y", count: 5000))
+        XCTAssertLessThan(long?.text.count ?? .max, 4100)
+    }
+
+    func testChatDraft() {
+        let d = QuickCapture.draft(fromAnswer: "\n## **Fix** the `cart` rounding\n\nUse cents.")
+        XCTAssertEqual(d?.line, "Fix the cart rounding")
+        XCTAssertEqual(d?.description, "## **Fix** the `cart` rounding\n\nUse cents.")
+        XCTAssertEqual(QuickCapture.draft(fromAnswer: "- 1. Step one")?.line, "Step one")
+        XCTAssertNil(QuickCapture.draft(fromAnswer: "   "))
+        XCTAssertEqual(QuickCapture.draft(fromAnswer: String(repeating: "a", count: 200))?.line.count, 120)
+        // The draft still goes through the same two Enters.
+        let ctx = CaptureFlow.Context(teams: teams, defaultTeamKey: "ENG", now: saturday)
+        let r = CaptureFlow.reduce(.editing(line: QuickCapture.draft(fromAnswer: "Fix it #SHO")!.line), .enter, ctx)
+        guard case .preview = r.state else { return XCTFail("expected a preview") }
+        XCTAssertNil(r.effect)
+    }
 }

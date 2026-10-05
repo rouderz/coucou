@@ -321,6 +321,27 @@ const ES: Record<string, string> = {
     "Esta comprobación no es un job de GitHub Actions, así que no se puede relanzar desde aquí.",
   "GitHub Actions on your open PRs. Uses the GitHub connection above (gh or the token).":
     "GitHub Actions en tus PRs abiertos. Usa la conexión de GitHub de arriba (gh o el token).",
+  // quick capture (#118)
+  "New Linear issue": "Nueva issue de Linear",
+  "Fix the cart total #SHO p2 @me !fri": "Arreglar el total del carrito #SHO p2 @me !fri",
+  "#TEAM · p1–p4 · @me · !fri — Enter to preview": "#TEAM · p1–p4 · @me · !fri — Enter para previsualizar",
+  "Enter again to create · Esc to edit": "Enter otra vez para crear · Esc para editar",
+  "Fix the line, then Enter": "Corrige la línea y pulsa Enter",
+  "Creating…": "Creando…", "Created · Enter to close": "Creada · Enter para cerrar", "Enter to try again": "Enter para reintentar",
+  "Copied": "Copiado", "Copy branch name": "Copiar nombre de la rama", "Me": "Yo",
+  "Write a title": "Escribe un título",
+  "Add #TEAM or pick a default team in Settings": "Añade #TEAM o elige un equipo por defecto en Ajustes",
+  "Loading your Linear teams…": "Cargando tus equipos de Linear…", "No Linear teams loaded": "No se cargaron equipos de Linear",
+  "Attached to the description · click to remove": "Adjunto en la descripción · haz clic para quitarlo",
+  "Click to add this to the description": "Haz clic para añadirlo a la descripción",
+  "Make this a Linear issue": "Convertir en issue de Linear", "→ Linear": "→ Linear", "Chat answer": "Respuesta del chat",
+  "Can't tell who you are in Linear": "No se puede saber quién eres en Linear",
+  "Quick capture (Linear)": "Captura rápida (Linear)", "Default team": "Equipo por defecto",
+  "None (type #TEAM)": "Ninguno (escribe #TEAM)", "Load teams": "Cargar equipos", "Shortcut": "Atajo",
+  "e.g. Ctrl+Alt+L · empty = off · only while a Linear key is saved":
+    "p. ej. Ctrl+Alt+L · vacío = desactivado · solo con una clave de Linear guardada",
+  "Quick capture: #TEAM picks the team, p1–p4 the priority, @me assigns it to you, !today / !fri / !2026-12-01 sets a due date. Nothing is created until you press Enter on the preview. The + in the Linear card opens it too.":
+    "Captura rápida: #TEAM elige el equipo, p1–p4 la prioridad, @me te la asigna y !today / !fri / !2026-12-01 pone fecha límite. No se crea nada hasta que pulsas Enter en la vista previa. El + de la tarjeta de Linear también la abre.",
 };
 
 /** Texts with something in them that changes: [pattern, Spanish with $1, $2…]. */
@@ -397,6 +418,8 @@ const PATTERNS: [RegExp, string][] = [
   [/^Left to the terminal: (.+)$/, "Respondido en la terminal: $1"],
   [/^Auto-approved \((.+)\): (.+)$/, "Auto-aprobado ($1): $2"],
   [/^(\d+)s$/, "$1 s"],
+  [/^Due (\d{4}-\d\d-\d\d)$/, "Vence $1"],
+  [/^No team with the key (.+)$/, "No hay ningún equipo con la clave $1"],
 ];
 
 const RAW = ".chat-log, .code, .diff, .inbox-open .title, .path, .tl-time, [data-raw]";
