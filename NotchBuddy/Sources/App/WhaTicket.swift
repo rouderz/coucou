@@ -167,6 +167,8 @@ final class WhaTicketBridge {
     private var names: [String: String] = [:]
     /// Picked by auto-accept rather than clicked.
     private var auto: Set<String> = []
+    /// When a tab last sent a real snapshot (an error from another tab is ignored meanwhile).
+    private var lastGoodSnapshot: Date?
     private let log = Logger(subsystem: "fr.louisraille.NotchBuddy", category: "whaticket")
 
     private var enabled: Bool { AppState.shared.activeIntegrations.contains(Self.id) }
@@ -196,11 +198,17 @@ final class WhaTicketBridge {
     private func snapshot(_ msg: [String: Any]) -> [String: Any] {
         let state = AppState.shared
         if let code = msg["error"] as? String {
+            // Another whaticket.com tab (a login page, a second window) has no session while the
+            // one in use does: its error must not hide the queue that keeps arriving.
+            if let good = lastGoodSnapshot, Date.now.timeIntervalSince(good) < Self.staleAfter {
+                return ["commands": [Any](), "interval": Self.interval]
+            }
+            // seenAt is left alone: with no good snapshot for a while the card shows this error.
             state.whaticketError = WhaTicketRules.errorText(code)
-            state.whaticketSeenAt = .now
             state.whaticketLoaded = true
             return ["commands": [Any](), "interval": Self.interval]
         }
+        lastGoodSnapshot = .now
         // No check-in for a while: the tab was closed or asleep. Start over, silently.
         if state.whaticketSeenAt.map({ Date.now.timeIntervalSince($0) > Self.staleAfter }) ?? true {
             startOver()

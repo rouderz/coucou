@@ -293,6 +293,8 @@ ES = {
 "Appearance":"Apariencia","System":"Sistema","Dark":"Oscuro","Light":"Claro",
 "Colours of the island's cards and text. The top of the island stays black so it blends with the notch.":"Colores de las tarjetas y el texto de la isla. La parte de arriba sigue negra para fundirse con el notch.",
 # chat engines (#108)
+"↪ %@ is out of quota or unavailable — %@ answered.":"↪ %@ se quedó sin cuota o no está disponible — respondió %@.",
+"When the engine runs out of quota, switch to the next one (Claude Code → Codex → Gemini → API)":"Si el motor se queda sin cuota, pasar al siguiente (Claude Code → Codex → Gemini → API)",
 "Codex (ChatGPT plan)":"Codex (plan de ChatGPT)","Gemini CLI":"Gemini CLI","Chat engine":"Motor del chat",
 "This chat engine isn't available yet.":"Este motor de chat todavía no está disponible.",
 "Uses your Codex sign-in (ChatGPT plan) — no API key needed. Codex runs in its read-only sandbox in an empty folder: it can't touch your files.":"Usa tu sesión de Codex (plan de ChatGPT), sin clave de API. Codex funciona en su sandbox de solo lectura en una carpeta vacía: no puede tocar tus archivos.",
@@ -328,8 +330,9 @@ ES = {
 "The browser extension isn't available in the App Store version.":"La extensión del navegador no está disponible en la versión de la App Store.",
 "Unknown ticket":"Ticket desconocido","Someone already took that ticket.":"Alguien ya tomó ese ticket.",
 # whaticket stats
-"Today · Arrived %lld · Accepted %lld (%lld auto)":"Hoy · Llegaron %lld · Aceptados %lld (%lld auto)",
-"Today · Arrived %lld · Accepted %lld":"Hoy · Llegaron %lld · Aceptados %lld",
+"Today ↓%lld ✓%lld · %lld auto":"Hoy ↓%lld ✓%lld · %lld auto",
+"Today ↓%lld ✓%lld":"Hoy ↓%lld ✓%lld","%lld waiting · %lld mine":"%lld en espera · %lld míos",
+"Tickets that arrived and that were accepted today (Settings → WhaTicket → Stats)":"Tickets que llegaron y que se aceptaron hoy (Ajustes → WhaTicket → Estadísticas)",
 "Stats":"Estadísticas","Today":"Hoy","Last 7 days":"Últimos 7 días","Last 30 days":"Últimos 30 días","Custom":"Personalizado",
 "From":"Desde","To":"Hasta","By hour of day":"Por hora del día","By day":"Por día",
 "Arrived":"Llegaron","Accepted":"Aceptados","Acceptance rate":"Tasa de aceptación","Average wait":"Espera media","Median wait":"Espera mediana",

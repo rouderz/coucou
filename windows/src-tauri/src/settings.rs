@@ -35,6 +35,9 @@ pub struct Settings {
     pub codex_model: String,
     #[serde(default)]
     pub gemini_model: String,
+    /// When the chat engine is out of quota (or unusable), the next ready one answers.
+    #[serde(default = "yes")]
+    pub chat_fallback: bool,
     /// Preferred editor command ("code", "cursor", "windsurf", "zed"); empty = first installed.
     #[serde(default)]
     pub editor: String,
@@ -225,6 +228,7 @@ impl Default for Settings {
             chat_engine: default_engine(),
             codex_model: String::new(),
             gemini_model: String::new(),
+            chat_fallback: true,
             editor: String::new(),
             auto_approve: HashMap::new(),
             dnd_until: None,

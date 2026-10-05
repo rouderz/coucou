@@ -1,6 +1,6 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { conversation, isCliEngine, readRun, KEPT_TURNS } from "./cliChat.ts";
+import { conversation, isCliEngine, isOutOfQuota, readRun, KEPT_TURNS } from "./cliChat.ts";
 
 test("only the CLI engines go through the CLI runner", () => {
   assert.ok(isCliEngine("codex"));
@@ -44,4 +44,12 @@ test("reads a Gemini stream", () => {
   ].join("\n");
   assert.equal(readRun("gemini", { exitCode: 0, stdout, stderr: "" }), "Hola");
   assert.throws(() => readRun("gemini", { exitCode: 41, stdout: "", stderr: "" }), /isn't signed in/);
+});
+
+test("out of quota or unusable engines hand over to the next one", () => {
+  assert.ok(isOutOfQuota("Claude AI usage limit reached|1760000000"));
+  assert.ok(isOutOfQuota("Codex says you hit its usage limit. Wait a bit, or pick another chat engine."));
+  assert.ok(isOutOfQuota("Error 429: Too Many Requests"));
+  assert.ok(isOutOfQuota("Gemini CLI isn't signed in. Run `gemini` in a terminal and sign in, then ask again."));
+  assert.ok(!isOutOfQuota("The file is too large to attach."));
 });

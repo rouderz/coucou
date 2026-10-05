@@ -8,6 +8,7 @@ import SwiftUI
 // theme without touching each one. Brand colours (pills), status colours (red / amber / green)
 // and Mochi are never swapped. The island's black shell stays black: it has to blend with the
 // hardware notch.
+// (Superseded: the whole island now takes the theme's background; only Dark keeps pure black.)
 
 struct ThemePalette: Equatable, Sendable {
     let id: String
@@ -59,11 +60,13 @@ enum Theme {
 
     /// The original neutral each role used, in every spelling the views use.
     nonisolated(unsafe) static let roles: [String: KeyPath<ThemePalette, String>] = [
-        "F5F6F8": \.ink, "F1F2F4": \.ink, "E6E8EB": \.ink,
-        "C5C8CD": \.ink2, "B0B5BE": \.ink2, "A9ADB5": \.ink2, "A3A8B0": \.ink2,
-        "8E939C": \.dim, "9398A1": \.dim, "7C818A": \.dim,
-        "6B7079": \.dim3, "5F646D": \.dim3, "4B5563": \.dim3,
-        "141518": \.card, "0B0C0E": \.bg,
+        "F5F6F8": \.ink, "F1F2F4": \.ink, "E6E8EB": \.ink, "F2F3F5": \.ink, "EDEDEF": \.ink, "E8E9EC": \.ink,
+        "D5D7DB": \.ink2,
+        "C5C8CD": \.ink2, "B0B5BE": \.ink2, "A9ADB5": \.ink2, "A3A8B0": \.ink2, "B9BDC4": \.ink2, "C4C5CA": \.ink2,
+        "8E939C": \.dim, "9398A1": \.dim, "7C818A": \.dim, "80858E": \.dim, "6E737C": \.dim,
+        "6B7079": \.dim3, "5F646D": \.dim3, "4B5563": \.dim3, "4D5159": \.dim3, "454850": \.dim3,
+        "141518": \.card, "1D1F23": \.card, "16171A": \.card, "252830": \.card,
+        "0B0C0E": \.bg, "0E0F11": \.bg, "0E0F12": \.bg,
         "A78BFA": \.accent,
     ]
 

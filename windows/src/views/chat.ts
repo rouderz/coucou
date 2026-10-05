@@ -12,12 +12,69 @@ import { State, type ChatMessage } from "../core/state";
 import type { ViewHost } from "./views";
 import { beginCapture } from "./capture";
 import { draftFromAnswer } from "../core/capture";
-import { conversation, isCliEngine, readRun } from "../claude/cliChat.ts";
+import { conversation, isCliEngine, isOutOfQuota, readRun } from "../claude/cliChat.ts";
 
 let nextId = 1;
 
 /** "focus 50 min on SHO-475": answered here, never sent to the model (#119). Set by main.ts. */
 let focusCommand: (query: string) => string | null = () => null;
+
+type Engine = typeof State.settings.chatEngine;
+
+/** One question to one engine. */
+async function ask(engine: Engine, sent: string, context: ChatContext | null): Promise<{ text: string }> {
+  if (isCliEngine(engine)) {
+    // Codex / Gemini CLI (#108): the conversation so far goes as text, the CLI's output is read here.
+    return { text: readRun(engine, await Bridge.cliChatRun(engine,
+      conversation(State.chatHistory.slice(0, -1), context, sent),
+      (engine === "codex" ? State.settings.codexModel : State.settings.geminiModel) ?? "")) };
+  }
+  return Bridge.chatSend(sent, context);
+}
+
+/**
+ * Asks the chosen engine; when it's out of quota (or not usable) and the fallback is on, the next
+ * ready engine answers and stays picked. The answer then says which engine stepped in.
+ */
+async function askWithFallback(sent: string, context: ChatContext | null): Promise<{ text: string }> {
+  const first = State.settings.chatEngine;
+  const tried: Engine[] = [];
+  let engine: Engine = first;
+  for (;;) {
+    tried.push(engine);
+    try {
+      const reply = await ask(engine, sent, context);
+      if (engine === first) return reply;
+      return { text: `↪ ${engineName(first)} is out of quota or unavailable — ${engineName(engine)} answered.\n\n${reply.text}` };
+    } catch (err) {
+      const message = String(err).replace(/^Error:\s*/, "");
+      const next = State.settings.chatFallback !== false && isOutOfQuota(message) ? await nextEngine(tried) : null;
+      if (!next) throw err;
+      State.settings.chatEngine = next;
+      void Bridge.saveSettings(State.settings);
+      if (next === "api" || next === "provider") {
+        // These keep their own history on the Rust side: hand them the conversation so far.
+        await Bridge.chatRestore(State.chatHistory.slice(0, -1).map((m) => ({ user: m.role === "user", text: m.content })), null, null);
+      }
+      engine = next;
+    }
+  }
+}
+
+function engineName(e: Engine): string {
+  return ({ "claude-code": "Claude Code", api: "Claude API", provider: "Other provider", codex: "Codex", gemini: "Gemini" } as const)[e];
+}
+
+/** The next engine ready to answer, in a fixed order, skipping the ones already tried. */
+async function nextEngine(tried: Engine[]): Promise<Engine | null> {
+  for (const e of ["claude-code", "codex", "gemini", "api"] as Engine[]) {
+    if (tried.includes(e)) continue;
+    if (e === "claude-code" && (await Bridge.claudeCodeStatus())?.installed) return e;
+    if ((e === "codex" || e === "gemini") && (await Bridge.cliChatStatus(e))?.path) return e;
+    if (e === "api" && (await Bridge.secretPresent("anthropic-api-key"))) return e;
+  }
+  return null;
+}
 
 export function setFocusCommand(fn: (query: string) => string | null) {
   focusCommand = fn;
@@ -312,13 +369,7 @@ export function buildPrompt(
         const text = await Bridge.skillRead(skill.path);
         sent = withSkill(skill.name, text.path, text.content, query);
       }
-      const engine = State.settings.chatEngine;
-      const reply = isCliEngine(engine)
-        // Codex / Gemini CLI (#108): the conversation so far goes as text, the CLI's output is read here.
-        ? { text: readRun(engine, await Bridge.cliChatRun(engine,
-            conversation(State.chatHistory.slice(0, -1), context, sent),
-            (engine === "codex" ? State.settings.codexModel : State.settings.geminiModel) ?? "")) }
-        : await Bridge.chatSend(sent, context);
+      const reply = await askWithFallback(sent, context);
       State.chatHistory.push({ id: nextId++, role: "assistant", content: reply.text });
       State.stateOverride = null;
       Sound.play("finish");

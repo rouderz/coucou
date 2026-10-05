@@ -153,7 +153,8 @@ final class HookServer: @unchecked Sendable {
             activeSessionId = sessionId
             upsertTask(projectName: projectName, cwd: cwd)
             nbLog("SessionStart \(projectName) (\(sessionId.prefix(8)))")
-            if state.isPresent { expandIfNeeded(to: .overview) }
+            // No pop-up: the user is typing in their terminal / editor. The pill shows it's working;
+            // the island opens for what needs them (approvals, questions, done, errors).
             SoundEngine.shared.play("work")
 
         case "UserPromptSubmit":
@@ -166,7 +167,6 @@ final class HookServer: @unchecked Sendable {
             if let prompt = payload["prompt"] as? String, !prompt.isEmpty {
                 appendStep(id: "integration_claude", step: String(prompt.prefix(60)))
             }
-            if state.isPresent { expandIfNeeded(to: .overview) }
 
         case "PreToolUse":
             activeSessionId = sessionId
@@ -223,6 +223,7 @@ final class HookServer: @unchecked Sendable {
                 state.updateTask(id: "integration_claude", state: .idle)
                 self.clearPillBadge(id: "integration_claude")
             }
+            clearCardLater(sessionId)
 
         case "StopFailure":
             state.updateTask(id: "integration_claude", state: .error)
@@ -567,6 +568,30 @@ final class HookServer: @unchecked Sendable {
         }
     }
 
+    /// A finished turn leaves the card alone for a while (to read the result), then it goes back to
+    /// the clean idle card — unless the session started something new meanwhile.
+    @MainActor
+    private func clearCardLater(_ sessionId: String) {
+        let state = AppState.shared
+        let stepsAtStop = state.tasks.first(where: { $0.id == "integration_claude" })?.steps.count ?? 0
+        DispatchQueue.main.asyncAfter(deadline: .now() + 45) {
+            guard state.focusedClaudeSession == sessionId,
+                  let t = state.tasks.firstIndex(where: { $0.id == "integration_claude" }),
+                  state.tasks[t].state == .idle, state.tasks[t].steps.count == stepsAtStop,
+                  state.pendingApproval == nil else { return }
+            state.tasks[t].steps = []
+            state.tasks[t].stepIndex = 0
+            state.liveActivities = []
+            state.liveEdit = nil
+            if let i = state.claudeSessions.firstIndex(where: { $0.id == sessionId }) {
+                state.claudeSessions[i].steps = []
+                state.claudeSessions[i].state = .idle
+            }
+            // Still on the "done" view: back to the overview, which now shows the clean card.
+            if state.view == .finished { state.view = .overview }
+        }
+    }
+
     /// Sessions that ended without SessionEnd (terminal closed): drop after 30 min of silence.
     @MainActor
     private func pruneSessions() {
@@ -666,7 +691,11 @@ final class HookServer: @unchecked Sendable {
     /// The turn's last message: Claude Code sends `message`, Codex `last_assistant_message`.
     static func stopMessage(_ payload: [String: Any]) -> String? {
         for key in ["message", "last_assistant_message"] {
-            if let m = payload[key] as? String, !m.isEmpty { return m }
+            guard let m = payload[key] as? String else { continue }
+            let text = m.trimmingCharacters(in: .whitespacesAndNewlines)
+            // Machine output (e.g. `{"suggestions":[]}` from a helper turn) isn't a message for the user.
+            if text.isEmpty || text.hasPrefix("{") || text.hasPrefix("[") { continue }
+            return text
         }
         return nil
     }

@@ -9,7 +9,7 @@ struct WhaTicketCardView: View {
     @State private var busy: Set<String> = []
 
     private var subtitle: String {
-        var s = L("Waiting \(appState.whaticketPendingCount) · Mine \(appState.whaticketMineCount)")
+        var s = L("\(appState.whaticketPendingCount) waiting · \(appState.whaticketMineCount) mine")
         if WhaTicketSettings.autoAccept { s += " · Auto" }
         return s
     }
@@ -18,8 +18,8 @@ struct WhaTicketCardView: View {
     private var todayLine: String {
         let t = WhaTicketStats.today(stats.events)
         return t.auto > 0
-            ? L("Today · Arrived \(t.arrived) · Accepted \(t.accepted) (\(t.auto) auto)")
-            : L("Today · Arrived \(t.arrived) · Accepted \(t.accepted)")
+            ? L("Today ↓\(t.arrived) ✓\(t.accepted) · \(t.auto) auto")
+            : L("Today ↓\(t.arrived) ✓\(t.accepted)")
     }
 
     /// The tab is closed or asleep: the extension stopped checking in.
@@ -33,15 +33,18 @@ struct WhaTicketCardView: View {
                 StatusDot(id: WhaTicketBridge.id)
                 Text("WhaTicket").font(.system(size: 12, weight: .semibold)).foregroundColor(Color(hex: "#F5F6F8"))
                 Text(verbatim: subtitle).font(.system(size: 11)).foregroundColor(Color(hex: "#8E939C"))
+                    .lineLimit(1).truncationMode(.tail)
             }
-            .padding(.top, 6).padding(.leading, 108).padding(.trailing, 36)
+            .padding(.top, 6).padding(.leading, 108).padding(.trailing, 62)  // room for ↻ and ↗
 
             Text(verbatim: todayLine)
                 .font(.system(size: 10.5)).foregroundColor(Color(hex: "#8E939C"))
                 .lineLimit(1)
-                .padding(.top, 2).padding(.leading, 108).padding(.trailing, 36)
+                .help(L("Tickets that arrived and that were accepted today (Settings → WhaTicket → Stats)"))
+                .padding(.top, 2).padding(.leading, 108).padding(.trailing, 12)
 
-            if let error = appState.whaticketError {
+            // An error only matters while nothing fresh arrives (stale); otherwise the queue is right.
+            if let error = appState.whaticketError, stale {
                 NotionHint(dot: "#F4505E", text: error)
             } else if stale {
                 NotionHint(dot: "#F5A524", text: L("Open whaticket.com in Chrome or Edge"))
@@ -77,6 +80,7 @@ struct WhaTicketCardView: View {
             Text(verbatim: t.name).font(.system(size: 11)).foregroundColor(Color(hex: "#C5C8CD"))
                 .lineLimit(1).truncationMode(.tail).layoutPriority(1)
             Text(verbatim: tag).font(.system(size: 10.5)).foregroundColor(Color(hex: "#8E939C")).lineLimit(1)
+                .fixedSize()
             Spacer(minLength: 4)
             trailing()
         }
@@ -99,12 +103,14 @@ struct WhaTicketCardView: View {
         } label: {
             Text(verbatim: waiting ? "…" : L("Accept"))
                 .font(.system(size: 10.5, weight: .semibold))
+                .fixedSize()  // never squeezed into an empty bubble by a long name
                 .foregroundColor(Color(hex: "#6EE7A0"))
                 .padding(.horizontal, 8).padding(.vertical, 2)
                 .background(Color(hex: "#25D366").opacity(0.18))
                 .clipShape(Capsule())
         }
         .buttonStyle(.plain)
+        .layoutPriority(2)
         .disabled(waiting || stale)
         .onChange(of: appState.whaticketAccepting) { _, now in
             if !now.contains(id) { busy.remove(id) }

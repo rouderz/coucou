@@ -57,3 +57,8 @@ export function readRun(engine: CliEngine, run: { exitCode: number | null; stdou
   if (!text) throw new Error(answer.error ?? "The engine gave no answer. Try again.");
   return text;
 }
+
+/** The engine hit a limit, or can't be used at all (not installed / signed out): try the next one. */
+export function isOutOfQuota(message: string): boolean {
+  return /\b429\b|rate[ _-]?limit|usage limit|hit (its|your|the) limit|limit reached|quota|too many requests|overloaded|isn't installed|not installed|isn't signed in|not signed in|not logged in/i.test(message);
+}

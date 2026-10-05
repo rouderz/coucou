@@ -116,3 +116,12 @@ final class AgentCLIChatPromptTests: XCTestCase {
         XCTAssertNil(ChatEngine.claudeCode.cli)
     }
 }
+
+final class ChatFallbackTests: XCTestCase {
+    func testOutOfQuotaHandsOver() {
+        XCTAssertTrue(ClaudeService.isOutOfQuota("Claude AI usage limit reached|1760000000"))
+        XCTAssertTrue(ClaudeService.isOutOfQuota("Codex says you hit its usage limit. Wait a bit, or pick another chat engine."))
+        XCTAssertTrue(ClaudeService.isOutOfQuota("Claude Code isn't installed. Install it, or switch the chat engine to an API key in Settings."))
+        XCTAssertFalse(ClaudeService.isOutOfQuota("The file is too large to attach."))
+    }
+}
