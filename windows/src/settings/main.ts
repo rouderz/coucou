@@ -1642,29 +1642,46 @@ async function main() {
   }
 
   clear(root);
+  // Tabs: everything used to be one long page.
+  type Tab = "general" | "chat" | "claude" | "integrations" | "alerts";
+  const pages: [Tab, string, HTMLElement[]][] = [
+    ["general", "General", [appearanceSection(), generalSection(editors), voiceSection(canListen), updatesSection()]],
+    ["chat", "Chat", [apiSection(hasKey, claudeCode, presets, present), skillsSection(skillTargets)]],
+    ["claude", "Claude Code", [claudeSection(status), codexSection(codex), timeSection(), focusSection()]],
+    ["integrations", "Integrations", [
+      integrationsSection(present), captureSection(present["linear-api-key"] ?? false),
+      whaticketSection(browser), googleSection(googleConnected, googleClient),
+    ]],
+    ["alerts", "Alerts", [inboxSection(), phoneSection()]],
+  ];
+  let current = (localStorage.getItem("settingsTab") as Tab | null) ?? "general";
+  if (!pages.some(([id]) => id === current)) current = "general";
+  const tabBar = h("div", { class: "settings-tabs", role: "tablist" });
+  const buttons = new Map<Tab, HTMLElement>();
+  function show(tab: Tab) {
+    current = tab;
+    try { localStorage.setItem("settingsTab", tab); } catch { /* private mode: fine */ }
+    for (const [id, , sections] of pages) {
+      for (const el of sections) el.style.display = id === tab ? "" : "none";
+      buttons.get(id)?.classList.toggle("on", id === tab);
+    }
+    window.scrollTo(0, 0);
+  }
+  for (const [id, label] of pages) {
+    const b = h("button", { class: "settings-tab", role: "tab", text: label, onclick: () => show(id) });
+    buttons.set(id, b);
+    tabBar.append(b);
+  }
   root.append(
     h("h1", {}, h("span", { text: "Coucou" }), h("span", { class: "version", text: version })),
-    claudeSection(status),
-    codexSection(codex),
-    skillsSection(skillTargets),
-    apiSection(hasKey, claudeCode, presets, present),
-    integrationsSection(present),
-    timeSection(),
-    captureSection(present["linear-api-key"] ?? false),
-    whaticketSection(browser),
-    googleSection(googleConnected, googleClient),
-    phoneSection(),
-    inboxSection(),
-    voiceSection(canListen),
-    focusSection(),
-    updatesSection(),
-    appearanceSection(),
-    generalSection(editors),
+    tabBar,
+    ...pages.flatMap(([, , sections]) => sections),
     h("div", {
       class: "hint",
       text: "No telemetry. Network requests only go to the services you configure yourself.",
     }),
   );
+  show(current);
 
   startTranslating(document.body);
 
