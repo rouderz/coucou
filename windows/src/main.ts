@@ -17,6 +17,7 @@ import { describeSource } from "./core/capture";
 import { setSpeaker, setListening, setFocusCommand } from "./views/chat";
 import { Focus, applyFocusSettings, registerFocus } from "./island/focus";
 import { parseFocusCommand } from "./core/focus.ts";
+import { applyTheme } from "./core/themes.ts";
 
 async function main() {
   const root = document.getElementById("root");
@@ -31,6 +32,11 @@ async function main() {
     State.settings = { ...State.settings, ...boot.settings };
   }
   island.applySettings();
+  // Themes: colour tokens on the page; "system" follows the OS appearance.
+  const darkQuery = window.matchMedia("(prefers-color-scheme: dark)");
+  const paint = () => applyTheme(document.documentElement, State.settings.theme, darkQuery.matches);
+  paint();
+  darkQuery.addEventListener("change", paint);
   State.loadIntegrationTasks();
   // Spanish or English, from Settings or the system.
   setLanguage(State.settings.language);
@@ -94,6 +100,7 @@ async function main() {
     const ciWasOn = State.settings.activeIntegrations.includes(CI_ID);
     State.settings = { ...State.settings, ...s };
     island.applySettings();
+    paint();
     applyFocusSettings();
     State.loadIntegrationTasks();
     void refreshConfigured();

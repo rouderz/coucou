@@ -453,6 +453,10 @@ struct SettingsView: View {
                 }
 
                 // MARK: Son
+                GroupBox("Appearance") {
+                    ThemePicker(state: state)
+                }
+
                 GroupBox("Sound") {
                     VStack(alignment: .leading, spacing: 10) {
                         Toggle("Enable sounds", isOn: $state.soundEnabled)

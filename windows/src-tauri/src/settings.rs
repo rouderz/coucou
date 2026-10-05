@@ -81,6 +81,9 @@ pub struct Settings {
     /// Interface language: "system", "en" or "es".
     #[serde(default = "default_language")]
     pub language: String,
+    /// Theme: "dark" (the original look), "light", "system" or a palette id (src/core/themes.ts).
+    #[serde(default = "default_theme")]
+    pub theme: String,
 
     /// Mochi reads its chat replies aloud.
     #[serde(default)]
@@ -162,6 +165,10 @@ fn ids_as_text<'de, D: serde::Deserializer<'de>>(d: D) -> Result<Vec<String>, D:
         .collect())
 }
 
+fn default_theme() -> String {
+    "dark".into()
+}
+
 fn default_capture_shortcut() -> String {
     "Ctrl+Alt+L".into()
 }
@@ -236,6 +243,7 @@ impl Default for Settings {
             provider_base_url: String::new(),
             provider_model: String::new(),
             language: default_language(),
+            theme: default_theme(),
             speak_replies: false,
             idle_notch: true,
             mochi_dance: false,

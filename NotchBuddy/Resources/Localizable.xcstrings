@@ -742,6 +742,16 @@
         }
       }
     },
+    "Appearance": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Apariencia"
+          }
+        }
+      }
+    },
     "Approve from the keyboard: ⌥⏎ Allow · ⌥⌫ Deny": {
       "localizations": {
         "es": {
@@ -1822,6 +1832,16 @@
         }
       }
     },
+    "Colours of the island's cards and text. The top of the island stays black so it blends with the notch.": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Colores de las tarjetas y el texto de la isla. La parte de arriba sigue negra para fundirse con el notch."
+          }
+        }
+      }
+    },
     "Comments": {
       "localizations": {
         "es": {
@@ -2418,6 +2438,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "Personalizado…"
+          }
+        }
+      }
+    },
+    "Dark": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Oscuro"
           }
         }
       }
@@ -3768,6 +3798,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "Abrir al iniciar el Mac"
+          }
+        }
+      }
+    },
+    "Light": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Claro"
           }
         }
       }
@@ -6328,6 +6368,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "Subagente"
+          }
+        }
+      }
+    },
+    "System": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sistema"
           }
         }
       }

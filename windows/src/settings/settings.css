@@ -513,3 +513,36 @@ button.small {
   padding: 6px 0;
   border-top: 1px solid var(--hairline);
 }
+
+/* Settings → Appearance */
+.theme-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+  gap: 8px;
+}
+
+.theme-choice {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 8px;
+  border-radius: 8px;
+  border: 1px solid var(--hairline);
+  background: transparent;
+  color: var(--ink);
+  font: 400 12px var(--font);
+  text-align: left;
+}
+
+.theme-choice.on { border-color: var(--green); }
+
+.theme-swatch {
+  display: inline-flex;
+  width: 30px;
+  height: 18px;
+  border-radius: 4px;
+  overflow: hidden;
+  border: 1px solid var(--hairline);
+}
+
+.theme-swatch i { flex: 1; }
