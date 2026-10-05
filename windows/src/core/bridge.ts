@@ -6,6 +6,7 @@ import { invoke } from "@tauri-apps/api/core";
 import { listen } from "@tauri-apps/api/event";
 import { getCurrentWebview } from "@tauri-apps/api/webview";
 import type { Settings } from "./state";
+import type { StatEvent } from "./whaticketStats.ts";
 
 export const IS_TAURI =
   typeof window !== "undefined" && "__TAURI_INTERNALS__" in window;
@@ -122,6 +123,9 @@ export const Bridge = {
   whaticketOpen: (id: string | null) => call<void>("whaticket_open", { id }),
   /** Your queues, as of the extension's last check-in (empty until it has checked in). */
   whaticketQueues: () => call<{ id: string; name: string; color: string }[]>("whaticket_queues"),
+  /** The local log of tickets that arrived and that we accepted (Settings → WhaTicket → Stats). */
+  whaticketStats: () => call<StatEvent[]>("whaticket_stats"),
+  whaticketStatsReset: () => call<void>("whaticket_stats_reset"),
   /** Writes the extension and registers its native-messaging host with the browsers. */
   browserInstall: () => callOrThrow<BrowserStatus>("browser_install"),
   browserStatus: () => call<BrowserStatus>("browser_status"),

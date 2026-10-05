@@ -1,6 +1,6 @@
 import SwiftUI
 
-/// Settings → WhaTicket: set up the browser extension, and the auto-accept rules.
+/// Settings → WhaTicket: set up the browser extension, the auto-accept rules and the stats.
 struct WhaTicketSettingsSection: View {
     @ObservedObject private var appState = AppState.shared
     @State private var autoAccept = WhaTicketSettings.autoAccept
@@ -88,6 +88,9 @@ struct WhaTicketSettingsSection: View {
             Text("Only while your whaticket.com tab is open. Never during Do not disturb, never group chats, never tickets an AI agent is handling. Coucou only assigns the ticket — it never writes to the customer.")
                 .font(.system(size: 11)).foregroundColor(.secondary)
                 .fixedSize(horizontal: false, vertical: true)
+
+            Divider()
+            WhaTicketStatsView()
         }
         .padding(6)
     }

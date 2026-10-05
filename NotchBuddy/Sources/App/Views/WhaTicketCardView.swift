@@ -5,12 +5,21 @@ import SwiftUI
 /// extension's last check-in. Same layout as LinearCardView.
 struct WhaTicketCardView: View {
     @ObservedObject private var appState = AppState.shared
+    @ObservedObject private var stats = WhaTicketLog.shared
     @State private var busy: Set<String> = []
 
     private var subtitle: String {
         var s = L("Waiting \(appState.whaticketPendingCount) · Mine \(appState.whaticketMineCount)")
         if WhaTicketSettings.autoAccept { s += " · Auto" }
         return s
+    }
+
+    /// "Today · Arrived 23 · Accepted 18 (5 auto)" (Settings → WhaTicket → Stats has the rest).
+    private var todayLine: String {
+        let t = WhaTicketStats.today(stats.events)
+        return t.auto > 0
+            ? L("Today · Arrived \(t.arrived) · Accepted \(t.accepted) (\(t.auto) auto)")
+            : L("Today · Arrived \(t.arrived) · Accepted \(t.accepted)")
     }
 
     /// The tab is closed or asleep: the extension stopped checking in.
@@ -26,6 +35,11 @@ struct WhaTicketCardView: View {
                 Text(verbatim: subtitle).font(.system(size: 11)).foregroundColor(Color(hex: "#8E939C"))
             }
             .padding(.top, 6).padding(.leading, 108).padding(.trailing, 36)
+
+            Text(verbatim: todayLine)
+                .font(.system(size: 10.5)).foregroundColor(Color(hex: "#8E939C"))
+                .lineLimit(1)
+                .padding(.top, 2).padding(.leading, 108).padding(.trailing, 36)
 
             if let error = appState.whaticketError {
                 NotionHint(dot: "#F4505E", text: error)

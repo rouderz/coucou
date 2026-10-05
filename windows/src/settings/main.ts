@@ -7,6 +7,7 @@ import { setLanguage, startTranslating } from "../core/i18n.ts";
 import { Bridge, onDragDrop, onEvent, type BrowserStatus, type HookStatus, type SkillInfo, type SkillPreview } from "../core/bridge";
 import { DEFAULT_SETTINGS, type Settings } from "../core/state";
 import { h, clear } from "../views/dom";
+import { dayKey, duration, range, summary, toCsv, type Period, type StatEvent } from "../core/whaticketStats.ts";
 
 let settings: Settings = { ...DEFAULT_SETTINGS };
 let version = "";
@@ -782,6 +783,148 @@ function whaticketSection(browser: BrowserStatus | null): HTMLElement {
     queues,
     h("div", { class: "row" }, h("label", { text: "Only between" }), hours),
     h("div", { class: "hint", text: "Only while your whaticket.com tab is open. Never during Do not disturb, never group chats, never tickets an AI agent is handling. Coucou only assigns the ticket — it never writes to the customer." }),
+    whaticketStatsBlock(),
+  );
+}
+
+/** Settings → WhaTicket → Stats: tickets that arrived and the ones we accepted, from the
+ *  local log (src-tauri/src/whaticket.rs). Bars are plain DOM — no chart library. */
+function whaticketStatsBlock(): HTMLElement {
+  let events: StatEvent[] = [];
+  const period = h("select", {},
+    h("option", { value: "today", text: "Today" }),
+    h("option", { value: "week", text: "Last 7 days" }),
+    h("option", { value: "month", text: "Last 30 days" }),
+    h("option", { value: "custom", text: "Custom" }),
+  ) as HTMLSelectElement;
+  const now = new Date();
+  const weekAgo = new Date(now);
+  weekAgo.setDate(weekAgo.getDate() - 6);
+  const from = h("input", { type: "date", value: dayKey(weekAgo) }) as HTMLInputElement;
+  const to = h("input", { type: "date", value: dayKey(now) }) as HTMLInputElement;
+  const custom = h("span", { style: "display:none;align-items:center;gap:8px" },
+    h("span", { class: "hint", text: "From" }), from, h("span", { class: "hint", text: "To" }), to);
+  const body = h("div", { class: "wt-stats" });
+  const feedback = h("div", {});
+  const copy = h("button", { text: "Copy CSV" }) as HTMLButtonElement;
+  const reset = h("button", { class: "danger", text: "Reset stats" }) as HTMLButtonElement;
+  const confirmRow = h("div", { class: "row", style: "display:none" });
+
+  const currentRange = () => range(period.value as Period, Date.now(), from.value, to.value);
+
+  const stat = (label: string, value: string) =>
+    h("div", { class: "wt-stat" }, h("b", { text: value }), h("span", { text: label }));
+
+  /** Two bars per slot (arrived, accepted), scaled to the busiest slot. */
+  const bars = (slots: { arrived: number; accepted: number }[], labels: string[]) => {
+    const top = Math.max(1, ...slots.map((s) => Math.max(s.arrived, s.accepted)));
+    const chart = h("div", { class: "wt-bars" });
+    const axis = h("div", { class: "wt-axis" });
+    slots.forEach((s, i) => {
+      const bar = (n: number, cls: string) => h("i", { class: cls, style: `height:${n > 0 ? Math.max(2, (n / top) * 100) : 0}%` });
+      chart.append(h("div", { class: "wt-slot", title: `${s.arrived} arrived · ${s.accepted} accepted` },
+        bar(s.arrived, "a"), bar(s.accepted, "b")));
+      axis.append(h("span", { text: labels[i] ?? "" }));
+    });
+    return h("div", {}, chart, axis);
+  };
+
+  function draw() {
+    custom.style.display = period.value === "custom" ? "inline-flex" : "none";
+    const r = currentRange();
+    const s = summary(events, r.from, r.to);
+    clear(body);
+    copy.disabled = s.arrived + s.accepted === 0;
+    reset.disabled = events.length === 0;
+    body.append(
+      h("div", { class: "wt-numbers" },
+        stat("Arrived", String(s.arrived)),
+        stat("Accepted", String(s.accepted)),
+        stat("Acceptance rate", s.rate == null ? "—" : `${Math.round(s.rate * 100)} %`),
+        stat("Average wait", duration(s.averageWait)),
+        stat("Median wait", duration(s.medianWait)),
+      ),
+      h("div", { class: "hint", text: `From Coucou ${s.click} · Auto-accepted ${s.auto} · Elsewhere ${s.web}` }),
+    );
+    if (s.backlog > 0) {
+      body.append(h("div", { class: "hint", text: `${s.backlog} were already waiting when the tab opened (not in the per-hour chart or the waits).` }));
+    }
+    if (s.arrived + s.accepted === 0) {
+      body.append(h("div", { class: "hint", text: "No tickets in this period." }));
+      return;
+    }
+    body.append(
+      h("div", { class: "hint", text: "By hour of day" }),
+      bars(s.hours, s.hours.map((_, i) => (i % 6 === 0 ? `${i}h` : ""))),
+    );
+    if (s.days.length > 1) {
+      const n = s.days.length;
+      body.append(
+        h("div", { class: "hint", text: "By day" }),
+        bars(s.days, s.days.map((d, i) => (n <= 10 || i === 0 || i === n - 1 ? d.day.slice(5) : ""))),
+      );
+    }
+    body.append(h("div", { class: "row", style: "gap:14px" },
+      h("span", { class: "wt-key a", text: "Arrived" }), h("span", { class: "wt-key b", text: "Accepted" })));
+    const table = h("table", { class: "wt-table" },
+      h("tr", {}, h("th", { text: "Queue" }), h("th", { text: "Arrived" }), h("th", { text: "Accepted" }), h("th", { text: "Average wait" })));
+    for (const q of s.queues) {
+      table.append(h("tr", {},
+        h("td", { text: q.name || "No queue", "data-raw": q.name ? true : undefined }),
+        h("td", { text: String(q.arrived) }), h("td", { text: String(q.accepted) }), h("td", { text: duration(q.averageWait) })));
+    }
+    body.append(table);
+  }
+
+  async function load() {
+    events = (await Bridge.whaticketStats()) ?? [];
+    draw();
+  }
+
+  period.addEventListener("change", () => void load());
+  from.addEventListener("change", draw);
+  to.addEventListener("change", draw);
+
+  // No dependency for a file dialog: the CSV goes to the clipboard, ready to paste
+  // into a spreadsheet.
+  copy.addEventListener("click", async () => {
+    clear(feedback);
+    const r = currentRange();
+    const csv = toCsv(events, r.from, r.to);
+    try {
+      await navigator.clipboard.writeText(csv);
+      const rows = csv.trim().split("\n").length - 1;
+      feedback.append(h("div", { class: "notice ok", text: `CSV copied to the clipboard (${rows} rows).` }));
+    } catch (err) {
+      feedback.append(h("div", { class: "notice err", text: String(err).replace(/^Error:\s*/, "") }));
+    }
+  });
+
+  reset.addEventListener("click", () => {
+    clear(confirmRow);
+    confirmRow.style.display = "flex";
+    confirmRow.append(
+      h("span", { class: "hint", text: "Delete all WhaTicket stats? This can't be undone." }),
+      h("button", { class: "danger", text: "Yes, reset", onclick: async () => {
+        await Bridge.whaticketStatsReset();
+        confirmRow.style.display = "none";
+        clear(feedback);
+        await load();
+      } }),
+      h("button", { text: "Cancel", onclick: () => { confirmRow.style.display = "none"; } }),
+    );
+  });
+
+  void load();
+  return h("div", { class: "wt-stats-block" },
+    h("h3", { text: "Stats" }),
+    h("div", { class: "row" }, period, custom, h("span", { class: "spacer" }),
+      h("button", { class: "small", text: "Refresh", onclick: () => void load() })),
+    body,
+    h("div", { class: "row" }, copy, reset),
+    confirmRow,
+    feedback,
+    h("div", { class: "hint", text: "Counts only cover the time your whaticket.com tab was open with the extension. Kept on this computer for a year, never uploaded: ticket ids, queues and times only — no names, phone numbers or messages." }),
   );
 }
 

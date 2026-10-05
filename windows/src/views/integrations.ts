@@ -9,6 +9,7 @@ import { ICONS } from "./icons";
 import { State, type AgentTask } from "../core/state";
 import { startNewChat } from "../core/chats";
 import { Bridge } from "../core/bridge";
+import { todayLine } from "../core/whaticketStats.ts";
 
 /** Same shape as the Swift `timeAgo` computed properties. */
 export function timeAgo(value: unknown): string {
@@ -410,7 +411,9 @@ function whaticketCard(): HTMLElement {
     ));
   }
   const kind = `Waiting ${Number(d.pendingCount ?? 0)} · Mine ${Number(d.mineCount ?? 0)}${d.autoAccept ? " · Auto" : ""}`;
-  return h("div", { class: "int-card" }, header("#25D366", "WhaTicket", kind), rows);
+  // "Today · Arrived 23 · Accepted 18 (5 auto)" — the rest is in Settings → WhaTicket → Stats.
+  const today = h("div", { class: "int-status", text: todayLine(d.today as Record<string, unknown> | undefined) });
+  return h("div", { class: "int-card" }, header("#25D366", "WhaTicket", kind), today, rows);
 }
 
 // ── Gmail ─────────────────────────────────────────────────────────────────────
