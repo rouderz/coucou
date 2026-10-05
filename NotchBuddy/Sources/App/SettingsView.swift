@@ -2,8 +2,25 @@ import SwiftUI
 import ServiceManagement
 import AppKit
 
+/// The Settings tabs: everything used to be one long page.
+enum SettingsTab: String, CaseIterable, Identifiable {
+    case general, chat, claude, integrations, alerts
+    var id: String { rawValue }
+
+    var title: String {
+        switch self {
+        case .general: return L("General")
+        case .chat: return L("Chat")
+        case .claude: return "Claude Code"
+        case .integrations: return L("Integrations")
+        case .alerts: return L("Alerts")
+        }
+    }
+}
+
 struct SettingsView: View {
     @ObservedObject private var state = AppState.shared
+    @AppStorage("settingsTab") private var tab: SettingsTab = .general
     @State private var apiKey: String = Secrets.store.get("anthropic-api-key") ?? ""
 
     // Claude model — presets plus a free field for any other model ID
@@ -80,797 +97,853 @@ struct SettingsView: View {
     }
 
     var body: some View {
+        VStack(spacing: 0) {
+            Picker("", selection: $tab) {
+                ForEach(SettingsTab.allCases) { t in Text(verbatim: t.title).tag(t) }
+            }
+            .pickerStyle(.segmented)
+            .labelsHidden()
+            .padding(.horizontal, 20)
+            .padding(.top, 14)
+            .padding(.bottom, 4)
+            settingsPages
+        }
+    }
+
+    private var settingsPages: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: 18) {
 
                 // MARK: API
-                GroupBox("Chat") {
-                    VStack(alignment: .leading, spacing: 8) {
-                        #if !APPSTORE
-                        Picker("Engine", selection: $state.chatEngine) {
-                            Text("Claude Code (subscription)").tag(ChatEngine.claudeCode)
-                            Text("Anthropic API key").tag(ChatEngine.apiKey)
-                            Text("Other provider").tag(ChatEngine.provider)
-                            Text("Codex (ChatGPT plan)").tag(ChatEngine.codex)
-                            Text("Gemini CLI").tag(ChatEngine.gemini)
-                        }
-                        .pickerStyle(.menu)   // three long labels don't fit side by side
-                        #endif
+                if tab == .chat {
+                    GroupBox("Chat") {
+                        VStack(alignment: .leading, spacing: 8) {
+                            #if !APPSTORE
+                            Picker("Engine", selection: $state.chatEngine) {
+                                Text("Claude Code (subscription)").tag(ChatEngine.claudeCode)
+                                Text("Anthropic API key").tag(ChatEngine.apiKey)
+                                Text("Other provider").tag(ChatEngine.provider)
+                                Text("Codex (ChatGPT plan)").tag(ChatEngine.codex)
+                                Text("Gemini CLI").tag(ChatEngine.gemini)
+                            }
+                            .pickerStyle(.menu)   // three long labels don't fit side by side
+                            #endif
 
-                        if state.chatEngine == .claudeCode {
-                            HStack(spacing: 6) {
-                                Circle()
-                                    .fill(claudeCodePath == nil ? Color.orange : Color.green)
-                                    .frame(width: 7, height: 7)
-                                Text(claudeCodePath.map { L("Claude Code found: \($0)") }
-                                     ?? L("Claude Code not found. Install it and sign in, then check again."))
-                                    .font(.system(size: 11))
-                                    .lineLimit(1)
-                                    .truncationMode(.middle)
-                                Spacer()
-                                Button(checkingClaudeCode ? "Checking…" : L("Check again")) {
-                                    checkingClaudeCode = true
-                                    Task {
-                                        claudeCodePath = await ClaudeCodeChat.locate(force: true)?.path
-                                        checkingClaudeCode = false
+                            if state.chatEngine == .claudeCode {
+                                HStack(spacing: 6) {
+                                    Circle()
+                                        .fill(claudeCodePath == nil ? Color.orange : Color.green)
+                                        .frame(width: 7, height: 7)
+                                    Text(claudeCodePath.map { L("Claude Code found: \($0)") }
+                                         ?? L("Claude Code not found. Install it and sign in, then check again."))
+                                        .font(.system(size: 11))
+                                        .lineLimit(1)
+                                        .truncationMode(.middle)
+                                    Spacer()
+                                    Button(checkingClaudeCode ? "Checking…" : L("Check again")) {
+                                        checkingClaudeCode = true
+                                        Task {
+                                            claudeCodePath = await ClaudeCodeChat.locate(force: true)?.path
+                                            checkingClaudeCode = false
+                                        }
                                     }
+                                    .disabled(checkingClaudeCode)
                                 }
-                                .disabled(checkingClaudeCode)
-                            }
-                            Text("Uses your Claude Code sign-in and plan limits — no API key needed. The chat can only search the web and read files you drop on the island.")
-                                .font(.system(size: 11))
-                                .foregroundColor(.secondary)
-                                .fixedSize(horizontal: false, vertical: true)
-                        } else if let cli = state.chatEngine.cli {
-                            CLIEngineSettings(cli: cli, state: state)
-                        } else if state.chatEngine == .provider {
-                            ProviderSettingsSection(state: state, statusMessage: $statusMessage)
-                        } else {
-                            SecureField("API key (sk-ant-…)", text: $apiKey)
-                                .textFieldStyle(.roundedBorder)
-                            Button("Save") {
-                                Secrets.store.set("anthropic-api-key", value: apiKey)
-                                statusMessage = L("✓ Key saved.")
-                            }
-                            .buttonStyle(.borderedProminent)
-                        }
-
-                        if state.chatEngine != .provider && state.chatEngine.cli == nil {
-                        Divider().padding(.vertical, 2)
-
-                        Picker("Model", selection: $modelChoice) {
-                            ForEach(Self.modelPresets, id: \.id) { preset in
-                                Text(preset.label).tag(preset.id)
-                            }
-                            Text("Custom…").tag(Self.customModelTag)
-                        }
-                        .onChange(of: modelChoice) { _, choice in
-                            if choice != Self.customModelTag {
-                                state.claudeModel = choice
+                                Text("Uses your Claude Code sign-in and plan limits — no API key needed. The chat can only search the web and read files you drop on the island.")
+                                    .font(.system(size: 11))
+                                    .foregroundColor(.secondary)
+                                    .fixedSize(horizontal: false, vertical: true)
+                            } else if let cli = state.chatEngine.cli {
+                                CLIEngineSettings(cli: cli, state: state)
+                            } else if state.chatEngine == .provider {
+                                ProviderSettingsSection(state: state, statusMessage: $statusMessage)
                             } else {
-                                applyCustomModel(customModel)
+                                SecureField("API key (sk-ant-…)", text: $apiKey)
+                                    .textFieldStyle(.roundedBorder)
+                                Button("Save") {
+                                    Secrets.store.set("anthropic-api-key", value: apiKey)
+                                    statusMessage = L("✓ Key saved.")
+                                }
+                                .buttonStyle(.borderedProminent)
                             }
-                        }
 
-                        if modelChoice == Self.customModelTag {
-                            TextField("Model ID (e.g. claude-opus-5-5)", text: $customModel)
-                                .textFieldStyle(.roundedBorder)
-                                .onChange(of: customModel) { _, value in applyCustomModel(value) }
-                        }
+                            if state.chatEngine != .provider && state.chatEngine.cli == nil {
+                            Divider().padding(.vertical, 2)
 
-                        Text("Used by the chat. Fable needs access on your plan or API account.")
-                            .font(.system(size: 11))
-                            .foregroundColor(.secondary)
-                        }
-
-                        if state.chatEngine == .apiKey {
-                            Picker("Longest answer", selection: $state.apiMaxTokens) {
-                                Text("Short (1,024 tokens)").tag(1024)
-                                Text("Medium (2,048)").tag(2048)
-                                Text("Long (4,096)").tag(4096)
-                                Text("Very long (8,192)").tag(8192)
-                                Text("Maximum (16,000)").tag(16000)
+                            Picker("Model", selection: $modelChoice) {
+                                ForEach(Self.modelPresets, id: \.id) { preset in
+                                    Text(preset.label).tag(preset.id)
+                                }
+                                Text("Custom…").tag(Self.customModelTag)
                             }
-                            Text("Caps how much each API answer can write. Longer answers cost more tokens.")
+                            .onChange(of: modelChoice) { _, choice in
+                                if choice != Self.customModelTag {
+                                    state.claudeModel = choice
+                                } else {
+                                    applyCustomModel(customModel)
+                                }
+                            }
+
+                            if modelChoice == Self.customModelTag {
+                                TextField("Model ID (e.g. claude-opus-5-5)", text: $customModel)
+                                    .textFieldStyle(.roundedBorder)
+                                    .onChange(of: customModel) { _, value in applyCustomModel(value) }
+                            }
+
+                            Text("Used by the chat. Fable needs access on your plan or API account.")
                                 .font(.system(size: 11))
                                 .foregroundColor(.secondary)
+                            }
+
+                            if state.chatEngine == .apiKey {
+                                Picker("Longest answer", selection: $state.apiMaxTokens) {
+                                    Text("Short (1,024 tokens)").tag(1024)
+                                    Text("Medium (2,048)").tag(2048)
+                                    Text("Long (4,096)").tag(4096)
+                                    Text("Very long (8,192)").tag(8192)
+                                    Text("Maximum (16,000)").tag(16000)
+                                }
+                                Text("Caps how much each API answer can write. Longer answers cost more tokens.")
+                                    .font(.system(size: 11))
+                                    .foregroundColor(.secondary)
+                            }
                         }
+                        .padding(6)
                     }
-                    .padding(6)
                 }
 
                 // MARK: Hooks
-                GroupBox("Claude Code Hooks") {
-                    VStack(alignment: .leading, spacing: 10) {
-                        #if APPSTORE
-                        if hookNeedsUpdate {
-                            HStack(spacing: 6) {
-                                Image(systemName: "exclamationmark.triangle.fill")
-                                    .foregroundColor(.orange)
-                                Text("Hooks need an update (approvals timeout / plan usage bars)")
-                                    .font(.system(size: 11))
-                                    .foregroundColor(.orange)
+                if tab == .claude {
+                    GroupBox("Claude Code Hooks") {
+                        VStack(alignment: .leading, spacing: 10) {
+                            #if APPSTORE
+                            if hookNeedsUpdate {
+                                HStack(spacing: 6) {
+                                    Image(systemName: "exclamationmark.triangle.fill")
+                                        .foregroundColor(.orange)
+                                    Text("Hooks need an update (approvals timeout / plan usage bars)")
+                                        .font(.system(size: 11))
+                                        .foregroundColor(.orange)
+                                }
+                                Button("Update hooks") { installHooksAppStore() }
                             }
-                            Button("Update hooks") { installHooksAppStore() }
-                        }
-                        #endif
-                        #if APPSTORE
-                        if claudeAccessGranted {
-                            Text("~/.claude/coucou/nb-hook")
-                                .font(.system(size: 11, design: .monospaced))
-                                .foregroundColor(.secondary)
+                            #endif
+                            #if APPSTORE
+                            if claudeAccessGranted {
+                                Text("~/.claude/coucou/nb-hook")
+                                    .font(.system(size: 11, design: .monospaced))
+                                    .foregroundColor(.secondary)
+                                HStack(spacing: 10) {
+                                    Button("Install hooks") { installHooksAppStore() }
+                                        .buttonStyle(.borderedProminent)
+                                    Button("Uninstall") { uninstallHooksAppStore() }
+                                        .buttonStyle(.bordered)
+                                }
+                            } else {
+                                Text("Choose your ~/.claude folder so Coucou can add its hooks.")
+                                    .font(.system(size: 12))
+                                    .foregroundColor(.secondary)
+                                Button("Choose .claude folder…") { chooseClaudeFolder() }
+                                    .buttonStyle(.borderedProminent)
+                            }
+                            #else
+                            HookStatusRow(status: hookStatus, path: HookServer.hookScriptPath)
                             HStack(spacing: 10) {
-                                Button("Install hooks") { installHooksAppStore() }
-                                    .buttonStyle(.borderedProminent)
-                                Button("Uninstall") { uninstallHooksAppStore() }
-                                    .buttonStyle(.bordered)
+                                switch hookStatus {
+                                case .installed:
+                                    Button("Reinstall…") { installHooks() }
+                                        .buttonStyle(.bordered)
+                                    Button("Uninstall") { uninstallHooks() }
+                                        .buttonStyle(.bordered)
+                                case .needsUpdate:
+                                    Button("Update hooks") { installHooks() }
+                                        .buttonStyle(.borderedProminent)
+                                    Button("Uninstall") { uninstallHooks() }
+                                        .buttonStyle(.bordered)
+                                case .notInstalled:
+                                    Button("Install hooks") { installHooks() }
+                                        .buttonStyle(.borderedProminent)
+                                }
                             }
-                        } else {
-                            Text("Choose your ~/.claude folder so Coucou can add its hooks.")
-                                .font(.system(size: 12))
-                                .foregroundColor(.secondary)
-                            Button("Choose .claude folder…") { chooseClaudeFolder() }
-                                .buttonStyle(.borderedProminent)
-                        }
-                        #else
-                        HookStatusRow(status: hookStatus, path: HookServer.hookScriptPath)
-                        HStack(spacing: 10) {
-                            switch hookStatus {
-                            case .installed:
-                                Button("Reinstall…") { installHooks() }
-                                    .buttonStyle(.bordered)
-                                Button("Uninstall") { uninstallHooks() }
-                                    .buttonStyle(.bordered)
-                            case .needsUpdate:
-                                Button("Update hooks") { installHooks() }
-                                    .buttonStyle(.borderedProminent)
-                                Button("Uninstall") { uninstallHooks() }
-                                    .buttonStyle(.bordered)
-                            case .notInstalled:
-                                Button("Install hooks") { installHooks() }
-                                    .buttonStyle(.borderedProminent)
-                            }
-                        }
-                        CodexHooksSection()
-                        #endif
+                            CodexHooksSection()
+                            #endif
 
-                        if showDiff {
-                            Text("Coucou will write this to ~/.claude/settings.json (your current file is backed up first). Review it, then confirm.")
-                                .font(.system(size: 11))
-                                .foregroundColor(.secondary)
-                                .fixedSize(horizontal: false, vertical: true)
-                            ScrollView {
-                                Text(pendingHookJSON)
-                                    .font(.system(size: 10, design: .monospaced))
-                                    .frame(maxWidth: .infinity, alignment: .leading)
-                            }
-                            .frame(height: 140)
-                            .background(Color(NSColor.textBackgroundColor))
-                            .cornerRadius(6)
+                            if showDiff {
+                                Text("Coucou will write this to ~/.claude/settings.json (your current file is backed up first). Review it, then confirm.")
+                                    .font(.system(size: 11))
+                                    .foregroundColor(.secondary)
+                                    .fixedSize(horizontal: false, vertical: true)
+                                ScrollView {
+                                    Text(pendingHookJSON)
+                                        .font(.system(size: 10, design: .monospaced))
+                                        .frame(maxWidth: .infinity, alignment: .leading)
+                                }
+                                .frame(height: 140)
+                                .background(Color(NSColor.textBackgroundColor))
+                                .cornerRadius(6)
 
-                            HStack {
-                                #if APPSTORE
-                                Button("Confirm & write") { confirmInstallAppStore() }
-                                    .buttonStyle(.borderedProminent)
-                                #else
-                                Button("Confirm & write") { confirmInstall() }
-                                    .buttonStyle(.borderedProminent)
-                                #endif
-                                Button("Cancel") { showDiff = false; pendingHookJSON = "" }
-                                    .buttonStyle(.bordered)
+                                HStack {
+                                    #if APPSTORE
+                                    Button("Confirm & write") { confirmInstallAppStore() }
+                                        .buttonStyle(.borderedProminent)
+                                    #else
+                                    Button("Confirm & write") { confirmInstall() }
+                                        .buttonStyle(.borderedProminent)
+                                    #endif
+                                    Button("Cancel") { showDiff = false; pendingHookJSON = "" }
+                                        .buttonStyle(.bordered)
+                                }
+                            }
+
+                            Divider().padding(.vertical, 2)
+                            let editors = Editor.installed
+                            if editors.isEmpty {
+                                Text("No supported editor found. Projects open in Finder.")
+                                    .font(.system(size: 11))
+                                    .foregroundColor(.secondary)
+                            } else {
+                                Picker("Open projects in", selection: Binding(
+                                    get: { Editor.preferred(state.preferredEditor)?.id ?? editors[0].id },
+                                    set: { state.preferredEditor = $0 }
+                                )) {
+                                    ForEach(editors) { Text($0.name).tag($0.id) }
+                                }
                             }
                         }
-
-                        Divider().padding(.vertical, 2)
-                        let editors = Editor.installed
-                        if editors.isEmpty {
-                            Text("No supported editor found. Projects open in Finder.")
-                                .font(.system(size: 11))
-                                .foregroundColor(.secondary)
-                        } else {
-                            Picker("Open projects in", selection: Binding(
-                                get: { Editor.preferred(state.preferredEditor)?.id ?? editors[0].id },
-                                set: { state.preferredEditor = $0 }
-                            )) {
-                                ForEach(editors) { Text($0.name).tag($0.id) }
-                            }
-                        }
+                        .padding(6)
                     }
-                    .padding(6)
                 }
 
                 // MARK: Integrations
-                GroupBox("Integrations") {
-                    VStack(alignment: .leading, spacing: 14) {
+                if tab == .integrations {
+                    GroupBox("Integrations") {
+                        VStack(alignment: .leading, spacing: 14) {
 
-                        // Resend
-                        VStack(alignment: .leading, spacing: 5) {
-                            HStack(spacing: 6) {
-                                Circle().fill(Color(hex: "#22C55E")).frame(width: 8, height: 8)
-                                Text("Resend").font(.system(size: 12, weight: .semibold))
+                            // Resend
+                            VStack(alignment: .leading, spacing: 5) {
+                                HStack(spacing: 6) {
+                                    Circle().fill(Color(hex: "#22C55E")).frame(width: 8, height: 8)
+                                    Text("Resend").font(.system(size: 12, weight: .semibold))
+                                }
+                                SecureField("API key  (re_…)", text: $resendKey)
+                                    .textFieldStyle(.roundedBorder)
+                                TextField("From address  (you@yourdomain.com)", text: $resendFrom)
+                                    .textFieldStyle(.roundedBorder)
                             }
-                            SecureField("API key  (re_…)", text: $resendKey)
-                                .textFieldStyle(.roundedBorder)
-                            TextField("From address  (you@yourdomain.com)", text: $resendFrom)
-                                .textFieldStyle(.roundedBorder)
-                        }
 
-                        // n8n
-                        VStack(alignment: .leading, spacing: 5) {
-                            HStack(spacing: 6) {
-                                Circle().fill(Color(hex: "#F29B38")).frame(width: 8, height: 8)
-                                Text("n8n").font(.system(size: 12, weight: .semibold))
+                            // n8n
+                            VStack(alignment: .leading, spacing: 5) {
+                                HStack(spacing: 6) {
+                                    Circle().fill(Color(hex: "#F29B38")).frame(width: 8, height: 8)
+                                    Text("n8n").font(.system(size: 12, weight: .semibold))
+                                }
+                                TextField("Instance URL  (https://…)", text: $n8nUrl)
+                                    .textFieldStyle(.roundedBorder)
+                                SecureField("API key", text: $n8nKey)
+                                    .textFieldStyle(.roundedBorder)
+                                IntegrationFilterRow(
+                                    label: "Workflows",
+                                    items: n8nWorkflows,
+                                    filter: $state.n8nWorkflowFilter,
+                                    loading: loadingN8n,
+                                    onLoad: loadN8nWorkflows
+                                )
                             }
-                            TextField("Instance URL  (https://…)", text: $n8nUrl)
-                                .textFieldStyle(.roundedBorder)
-                            SecureField("API key", text: $n8nKey)
-                                .textFieldStyle(.roundedBorder)
-                            IntegrationFilterRow(
-                                label: "Workflows",
-                                items: n8nWorkflows,
-                                filter: $state.n8nWorkflowFilter,
-                                loading: loadingN8n,
-                                onLoad: loadN8nWorkflows
-                            )
-                        }
 
-                        // Vercel
-                        VStack(alignment: .leading, spacing: 5) {
-                            HStack(spacing: 6) {
-                                Circle().fill(Color(hex: "#7C5CFF")).frame(width: 8, height: 8)
-                                Text("Vercel").font(.system(size: 12, weight: .semibold))
+                            // Vercel
+                            VStack(alignment: .leading, spacing: 5) {
+                                HStack(spacing: 6) {
+                                    Circle().fill(Color(hex: "#7C5CFF")).frame(width: 8, height: 8)
+                                    Text("Vercel").font(.system(size: 12, weight: .semibold))
+                                }
+                                SecureField("Token", text: $vercelToken)
+                                    .textFieldStyle(.roundedBorder)
+                                IntegrationFilterRow(
+                                    label: "Projects",
+                                    items: vercelProjects,
+                                    filter: $state.vercelProjectFilter,
+                                    loading: loadingVercel,
+                                    onLoad: loadVercelProjects
+                                )
                             }
-                            SecureField("Token", text: $vercelToken)
-                                .textFieldStyle(.roundedBorder)
-                            IntegrationFilterRow(
-                                label: "Projects",
-                                items: vercelProjects,
-                                filter: $state.vercelProjectFilter,
-                                loading: loadingVercel,
-                                onLoad: loadVercelProjects
-                            )
-                        }
 
-                        // GitHub
-                        VStack(alignment: .leading, spacing: 5) {
-                            HStack(spacing: 6) {
-                                Circle().fill(Color(hex: "#F4505E")).frame(width: 8, height: 8)
-                                Text("GitHub").font(.system(size: 12, weight: .semibold))
-                            }
-                            #if !APPSTORE
-                            HStack(spacing: 6) {
-                                Circle()
-                                    .fill(state.githubConnection.isConnected ? Color.green
-                                          : checkingGh ? Color.gray : Color.orange)
-                                    .frame(width: 7, height: 7)
-                                Text(ghStatusText)
-                                    .font(.system(size: 11))
-                                    .lineLimit(2)
+                            // GitHub
+                            VStack(alignment: .leading, spacing: 5) {
+                                HStack(spacing: 6) {
+                                    Circle().fill(Color(hex: "#F4505E")).frame(width: 8, height: 8)
+                                    Text("GitHub").font(.system(size: 12, weight: .semibold))
+                                }
+                                #if !APPSTORE
+                                HStack(spacing: 6) {
+                                    Circle()
+                                        .fill(state.githubConnection.isConnected ? Color.green
+                                              : checkingGh ? Color.gray : Color.orange)
+                                        .frame(width: 7, height: 7)
+                                    Text(ghStatusText)
+                                        .font(.system(size: 11))
+                                        .lineLimit(2)
+                                        .fixedSize(horizontal: false, vertical: true)
+                                    Spacer()
+                                    Button(checkingGh ? "Testing…" : L("Test connection")) { checkGitHubCLI(force: true) }
+                                        .disabled(checkingGh)
+                                }
+                                #endif
+                                SecureField(ghStatus == .signedIn
+                                            ? L("Personal Access Token (not needed while gh is signed in)")
+                                            : L("Personal Access Token"),
+                                            text: $githubToken)
+                                    .textFieldStyle(.roundedBorder)
+                                Text("The CI pill (Active pills) follows GitHub Actions on your open PRs with this same connection.")
+                                    .font(.system(size: 11)).foregroundColor(.secondary)
                                     .fixedSize(horizontal: false, vertical: true)
-                                Spacer()
-                                Button(checkingGh ? "Testing…" : L("Test connection")) { checkGitHubCLI(force: true) }
-                                    .disabled(checkingGh)
                             }
-                            #endif
-                            SecureField(ghStatus == .signedIn
-                                        ? L("Personal Access Token (not needed while gh is signed in)")
-                                        : L("Personal Access Token"),
-                                        text: $githubToken)
-                                .textFieldStyle(.roundedBorder)
-                            Text("The CI pill (Active pills) follows GitHub Actions on your open PRs with this same connection.")
-                                .font(.system(size: 11)).foregroundColor(.secondary)
-                                .fixedSize(horizontal: false, vertical: true)
-                        }
 
-                        // Stripe
-                        VStack(alignment: .leading, spacing: 5) {
-                            HStack(spacing: 6) {
-                                Circle().fill(Color(hex: "#0570DE")).frame(width: 8, height: 8)
-                                Text("Stripe").font(.system(size: 12, weight: .semibold))
+                            // Stripe
+                            VStack(alignment: .leading, spacing: 5) {
+                                HStack(spacing: 6) {
+                                    Circle().fill(Color(hex: "#0570DE")).frame(width: 8, height: 8)
+                                    Text("Stripe").font(.system(size: 12, weight: .semibold))
+                                }
+                                SecureField("Secret key  (sk_live_… or sk_test_…)", text: $stripeKey)
+                                    .textFieldStyle(.roundedBorder)
                             }
-                            SecureField("Secret key  (sk_live_… or sk_test_…)", text: $stripeKey)
-                                .textFieldStyle(.roundedBorder)
-                        }
 
-                        // Cal.com
-                        VStack(alignment: .leading, spacing: 5) {
-                            HStack(spacing: 6) {
-                                Circle().fill(Color(hex: "#C9956A")).frame(width: 8, height: 8)
-                                Text("Cal.com").font(.system(size: 12, weight: .semibold))
+                            // Cal.com
+                            VStack(alignment: .leading, spacing: 5) {
+                                HStack(spacing: 6) {
+                                    Circle().fill(Color(hex: "#C9956A")).frame(width: 8, height: 8)
+                                    Text("Cal.com").font(.system(size: 12, weight: .semibold))
+                                }
+                                SecureField("API key  (cal_live_…)", text: $calcomKey)
+                                    .textFieldStyle(.roundedBorder)
                             }
-                            SecureField("API key  (cal_live_…)", text: $calcomKey)
-                                .textFieldStyle(.roundedBorder)
-                        }
 
-                        // Notion
-                        VStack(alignment: .leading, spacing: 5) {
-                            HStack(spacing: 6) {
-                                Circle().fill(Color(hex: "#E8E8E8")).frame(width: 8, height: 8)
-                                Text("Notion").font(.system(size: 12, weight: .semibold))
+                            // Notion
+                            VStack(alignment: .leading, spacing: 5) {
+                                HStack(spacing: 6) {
+                                    Circle().fill(Color(hex: "#E8E8E8")).frame(width: 8, height: 8)
+                                    Text("Notion").font(.system(size: 12, weight: .semibold))
+                                }
+                                SecureField("Integration token  (secret_…)", text: $notionKey)
+                                    .textFieldStyle(.roundedBorder)
                             }
-                            SecureField("Integration token  (secret_…)", text: $notionKey)
-                                .textFieldStyle(.roundedBorder)
-                        }
 
-                        // Linear
-                        VStack(alignment: .leading, spacing: 5) {
-                            HStack(spacing: 6) {
-                                Circle().fill(Color(hex: "#5E6AD2")).frame(width: 8, height: 8)
-                                Text("Linear").font(.system(size: 12, weight: .semibold))
-                            }
-                            SecureField("Personal API key  (lin_api_…)", text: $linearKey)
-                                .textFieldStyle(.roundedBorder)
-                            Text("Linear → Settings → Security & access → Personal API keys. Shows your open issues and links each Claude Code session to the issue in its branch name.")
-                                .font(.system(size: 11)).foregroundColor(.secondary)
-                                .fixedSize(horizontal: false, vertical: true)
+                            // Linear
+                            VStack(alignment: .leading, spacing: 5) {
+                                HStack(spacing: 6) {
+                                    Circle().fill(Color(hex: "#5E6AD2")).frame(width: 8, height: 8)
+                                    Text("Linear").font(.system(size: 12, weight: .semibold))
+                                }
+                                SecureField("Personal API key  (lin_api_…)", text: $linearKey)
+                                    .textFieldStyle(.roundedBorder)
+                                Text("Linear → Settings → Security & access → Personal API keys. Shows your open issues and links each Claude Code session to the issue in its branch name.")
+                                    .font(.system(size: 11)).foregroundColor(.secondary)
+                                    .fixedSize(horizontal: false, vertical: true)
 
-                            // Quick capture (#118): default team and shortcut.
-                            HStack(spacing: 8) {
-                                Text("Default team")
-                                    .frame(width: 90, alignment: .leading)
-                                Picker("", selection: $state.linearDefaultTeam) {
-                                    Text("None (type #TEAM)").tag("")
-                                    ForEach(captureModel.teams, id: \.id) { team in
-                                        Text(verbatim: "\(team.key) · \(team.name)").tag(team.key)
+                                // Quick capture (#118): default team and shortcut.
+                                HStack(spacing: 8) {
+                                    Text("Default team")
+                                        .frame(width: 90, alignment: .leading)
+                                    Picker("", selection: $state.linearDefaultTeam) {
+                                        Text("None (type #TEAM)").tag("")
+                                        ForEach(captureModel.teams, id: \.id) { team in
+                                            Text(verbatim: "\(team.key) · \(team.name)").tag(team.key)
+                                        }
+                                        // Saved before the teams loaded (or no longer visible): keep it selectable.
+                                        if !state.linearDefaultTeam.isEmpty,
+                                           !captureModel.teams.contains(where: { $0.key == state.linearDefaultTeam }) {
+                                            Text(verbatim: state.linearDefaultTeam).tag(state.linearDefaultTeam)
+                                        }
                                     }
-                                    // Saved before the teams loaded (or no longer visible): keep it selectable.
-                                    if !state.linearDefaultTeam.isEmpty,
-                                       !captureModel.teams.contains(where: { $0.key == state.linearDefaultTeam }) {
-                                        Text(verbatim: state.linearDefaultTeam).tag(state.linearDefaultTeam)
+                                    .labelsHidden()
+                                    .frame(maxWidth: 220)
+                                    Button("Load teams") { captureModel.loadTeams(force: true) }
+                                        .disabled(!LinearAPI.hasKey || captureModel.loadingTeams)
+                                }
+                                .onAppear { if LinearAPI.hasKey { captureModel.loadTeams() } }
+                                if let error = captureModel.teamsError, LinearAPI.hasKey {
+                                    Text(verbatim: error).font(.system(size: 11)).foregroundColor(.orange)
+                                }
+                                Toggle("Quick capture shortcut", isOn: $state.captureHotkeyEnabled)
+                                if state.captureHotkeyEnabled {
+                                    HStack(spacing: 8) {
+                                        Text("Shortcut")
+                                            .frame(width: 90, alignment: .leading)
+                                        ShortcutRecorderButton(flags: $captureFlags, code: $captureCode)
+                                            .onChange(of: captureFlags) { _, v in state.captureHotkeyFlags = v }
+                                            .onChange(of: captureCode)  { _, v in state.captureHotkeyCode  = v }
+                                        Text("type one line → Enter to preview → Enter to create")
+                                            .font(.system(size: 11))
+                                            .foregroundColor(.secondary)
                                     }
                                 }
-                                .labelsHidden()
-                                .frame(maxWidth: 220)
-                                Button("Load teams") { captureModel.loadTeams(force: true) }
-                                    .disabled(!LinearAPI.hasKey || captureModel.loadingTeams)
+                                Text("Quick capture: #TEAM picks the team, p1–p4 the priority, @me assigns it to you, !today / !fri / !2026-12-01 sets a due date. Nothing is created until you press Enter on the preview. The + in the Linear card opens it too.")
+                                    .font(.system(size: 11)).foregroundColor(.secondary)
+                                    .fixedSize(horizontal: false, vertical: true)
                             }
-                            .onAppear { if LinearAPI.hasKey { captureModel.loadTeams() } }
-                            if let error = captureModel.teamsError, LinearAPI.hasKey {
-                                Text(verbatim: error).font(.system(size: 11)).foregroundColor(.orange)
+
+                            Button("Save integrations") { saveIntegrations() }
+                                .buttonStyle(.borderedProminent)
+                        }
+                        .padding(6)
+                    }
+                }
+
+                // MARK: Son
+                if tab == .general {
+                    GroupBox("Appearance") {
+                        ThemePicker(state: state)
+                    }
+                }
+
+                if tab == .general {
+                    GroupBox("Sound") {
+                        VStack(alignment: .leading, spacing: 10) {
+                            Toggle("Enable sounds", isOn: $state.soundEnabled)
+                            HStack(spacing: 8) {
+                                Text("Volume")
+                                    .frame(width: 56, alignment: .leading)
+                                Slider(value: $state.soundVolume, in: 0...0.2)
+                                    .disabled(!state.soundEnabled)
+                                Text("\(Int(state.soundVolume / 0.2 * 100)) %")
+                                    .frame(width: 36, alignment: .trailing)
+                                    .monospacedDigit()
                             }
-                            Toggle("Quick capture shortcut", isOn: $state.captureHotkeyEnabled)
-                            if state.captureHotkeyEnabled {
+                        }
+                        .padding(6)
+                    }
+                }
+
+                // MARK: Timings
+                if tab == .general {
+                    GroupBox("Behavior") {
+                        VStack(alignment: .leading, spacing: 10) {
+                            HStack(spacing: 8) {
+                                Text("Close after")
+                                TextField("60", value: $state.autoCloseInterval, format: .number)
+                                    .textFieldStyle(.roundedBorder)
+                                    .frame(width: 64)
+                                Text("s inactive")
+                            }
+                            HStack(spacing: 8) {
+                                Text("Hide after")
+                                TextField("3", value: absenceMinutes, format: .number)
+                                    .textFieldStyle(.roundedBorder)
+                                    .frame(width: 48)
+                                Text("min without movement")
+                            }
+                            Toggle("Mochi moves with the music", isOn: $state.mochiDance)
+                            Text("While Music or Spotify plays, Mochi bobs along and puts on headphones when the song changes. Off in Do not disturb and with Reduce Motion.")
+                                .font(.system(size: 11))
+                                .foregroundColor(.secondary)
+                                .fixedSize(horizontal: false, vertical: true)
+                        }
+                        .padding(6)
+                    }
+                }
+
+                // MARK: Active pills
+                if tab == .general {
+                    GroupBox("Active pills") {
+                        VStack(alignment: .leading, spacing: 10) {
+                            HStack {
+                                Text("Claude Code")
+                                    .font(.system(size: 12, weight: .semibold))
+                                Circle().fill(Color(hex: "#F5F6F8")).frame(width: 8, height: 8)
+                                Spacer()
+                                Text("Always active")
+                                    .font(.system(size: 11))
+                                    .foregroundColor(.secondary)
+                            }
+
+                            Divider()
+
+                            Text("\(state.activeIntegrations.count) active · the island shows 4 at a time")
+                                .font(.system(size: 11))
+                                .foregroundColor(.secondary)
+                            Picker("Rotate the rest", selection: $state.pillRotationSeconds) {
+                                Text("Off").tag(0)
+                                Text("Every 10 s").tag(10)
+                                Text("Every 30 s").tag(30)
+                                Text("Every minute").tag(60)
+                            }
+                            .font(.system(size: 11))
+
+                            ForEach(AgentTask.toggleableIntegrationIds, id: \.self) { id in
+                                let task = AgentTask.integrationAgents.first { $0.id == id }!
+                                let isOn = state.activeIntegrations.contains(id)
+                                HStack(spacing: 8) {
+                                    Circle()
+                                        .fill(Color(hex: task.color))
+                                        .frame(width: 10, height: 10)
+                                    Text(task.name)
+                                        .font(.system(size: 12))
+                                        .foregroundColor(.primary)
+                                    Spacer()
+                                    Toggle("", isOn: Binding(
+                                        get: { isOn },
+                                        set: { _ in state.toggleIntegration(id) }
+                                    ))
+                                    .labelsHidden()
+                                }
+                            }
+                        }
+                        .padding(6)
+                    }
+                }
+
+                // MARK: Hotkey
+                if tab == .general {
+                    GroupBox("Hotkey") {
+                        VStack(alignment: .leading, spacing: 10) {
+                            Toggle("Show island with shortcut", isOn: $state.hotkeyEnabled)
+                            if state.hotkeyEnabled {
                                 HStack(spacing: 8) {
                                     Text("Shortcut")
-                                        .frame(width: 90, alignment: .leading)
-                                    ShortcutRecorderButton(flags: $captureFlags, code: $captureCode)
-                                        .onChange(of: captureFlags) { _, v in state.captureHotkeyFlags = v }
-                                        .onChange(of: captureCode)  { _, v in state.captureHotkeyCode  = v }
-                                    Text("type one line → Enter to preview → Enter to create")
+                                        .frame(width: 70, alignment: .leading)
+                                    ShortcutRecorderButton(flags: $hotkeyFlags, code: $hotkeyCode)
+                                        .onChange(of: hotkeyFlags) { _, v in state.hotkeyFlags = v }
+                                        .onChange(of: hotkeyCode)  { _, v in state.hotkeyCode  = v }
+                                    Text("presses this → island opens")
                                         .font(.system(size: 11))
                                         .foregroundColor(.secondary)
                                 }
                             }
-                            Text("Quick capture: #TEAM picks the team, p1–p4 the priority, @me assigns it to you, !today / !fri / !2026-12-01 sets a due date. Nothing is created until you press Enter on the preview. The + in the Linear card opens it too.")
-                                .font(.system(size: 11)).foregroundColor(.secondary)
-                                .fixedSize(horizontal: false, vertical: true)
-                        }
 
-                        Button("Save integrations") { saveIntegrations() }
-                            .buttonStyle(.borderedProminent)
-                    }
-                    .padding(6)
-                }
-
-                // MARK: Son
-                GroupBox("Appearance") {
-                    ThemePicker(state: state)
-                }
-
-                GroupBox("Sound") {
-                    VStack(alignment: .leading, spacing: 10) {
-                        Toggle("Enable sounds", isOn: $state.soundEnabled)
-                        HStack(spacing: 8) {
-                            Text("Volume")
-                                .frame(width: 56, alignment: .leading)
-                            Slider(value: $state.soundVolume, in: 0...0.2)
-                                .disabled(!state.soundEnabled)
-                            Text("\(Int(state.soundVolume / 0.2 * 100)) %")
-                                .frame(width: 36, alignment: .trailing)
-                                .monospacedDigit()
-                        }
-                    }
-                    .padding(6)
-                }
-
-                // MARK: Timings
-                GroupBox("Behavior") {
-                    VStack(alignment: .leading, spacing: 10) {
-                        HStack(spacing: 8) {
-                            Text("Close after")
-                            TextField("60", value: $state.autoCloseInterval, format: .number)
-                                .textFieldStyle(.roundedBorder)
-                                .frame(width: 64)
-                            Text("s inactive")
-                        }
-                        HStack(spacing: 8) {
-                            Text("Hide after")
-                            TextField("3", value: absenceMinutes, format: .number)
-                                .textFieldStyle(.roundedBorder)
-                                .frame(width: 48)
-                            Text("min without movement")
-                        }
-                        Toggle("Mochi moves with the music", isOn: $state.mochiDance)
-                        Text("While Music or Spotify plays, Mochi bobs along and puts on headphones when the song changes. Off in Do not disturb and with Reduce Motion.")
-                            .font(.system(size: 11))
-                            .foregroundColor(.secondary)
-                            .fixedSize(horizontal: false, vertical: true)
-                    }
-                    .padding(6)
-                }
-
-                // MARK: Active pills
-                GroupBox("Active pills") {
-                    VStack(alignment: .leading, spacing: 10) {
-                        HStack {
-                            Text("Claude Code")
-                                .font(.system(size: 12, weight: .semibold))
-                            Circle().fill(Color(hex: "#F5F6F8")).frame(width: 8, height: 8)
-                            Spacer()
-                            Text("Always active")
-                                .font(.system(size: 11))
-                                .foregroundColor(.secondary)
-                        }
-
-                        Divider()
-
-                        Text("\(state.activeIntegrations.count) active · the island shows 4 at a time")
-                            .font(.system(size: 11))
-                            .foregroundColor(.secondary)
-                        Picker("Rotate the rest", selection: $state.pillRotationSeconds) {
-                            Text("Off").tag(0)
-                            Text("Every 10 s").tag(10)
-                            Text("Every 30 s").tag(30)
-                            Text("Every minute").tag(60)
-                        }
-                        .font(.system(size: 11))
-
-                        ForEach(AgentTask.toggleableIntegrationIds, id: \.self) { id in
-                            let task = AgentTask.integrationAgents.first { $0.id == id }!
-                            let isOn = state.activeIntegrations.contains(id)
-                            HStack(spacing: 8) {
-                                Circle()
-                                    .fill(Color(hex: task.color))
-                                    .frame(width: 10, height: 10)
-                                Text(task.name)
-                                    .font(.system(size: 12))
-                                    .foregroundColor(.primary)
-                                Spacer()
-                                Toggle("", isOn: Binding(
-                                    get: { isOn },
-                                    set: { _ in state.toggleIntegration(id) }
-                                ))
-                                .labelsHidden()
-                            }
-                        }
-                    }
-                    .padding(6)
-                }
-
-                // MARK: Hotkey
-                GroupBox("Hotkey") {
-                    VStack(alignment: .leading, spacing: 10) {
-                        Toggle("Show island with shortcut", isOn: $state.hotkeyEnabled)
-                        if state.hotkeyEnabled {
-                            HStack(spacing: 8) {
-                                Text("Shortcut")
-                                    .frame(width: 70, alignment: .leading)
-                                ShortcutRecorderButton(flags: $hotkeyFlags, code: $hotkeyCode)
-                                    .onChange(of: hotkeyFlags) { _, v in state.hotkeyFlags = v }
-                                    .onChange(of: hotkeyCode)  { _, v in state.hotkeyCode  = v }
-                                Text("presses this → island opens")
-                                    .font(.system(size: 11))
-                                    .foregroundColor(.secondary)
-                            }
-                        }
-
-                        Divider().padding(.vertical, 2)
-                        Toggle("Ask Mochi about the file you're editing", isOn: $state.assistantHotkeyEnabled)
-                        if state.assistantHotkeyEnabled {
-                            HStack(spacing: 8) {
-                                Text("Shortcut")
-                                    .frame(width: 70, alignment: .leading)
-                                ShortcutRecorderButton(flags: $assistantFlags, code: $assistantCode)
-                                    .onChange(of: assistantFlags) { _, v in state.assistantHotkeyFlags = v }
-                                    .onChange(of: assistantCode)  { _, v in state.assistantHotkeyCode  = v }
-                                Text("attaches the open file + selection")
-                                    .font(.system(size: 11))
-                                    .foregroundColor(.secondary)
-                            }
-                            Text("Mochi can read and search that project but never edits it.")
-                                .font(.system(size: 11))
-                                .foregroundColor(.secondary)
-                                .fixedSize(horizontal: false, vertical: true)
-                            HStack(spacing: 6) {
-                                Circle().fill(axTrusted ? Color.green : Color.orange).frame(width: 7, height: 7)
-                                Text(axTrusted ? L("Accessibility access granted")
-                                               : L("Accessibility access needed to read the open file"))
-                                    .font(.system(size: 11))
-                                Spacer()
-                                if !axTrusted {
-                                    Button("Grant access…") { AccessibilityAccess.request() }
+                            Divider().padding(.vertical, 2)
+                            Toggle("Ask Mochi about the file you're editing", isOn: $state.assistantHotkeyEnabled)
+                            if state.assistantHotkeyEnabled {
+                                HStack(spacing: 8) {
+                                    Text("Shortcut")
+                                        .frame(width: 70, alignment: .leading)
+                                    ShortcutRecorderButton(flags: $assistantFlags, code: $assistantCode)
+                                        .onChange(of: assistantFlags) { _, v in state.assistantHotkeyFlags = v }
+                                        .onChange(of: assistantCode)  { _, v in state.assistantHotkeyCode  = v }
+                                    Text("attaches the open file + selection")
+                                        .font(.system(size: 11))
+                                        .foregroundColor(.secondary)
                                 }
-                                Button("Check") { axTrusted = AccessibilityAccess.isTrusted }
-                            }
-                        }
-
-                        Divider().padding(.vertical, 2)
-                        Toggle("Approve from the keyboard: ⌥⏎ Allow · ⌥⌫ Deny", isOn: $state.approvalShortcutsEnabled)
-                        Text("Only active while Claude Code is waiting for you. High-risk requests need a click on Allow.")
-                            .font(.system(size: 11))
-                            .foregroundColor(.secondary)
-                            .fixedSize(horizontal: false, vertical: true)
-
-                        Divider().padding(.vertical, 2)
-                        Toggle("Push-to-talk: hold to talk to Mochi", isOn: $state.voiceEnabled)
-                        if state.voiceEnabled {
-                            HStack(spacing: 8) {
-                                Text("Shortcut")
-                                    .frame(width: 70, alignment: .leading)
-                                ShortcutRecorderButton(flags: $voiceFlags, code: $voiceCode)
-                                    .onChange(of: voiceFlags) { _, v in state.voiceHotkeyFlags = v }
-                                    .onChange(of: voiceCode)  { _, v in state.voiceHotkeyCode  = v }
-                                Text("hold, speak, let go → sent")
+                                Text("Mochi can read and search that project but never edits it.")
                                     .font(.system(size: 11))
                                     .foregroundColor(.secondary)
-                            }
-                            HStack(spacing: 8) {
-                                Text("Language")
-                                    .frame(width: 70, alignment: .leading)
-                                Picker("", selection: $state.voiceLanguage) {
-                                    Text("Same as the Mac").tag("auto")
-                                    Text("Español (España)").tag("es-ES")
-                                    Text("Español (México)").tag("es-MX")
-                                    Text("English (US)").tag("en-US")
-                                    Text("English (UK)").tag("en-GB")
-                                    Text("Français").tag("fr-FR")
-                                }
-                                .labelsHidden()
-                                .frame(width: 180)
-                            }
-                            Toggle("Read Mochi's answers aloud", isOn: $state.voiceSpeakReplies)
-                            Toggle("Hey Mochi: start by voice, without the shortcut", isOn: $state.wakeWordEnabled)
-                            if state.wakeWordEnabled {
-                                Toggle("Only when the Mac is plugged in", isOn: $state.wakeWordOnlyOnPower)
-                                Text(WakeWord.shared.blocker ?? L("Listening for \u{201C}Hey Mochi\u{201D} (or \u{201C}Oye Mochi\u{201D}) on this Mac only. macOS shows the orange microphone dot while it listens."))
-                                    .font(.system(size: 11))
-                                    .foregroundColor(WakeWord.shared.blocker == nil ? .secondary : .orange)
                                     .fixedSize(horizontal: false, vertical: true)
+                                HStack(spacing: 6) {
+                                    Circle().fill(axTrusted ? Color.green : Color.orange).frame(width: 7, height: 7)
+                                    Text(axTrusted ? L("Accessibility access granted")
+                                                   : L("Accessibility access needed to read the open file"))
+                                        .font(.system(size: 11))
+                                    Spacer()
+                                    if !axTrusted {
+                                        Button("Grant access…") { AccessibilityAccess.request() }
+                                    }
+                                    Button("Check") { axTrusted = AccessibilityAccess.isTrusted }
+                                }
                             }
-                            Text("Speech is transcribed on this Mac when it supports it. Mochi only listens while you hold the shortcut.")
+
+                            Divider().padding(.vertical, 2)
+                            Toggle("Approve from the keyboard: ⌥⏎ Allow · ⌥⌫ Deny", isOn: $state.approvalShortcutsEnabled)
+                            Text("Only active while Claude Code is waiting for you. High-risk requests need a click on Allow.")
                                 .font(.system(size: 11))
                                 .foregroundColor(.secondary)
                                 .fixedSize(horizontal: false, vertical: true)
-                            HStack(spacing: 6) {
-                                Circle().fill(voiceAllowed ? Color.green : Color.orange).frame(width: 7, height: 7)
-                                Text(voiceAllowed ? L("Microphone and Speech Recognition allowed")
-                                                  : L("macOS asks for Microphone and Speech Recognition the first time"))
+
+                            Divider().padding(.vertical, 2)
+                            Toggle("Push-to-talk: hold to talk to Mochi", isOn: $state.voiceEnabled)
+                            if state.voiceEnabled {
+                                HStack(spacing: 8) {
+                                    Text("Shortcut")
+                                        .frame(width: 70, alignment: .leading)
+                                    ShortcutRecorderButton(flags: $voiceFlags, code: $voiceCode)
+                                        .onChange(of: voiceFlags) { _, v in state.voiceHotkeyFlags = v }
+                                        .onChange(of: voiceCode)  { _, v in state.voiceHotkeyCode  = v }
+                                    Text("hold, speak, let go → sent")
+                                        .font(.system(size: 11))
+                                        .foregroundColor(.secondary)
+                                }
+                                HStack(spacing: 8) {
+                                    Text("Language")
+                                        .frame(width: 70, alignment: .leading)
+                                    Picker("", selection: $state.voiceLanguage) {
+                                        Text("Same as the Mac").tag("auto")
+                                        Text("Español (España)").tag("es-ES")
+                                        Text("Español (México)").tag("es-MX")
+                                        Text("English (US)").tag("en-US")
+                                        Text("English (UK)").tag("en-GB")
+                                        Text("Français").tag("fr-FR")
+                                    }
+                                    .labelsHidden()
+                                    .frame(width: 180)
+                                }
+                                Toggle("Read Mochi's answers aloud", isOn: $state.voiceSpeakReplies)
+                                Toggle("Hey Mochi: start by voice, without the shortcut", isOn: $state.wakeWordEnabled)
+                                if state.wakeWordEnabled {
+                                    Toggle("Only when the Mac is plugged in", isOn: $state.wakeWordOnlyOnPower)
+                                    Text(WakeWord.shared.blocker ?? L("Listening for \u{201C}Hey Mochi\u{201D} (or \u{201C}Oye Mochi\u{201D}) on this Mac only. macOS shows the orange microphone dot while it listens."))
+                                        .font(.system(size: 11))
+                                        .foregroundColor(WakeWord.shared.blocker == nil ? .secondary : .orange)
+                                        .fixedSize(horizontal: false, vertical: true)
+                                }
+                                Text("Speech is transcribed on this Mac when it supports it. Mochi only listens while you hold the shortcut.")
                                     .font(.system(size: 11))
-                                Spacer()
-                                if !voiceAllowed {
-                                    Button("Allow now…") {
-                                        Task {
-                                            _ = await VoiceInput.microphoneAllowed()
-                                            _ = await VoiceInput.speechAllowed()
-                                            voiceAllowed = VoiceInput.permissionsGranted
+                                    .foregroundColor(.secondary)
+                                    .fixedSize(horizontal: false, vertical: true)
+                                HStack(spacing: 6) {
+                                    Circle().fill(voiceAllowed ? Color.green : Color.orange).frame(width: 7, height: 7)
+                                    Text(voiceAllowed ? L("Microphone and Speech Recognition allowed")
+                                                      : L("macOS asks for Microphone and Speech Recognition the first time"))
+                                        .font(.system(size: 11))
+                                    Spacer()
+                                    if !voiceAllowed {
+                                        Button("Allow now…") {
+                                            Task {
+                                                _ = await VoiceInput.microphoneAllowed()
+                                                _ = await VoiceInput.speechAllowed()
+                                                voiceAllowed = VoiceInput.permissionsGranted
+                                            }
                                         }
                                     }
+                                    Button("Check") { voiceAllowed = VoiceInput.permissionsGranted }
                                 }
-                                Button("Check") { voiceAllowed = VoiceInput.permissionsGranted }
                             }
                         }
+                        .padding(6)
                     }
-                    .padding(6)
                 }
 
                 // MARK: Auto-approve
-                GroupBox("Auto-approve (Claude Code)") {
-                    VStack(alignment: .leading, spacing: 8) {
-                        Text("Coucou can answer Allow for you, per project. High-risk requests always ask. Auto-allowed steps show in the session timeline.")
-                            .font(.system(size: 11))
-                            .foregroundColor(.secondary)
-                            .fixedSize(horizontal: false, vertical: true)
-                        let projects = AutoApprove.knownProjects
-                        if projects.isEmpty {
-                            Text("Projects appear here once Claude Code runs in them (or set it from ⚡ on an approval).")
+                if tab == .claude {
+                    GroupBox("Auto-approve (Claude Code)") {
+                        VStack(alignment: .leading, spacing: 8) {
+                            Text("Coucou can answer Allow for you, per project. High-risk requests always ask. Auto-allowed steps show in the session timeline.")
                                 .font(.system(size: 11))
                                 .foregroundColor(.secondary)
-                        }
-                        ForEach(projects, id: \.self) { project in
-                            HStack {
-                                Text((project as NSString).lastPathComponent)
-                                    .help(project)
-                                Spacer()
-                                Picker("", selection: Binding(
-                                    get: { AutoApprove.rules[project] ?? .ask },
-                                    set: { AutoApprove.set($0, for: project) })) {
-                                    ForEach(AutoApproveLevel.allCases) { Text($0.title).tag($0) }
+                                .fixedSize(horizontal: false, vertical: true)
+                            let projects = AutoApprove.knownProjects
+                            if projects.isEmpty {
+                                Text("Projects appear here once Claude Code runs in them (or set it from ⚡ on an approval).")
+                                    .font(.system(size: 11))
+                                    .foregroundColor(.secondary)
+                            }
+                            ForEach(projects, id: \.self) { project in
+                                HStack {
+                                    Text((project as NSString).lastPathComponent)
+                                        .help(project)
+                                    Spacer()
+                                    Picker("", selection: Binding(
+                                        get: { AutoApprove.rules[project] ?? .ask },
+                                        set: { AutoApprove.set($0, for: project) })) {
+                                        ForEach(AutoApproveLevel.allCases) { Text($0.title).tag($0) }
+                                    }
+                                    .labelsHidden()
+                                    .frame(width: 230)
                                 }
-                                .labelsHidden()
-                                .frame(width: 230)
                             }
                         }
+                        .padding(6)
                     }
-                    .padding(6)
                 }
 
                 // MARK: Inbox
-                GroupBox("Inbox") {
-                    VStack(alignment: .leading, spacing: 8) {
-                        Toggle("Mochi tells me when someone needs me", isOn: $state.inboxEnabled)
-                        if state.inboxEnabled {
-                            HStack(spacing: 16) {
-                                Toggle("GitHub (through gh)", isOn: $state.inboxGitHub)
-                                Toggle("Linear", isOn: $state.inboxLinear)
-                            }
-                            HStack(spacing: 8) {
-                                Toggle("Mochi says it out loud", isOn: $state.inboxSpeak)
-                                Button("Try it") {
-                                    let sample = InboxItem(id: "sample", remoteID: "", source: .github, kind: .review,
-                                                           title: "Fix the cart total", subtitle: "rouderz/coucou #80",
-                                                           actor: nil, url: "", date: .now)
-                                    SoundEngine.shared.play("question")
-                                    VoiceOutput.shared.say(InboxStore.spoken(sample, count: 1),
-                                                           locale: VoiceSession.locale(for: state))
+                if tab == .alerts {
+                    GroupBox("Inbox") {
+                        VStack(alignment: .leading, spacing: 8) {
+                            Toggle("Mochi tells me when someone needs me", isOn: $state.inboxEnabled)
+                            if state.inboxEnabled {
+                                HStack(spacing: 16) {
+                                    Toggle("GitHub (through gh)", isOn: $state.inboxGitHub)
+                                    Toggle("Linear", isOn: $state.inboxLinear)
                                 }
-                            }
-                            // Wraps on narrow windows instead of pushing the page wider
-                            LazyVGrid(columns: [GridItem(.adaptive(minimum: 110), alignment: .leading)],
-                                      alignment: .leading, spacing: 6) {
-                                ForEach(InboxItem.Kind.allCases, id: \.self) { kind in
-                                    Toggle(Self.inboxKindTitle(kind), isOn: Binding(
-                                        get: { state.inboxKinds.contains(kind.rawValue) },
-                                        set: { on in
-                                            if on { state.inboxKinds.insert(kind.rawValue) } else { state.inboxKinds.remove(kind.rawValue) }
-                                            InboxStore.shared.refresh()
-                                        }))
+                                HStack(spacing: 8) {
+                                    Toggle("Mochi says it out loud", isOn: $state.inboxSpeak)
+                                    Button("Try it") {
+                                        let sample = InboxItem(id: "sample", remoteID: "", source: .github, kind: .review,
+                                                               title: "Fix the cart total", subtitle: "rouderz/coucou #80",
+                                                               actor: nil, url: "", date: .now)
+                                        SoundEngine.shared.play("question")
+                                        VoiceOutput.shared.say(InboxStore.spoken(sample, count: 1),
+                                                               locale: VoiceSession.locale(for: state))
+                                    }
                                 }
+                                // Wraps on narrow windows instead of pushing the page wider
+                                LazyVGrid(columns: [GridItem(.adaptive(minimum: 110), alignment: .leading)],
+                                          alignment: .leading, spacing: 6) {
+                                    ForEach(InboxItem.Kind.allCases, id: \.self) { kind in
+                                        Toggle(Self.inboxKindTitle(kind), isOn: Binding(
+                                            get: { state.inboxKinds.contains(kind.rawValue) },
+                                            set: { on in
+                                                if on { state.inboxKinds.insert(kind.rawValue) } else { state.inboxKinds.remove(kind.rawValue) }
+                                                InboxStore.shared.refresh()
+                                            }))
+                                    }
+                                }
+                                Text("Checked every minute. New items make Mochi peek out (only a badge in Do not disturb); the 🔔 in the island lists them. Opening or dismissing one marks it read on GitHub / Linear.")
+                                    .font(.system(size: 11))
+                                    .foregroundColor(.secondary)
+                                    .fixedSize(horizontal: false, vertical: true)
                             }
-                            Text("Checked every minute. New items make Mochi peek out (only a badge in Do not disturb); the 🔔 in the island lists them. Opening or dismissing one marks it read on GitHub / Linear.")
-                                .font(.system(size: 11))
-                                .foregroundColor(.secondary)
-                                .fixedSize(horizontal: false, vertical: true)
                         }
+                        .padding(6)
                     }
-                    .padding(6)
                 }
 
                 // MARK: Phone alerts
-                GroupBox("Phone alerts") {
-                    VStack(alignment: .leading, spacing: 8) {
-                        Toggle("Send approvals that wait 20 s to my phone", isOn: $state.phoneAlertsEnabled)
-                            .onChange(of: state.phoneAlertsEnabled) { _, on in
-                                if on && state.phoneAlertsTopic.isEmpty { state.phoneAlertsTopic = PhoneAlerts.newTopic() }
+                if tab == .alerts {
+                    GroupBox("Phone alerts") {
+                        VStack(alignment: .leading, spacing: 8) {
+                            Toggle("Send approvals that wait 20 s to my phone", isOn: $state.phoneAlertsEnabled)
+                                .onChange(of: state.phoneAlertsEnabled) { _, on in
+                                    if on && state.phoneAlertsTopic.isEmpty { state.phoneAlertsTopic = PhoneAlerts.newTopic() }
+                                }
+                            if state.phoneAlertsEnabled {
+                                Toggle("Only when I'm away (screen locked or 2 min idle)", isOn: $state.phoneAlertsOnlyWhenAway)
+                                HStack(spacing: 8) {
+                                    Text("Topic").frame(width: 50, alignment: .leading)
+                                    TextField("coucou-…", text: $state.phoneAlertsTopic)
+                                        .textFieldStyle(.roundedBorder)
+                                        .font(.system(size: 12, design: .monospaced))
+                                    Button("New") { state.phoneAlertsTopic = PhoneAlerts.newTopic() }
+                                    Button("Copy") {
+                                        NSPasteboard.general.clearContents()
+                                        NSPasteboard.general.setString(state.phoneAlertsTopic, forType: .string)
+                                    }
+                                }
+                                HStack(spacing: 8) {
+                                    Text("Server").frame(width: 50, alignment: .leading)
+                                    TextField("https://ntfy.sh", text: $state.phoneAlertsServer)
+                                        .textFieldStyle(.roundedBorder)
+                                    Button("Send test") { PhoneAlerts.shared.sendTest() }
+                                }
+                                Text("Install the free ntfy app (iOS / Android), tap + and subscribe to this topic. The alert includes the project and the command: keep the topic private, or use your own ntfy server.")
+                                    .font(.system(size: 11))
+                                    .foregroundColor(.secondary)
+                                    .fixedSize(horizontal: false, vertical: true)
                             }
-                        if state.phoneAlertsEnabled {
-                            Toggle("Only when I'm away (screen locked or 2 min idle)", isOn: $state.phoneAlertsOnlyWhenAway)
-                            HStack(spacing: 8) {
-                                Text("Topic").frame(width: 50, alignment: .leading)
-                                TextField("coucou-…", text: $state.phoneAlertsTopic)
-                                    .textFieldStyle(.roundedBorder)
-                                    .font(.system(size: 12, design: .monospaced))
-                                Button("New") { state.phoneAlertsTopic = PhoneAlerts.newTopic() }
-                                Button("Copy") {
-                                    NSPasteboard.general.clearContents()
-                                    NSPasteboard.general.setString(state.phoneAlertsTopic, forType: .string)
+                        }
+                        .padding(6)
+                    }
+                }
+
+                // MARK: Do not disturb
+                if tab == .alerts {
+                    GroupBox("Do not disturb") {
+                        VStack(alignment: .leading, spacing: 8) {
+                            HStack {
+                                Toggle("Do not disturb", isOn: Binding(
+                                    get: { state.dndUntil.map { $0 > .now } ?? false },
+                                    set: { $0 ? DoNotDisturb.shared.turnOn(for: nil) : DoNotDisturb.shared.turnOff() }))
+                                Spacer()
+                                if let status = DoNotDisturb.shared.statusText {
+                                    Text(status).font(.system(size: 11)).foregroundColor(.secondary)
                                 }
                             }
-                            HStack(spacing: 8) {
-                                Text("Server").frame(width: 50, alignment: .leading)
-                                TextField("https://ntfy.sh", text: $state.phoneAlertsServer)
-                                    .textFieldStyle(.roundedBorder)
-                                Button("Send test") { PhoneAlerts.shared.sendTest() }
+                            Toggle("Automatically during calendar events", isOn: $state.dndDuringMeetings)
+                            if state.dndDuringMeetings {
+                                HStack(spacing: 6) {
+                                    Circle().fill(calendarAllowed ? Color.green : Color.orange).frame(width: 7, height: 7)
+                                    Text(calendarAllowed ? "Calendar access granted"
+                                                         : "Coucou needs access to your calendars to see when you're in a meeting")
+                                        .font(.system(size: 11))
+                                    Spacer()
+                                    if !calendarAllowed {
+                                        Button("Allow calendar access…") {
+                                            Task { calendarAllowed = await DoNotDisturb.shared.requestCalendarAccess() }
+                                        }
+                                    }
+                                }
                             }
-                            Text("Install the free ntfy app (iOS / Android), tap + and subscribe to this topic. The alert includes the project and the command: keep the topic private, or use your own ntfy server.")
+                            Text("No sounds, and the island doesn't open by itself: finished, failed and approval events only badge the pill. Also in the 🌙 menu on the island.")
                                 .font(.system(size: 11))
                                 .foregroundColor(.secondary)
                                 .fixedSize(horizontal: false, vertical: true)
                         }
+                        .padding(6)
                     }
-                    .padding(6)
-                }
-
-                // MARK: Do not disturb
-                GroupBox("Do not disturb") {
-                    VStack(alignment: .leading, spacing: 8) {
-                        HStack {
-                            Toggle("Do not disturb", isOn: Binding(
-                                get: { state.dndUntil.map { $0 > .now } ?? false },
-                                set: { $0 ? DoNotDisturb.shared.turnOn(for: nil) : DoNotDisturb.shared.turnOff() }))
-                            Spacer()
-                            if let status = DoNotDisturb.shared.statusText {
-                                Text(status).font(.system(size: 11)).foregroundColor(.secondary)
-                            }
-                        }
-                        Toggle("Automatically during calendar events", isOn: $state.dndDuringMeetings)
-                        if state.dndDuringMeetings {
-                            HStack(spacing: 6) {
-                                Circle().fill(calendarAllowed ? Color.green : Color.orange).frame(width: 7, height: 7)
-                                Text(calendarAllowed ? "Calendar access granted"
-                                                     : "Coucou needs access to your calendars to see when you're in a meeting")
-                                    .font(.system(size: 11))
-                                Spacer()
-                                if !calendarAllowed {
-                                    Button("Allow calendar access…") {
-                                        Task { calendarAllowed = await DoNotDisturb.shared.requestCalendarAccess() }
-                                    }
-                                }
-                            }
-                        }
-                        Text("No sounds, and the island doesn't open by itself: finished, failed and approval events only badge the pill. Also in the 🌙 menu on the island.")
-                            .font(.system(size: 11))
-                            .foregroundColor(.secondary)
-                            .fixedSize(horizontal: false, vertical: true)
-                    }
-                    .padding(6)
                 }
 
                 // MARK: Focus (#119)
-                GroupBox("Focus") {
-                    FocusSettingsSection(state: state)
+                if tab == .claude {
+                    GroupBox("Focus") {
+                        FocusSettingsSection(state: state)
+                    }
                 }
 
                 // MARK: Language
-                GroupBox("Language") {
-                    VStack(alignment: .leading, spacing: 8) {
-                        Picker("Interface", selection: $language) {
-                            ForEach(AppLanguage.allCases) { Text($0.title).tag($0) }
-                        }
-                        .onChange(of: language) { _, value in value.apply() }
-                        if language != AppLanguage.atLaunch {
-                            HStack {
-                                Text("Restart Coucou to apply the new language.")
-                                    .font(.system(size: 11))
-                                    .foregroundColor(.secondary)
-                                Spacer()
-                                Button("Restart now") { AppLanguage.relaunch() }
+                if tab == .general {
+                    GroupBox("Language") {
+                        VStack(alignment: .leading, spacing: 8) {
+                            Picker("Interface", selection: $language) {
+                                ForEach(AppLanguage.allCases) { Text($0.title).tag($0) }
+                            }
+                            .onChange(of: language) { _, value in value.apply() }
+                            if language != AppLanguage.atLaunch {
+                                HStack {
+                                    Text("Restart Coucou to apply the new language.")
+                                        .font(.system(size: 11))
+                                        .foregroundColor(.secondary)
+                                    Spacer()
+                                    Button("Restart now") { AppLanguage.relaunch() }
+                                }
                             }
                         }
+                        .padding(6)
                     }
-                    .padding(6)
                 }
 
                 // MARK: Time per issue (#114)
-                GroupBox("Time") {
-                    TimeSettingsSection()
+                if tab == .claude {
+                    GroupBox("Time") {
+                        TimeSettingsSection()
+                    }
                 }
 
                 // MARK: WhaTicket
-                GroupBox("WhaTicket") {
-                    WhaTicketSettingsSection()
+                if tab == .integrations {
+                    GroupBox("WhaTicket") {
+                        WhaTicketSettingsSection()
+                    }
                 }
 
                 #if !APPSTORE
                 // MARK: Google
-                GroupBox("Google") {
-                    GoogleSettingsSection()
+                if tab == .integrations {
+                    GroupBox("Google") {
+                        GoogleSettingsSection()
+                    }
                 }
                 #endif
 
                 #if !APPSTORE
                 // MARK: Skills
-                GroupBox("Skills") {
-                    SkillsSettingsSection()
+                if tab == .chat {
+                    GroupBox("Skills") {
+                        SkillsSettingsSection()
+                    }
                 }
                 #endif
 
                 #if !APPSTORE
                 // MARK: Graphify
-                GroupBox("Graphify") {
-                    GraphifySettingsSection()
+                if tab == .chat {
+                    GroupBox("Graphify") {
+                        GraphifySettingsSection()
+                    }
                 }
                 #endif
 
                 // MARK: Updates
-                GroupBox("Updates") {
-                    UpdatesSection(state: state).padding(6)
+                if tab == .general {
+                    GroupBox("Updates") {
+                        UpdatesSection(state: state).padding(6)
+                    }
                 }
 
                 // MARK: Startup
-                GroupBox("Startup") {
-                    Toggle("Launch at Mac startup", isOn: $launchAtStartup)
-                        .onChange(of: launchAtStartup) { _, on in toggleStartup(on) }
-                        .padding(6)
+                if tab == .general {
+                    GroupBox("Startup") {
+                        Toggle("Launch at Mac startup", isOn: $launchAtStartup)
+                            .onChange(of: launchAtStartup) { _, on in toggleStartup(on) }
+                            .padding(6)
+                    }
                 }
 
                 if !statusMessage.isEmpty {

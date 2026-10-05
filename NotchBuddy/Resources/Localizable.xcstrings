@@ -642,6 +642,16 @@
         }
       }
     },
+    "Alerts": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Avisos"
+          }
+        }
+      }
+    },
     "All checks passed": {
       "localizations": {
         "es": {
@@ -3068,6 +3078,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "Gemini dice que alcanzaste su límite de uso. Espera un poco o elige otro motor de chat."
+          }
+        }
+      }
+    },
+    "General": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "General"
           }
         }
       }

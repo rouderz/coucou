@@ -289,6 +289,7 @@ ES = {
 "Open it and drag Coucou to Applications, replacing this one.":"Ábrelo y arrastra Coucou a Aplicaciones, reemplazando esta.",
 "Check for updates automatically (every 6 hours, GitHub releases)":"Buscar actualizaciones automáticamente (cada 6 horas, en GitHub)","Updates":"Actualizaciones",
 # themes
+"General":"General","Alerts":"Avisos",
 "Appearance":"Apariencia","System":"Sistema","Dark":"Oscuro","Light":"Claro",
 "Colours of the island's cards and text. The top of the island stays black so it blends with the notch.":"Colores de las tarjetas y el texto de la isla. La parte de arriba sigue negra para fundirse con el notch.",
 # chat engines (#108)

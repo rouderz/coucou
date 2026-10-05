@@ -546,3 +546,30 @@ button.small {
 }
 
 .theme-swatch i { flex: 1; }
+
+/* Settings tabs */
+.settings-tabs {
+  position: sticky;
+  top: 0;
+  z-index: 2;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  padding: 6px 0 10px;
+  background: var(--bg);
+}
+
+.settings-tab {
+  border: 1px solid var(--hairline);
+  border-radius: 999px;
+  padding: 4px 12px;
+  background: transparent;
+  color: var(--dim);
+  font: 500 12px var(--font);
+}
+
+.settings-tab.on {
+  color: var(--ink);
+  background: var(--card);
+  border-color: transparent;
+}
