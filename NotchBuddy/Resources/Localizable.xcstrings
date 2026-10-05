@@ -12,6 +12,16 @@
         }
       }
     },
+    "#TEAM · p1–p4 · @me · !fri — Enter to preview": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "#TEAM · p1–p4 · @me · !fri — Enter para previsualizar"
+          }
+        }
+      }
+    },
     "%@ in %lld h": {
       "localizations": {
         "es": {
@@ -512,6 +522,16 @@
         }
       }
     },
+    "Add #TEAM or pick a default team in Settings": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Añade #TEAM o elige un equipo por defecto en Ajustes"
+          }
+        }
+      }
+    },
     "Add 15 minutes": {
       "localizations": {
         "es": {
@@ -862,6 +882,16 @@
         }
       }
     },
+    "Attached to the description · click to remove": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Adjunto en la descripción · haz clic para quitarlo"
+          }
+        }
+      }
+    },
     "Auto-accept new tickets as me as soon as they arrive": {
       "localizations": {
         "es": {
@@ -1178,6 +1208,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "Chat"
+          }
+        }
+      }
+    },
+    "Chat answer": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Respuesta del chat"
           }
         }
       }
@@ -1518,6 +1558,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "Borrar todo"
+          }
+        }
+      }
+    },
+    "Click to add this to the description": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Haz clic para añadirlo a la descripción"
           }
         }
       }
@@ -2202,6 +2252,26 @@
         }
       }
     },
+    "Created · Enter to close": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Creada · Enter para cerrar"
+          }
+        }
+      }
+    },
+    "Creating…": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Creando…"
+          }
+        }
+      }
+    },
     "Custom": {
       "localizations": {
         "es": {
@@ -2228,6 +2298,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "Día"
+          }
+        }
+      }
+    },
+    "Default team": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Equipo por defecto"
           }
         }
       }
@@ -2412,6 +2492,16 @@
         }
       }
     },
+    "Due %@": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Vence %@"
+          }
+        }
+      }
+    },
     "During calendar events": {
       "localizations": {
         "es": {
@@ -2478,6 +2568,26 @@
           "stringUnit": {
             "state": "translated",
             "value": "Motor"
+          }
+        }
+      }
+    },
+    "Enter again to create · Esc to edit": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Enter otra vez para crear · Esc para editar"
+          }
+        }
+      }
+    },
+    "Enter to try again": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Enter para reintentar"
           }
         }
       }
@@ -2568,6 +2678,26 @@
           "stringUnit": {
             "state": "translated",
             "value": "Termina de iniciar sesión en tu navegador…"
+          }
+        }
+      }
+    },
+    "Fix the cart total #SHO p2 @me !fri": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Arreglar el total del carrito #SHO p2 @me !fri"
+          }
+        }
+      }
+    },
+    "Fix the line, then Enter": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Corrige la línea y pulsa Enter"
           }
         }
       }
@@ -3452,6 +3582,26 @@
         }
       }
     },
+    "Load teams": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Cargar equipos"
+          }
+        }
+      }
+    },
+    "Loading your Linear teams…": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Cargando tus equipos de Linear…"
+          }
+        }
+      }
+    },
     "Loading…": {
       "localizations": {
         "es": {
@@ -3542,6 +3692,16 @@
         }
       }
     },
+    "Make this a Linear issue": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Convertir en issue de Linear"
+          }
+        }
+      }
+    },
     "Mark all read": {
       "localizations": {
         "es": {
@@ -3568,6 +3728,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "Máxima (16.000)"
+          }
+        }
+      }
+    },
+    "Me": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Yo"
           }
         }
       }
@@ -3802,6 +3972,16 @@
         }
       }
     },
+    "New Linear issue": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nueva issue de Linear"
+          }
+        }
+      }
+    },
     "New chat": {
       "localizations": {
         "es": {
@@ -3888,6 +4068,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "Ningún archivo de Drive con ese nombre."
+          }
+        }
+      }
+    },
+    "No Linear teams loaded": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No se cargaron equipos de Linear"
           }
         }
       }
@@ -4102,6 +4292,16 @@
         }
       }
     },
+    "No team with the key %@": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No hay ningún equipo con la clave %@"
+          }
+        }
+      }
+    },
     "No tickets in this period.": {
       "localizations": {
         "es": {
@@ -4148,6 +4348,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "Nadie terminó de iniciar sesión en 5 minutos."
+          }
+        }
+      }
+    },
+    "None (type #TEAM)": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ninguno (escribe #TEAM)"
           }
         }
       }
@@ -4918,6 +5128,26 @@
           "stringUnit": {
             "state": "translated",
             "value": "Cola"
+          }
+        }
+      }
+    },
+    "Quick capture shortcut": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Atajo de captura rápida"
+          }
+        }
+      }
+    },
+    "Quick capture: #TEAM picks the team, p1–p4 the priority, @me assigns it to you, !today / !fri / !2026-12-01 sets a due date. Nothing is created until you press Enter on the preview. The + in the Linear card opens it too.": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Captura rápida: #TEAM elige el equipo, p1–p4 la prioridad, @me te la asigna y !today / !fri / !2026-12-01 pone fecha límite. No se crea nada hasta que pulsas Enter en la vista previa. El + de la tarjeta de Linear también la abre."
           }
         }
       }
@@ -6452,6 +6682,16 @@
         }
       }
     },
+    "Write a title": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Escribe un título"
+          }
+        }
+      }
+    },
     "Wrote": {
       "localizations": {
         "es": {
@@ -7118,6 +7358,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "esta sesión"
+          }
+        }
+      }
+    },
+    "type one line → Enter to preview → Enter to create": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "escribe una línea → Enter para previsualizar → Enter para crear"
           }
         }
       }

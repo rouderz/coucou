@@ -10,6 +10,8 @@ import { saveCurrent, startNewChat } from "../core/chats";
 import { Sound } from "../core/sound";
 import { State, type ChatMessage } from "../core/state";
 import type { ViewHost } from "./views";
+import { beginCapture } from "./capture";
+import { draftFromAnswer } from "../core/capture";
 
 let nextId = 1;
 
@@ -45,7 +47,11 @@ function codeLabel(file: string, line?: number): string {
   return line ? `${name}:${line}` : name;
 }
 
-export function buildPrompt(onHeightChange: () => void, openHistory: () => void = () => {}): ViewHost {
+export function buildPrompt(
+  onHeightChange: () => void,
+  openHistory: () => void = () => {},
+  openCapture: () => void = () => {},
+): ViewHost {
   const chipRow = h("div", { class: "chip-row" });
   const contextSlot = h("div", { class: "chip-slot" });
   // The skill picked with "/" — click it to drop it.
@@ -70,7 +76,16 @@ export function buildPrompt(onHeightChange: () => void, openHistory: () => void 
     onHeightChange();
   } });
   const historyBtn = h("button", { class: "chip-action", text: "History", onclick: () => openHistory() });
-  chipRow.append(contextSlot, skillChip, attach, h("div", { style: "flex:1" }), newBtn, historyBtn);
+  // "Make this a Linear issue" (#118): the last answer as a draft, same preview and Enter twice.
+  const linearBtn = h("button", { class: "chip-action", text: "→ Linear", title: "Make this a Linear issue" });
+  linearBtn.addEventListener("click", () => {
+    const last = State.chatHistory[State.chatHistory.length - 1];
+    const draft = last?.role === "assistant" ? draftFromAnswer(last.content) : null;
+    if (!draft) return;
+    beginCapture(draft.line, { label: "Chat answer", text: draft.description }, true);
+    openCapture();
+  });
+  chipRow.append(contextSlot, skillChip, attach, h("div", { style: "flex:1" }), linearBtn, newBtn, historyBtn);
   const log = h("div", { class: "chat-log" });
   // "/" at the start of the field lists the skills, "@" searches Google Drive —
   // both in the log's place.
@@ -328,6 +343,9 @@ export function buildPrompt(onHeightChange: () => void, openHistory: () => void 
       if (sk) skillChip.textContent = `✦ ${sk.name} ×`;
       newBtn.style.display = State.chatHistory.length ? "" : "none";
       historyBtn.style.display = State.chats.length ? "" : "none";
+      const lastMsg = State.chatHistory[State.chatHistory.length - 1];
+      const linearOn = State.integrations.integration_linear?.configured ?? false;
+      linearBtn.style.display = linearOn && lastMsg?.role === "assistant" && State.stateOverride !== "thinking" ? "" : "none";
 
       const thinking = State.stateOverride === "thinking";
       const count = State.chatHistory.length + (thinking ? 0.5 : 0);

@@ -105,6 +105,12 @@ pub struct Settings {
     /// Time per Linear issue (#114): record session time in a local file (never uploaded).
     #[serde(default = "yes")]
     pub time_tracking: bool,
+    /// Quick capture (#118): the shortcut that opens the one-line input ("" = off), and
+    /// the team key used when the line has no #TEAM ("" = the only team, if there's one).
+    #[serde(default = "default_capture_shortcut")]
+    pub capture_shortcut: String,
+    #[serde(default)]
+    pub linear_default_team: String,
 }
 
 fn ids_as_text<'de, D: serde::Deserializer<'de>>(d: D) -> Result<Vec<String>, D::Error> {
@@ -117,6 +123,10 @@ fn ids_as_text<'de, D: serde::Deserializer<'de>>(d: D) -> Result<Vec<String>, D:
             _ => None,
         })
         .collect())
+}
+
+fn default_capture_shortcut() -> String {
+    "Ctrl+Alt+L".into()
 }
 
 fn default_gmail_query() -> String {
@@ -195,6 +205,8 @@ impl Default for Settings {
             google_email: String::new(),
             gmail_query: default_gmail_query(),
             time_tracking: true,
+            capture_shortcut: default_capture_shortcut(),
+            linear_default_team: String::new(),
         }
     }
 }
@@ -254,5 +266,12 @@ mod tests {
         let back: Settings = serde_json::from_str(&json).unwrap();
         assert_eq!(back.pinned_pills, vec!["integration_github".to_string()]);
         assert_eq!(back.pill_rotation_seconds, 0);
+    }
+
+    #[test]
+    fn quick_capture_settings_default_for_older_files() {
+        let old: Settings = serde_json::from_str(r#"{"soundEnabled":true,"soundVolume":0.1,"autoCloseInterval":15,"absenceInterval":180,"activeIntegrations":[],"screen":"primary","autostart":false,"hooksInstalled":false}"#).unwrap();
+        assert_eq!(old.capture_shortcut, "Ctrl+Alt+L");
+        assert!(old.linear_default_team.is_empty());
     }
 }

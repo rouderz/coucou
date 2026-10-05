@@ -53,6 +53,9 @@ struct SettingsView: View {
     @State private var axTrusted = AccessibilityAccess.isTrusted
     @State private var assistantFlags: UInt   = AppState.shared.assistantHotkeyFlags
     @State private var assistantCode: UInt16  = AppState.shared.assistantHotkeyCode
+    @State private var captureFlags: UInt     = AppState.shared.captureHotkeyFlags
+    @State private var captureCode: UInt16    = AppState.shared.captureHotkeyCode
+    @ObservedObject private var captureModel  = QuickCaptureModel.shared
     @State private var language: AppLanguage  = AppLanguage.current
     @State private var calendarAllowed: Bool  = DoNotDisturb.calendarAllowed
     @State private var hookStatus: HookServer.HookInstallState = HookServer.installState()
@@ -394,6 +397,47 @@ struct SettingsView: View {
                             SecureField("Personal API key  (lin_api_…)", text: $linearKey)
                                 .textFieldStyle(.roundedBorder)
                             Text("Linear → Settings → Security & access → Personal API keys. Shows your open issues and links each Claude Code session to the issue in its branch name.")
+                                .font(.system(size: 11)).foregroundColor(.secondary)
+                                .fixedSize(horizontal: false, vertical: true)
+
+                            // Quick capture (#118): default team and shortcut.
+                            HStack(spacing: 8) {
+                                Text("Default team")
+                                    .frame(width: 90, alignment: .leading)
+                                Picker("", selection: $state.linearDefaultTeam) {
+                                    Text("None (type #TEAM)").tag("")
+                                    ForEach(captureModel.teams, id: \.id) { team in
+                                        Text(verbatim: "\(team.key) · \(team.name)").tag(team.key)
+                                    }
+                                    // Saved before the teams loaded (or no longer visible): keep it selectable.
+                                    if !state.linearDefaultTeam.isEmpty,
+                                       !captureModel.teams.contains(where: { $0.key == state.linearDefaultTeam }) {
+                                        Text(verbatim: state.linearDefaultTeam).tag(state.linearDefaultTeam)
+                                    }
+                                }
+                                .labelsHidden()
+                                .frame(maxWidth: 220)
+                                Button("Load teams") { captureModel.loadTeams(force: true) }
+                                    .disabled(!LinearAPI.hasKey || captureModel.loadingTeams)
+                            }
+                            .onAppear { if LinearAPI.hasKey { captureModel.loadTeams() } }
+                            if let error = captureModel.teamsError, LinearAPI.hasKey {
+                                Text(verbatim: error).font(.system(size: 11)).foregroundColor(.orange)
+                            }
+                            Toggle("Quick capture shortcut", isOn: $state.captureHotkeyEnabled)
+                            if state.captureHotkeyEnabled {
+                                HStack(spacing: 8) {
+                                    Text("Shortcut")
+                                        .frame(width: 90, alignment: .leading)
+                                    ShortcutRecorderButton(flags: $captureFlags, code: $captureCode)
+                                        .onChange(of: captureFlags) { _, v in state.captureHotkeyFlags = v }
+                                        .onChange(of: captureCode)  { _, v in state.captureHotkeyCode  = v }
+                                    Text("type one line → Enter to preview → Enter to create")
+                                        .font(.system(size: 11))
+                                        .foregroundColor(.secondary)
+                                }
+                            }
+                            Text("Quick capture: #TEAM picks the team, p1–p4 the priority, @me assigns it to you, !today / !fri / !2026-12-01 sets a due date. Nothing is created until you press Enter on the preview. The + in the Linear card opens it too.")
                                 .font(.system(size: 11)).foregroundColor(.secondary)
                                 .fixedSize(horizontal: false, vertical: true)
                         }
@@ -1024,6 +1068,9 @@ struct SettingsView: View {
         saveKey("notion-api-key",  value: notionKey)
         saveKey("linear-api-key",  value: linearKey)
         IntegrationRefresher.refresh("integration_linear")
+        // The quick-capture shortcut is only registered while a Linear key exists.
+        NotificationCenter.default.post(name: .captureHotkeyChanged, object: nil)
+        if LinearAPI.hasKey { captureModel.loadTeams(force: true) }
         IntegrationRefresher.refreshAll()  // show the result now instead of at the next poll
         statusMessage = L("✓ Integration keys saved.")
     }

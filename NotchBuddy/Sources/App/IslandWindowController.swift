@@ -140,7 +140,7 @@ final class IslandWindowController: NSWindowController {
             .receive(on: DispatchQueue.main)
             .sink { [weak self] newView in
                 guard let self else { return }
-                if newView == .prompt {
+                if newView == .prompt || newView == .capture {
                     self.islandPanel.makeKey()
                 }
             }
@@ -490,6 +490,13 @@ final class IslandWindowController: NSWindowController {
             MainActor.assumeIsolated { self?.registerAssistantHotKey() }
         }
 
+        // Quick capture (#118): one line in the island becomes a Linear issue.
+        captureHotKey = GlobalHotKey { [weak self] in self?.openQuickCapture() }
+        registerCaptureHotKey()
+        NotificationCenter.default.addObserver(forName: .captureHotkeyChanged, object: nil, queue: .main) { [weak self] _ in
+            MainActor.assumeIsolated { self?.registerCaptureHotKey() }
+        }
+
         // The editor extension's "Ask Mochi": open the chat with its exact context (#58).
         NotificationCenter.default.addObserver(forName: .askWithEditorContext, object: nil, queue: .main) { [weak self] note in
             guard let context = note.userInfo?["context"] as? CodeContext else { return }
@@ -750,6 +757,42 @@ final class IslandWindowController: NSWindowController {
         expand(to: .prompt)
     }
 
+    // MARK: - Quick capture (#118)
+
+    private var captureHotKey: GlobalHotKey?
+
+    /// Only while a Linear key is saved: without one the shortcut would do nothing but take the keys.
+    private func registerCaptureHotKey() {
+        guard let hotKey = captureHotKey else { return }
+        if state.captureHotkeyEnabled && LinearAPI.hasKey {
+            hotKey.register(keyCode: state.captureHotkeyCode, flags: state.captureHotkeyFlags)
+        } else {
+            hotKey.unregister()
+        }
+    }
+
+    /// Opens the one-line input. The frontmost window / editor file is offered as context,
+    /// attached only if the user clicks its chip.
+    func openQuickCapture() {
+        // Already typing one: keep it.
+        if state.mode == .expanded, state.view == .capture, !QuickCaptureModel.shared.isBusy {
+            islandPanel.makeKey()
+            return
+        }
+        var attachment: CaptureAttachment?
+        #if !APPSTORE
+        let app = NSWorkspace.shared.frontmostApplication
+        if app?.bundleIdentifier != Bundle.main.bundleIdentifier, AccessibilityAccess.isTrusted,
+           let context = WindowContextCapture.captureActive(from: app) {
+            attachment = QuickCapture.attachment(for: context)
+        }
+        #endif
+        QuickCaptureModel.shared.begin(attachment: attachment)
+        SoundEngine.shared.play("blip")
+        expand(to: .capture)
+        islandPanel.makeKey()
+    }
+
     // MARK: - Window context at screen point (for drag-attach)
 
     private func windowContextAtPoint(_ screenPoint: NSPoint) -> PromptContext? {
@@ -968,6 +1011,7 @@ extension Notification.Name {
     static let islandCollapse   = Notification.Name("notchBuddy.islandCollapse")
     static let assistantHotkeyChanged = Notification.Name("notchBuddy.assistantHotkeyChanged")
     static let voiceHotkeyChanged = Notification.Name("notchBuddy.voiceHotkeyChanged")
+    static let captureHotkeyChanged = Notification.Name("notchBuddy.captureHotkeyChanged")
     static let openFullSettings = Notification.Name("notchBuddy.openFullSettings")
     static let hookReveal       = Notification.Name("notchBuddy.hookReveal")
     // Greeting ↔ IslandWindowController

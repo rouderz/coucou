@@ -100,6 +100,7 @@ fn save_settings(app: AppHandle, shared: State<Shared>, settings: Settings) {
         let collapsed = shared.gate.collapsed.load(Ordering::Relaxed);
         island::apply_geometry(&app, &settings.screen, collapsed);
     }
+    apply_capture_shortcut(&app, &settings.capture_shortcut);
     // Keep the other window in step (island ⇄ settings window).
     let _ = app.emit("settings-changed", settings);
 }
@@ -573,6 +574,63 @@ async fn linear_comment(issue_id: String, body: String) -> Result<(), String> {
     linear::comment(&issue_id, &body).await
 }
 
+/// Quick capture (#118): your teams and user id, for the preview. Read-only.
+#[tauri::command]
+async fn linear_teams() -> Result<serde_json::Value, String> {
+    linear::teams().await
+}
+
+/// Quick capture (#118): only from the second Enter / click on the preview.
+#[tauri::command]
+async fn linear_create_issue(input: serde_json::Value) -> Result<serde_json::Value, String> {
+    let data = linear::create_issue(&input).await?;
+    log::line("linear: issue created from quick capture");
+    Ok(data)
+}
+
+/// The quick-capture shortcut now registered (to tell it apart in the handler).
+static CAPTURE_SHORTCUT: Mutex<Option<tauri_plugin_global_shortcut::Shortcut>> = Mutex::new(None);
+
+/// Registers the quick-capture shortcut from Settings ("Ctrl+Alt+L"; empty = off), only
+/// while a Linear key is saved: otherwise it would just take the keys from other apps.
+fn apply_capture_shortcut(app: &AppHandle, text: &str) {
+    use tauri_plugin_global_shortcut::{GlobalShortcutExt, Shortcut};
+    let text = text.trim();
+    let wanted: Option<Shortcut> = if text.is_empty() || !linear::has_key() {
+        None
+    } else {
+        match text.parse::<Shortcut>() {
+            Ok(s) => Some(s),
+            Err(err) => {
+                log::line(format!("capture shortcut {text:?}: {err}"));
+                None
+            }
+        }
+    };
+    let old = {
+        let current = CAPTURE_SHORTCUT.lock().unwrap();
+        if *current == wanted {
+            return;
+        }
+        current.clone()
+    };
+    let gs = app.global_shortcut();
+    if let Some(old) = old {
+        let _ = gs.unregister(old);
+    }
+    let registered = match wanted {
+        Some(s) => match gs.register(s.clone()) {
+            Ok(()) => Some(s),
+            Err(err) => {
+                log::line(format!("capture shortcut {text:?}: {err}"));
+                None
+            }
+        },
+        None => None,
+    };
+    *CAPTURE_SHORTCUT.lock().unwrap() = registered;
+}
+
 #[tauri::command]
 async fn inbox_refresh(app: AppHandle) {
     inbox::refresh(app).await;
@@ -716,13 +774,25 @@ fn secret_present(key: String) -> bool {
 }
 
 #[tauri::command]
-fn secret_set(key: String, value: String) -> Result<(), String> {
-    secrets::set(&key, &value)
+fn secret_set(app: AppHandle, shared: State<Shared>, key: String, value: String) -> Result<(), String> {
+    secrets::set(&key, &value)?;
+    linear_key_changed(&app, &shared, &key);
+    Ok(())
 }
 
 #[tauri::command]
-fn secret_clear(key: String) -> Result<(), String> {
-    secrets::clear(&key)
+fn secret_clear(app: AppHandle, shared: State<Shared>, key: String) -> Result<(), String> {
+    secrets::clear(&key)?;
+    linear_key_changed(&app, &shared, &key);
+    Ok(())
+}
+
+/// The quick-capture shortcut follows the Linear key.
+fn linear_key_changed(app: &AppHandle, shared: &Shared, key: &str) {
+    if key == "linear-api-key" {
+        let shortcut = shared.settings.lock().unwrap().capture_shortcut.clone();
+        apply_capture_shortcut(app, &shortcut);
+    }
 }
 
 /// Opens the configured n8n instance — the URL lives in the Credential Manager.
@@ -845,9 +915,14 @@ pub fn run() {
                     if event.state() != ShortcutState::Pressed {
                         return;
                     }
-                    let [allow, _deny] = approval_keys();
-                    let word = if *shortcut == allow { "allow" } else { "deny" };
-                    let _ = app.emit_to(island::WINDOW_LABEL, "approval-shortcut", word.to_string());
+                    let [allow, deny] = approval_keys();
+                    if *shortcut == allow || *shortcut == deny {
+                        let word = if *shortcut == allow { "allow" } else { "deny" };
+                        let _ = app.emit_to(island::WINDOW_LABEL, "approval-shortcut", word.to_string());
+                    } else if CAPTURE_SHORTCUT.lock().map(|c| c.as_ref() == Some(shortcut)).unwrap_or(false) {
+                        // Quick capture (#118): the island opens its one-line input.
+                        let _ = app.emit_to(island::WINDOW_LABEL, "quick-capture", ());
+                    }
                 })
                 .build(),
         )
@@ -888,6 +963,8 @@ pub fn run() {
             time_store_load,
             time_store_save,
             git_branch,
+            linear_teams,
+            linear_create_issue,
             inbox_refresh,
             inbox_dismiss,
             phone_alert,
@@ -960,6 +1037,7 @@ pub fn run() {
             pipe::start(handle.clone());
             integrations::start(handle.clone());
             inbox::start(handle.clone());
+            apply_capture_shortcut(&handle, &loaded.capture_shortcut);
             Ok(())
         })
         .run(tauri::generate_context!())

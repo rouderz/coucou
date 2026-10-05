@@ -327,7 +327,7 @@ function calcomCard(): HTMLElement {
 
 // ── Linear (#26 on macOS) ─────────────────────────────────────────────────────
 
-function linearCard(): HTMLElement {
+function linearCard(openCapture: () => void): HTMLElement {
   const issues = arr("integration_linear", "issues");
   const linked = new Set(State.sessions.map((s) => s.linear?.identifier).filter(Boolean));
   const rows = h("div", { class: "int-rows tight" });
@@ -346,7 +346,11 @@ function linearCard(): HTMLElement {
     ));
   }
   const count = issues.length ? `Assigned to you · ${issues.length}` : "Assigned to you";
-  return h("div", { class: "int-card" }, header("#5E6AD2", "Linear", count), rows);
+  // Quick capture (#118): a one-line input in the island.
+  const add = h("button", { class: "qc-add", title: "New Linear issue", text: "+", onclick: openCapture });
+  const head = header("#5E6AD2", "Linear", count);
+  head.append(h("div", { style: "flex:1" }), add);
+  return h("div", { class: "int-card" }, head, rows);
 }
 
 // ── WhaTicket ─────────────────────────────────────────────────────────────────
@@ -629,6 +633,8 @@ export interface IntegrationCardHooks {
   openDetail(): void;
   closeDetail(): void;
   openSettings(): void;
+  /** Quick capture (#118): the "+" in the Linear card. */
+  openCapture(): void;
 }
 
 /** True when this integration has data worth showing instead of the idle card. */
@@ -682,7 +688,7 @@ export function renderIntegrationCard(task: AgentTask, hooks: IntegrationCardHoo
     case "integration_calcom":
       return calcomCard();
     case "integration_linear":
-      return linearCard();
+      return linearCard(hooks.openCapture);
     case "integration_whaticket":
       return whaticketCard();
     case "integration_gmail":

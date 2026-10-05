@@ -865,15 +865,14 @@ export class Island {
       if (on) view.sync();
     }
 
-    // The chat is the only view with a text field, so it is the only time the
-    // island is allowed to take keyboard focus.
+    // The chat and quick capture are the only views with a text field, so they are
+    // the only time the island is allowed to take keyboard focus.
     if (this.lastSyncedView !== State.view) {
-      const wasChat = this.lastSyncedView === "prompt";
+      const wasText = this.lastSyncedView === "prompt" || this.lastSyncedView === "capture";
       this.lastSyncedView = State.view;
-      if (State.view === "prompt") {
-        void Bridge.focusWindow(true);
-        window.setTimeout(() => this.views.get("prompt")?.focus?.(), 120);
-      } else if (wasChat) {
+      if (State.view === "prompt" || State.view === "capture") {
+        this.focusView();
+      } else if (wasText) {
         void Bridge.focusWindow(false);
       }
     }
@@ -896,6 +895,13 @@ export class Island {
 
     syncMiniBotStates(State.tasks);
     this.engine.setState(State.effectiveState);
+  }
+
+  /** Keyboard focus to the text field of the view on screen (chat, quick capture). */
+  focusView() {
+    const view = State.view;
+    void Bridge.focusWindow(true);
+    window.setTimeout(() => this.views.get(view)?.focus?.(), 120);
   }
 
   /** Applies settings coming from Rust at boot. */

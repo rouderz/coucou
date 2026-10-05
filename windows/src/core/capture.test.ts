@@ -2,7 +2,7 @@ import { test } from "node:test";
 import assert from "node:assert/strict";
 import {
   parseCapture, parseDue, buildChip, buildIssueCreateVariables, parseIssueCreate, parseTeams,
-  reduce, initialCapture, branchToCopy, type CaptureState, type CaptureContext, type CaptureEvent, type TeamInfo,
+  reduce, initialCapture, branchToCopy, slug, describeSource, draftFromAnswer, type CaptureState, type CaptureContext, type CaptureEvent, type TeamInfo,
 } from "./capture.ts";
 
 const SAT = new Date(2026, 9, 3, 15, 0); // Saturday 3 Oct 2026
@@ -145,5 +145,46 @@ test("flow: a chip with problems can't be confirmed; Escape backs out; failure n
   assert.equal(s.phase, "failed");
   r = reduce(s, { type: "enter" }, ctx);
   assert.equal(r.state.phase, "preview", "retry goes through the preview again");
+  assert.equal(r.effect, null);
+});
+
+test("branch to copy: Linear's name, else identifier + slug of the title", () => {
+  assert.equal(slug("Fix the cart total rounding!"), "fix-the-cart-total-rounding");
+  assert.equal(slug("Arreglar el menú — ¿ya?"), "arreglar-el-menu-ya");
+  assert.equal(slug("x".repeat(30) + " " + "y".repeat(30)), "x".repeat(30) + "-" + "y".repeat(19));
+  assert.equal(slug("***"), "");
+  const issue = { id: "i", identifier: "SHO-9", title: "Fix the cart", url: "", branchName: null };
+  assert.equal(branchToCopy(issue), "sho-9-fix-the-cart");
+  assert.equal(branchToCopy({ ...issue, branchName: "me/sho-9-fix" }), "me/sho-9-fix");
+});
+
+test("description: only sent when there is text", () => {
+  const chip = buildChip(parseCapture("Fix it", SAT), teams, "ENG");
+  assert.equal(buildIssueCreateVariables(chip, null, "  ").input.description, undefined);
+  assert.equal(buildIssueCreateVariables(chip, null, " `a.ts:3` ").input.description, "`a.ts:3`");
+});
+
+test("context: the editor's file and selection, or a window", () => {
+  assert.deepEqual(describeSource({ kind: "code", file: "/p/src/app.ts", line: 42, selection: " x = 1 " }),
+    { label: "app.ts:42", text: "`/p/src/app.ts:42`\n\n```\nx = 1\n```" });
+  assert.deepEqual(describeSource({ kind: "code", file: "C:\\p\\main.rs" }), { label: "main.rs", text: "`C:\\p\\main.rs`" });
+  assert.equal(describeSource({ kind: "code", file: "" }), null);
+  assert.deepEqual(describeSource({ kind: "window", app: "Safari", title: "Pricing", url: "https://x.dev" }),
+    { label: "Safari — Pricing", text: "Safari: Pricing\n\nhttps://x.dev" });
+  assert.deepEqual(describeSource({ kind: "window", app: "Finder", title: "" }), { label: "Finder", text: "Finder" });
+  assert.equal(describeSource({ kind: "window", app: "", title: " " }), null);
+  const long = describeSource({ kind: "code", file: "a.ts", selection: "y".repeat(5000) })!;
+  assert.ok(long.text.length < 4100);
+});
+
+test("chat draft: first line as the title, the answer as the description", () => {
+  assert.deepEqual(draftFromAnswer("\n## **Fix** the `cart` rounding\n\nUse cents."),
+    { line: "Fix the cart rounding", description: "## **Fix** the `cart` rounding\n\nUse cents." });
+  assert.equal(draftFromAnswer("- 1. Step one")?.line, "Step one");
+  assert.equal(draftFromAnswer("   "), null);
+  assert.equal(draftFromAnswer("a".repeat(200))!.line.length, 120);
+  // The draft still goes through the same two Enters.
+  const r = reduce({ phase: "editing", line: draftFromAnswer("Fix it #SHO")!.line }, { type: "enter" }, ctx);
+  assert.equal(r.state.phase, "preview");
   assert.equal(r.effect, null);
 });

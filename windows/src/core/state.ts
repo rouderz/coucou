@@ -175,6 +175,9 @@ export interface Settings {
   /** Google: the connected account, and the Gmail search the pill shows. */
   googleEmail: string;
   gmailQuery: string;
+  /** Quick capture (#118): the shortcut ("Ctrl+Alt+L"; "" = off) and the team used without #TEAM. */
+  captureShortcut: string;
+  linearDefaultTeam: string;
   /** Preferred editor command; "" = the first one installed. */
   editor: string;
   /** Auto-approve per project folder: "low" or "medium" (absent = always ask). */
@@ -233,6 +236,8 @@ export const DEFAULT_SETTINGS: Settings = {
   whaticketHours: "",
   googleEmail: "",
   gmailQuery: "is:unread in:inbox",
+  captureShortcut: "Ctrl+Alt+L",
+  linearDefaultTeam: "",
 };
 
 type Listener = () => void;

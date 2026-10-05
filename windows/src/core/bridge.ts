@@ -81,6 +81,10 @@ export const Bridge = {
   timeStoreLoad: () => call<string>("time_store_load"),
   timeStoreSave: (text: string) => callOrThrow<void>("time_store_save", { text }),
   gitBranch: (cwd: string) => call<string | null>("git_branch", { cwd }),
+  /** Quick capture (#118): `data` of the teams query (parsed by core/capture.ts). */
+  linearTeams: () => callOrThrow<unknown>("linear_teams"),
+  /** Quick capture: `data` of issueCreate — only ever after the second Enter / click on the preview. */
+  linearCreateIssue: (input: Record<string, unknown>) => callOrThrow<unknown>("linear_create_issue", { input }),
   inboxRefresh: () => call<void>("inbox_refresh"),
   inboxDismiss: (id: string) => call<void>("inbox_dismiss", { id }),
   /** True when the phone was told (set up, and away when that's asked for). */

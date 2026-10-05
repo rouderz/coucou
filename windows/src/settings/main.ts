@@ -6,6 +6,7 @@ import "./settings.css";
 import { setLanguage, startTranslating } from "../core/i18n.ts";
 import { Bridge, onDragDrop, onEvent, type BrowserStatus, type HookStatus, type SkillInfo, type SkillPreview } from "../core/bridge";
 import { DEFAULT_SETTINGS, type Settings } from "../core/state";
+import { parseTeams, type TeamInfo } from "../core/capture";
 import { h, clear } from "../views/dom";
 import { dayKey as wtDayKey, duration, range, summary, toCsv as wtToCsv, type Period, type StatEvent } from "../core/whaticketStats.ts";
 import {
@@ -787,6 +788,56 @@ function timeSection(): HTMLElement {
   );
 }
 
+// ── Linear quick capture (#118) ───────────────────────────────────────────────
+
+function captureSection(hasLinearKey: boolean): HTMLElement {
+  const shortcut = h("input", {
+    type: "text", value: settings.captureShortcut ?? "", placeholder: "Ctrl+Alt+L",
+    spellcheck: "false", autocomplete: "off", style: "flex:0 1 160px;min-width:0",
+  }) as HTMLInputElement;
+  shortcut.addEventListener("change", () => {
+    settings.captureShortcut = shortcut.value.trim();
+    void save();
+  });
+
+  const team = h("select", { style: "flex:0 1 220px;min-width:0" }) as HTMLSelectElement;
+  const feedback = h("div", { class: "hint" });
+  function fillTeams(teams: TeamInfo[]) {
+    clear(team);
+    team.append(h("option", { value: "", text: "None (type #TEAM)" }));
+    for (const t of teams) team.append(h("option", { value: t.key, text: `${t.key} · ${t.name}` }));
+    // Saved before the teams loaded (or no longer visible): keep it selectable.
+    const saved = settings.linearDefaultTeam ?? "";
+    if (saved && !teams.some((t) => t.key === saved)) team.append(h("option", { value: saved, text: saved }));
+    team.value = saved;
+  }
+  team.addEventListener("change", () => {
+    settings.linearDefaultTeam = team.value;
+    void save();
+  });
+  async function load() {
+    feedback.textContent = "Loading your Linear teams…";
+    try {
+      fillTeams(parseTeams(await Bridge.linearTeams()).teams);
+      feedback.textContent = "";
+    } catch (err) {
+      feedback.textContent = String(err).replace(/^Error:\s*/, "");
+    }
+  }
+  fillTeams([]);
+  if (hasLinearKey) void load();
+  const loadBtn = h("button", { text: "Load teams", onclick: () => void load() });
+
+  return h("section", {},
+    h("h2", {}, statusDot(hasLinearKey && !!settings.captureShortcut), h("span", { text: "Quick capture (Linear)" })),
+    h("div", { class: "hint", text: "Quick capture: #TEAM picks the team, p1–p4 the priority, @me assigns it to you, !today / !fri / !2026-12-01 sets a due date. Nothing is created until you press Enter on the preview. The + in the Linear card opens it too." }),
+    h("div", { class: "row" }, h("label", { text: "Shortcut" }), shortcut,
+      h("span", { class: "hint", text: "e.g. Ctrl+Alt+L · empty = off · only while a Linear key is saved" })),
+    h("div", { class: "row" }, h("label", { text: "Default team" }), team, loadBtn),
+    feedback,
+  );
+}
+
 // ── Google (Gmail, Drive) ─────────────────────────────────────────────────────
 
 function googleSection(connected: boolean, hasClient: boolean): HTMLElement {
@@ -1491,6 +1542,7 @@ async function main() {
     apiSection(hasKey, claudeCode, presets, present),
     integrationsSection(present),
     timeSection(),
+    captureSection(present["linear-api-key"] ?? false),
     whaticketSection(browser),
     googleSection(googleConnected, googleClient),
     phoneSection(),

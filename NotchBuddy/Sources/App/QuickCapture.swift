@@ -159,8 +159,89 @@ struct CreatedIssue: Equatable, Sendable {
         self.id = id; self.identifier = identifier; self.title = title; self.url = url; self.branchName = branchName
     }
 
-    /// Branch to copy for "Start a Claude Code session on it": Linear's own name, else the identifier.
-    var branchToCopy: String { branchName ?? identifier.lowercased() }
+    /// Branch to copy for "Start a Claude Code session on it": Linear's own name, else
+    /// "<identifier>-<slug of the title>".
+    var branchToCopy: String {
+        if let branchName, !branchName.isEmpty { return branchName }
+        let tail = QuickCapture.slug(title)
+        return tail.isEmpty ? identifier.lowercased() : "\(identifier.lowercased())-\(tail)"
+    }
+}
+
+// MARK: - Context and chat drafts
+
+/// What goes into the issue's description when the user attaches it: a chip label and Markdown.
+struct CaptureAttachment: Equatable, Sendable {
+    let label: String
+    let text: String
+}
+
+extension QuickCapture {
+    private static let maxSelection = 4000
+
+    /// "Fix the cart total rounding" → "fix-the-cart-total-rounding": ASCII, accents dropped, at most 50 characters.
+    static func slug(_ text: String) -> String {
+        let folded = text.folding(options: [.diacriticInsensitive, .caseInsensitive], locale: nil).lowercased()
+        var out = ""
+        for u in folded.unicodeScalars {
+            if u.isASCII, CharacterSet.alphanumerics.contains(u) {
+                out.unicodeScalars.append(u)
+            } else if !out.isEmpty, !out.hasSuffix("-") {
+                out.append("-")
+            }
+        }
+        out = String(out.prefix(50))
+        while out.hasSuffix("-") { out.removeLast() }
+        return out
+    }
+
+    /// The editor's file (and selection).
+    static func describeCode(file: String, line: Int?, selection: String?) -> CaptureAttachment? {
+        guard !file.isEmpty else { return nil }
+        let name = (file as NSString).lastPathComponent
+        var text = "`" + (line.map { "\(file):\($0)" } ?? file) + "`"
+        let sel = (selection ?? "").trimmingCharacters(in: .whitespacesAndNewlines)
+        if !sel.isEmpty {
+            text += "\n\n```\n" + (sel.count > maxSelection ? String(sel.prefix(maxSelection)) + "\n…" : sel) + "\n```"
+        }
+        return CaptureAttachment(label: line.map { "\(name):\($0)" } ?? name, text: text)
+    }
+
+    /// The frontmost window: its app, title and (for a browser) URL.
+    static func describeWindow(app: String, title: String, url: String?) -> CaptureAttachment? {
+        let app = app.trimmingCharacters(in: .whitespaces)
+        let title = title.trimmingCharacters(in: .whitespaces)
+        guard !app.isEmpty || !title.isEmpty else { return nil }
+        let label = !app.isEmpty && !title.isEmpty ? "\(app) — \(title)" : (app.isEmpty ? title : app)
+        var text = !app.isEmpty && !title.isEmpty ? "\(app): \(title)" : (app.isEmpty ? title : app)
+        if let url, !url.isEmpty { text += "\n\n\(url)" }
+        return CaptureAttachment(label: label, text: text)
+    }
+
+    /// The context captured when the shortcut was pressed (a dropped file has nothing to put in the description).
+    static func attachment(for context: PromptContext) -> CaptureAttachment? {
+        switch context {
+        case .code(let c): return describeCode(file: c.file, line: c.cursorLine, selection: c.selection)
+        case .window(let app, let title, let url): return describeWindow(app: app, title: title, url: url)
+        case .file: return nil
+        }
+    }
+
+    /// "Make this a Linear issue" from a chat answer: its first line is the title, the whole answer the description.
+    static func draft(fromAnswer answer: String) -> (line: String, description: String)? {
+        let text = answer.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !text.isEmpty else { return nil }
+        let first = text.split(separator: "\n", omittingEmptySubsequences: false)
+            .map { $0.trimmingCharacters(in: .whitespaces) }
+            .first { !$0.isEmpty } ?? ""
+        var line = first
+            .replacingOccurrences(of: #"^(#{1,6}\s+|[-*+>]\s+|\d+[.)]\s+)+"#, with: "", options: .regularExpression)
+            .replacingOccurrences(of: "[*_`]", with: "", options: .regularExpression)
+            .replacingOccurrences(of: #"\s+"#, with: " ", options: .regularExpression)
+            .trimmingCharacters(in: .whitespaces)
+        if line.count > 120 { line = String(line.prefix(119)).trimmingCharacters(in: .whitespaces) + "…" }
+        return (line, text)
+    }
 }
 
 extension LinearAPI {
@@ -178,7 +259,8 @@ extension LinearAPI {
     }
 
     /// The `input` of the mutation. Nil when the chip isn't ready, or "@me" has no viewer id.
-    static func issueCreateInput(_ chip: PreviewChip, viewerID: String?) -> [String: Any]? {
+    /// `description` (Markdown: the context the user chose to attach) is sent only when it has text.
+    static func issueCreateInput(_ chip: PreviewChip, viewerID: String?, description: String? = nil) -> [String: Any]? {
         guard chip.ready, let team = chip.team else { return nil }
         var input: [String: Any] = ["teamId": team.id, "title": chip.title]
         if chip.priority > 0 { input["priority"] = chip.priority }
@@ -187,6 +269,9 @@ extension LinearAPI {
             input["assigneeId"] = viewerID
         }
         if let due = chip.dueDate { input["dueDate"] = due }
+        if let text = description?.trimmingCharacters(in: .whitespacesAndNewlines), !text.isEmpty {
+            input["description"] = text
+        }
         return input
     }
 
@@ -196,8 +281,8 @@ extension LinearAPI {
     }
 
     /// Creates the issue. Call only after the user confirmed the preview (the second Enter / click).
-    static func createIssue(_ chip: PreviewChip, viewerID: String?) async throws -> CreatedIssue {
-        guard let input = issueCreateInput(chip, viewerID: viewerID) else {
+    static func createIssue(_ chip: PreviewChip, viewerID: String?, description: String? = nil) async throws -> CreatedIssue {
+        guard let input = issueCreateInput(chip, viewerID: viewerID, description: description) else {
             throw Failure.graphQL(L("The issue isn't ready to create"))
         }
         let data = try await query(issueCreateMutation, variables: ["input": input])

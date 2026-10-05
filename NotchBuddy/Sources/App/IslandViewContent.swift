@@ -29,6 +29,7 @@ struct IslandViewContent: View {
         case .greeting:  EmptyView()  // GreetingCanvasView overlaid in IslandRootView
         case .live:      LiveSessionView(state: state)
         case .inbox:     InboxView(state: state)
+        case .capture:   QuickCaptureView(state: state)
         }
     }
 }

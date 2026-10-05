@@ -870,6 +870,21 @@ struct LinearCardView: View {
                 Text("Linear").font(.system(size: 12, weight: .semibold)).foregroundColor(Color(hex: "#F5F6F8"))
                 Text(appState.linearIssues.isEmpty ? "Assigned to you" : "Assigned to you · \(appState.linearIssues.count)")
                     .font(.system(size: 11)).foregroundColor(Color(hex: "#8E939C"))
+                Spacer(minLength: 4)
+                // Quick capture (#118): a one-line input in the island.
+                Button {
+                    QuickCaptureModel.shared.begin()
+                    withAnimation(.spring(response: 0.3, dampingFraction: 0.8)) { appState.view = .capture }
+                } label: {
+                    Image(systemName: "plus")
+                        .font(.system(size: 10, weight: .semibold))
+                        .foregroundColor(Color(hex: "#B4BAF5"))
+                        .frame(width: 18, height: 18)
+                        .background(Color(hex: "#5E6AD2").opacity(0.22))
+                        .clipShape(Circle())
+                }
+                .buttonStyle(.plain)
+                .help("New Linear issue")
             }
             .padding(.top, 6).padding(.leading, 108).padding(.trailing, 36)
 
