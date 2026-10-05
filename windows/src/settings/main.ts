@@ -389,7 +389,38 @@ function apiSection(
     h("option", { value: "api", text: "Anthropic API key" }),
     h("option", { value: "claude-code", text: "Claude Code (your subscription)" }),
     h("option", { value: "provider", text: "Other provider (OpenAI, Gemini, Ollama…)" }),
+    h("option", { value: "codex", text: "Codex (ChatGPT plan)" }),
+    h("option", { value: "gemini", text: "Gemini CLI" }),
   );
+  // Codex / Gemini CLI (#108): found? signed in? and the model to ask for.
+  const cliNote = h("div", { class: "hint" });
+  const cliModel = h("input", { type: "text", placeholder: "Default of the CLI", style: "width:220px" }) as HTMLInputElement;
+  const cliRow = h("div", { class: "row" }, h("label", { text: "Model" }), cliModel);
+  cliModel.addEventListener("change", () => {
+    if (engine.value === "codex") settings.codexModel = cliModel.value.trim();
+    else settings.geminiModel = cliModel.value.trim();
+    void save();
+  });
+  async function showCli(id: "codex" | "gemini") {
+    cliModel.value = (id === "codex" ? settings.codexModel : settings.geminiModel) ?? "";
+    const name = id === "codex" ? "Codex" : "Gemini CLI";
+    cliNote.className = "hint";
+    cliNote.textContent = "Checking…";
+    const st = await Bridge.cliChatStatus(id);
+    if (engine.value !== id) return;
+    if (!st?.path) {
+      cliNote.className = "notice warn";
+      cliNote.textContent = `${name} not found. Install it and sign in, then check again.`;
+    } else if (st.signedIn === false) {
+      cliNote.className = "notice warn";
+      cliNote.textContent = `${name} isn't signed in · run codex login`;
+    } else {
+      cliNote.textContent = id === "codex"
+        ? `Uses ${st.path} with your ChatGPT plan. It runs in its read-only sandbox in an empty folder: it can't touch your files.`
+        : `Uses ${st.path} with your Google account. It runs in an empty folder, never in your projects.`;
+    }
+    dot.style.background = st?.path && st.signedIn !== false ? "#22c55e" : "#f4505e";
+  }
   const providerBox = providerBlock(presets, present);
   engine.value = settings.chatEngine ?? "api";
   const keyRow = h("div", { class: "row" }, h("label", { text: "API key" }), field, saveBtn, clearBtn);
@@ -403,11 +434,15 @@ function apiSection(
   function showEngine() {
     const code = engine.value === "claude-code";
     const other = engine.value === "provider";
-    keyRow.style.display = code || other ? "none" : "";
-    state.style.display = code || other ? "none" : "";
+    const cli = engine.value === "codex" || engine.value === "gemini";
+    keyRow.style.display = code || other || cli ? "none" : "";
+    state.style.display = code || other || cli ? "none" : "";
     codeNote.style.display = code ? "" : "none";
     providerBox.style.display = other ? "" : "none";
-    modelRow.style.display = other ? "none" : "";
+    modelRow.style.display = other || cli ? "none" : "";
+    cliNote.style.display = cli ? "" : "none";
+    cliRow.style.display = cli ? "" : "none";
+    if (cli) void showCli(engine.value as "codex" | "gemini");
     dot.style.background = code ? (claudeCode.installed ? "#22c55e" : "#f4505e") : dot.style.background;
   }
   engine.addEventListener("change", () => {
@@ -425,6 +460,8 @@ function apiSection(
     h("div", { class: "row" }, h("label", { text: "Engine" }), engine),
     state,
     codeNote,
+    cliNote,
+    cliRow,
     keyRow,
     modelRow,
     providerBox,

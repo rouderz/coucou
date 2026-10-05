@@ -160,6 +160,19 @@ final class AppState: ObservableObject {
 
     // Claude model used by the chat and the search — persisted
     static let defaultClaudeModel = "claude-opus-5-5"
+    /// Model for the Codex / Gemini CLI engines; empty = the CLI's own default.
+    @Published var codexModel: String = "" {
+        didSet { UserDefaults.standard.set(codexModel, forKey: "codexModel") }
+    }
+    @Published var geminiModel: String = "" {
+        didSet { UserDefaults.standard.set(geminiModel, forKey: "geminiModel") }
+    }
+
+    func cliChatModel(_ cli: ChatEngineCLI) -> String? {
+        let m = (cli == .codex ? codexModel : cli == .gemini ? geminiModel : "").trimmingCharacters(in: .whitespaces)
+        return m.isEmpty ? nil : m
+    }
+
     @Published var claudeModel: String = AppState.defaultClaudeModel {
         didSet { UserDefaults.standard.set(claudeModel, forKey: "claudeModel") }
     }
@@ -556,6 +569,8 @@ final class AppState: ObservableObject {
         #endif
         preferredEditor = ud.string(forKey: "preferredEditor")
         if let v = ud.object(forKey: "apiMaxTokens") as? Int, v >= 256 { apiMaxTokens = v }
+        codexModel = ud.string(forKey: "codexModel") ?? ""
+        geminiModel = ud.string(forKey: "geminiModel") ?? ""
         if let v = ud.string(forKey: "claudeModel"),
            !v.trimmingCharacters(in: .whitespaces).isEmpty { claudeModel = v }
         // Migrate old 60s default → 15s
@@ -896,10 +911,32 @@ enum GitHubConnection: Equatable {
     }
 }
 
-enum ChatEngine: String {
+enum ChatEngine: String, CaseIterable {
     case claudeCode  // the user's own Claude Code CLI, signed in with their subscription
     case apiKey      // Anthropic API with the key saved in the Keychain
     case provider    // another provider: OpenAI, Gemini, OpenRouter, Ollama… (#42)
+    case codex       // the user's Codex CLI, signed in with their ChatGPT plan (#108)
+    case gemini      // the user's Gemini CLI, signed in with their Google account (#108)
+
+    /// The agent CLI behind this engine, for the CLI engines.
+    var cli: ChatEngineCLI? {
+        switch self {
+        case .codex: return .codex
+        case .gemini: return .gemini
+        default: return nil
+        }
+    }
+
+    /// Short name for the chat's engine menu.
+    @MainActor var shortName: String {
+        switch self {
+        case .claudeCode: return "Claude Code"
+        case .apiKey: return "Claude API"
+        case .provider: return ProviderSettings.preset.name
+        case .codex: return "Codex"
+        case .gemini: return "Gemini"
+        }
+    }
 }
 
 // MARK: - Integration refresh

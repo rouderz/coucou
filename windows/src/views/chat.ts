@@ -12,6 +12,7 @@ import { State, type ChatMessage } from "../core/state";
 import type { ViewHost } from "./views";
 import { beginCapture } from "./capture";
 import { draftFromAnswer } from "../core/capture";
+import { conversation, isCliEngine, readRun } from "../claude/cliChat.ts";
 
 let nextId = 1;
 
@@ -83,6 +84,22 @@ export function buildPrompt(
     onHeightChange();
   } });
   const historyBtn = h("button", { class: "chip-action", text: "History", onclick: () => openHistory() });
+  // Which agent answers (#108): switch mid-chat; the next question goes to the new engine.
+  const engineSelect = h("select", { class: "chip-select", title: "Chat engine" }) as HTMLSelectElement;
+  for (const [value, label] of [
+    ["claude-code", "Claude Code"], ["api", "Claude API"], ["provider", "Other provider"],
+    ["codex", "Codex"], ["gemini", "Gemini"],
+  ] as const) engineSelect.append(h("option", { value, text: label }));
+  engineSelect.value = State.settings.chatEngine ?? "api";
+  engineSelect.addEventListener("change", () => {
+    State.settings.chatEngine = engineSelect.value as typeof State.settings.chatEngine;
+    void Bridge.saveSettings(State.settings);
+    // The API and provider engines keep their own history: hand them this conversation.
+    if (engineSelect.value === "api" || engineSelect.value === "provider") {
+      void Bridge.chatRestore(State.chatHistory.map((m) => ({ user: m.role === "user", text: m.content })), null, null);
+    }
+    State.notify();
+  });
   // "Make this a Linear issue" (#118): the last answer as a draft, same preview and Enter twice.
   const linearBtn = h("button", { class: "chip-action", text: "→ Linear", title: "Make this a Linear issue" });
   linearBtn.addEventListener("click", () => {
@@ -92,7 +109,7 @@ export function buildPrompt(
     beginCapture(draft.line, { label: "Chat answer", text: draft.description }, true);
     openCapture();
   });
-  chipRow.append(contextSlot, skillChip, attach, h("div", { style: "flex:1" }), linearBtn, newBtn, historyBtn);
+  chipRow.append(contextSlot, skillChip, attach, h("div", { style: "flex:1" }), engineSelect, linearBtn, newBtn, historyBtn);
   const log = h("div", { class: "chat-log" });
   // "/" at the start of the field lists the skills, "@" searches Google Drive —
   // both in the log's place.
@@ -295,7 +312,13 @@ export function buildPrompt(
         const text = await Bridge.skillRead(skill.path);
         sent = withSkill(skill.name, text.path, text.content, query);
       }
-      const reply = await Bridge.chatSend(sent, context);
+      const engine = State.settings.chatEngine;
+      const reply = isCliEngine(engine)
+        // Codex / Gemini CLI (#108): the conversation so far goes as text, the CLI's output is read here.
+        ? { text: readRun(engine, await Bridge.cliChatRun(engine,
+            conversation(State.chatHistory.slice(0, -1), context, sent),
+            (engine === "codex" ? State.settings.codexModel : State.settings.geminiModel) ?? "")) }
+        : await Bridge.chatSend(sent, context);
       State.chatHistory.push({ id: nextId++, role: "assistant", content: reply.text });
       State.stateOverride = null;
       Sound.play("finish");
@@ -362,6 +385,7 @@ export function buildPrompt(
       if (sk) skillChip.textContent = `✦ ${sk.name} ×`;
       newBtn.style.display = State.chatHistory.length ? "" : "none";
       historyBtn.style.display = State.chats.length ? "" : "none";
+      if (document.activeElement !== engineSelect) engineSelect.value = State.settings.chatEngine ?? "api";
       const lastMsg = State.chatHistory[State.chatHistory.length - 1];
       const linearOn = State.integrations.integration_linear?.configured ?? false;
       linearBtn.style.display = linearOn && lastMsg?.role === "assistant" && State.stateOverride !== "thinking" ? "" : "none";

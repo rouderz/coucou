@@ -168,7 +168,10 @@ export interface Settings {
   /** Claude model used by the chat. */
   model: string;
   /** "api": Anthropic API key. "claude-code": the user's Claude Code subscription. "provider": OpenAI-compatible. */
-  chatEngine: "api" | "claude-code" | "provider";
+  chatEngine: "api" | "claude-code" | "provider" | "codex" | "gemini";
+  /** Codex / Gemini CLI chat engines (#108): model to ask for ("" = the CLI's default). */
+  codexModel: string;
+  geminiModel: string;
   providerId: string;
   providerBaseUrl: string;
   providerModel: string;
@@ -257,6 +260,8 @@ export const DEFAULT_SETTINGS: Settings = {
   gmailQuery: "is:unread in:inbox",
   captureShortcut: "Ctrl+Alt+L",
   linearDefaultTeam: "",
+  codexModel: "",
+  geminiModel: "",
   focusMin: 25,
   breakMin: 5,
   longBreakMin: 15,

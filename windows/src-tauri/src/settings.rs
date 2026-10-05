@@ -30,6 +30,11 @@ pub struct Settings {
     /// "api" (Anthropic API key) or "claude-code" (the user's Claude Code subscription).
     #[serde(default = "default_engine")]
     pub chat_engine: String,
+    /// Codex / Gemini CLI chat engines (#108): the model to ask for ("" = the CLI's default).
+    #[serde(default)]
+    pub codex_model: String,
+    #[serde(default)]
+    pub gemini_model: String,
     /// Preferred editor command ("code", "cursor", "windsurf", "zed"); empty = first installed.
     #[serde(default)]
     pub editor: String,
@@ -211,6 +216,8 @@ impl Default for Settings {
             hooks_installed: false,
             model: default_model(),
             chat_engine: default_engine(),
+            codex_model: String::new(),
+            gemini_model: String::new(),
             editor: String::new(),
             auto_approve: HashMap::new(),
             dnd_until: None,

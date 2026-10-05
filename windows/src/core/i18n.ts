@@ -301,6 +301,14 @@ const ES: Record<string, string> = {
   "CSV copied. Paste it into your spreadsheet.": "CSV copiado. Pégalo en tu hoja de cálculo.",
   "Exports stay on this computer: nothing is sent anywhere.": "Las exportaciones se quedan en este equipo: no se envía nada a ningún sitio.",
 
+  // Chat engines (#108)
+  "Codex (ChatGPT plan)": "Codex (plan de ChatGPT)", "Gemini CLI": "Gemini CLI", "Chat engine": "Motor del chat",
+  "Default of the CLI": "El predeterminado de la CLI", "Claude API": "API de Claude",
+  "The engine gave no answer. Try again.": "El motor no dio respuesta. Inténtalo de nuevo.",
+  "The answer took too long. Try again, or ask for something shorter.": "La respuesta tardó demasiado. Inténtalo de nuevo o pide algo más corto.",
+  "The conversation is too long for this engine. Start a new chat.": "La conversación es demasiado larga para este motor. Empieza un chat nuevo.",
+  "Unknown chat engine": "Motor de chat desconocido",
+
   // CI pill (#115)
   "CI failed": "CI falló", "All checks passed": "Todas las comprobaciones pasaron",
   "No open pull requests.": "No hay pull requests abiertos.", "Your open PRs": "Tus PRs abiertos",
@@ -359,6 +367,12 @@ const ES: Record<string, string> = {
 
 /** Texts with something in them that changes: [pattern, Spanish with $1, $2…]. */
 const PATTERNS: [RegExp, string][] = [
+  [/^(Codex|Gemini CLI) not found\. Install it and sign in, then check again\.$/, "No se encontró $1. Instálalo e inicia sesión, luego vuelve a comprobar."],
+  [/^(Codex|Gemini CLI) isn't signed in · run (.+)$/, "$1 no tiene la sesión iniciada · ejecuta $2"],
+  [/^Uses (.+) with your ChatGPT plan\. It runs in its read-only sandbox in an empty folder: it can't touch your files\.$/,
+    "Usa $1 con tu plan de ChatGPT. Funciona en su sandbox de solo lectura en una carpeta vacía: no puede tocar tus archivos."],
+  [/^Uses (.+) with your Google account\. It runs in an empty folder, never in your projects\.$/,
+    "Usa $1 con tu cuenta de Google. Funciona en una carpeta vacía, nunca en tus proyectos."],
   [/^(\d+) PRs failing$/, "$1 PRs fallando"],
   [/^(\d+) running$/, "$1 en marcha"],
   [/^Failing · (\d+)$/, "Fallando · $1"],

@@ -195,6 +195,11 @@ export const Bridge = {
   chatSend: (query: string, context: ChatContext | null) =>
     callOrThrow<{ text: string }>("chat_send", { query, context }),
   chatReset: () => call<void>("chat_reset"),
+  /** Codex / Gemini CLI engines (#108): one turn, the CLI's raw output back (parsed in claude/cliChat.ts). */
+  cliChatRun: (engine: "codex" | "gemini", conversation: string, model: string) =>
+    callOrThrow<{ exitCode: number | null; stdout: string; stderr: string }>("cli_chat_run", { engine, conversation, model }),
+  cliChatStatus: (engine: "codex" | "gemini") =>
+    call<{ path: string | null; signedIn: boolean | null }>("cli_chat_status", { engine }),
   /** Copies a dropped file into the inbox. */
   ingestFile: (path: string) => callOrThrow<DroppedFile>("ingest_file", { path }),
   /** Only ever tells you whether a key exists — never its value. */

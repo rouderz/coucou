@@ -3,6 +3,7 @@
 mod claude;
 mod alerts;
 mod ci;
+mod cli_chat;
 mod claude_code;
 mod codex;
 mod editors;
@@ -256,6 +257,21 @@ async fn chat_send(
         }
         _ => claude::send(&chat, &s.model, query, context).await,
     }
+}
+
+/// Codex / Gemini CLI engines (#108): one turn. The page sends the conversation as text and
+/// reads the CLI's JSON output (src/claude/chatEngines.ts).
+#[tauri::command]
+async fn cli_chat_run(engine: String, conversation: String, model: String) -> Result<cli_chat::CliRun, String> {
+    let engine = cli_chat::Engine::parse(&engine).ok_or("Unknown chat engine")?;
+    cli_chat::run(engine, &conversation, &model).await
+}
+
+/// Settings → Chat: is the CLI installed, and (Codex) signed in?
+#[tauri::command]
+async fn cli_chat_status(engine: String) -> Result<cli_chat::CliStatus, String> {
+    let engine = cli_chat::Engine::parse(&engine).ok_or("Unknown chat engine")?;
+    Ok(cli_chat::status(engine).await)
 }
 
 #[tauri::command]
@@ -1003,6 +1019,8 @@ pub fn run() {
             update_install,
             approval_shortcuts,
             focus_shortcut,
+            cli_chat_run,
+            cli_chat_status,
             chat_restore,
             chat_session_info,
             chats_load,

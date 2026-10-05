@@ -79,6 +79,8 @@ final class ChatStore: ObservableObject {
         state.promptContext = chat.code.map { PromptContext.code($0) }
         AnthropicAPIChat.shared.restore(chat.messages)
         OpenAICompatibleChat.shared.restore(chat.messages)
+        AgentCLIChat.codex.restore(chat.messages)
+        AgentCLIChat.gemini.restore(chat.messages)
         ClaudeCodeChat.shared.restore(sessionID: chat.sessionID,
                                       workDir: chat.workDir,
                                       projectDir: chat.code?.project)
