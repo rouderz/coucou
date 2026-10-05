@@ -141,6 +141,8 @@ final class ClaudeService {
         case .claudeCode: return ClaudeCodeChat.shared
         case .apiKey:     return AnthropicAPIChat.shared
         case .provider:   return OpenAICompatibleChat.shared
+        case .codex:      return AgentCLIChat.codex
+        case .gemini:     return AgentCLIChat.gemini
         }
     }
 

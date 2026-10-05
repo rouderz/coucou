@@ -97,3 +97,22 @@ final class ChatEngineCLITests: XCTestCase {
         XCTAssertNil(ChatEngineFailure.classify(.cursor, exitCode: 1, text: "x"))
     }
 }
+
+@MainActor
+final class AgentCLIChatPromptTests: XCTestCase {
+    func testPromptCarriesTheConversationAndTheQuestion() {
+        let p = AgentCLIChat.prompt(system: "You are Mochi.", history: [(role: "User", text: "hi"), (role: "Assistant", text: "hello")],
+                                    context: "Context — App: Xcode, Window: main.swift", query: "and now?")
+        XCTAssertTrue(p.hasPrefix("You are Mochi."))
+        XCTAssertTrue(p.contains("User: hi\n\nAssistant: hello"))
+        XCTAssertTrue(p.contains("Context — App: Xcode"))
+        XCTAssertTrue(p.hasSuffix("User: and now?"))
+        XCTAssertFalse(AgentCLIChat.prompt(system: "S", history: [], context: nil, query: "q").contains("Conversation so far"))
+    }
+
+    func testEnginesMapToTheirCLI() {
+        XCTAssertEqual(ChatEngine.codex.cli, .codex)
+        XCTAssertEqual(ChatEngine.gemini.cli, .gemini)
+        XCTAssertNil(ChatEngine.claudeCode.cli)
+    }
+}

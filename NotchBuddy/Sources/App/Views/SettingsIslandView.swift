@@ -26,6 +26,7 @@ struct SettingsIslandView: View {
         case .claudeCode: return ClaudeCodeChat.install != nil
         case .apiKey:     return Secrets.store.get("anthropic-api-key") != nil
         case .provider:   return !ProviderSettings.preset.needsKey || ProviderSettings.key != nil
+        case .codex, .gemini: return state.chatEngine.cli.flatMap(AgentCLIChat.cachedInstall) != nil
         }
     }
 

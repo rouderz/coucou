@@ -22,6 +22,16 @@
         }
       }
     },
+    "%@ found: %@": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@ encontrado: %@"
+          }
+        }
+      }
+    },
     "%@ in %lld h": {
       "localizations": {
         "es": {
@@ -68,6 +78,26 @@
           "stringUnit": {
             "state": "translated",
             "value": "%@ no responde en %@. ¿Está abierto?"
+          }
+        }
+      }
+    },
+    "%@ isn't signed in · run %@": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@ no tiene la sesión iniciada · ejecuta %@"
+          }
+        }
+      }
+    },
+    "%@ not found. Install it and sign in, then check again.": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No se encontró %@. Instálalo e inicia sesión, luego vuelve a comprobar."
           }
         }
       }
@@ -1302,6 +1332,16 @@
         }
       }
     },
+    "Chat engine": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Motor del chat"
+          }
+        }
+      }
+    },
     "Chat history": {
       "localizations": {
         "es": {
@@ -1698,6 +1738,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "Codex"
+          }
+        }
+      }
+    },
+    "Codex (ChatGPT plan)": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Codex (plan de ChatGPT)"
           }
         }
       }
@@ -2382,6 +2432,16 @@
         }
       }
     },
+    "Default of the CLI": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "El predeterminado de la CLI"
+          }
+        }
+      }
+    },
     "Default team": {
       "localizations": {
         "es": {
@@ -2938,6 +2998,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "Remitente  (tu@tudominio.com)"
+          }
+        }
+      }
+    },
+    "Gemini CLI": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Gemini CLI"
           }
         }
       }
@@ -6522,6 +6592,16 @@
         }
       }
     },
+    "This chat engine isn't available yet.": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Este motor de chat todavía no está disponible."
+          }
+        }
+      }
+    },
     "This check isn't a GitHub Actions job, so it can't be re-run from here.": {
       "localizations": {
         "es": {
@@ -6888,6 +6968,26 @@
           "stringUnit": {
             "state": "translated",
             "value": "Usa tu sesión de Claude Code y los límites de tu plan, sin clave de API. El chat solo puede buscar en la web y leer archivos que sueltes en la isla."
+          }
+        }
+      }
+    },
+    "Uses your Codex sign-in (ChatGPT plan) — no API key needed. Codex runs in its read-only sandbox in an empty folder: it can't touch your files.": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Usa tu sesión de Codex (plan de ChatGPT), sin clave de API. Codex funciona en su sandbox de solo lectura en una carpeta vacía: no puede tocar tus archivos."
+          }
+        }
+      }
+    },
+    "Uses your Gemini CLI sign-in (Google account) — no API key needed. It runs in an empty folder, never in your projects.": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Usa tu sesión de Gemini CLI (cuenta de Google), sin clave de API. Funciona en una carpeta vacía, nunca en tus proyectos."
           }
         }
       }

@@ -288,6 +288,15 @@ ES = {
 "Checking…":"Comprobando…","Check now":"Comprobar ahora","Download the DMG":"Descargar el DMG","Install and restart":"Instalar y reiniciar","Downloading…":"Descargando…","Checking the signature…":"Comprobando la firma…","Restarting…":"Reiniciando…","Coucou updates itself and opens again in a few seconds.":"Coucou se actualiza solo y se vuelve a abrir en unos segundos.","The download isn't signed by Coucou's key. Nothing was installed.":"La descarga no está firmada con la clave de Coucou. No se instaló nada.","The downloaded app isn't the expected Coucou version. Nothing was installed.":"La app descargada no es la versión esperada de Coucou. No se instaló nada.","Open the release page":"Abrir la página de la versión",
 "Open it and drag Coucou to Applications, replacing this one.":"Ábrelo y arrastra Coucou a Aplicaciones, reemplazando esta.",
 "Check for updates automatically (every 6 hours, GitHub releases)":"Buscar actualizaciones automáticamente (cada 6 horas, en GitHub)","Updates":"Actualizaciones",
+# chat engines (#108)
+"Codex (ChatGPT plan)":"Codex (plan de ChatGPT)","Gemini CLI":"Gemini CLI","Chat engine":"Motor del chat",
+"This chat engine isn't available yet.":"Este motor de chat todavía no está disponible.",
+"Uses your Codex sign-in (ChatGPT plan) — no API key needed. Codex runs in its read-only sandbox in an empty folder: it can't touch your files.":"Usa tu sesión de Codex (plan de ChatGPT), sin clave de API. Codex funciona en su sandbox de solo lectura en una carpeta vacía: no puede tocar tus archivos.",
+"Uses your Gemini CLI sign-in (Google account) — no API key needed. It runs in an empty folder, never in your projects.":"Usa tu sesión de Gemini CLI (cuenta de Google), sin clave de API. Funciona en una carpeta vacía, nunca en tus proyectos.",
+"Default of the CLI":"El predeterminado de la CLI",
+"%@ not found. Install it and sign in, then check again.":"No se encontró %@. Instálalo e inicia sesión, luego vuelve a comprobar.",
+"%@ isn't signed in · run %@":"%@ no tiene la sesión iniciada · ejecuta %@",
+"%@ found: %@":"%@ encontrado: %@",
 # whaticket
 "Accepted · %@":"Aceptado · %@","Couldn't accept · %@":"No se pudo aceptar · %@","New ticket · %@":"Ticket nuevo · %@","Message · %@":"Mensaje · %@",
 "Signed in as %@":"Sesión iniciada como %@","none":"ninguna",

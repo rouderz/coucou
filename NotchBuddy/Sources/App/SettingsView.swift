@@ -91,6 +91,8 @@ struct SettingsView: View {
                             Text("Claude Code (subscription)").tag(ChatEngine.claudeCode)
                             Text("Anthropic API key").tag(ChatEngine.apiKey)
                             Text("Other provider").tag(ChatEngine.provider)
+                            Text("Codex (ChatGPT plan)").tag(ChatEngine.codex)
+                            Text("Gemini CLI").tag(ChatEngine.gemini)
                         }
                         .pickerStyle(.menu)   // three long labels don't fit side by side
                         #endif
@@ -119,6 +121,8 @@ struct SettingsView: View {
                                 .font(.system(size: 11))
                                 .foregroundColor(.secondary)
                                 .fixedSize(horizontal: false, vertical: true)
+                        } else if let cli = state.chatEngine.cli {
+                            CLIEngineSettings(cli: cli, state: state)
                         } else if state.chatEngine == .provider {
                             ProviderSettingsSection(state: state, statusMessage: $statusMessage)
                         } else {
@@ -131,7 +135,7 @@ struct SettingsView: View {
                             .buttonStyle(.borderedProminent)
                         }
 
-                        if state.chatEngine != .provider {
+                        if state.chatEngine != .provider && state.chatEngine.cli == nil {
                         Divider().padding(.vertical, 2)
 
                         Picker("Model", selection: $modelChoice) {

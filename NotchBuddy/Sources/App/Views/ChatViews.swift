@@ -79,6 +79,33 @@ struct PromptView: View {
                             withAnimation(.spring(response: 0.3, dampingFraction: 0.8)) { state.view = .capture }
                         }
                     }
+                    #if !APPSTORE
+                    // Which agent answers (#108): switch mid-chat; the new engine gets the conversation so far.
+                    Menu {
+                        ForEach(ChatEngine.allCases, id: \.self) { engine in
+                            Button {
+                                switchEngine(to: engine)
+                            } label: {
+                                if engine == state.chatEngine {
+                                    Label(engine.shortName, systemImage: "checkmark")
+                                } else {
+                                    Text(verbatim: engine.shortName)
+                                }
+                            }
+                        }
+                    } label: {
+                        HStack(spacing: 3) {
+                            Text(verbatim: state.chatEngine.shortName)
+                            Image(systemName: "chevron.down").font(.system(size: 7, weight: .semibold))
+                        }
+                        .font(.system(size: 10.5, weight: .medium))
+                        .foregroundColor(Color(hex: "#8E939C"))
+                    }
+                    .menuStyle(.borderlessButton)
+                    .menuIndicator(.hidden)
+                    .fixedSize()
+                    .help(L("Chat engine"))
+                    #endif
                     HeaderIconButton(symbol: "clock.arrow.circlepath", active: showHistory,
                                      help: L("Chat history")) { showHistory.toggle() }
                     if !state.chatHistory.isEmpty || state.promptContext != nil {
@@ -244,6 +271,14 @@ struct PromptView: View {
             }
             focused = true
         }
+    }
+
+    /// Switches the chat engine for this and later chats, handing the conversation so far to it.
+    private func switchEngine(to engine: ChatEngine) {
+        guard engine != state.chatEngine else { return }
+        state.chatEngine = engine
+        let messages = state.chatHistory.map { SavedChat.Message(user: $0.role == .user, text: $0.content) }
+        ClaudeService.provider(for: engine).restore(messages)
     }
 
     private func choose(_ skill: SkillInfo) {
