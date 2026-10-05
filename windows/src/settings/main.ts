@@ -8,6 +8,7 @@ import { Bridge, onDragDrop, onEvent, type BrowserStatus, type HookStatus, type 
 import { DEFAULT_SETTINGS, type Settings } from "../core/state";
 import { parseTeams, type TeamInfo } from "../core/capture";
 import { h, clear } from "../views/dom";
+import { THEMES, applyTheme } from "../core/themes.ts";
 import { dayKey as wtDayKey, duration, range, summary, toCsv as wtToCsv, type Period, type StatEvent } from "../core/whaticketStats.ts";
 import {
   addAdjustment, dayKey, formatDuration, formatHours, groupPeriod, parseStore, recentPeriods, rowsFromStore,
@@ -1473,6 +1474,39 @@ function updatesSection(): HTMLElement {
 
 // ── General section ───────────────────────────────────────────────────────────
 
+// ── Appearance (themes) ───────────────────────────────────────────────────────
+
+const darkQuery = window.matchMedia("(prefers-color-scheme: dark)");
+function paintTheme() {
+  applyTheme(document.documentElement, settings.theme, darkQuery.matches);
+}
+darkQuery.addEventListener("change", paintTheme);
+
+function appearanceSection(): HTMLElement {
+  const grid = h("div", { class: "theme-grid" });
+  const choices: [string, string, string[]][] = [
+    ["system", "System", ["#141518", "#FFFFFF"]],
+    ...THEMES.map((t): [string, string, string[]] => [t.id, t.id === "dark" ? "Dark" : t.id === "light" ? "Light" : t.name, [t.card, t.ink, t.accent]]),
+  ];
+  function draw() {
+    clear(grid);
+    for (const [id, name, colors] of choices) {
+      const swatch = h("span", { class: "theme-swatch" });
+      for (const c of colors) swatch.append(h("i", { style: `background:${c}` }));
+      grid.append(h("button", {
+        class: "theme-choice" + ((settings.theme ?? "dark") === id ? " on" : ""),
+        onclick: () => { settings.theme = id; void save(); paintTheme(); draw(); },
+      }, swatch, h("span", { text: name })));
+    }
+  }
+  draw();
+  return h("section", {},
+    h("h2", {}, h("span", { text: "Appearance" })),
+    grid,
+    h("div", { class: "hint", text: "Colours of the island and of this window. Pills keep their own colours." }),
+  );
+}
+
 function generalSection(editors: { id: string; name: string }[]): HTMLElement {
   // Where "Open terminal" / project folders open (#75).
   const editor = h("select", {}) as HTMLSelectElement;
@@ -1581,6 +1615,7 @@ async function main() {
     if (boot.platform === "linux") keychainName = "your keyring (Secret Service)";
   }
   setLanguage(settings.language);
+  paintTheme();
   const status = (await Bridge.hooksStatus()) ?? {
     installed: false, settingsPath: "", hookPath: "", hookReady: false,
   };
@@ -1623,6 +1658,7 @@ async function main() {
     voiceSection(canListen),
     focusSection(),
     updatesSection(),
+    appearanceSection(),
     generalSection(editors),
     h("div", {
       class: "hint",

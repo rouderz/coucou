@@ -71,7 +71,7 @@ body {
   position: absolute;
   top: 0;
   left: 50%;
-  background: #000;
+  background: var(--island, #000);
   border-radius: 0 0 14px 14px;
   overflow: visible;
   will-change: width, height, transform;

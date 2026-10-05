@@ -177,6 +177,8 @@ export interface Settings {
   providerModel: string;
   /** "system", "en" or "es" (applied at the next launch of the window). */
   language: "system" | "en" | "es";
+  /** "dark" (the original look), "light", "system" or a palette id (core/themes.ts). */
+  theme: string;
   /** Mochi reads its chat replies aloud. */
   speakReplies: boolean;
   /** A small notch stays at the top when the island hides (like the Mac's). */
@@ -251,6 +253,7 @@ export const DEFAULT_SETTINGS: Settings = {
   providerBaseUrl: "",
   providerModel: "",
   language: "system",
+  theme: "dark",
   speakReplies: false,
   idleNotch: true,
   whaticketAutoAccept: false,

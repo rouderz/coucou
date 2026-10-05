@@ -12,6 +12,7 @@ struct IslandRootView: View {
             Color.clear
                 .frame(maxWidth: .infinity, maxHeight: .infinity)
             IslandContainer(state: state)
+                .id(state.themeRevision)  // a new theme redraws every view with its colours
                 .frame(maxWidth: .infinity, alignment: .center)
         }
         .ignoresSafeArea()
@@ -53,10 +54,18 @@ struct IslandContainer: View {
         let greetingActive = state.mode == .expanded && state.view == .greeting
 
         return ZStack(alignment: .topLeading) {
-            // Black island shape
+            // Black island shape. Other themes tint it below the notch; the top stays black so it
+            // still blends with the hardware notch.
             IslandShape(width: islandWidth, height: islandHeight,
                         cornerRadius: cornerRadius, topRadius: islandTopRadius)
-                .fill(Color.black)
+                .fill(Theme.current.id == Theme.dark.id ? AnyShapeStyle(Color.black) : AnyShapeStyle(LinearGradient(
+                    stops: [
+                        .init(color: .black, location: 0),
+                        .init(color: .black, location: min(0.9, IslandConst.notchHeight / max(islandHeight, 1))),
+                        .init(color: Color(hex: Theme.current.bg),
+                              location: min(0.95, (IslandConst.notchHeight + 14) / max(islandHeight, 1))),
+                    ],
+                    startPoint: .top, endPoint: .bottom)))
 
             // Content
             if state.mode == .expanded {
@@ -581,8 +590,9 @@ struct CompactMiniGrid: View {
 // MARK: - Color helper
 
 extension Color {
+    /// Neutral greys follow the active theme (Theme.swift); every other colour is drawn as given.
     init(hex: String) {
-        let h = hex.trimmingCharacters(in: CharacterSet(charactersIn: "#"))
+        let h = Theme.resolve(hex, in: Theme.current).trimmingCharacters(in: CharacterSet(charactersIn: "#"))
         let val = UInt64(h, radix: 16) ?? 0
         let r = Double((val >> 16) & 0xFF) / 255
         let g = Double((val >> 8)  & 0xFF) / 255

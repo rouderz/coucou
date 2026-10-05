@@ -442,3 +442,22 @@ final class ChatPortTests: XCTestCase {
         chat.reset()
     }
 }
+
+final class ThemeTests: XCTestCase {
+    func testDarkIsTheOriginalLook() {
+        for (hex, _) in Theme.roles {
+            XCTAssertEqual(Theme.resolve("#" + hex, in: Theme.dark), "#" + hex)
+        }
+        XCTAssertEqual(Theme.resolve("#F4505E", in: Theme.light), "#F4505E")  // status colours never change
+    }
+
+    func testEveryThemeIsReadable() {
+        for p in Theme.all {
+            XCTAssertGreaterThanOrEqual(Theme.contrast(p.ink, p.card), 7, p.id)
+            XCTAssertGreaterThanOrEqual(Theme.contrast(p.dim, p.card), 3, p.id)
+            XCTAssertGreaterThanOrEqual(Theme.contrast(p.dim3, p.card), 2, p.id)
+        }
+        XCTAssertEqual(Theme.palette(for: "system", systemIsDark: false), Theme.light)
+        XCTAssertEqual(Theme.palette(for: "nope", systemIsDark: false), Theme.dark)
+    }
+}

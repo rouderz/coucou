@@ -288,6 +288,9 @@ ES = {
 "Checking…":"Comprobando…","Check now":"Comprobar ahora","Download the DMG":"Descargar el DMG","Install and restart":"Instalar y reiniciar","Downloading…":"Descargando…","Checking the signature…":"Comprobando la firma…","Restarting…":"Reiniciando…","Coucou updates itself and opens again in a few seconds.":"Coucou se actualiza solo y se vuelve a abrir en unos segundos.","The download isn't signed by Coucou's key. Nothing was installed.":"La descarga no está firmada con la clave de Coucou. No se instaló nada.","The downloaded app isn't the expected Coucou version. Nothing was installed.":"La app descargada no es la versión esperada de Coucou. No se instaló nada.","Open the release page":"Abrir la página de la versión",
 "Open it and drag Coucou to Applications, replacing this one.":"Ábrelo y arrastra Coucou a Aplicaciones, reemplazando esta.",
 "Check for updates automatically (every 6 hours, GitHub releases)":"Buscar actualizaciones automáticamente (cada 6 horas, en GitHub)","Updates":"Actualizaciones",
+# themes
+"Appearance":"Apariencia","System":"Sistema","Dark":"Oscuro","Light":"Claro",
+"Colours of the island's cards and text. The top of the island stays black so it blends with the notch.":"Colores de las tarjetas y el texto de la isla. La parte de arriba sigue negra para fundirse con el notch.",
 # chat engines (#108)
 "Codex (ChatGPT plan)":"Codex (plan de ChatGPT)","Gemini CLI":"Gemini CLI","Chat engine":"Motor del chat",
 "This chat engine isn't available yet.":"Este motor de chat todavía no está disponible.",

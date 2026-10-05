@@ -1,4 +1,5 @@
 import Foundation
+import AppKit
 import SwiftUI
 import Combine
 
@@ -286,6 +287,33 @@ final class AppState: ObservableObject {
             NotificationCenter.default.post(name: .voiceHotkeyChanged, object: nil)
         }
     }
+    /// Theme: "dark" (the original look), "light", "system" or a palette id (Theme.swift).
+    @Published var theme: String = "dark" {
+        didSet {
+            UserDefaults.standard.set(theme, forKey: "theme")
+            applyTheme()
+        }
+    }
+    /// Goes up when the colours change, so the island redraws.
+    @Published var themeRevision = 0
+    private var themeObserver: NSObjectProtocol?
+
+    /// Picks the palette for the setting (and the Mac's appearance for "system").
+    func applyTheme() {
+        let dark = NSApp?.effectiveAppearance.bestMatch(from: [.darkAqua, .aqua]) != .aqua
+        let palette = Theme.palette(for: theme, systemIsDark: dark)
+        if palette != Theme.current {
+            Theme.current = palette
+            themeRevision += 1
+        }
+        if themeObserver == nil {
+            themeObserver = DistributedNotificationCenter.default().addObserver(
+                forName: .init("AppleInterfaceThemeChangedNotification"), object: nil, queue: .main) { _ in
+                MainActor.assumeIsolated { AppState.shared.applyTheme() }
+            }
+        }
+    }
+
     /// "auto" (the Mac's language), or a locale such as "es-ES" / "en-US".
     @Published var voiceLanguage: String = "auto" {
         didSet { UserDefaults.standard.set(voiceLanguage, forKey: "voiceLanguage") }
@@ -607,6 +635,7 @@ final class AppState: ObservableObject {
         if let v = ud.object(forKey: "voiceHotkeyFlags")  as? Int    { voiceHotkeyFlags = UInt(v) }
         if let v = ud.object(forKey: "voiceHotkeyCode")   as? Int    { voiceHotkeyCode = UInt16(v) }
         if let v = ud.object(forKey: "voiceLanguage")     as? String { voiceLanguage = v }
+        if let v = ud.string(forKey: "theme") { theme = v }
         if let v = ud.object(forKey: "voiceSpeakReplies") as? Bool   { voiceSpeakReplies = v }
         if let v = ud.object(forKey: "pillRotationSeconds") as? Int { pillRotationSeconds = v }
         if let v = ud.stringArray(forKey: "pinnedPills") { pinnedPills = Set(v) }

@@ -301,6 +301,10 @@ const ES: Record<string, string> = {
   "CSV copied. Paste it into your spreadsheet.": "CSV copiado. Pégalo en tu hoja de cálculo.",
   "Exports stay on this computer: nothing is sent anywhere.": "Las exportaciones se quedan en este equipo: no se envía nada a ningún sitio.",
 
+  // Themes
+  "Appearance": "Apariencia", "System": "Sistema", "Dark": "Oscuro", "Light": "Claro",
+  "Colours of the island and of this window. Pills keep their own colours.": "Colores de la isla y de esta ventana. Las píldoras mantienen sus propios colores.",
+
   // Chat engines (#108)
   "Codex (ChatGPT plan)": "Codex (plan de ChatGPT)", "Gemini CLI": "Gemini CLI", "Chat engine": "Motor del chat",
   "Default of the CLI": "El predeterminado de la CLI", "Claude API": "API de Claude",
