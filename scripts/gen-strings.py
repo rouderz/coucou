@@ -429,6 +429,28 @@ ES = {
 "No time recorded in this period.":"No hay tiempo registrado en este periodo.",
 "Copy as text":"Copiar como texto","Save CSV…":"Guardar CSV…","CSV saved.":"CSV guardado.",
 "Exports stay on this Mac: nothing is sent anywhere.":"Las exportaciones se quedan en este Mac: no se envía nada a ningún sitio.",
+# focus timer (#119)
+"Focus":"Concentración","Break":"Descanso","Long break":"Descanso largo",
+"Focus · paused":"Concentración · en pausa","Break · paused":"Descanso · en pausa","Long break · paused":"Descanso largo · en pausa",
+"Focus %lld min":"Concentración %lld min","Focus · %lld":"Concentración · %lld",
+"Resume":"Reanudar","Pause":"Pausar","Stop":"Detener","Skip to the break":"Pasar al descanso","Skip the break":"Saltar el descanso",
+"Blocks today: %lld":"Bloques de hoy: %lld","%lld today":"%lld hoy",
+"Focus: start a %lld-min block (right-click for more)":"Concentración: empieza un bloque de %lld min (clic derecho para más)",
+"Focus: click to pause or resume (right-click for more)":"Concentración: clic para pausar o reanudar (clic derecho para más)",
+"Start a %lld-min focus block with Do not disturb · %lld done today":"Empieza un bloque de concentración de %lld min con No molestar · %lld hechos hoy",
+"Take the break":"Tomar el descanso","Keep working":"Seguir trabajando","Start focus":"Empezar a concentrarme","Later":"Más tarde",
+"Block done! Break, %lld min?":"¡Bloque terminado! ¿Descanso de %lld min?",
+"Nice run! Long break, %lld min?":"¡Buena racha! ¿Descanso largo de %lld min?",
+"Break's over. Back to work?":"Se acabó el descanso. ¿Volvemos al trabajo?",
+"A focus block is already running (%@ left).":"Ya hay un bloque de concentración en marcha (quedan %@).",
+"Focus: %lld min on %@. Do not disturb is on until the end of the block.":"Concentración: %lld min en %@. No molestar está activado hasta el final del bloque.",
+"Focus: %lld min. Do not disturb is on until the end of the block.":"Concentración: %lld min. No molestar está activado hasta el final del bloque.",
+"Paused: focus block":"En pausa: bloque de concentración",
+"Focus block: %lld min":"Bloque de concentración: %lld min","Break: %lld min":"Descanso: %lld min",
+"Long break: %lld min":"Descanso largo: %lld min","Long break after %lld blocks":"Descanso largo cada %lld bloques",
+"Turn off Hey Mochi during focus blocks":"Apagar Oye Mochi durante los bloques de concentración",
+"Shortcut ⌃⌥F: start, pause or resume a block":"Atajo ⌃⌥F: empezar, pausar o reanudar un bloque",
+"Do not disturb is on during each block and goes back to how it was at the end; approvals still reach the island, quietly. Start a block from the ⏱ in the island, the Claude Code card, the shortcut, or the chat: “focus 50 min on SHO-475”.":"No molestar se activa durante cada bloque y vuelve a como estaba al terminar; las aprobaciones siguen llegando a la isla, en silencio. Empieza un bloque desde el ⏱ de la isla, la tarjeta de Claude Code, el atajo o el chat: “enfoque 50 min en SHO-475”.",
 }
 catalog = {"sourceLanguage": "en", "version": "1.0", "strings": {
     k: {"localizations": {"es": {"stringUnit": {"state": "translated", "value": v}}}} for k, v in sorted(ES.items())

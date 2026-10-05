@@ -286,6 +286,14 @@ extension ChatSession {
     static func send(_ query: String, state: AppState, spoken: Bool) {
         let query = query.trimmingCharacters(in: .whitespacesAndNewlines)
         guard !query.isEmpty else { return }
+        // "focus 50 min on SHO-475" starts a focus block here instead of going to the model (#119).
+        if state.chatSkill == nil, let command = FocusCommand.parse(query) {
+            VoiceOutput.shared.stop()
+            if state.view != .prompt { state.view = .prompt }
+            state.chatHistory.append(ChatMessage(role: .user, content: query))
+            state.chatHistory.append(ChatMessage(role: .assistant, content: FocusTimer.shared.run(command)))
+            return
+        }
         if spoken && state.voiceSpeakReplies {
             VoiceOutput.shared.arm(locale: VoiceSession.locale(for: state))
         } else {

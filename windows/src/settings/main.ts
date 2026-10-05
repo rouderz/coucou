@@ -1360,6 +1360,37 @@ function voiceSection(canListen: boolean): HTMLElement {
   );
 }
 
+// ── Focus timer (#119) ────────────────────────────────────────────────────────
+
+function focusSection(): HTMLElement {
+  /** A whole-minutes field; Rust stores these as integers, so never send a fraction. */
+  const minutes = (key: "focusMin" | "breakMin" | "longBreakMin" | "blocksBeforeLong", min: number, max: number) => {
+    const input = h("input", {
+      type: "number", min: String(min), max: String(max), step: "1",
+      value: String(settings[key]),
+      style: "width:72px",
+    }) as HTMLInputElement;
+    input.addEventListener("change", () => {
+      const v = Math.round(Number(input.value));
+      settings[key] = Number.isFinite(v) ? Math.max(min, Math.min(max, v)) : DEFAULT_SETTINGS[key];
+      input.value = String(settings[key]);
+      void save();
+    });
+    return input;
+  };
+  return h("section", {},
+    h("h2", {}, h("span", { text: "Focus" })),
+    h("div", { class: "row" }, h("label", { text: "Focus block" }), minutes("focusMin", 5, 180), h("span", { class: "hint", text: "minutes" })),
+    h("div", { class: "row" }, h("label", { text: "Break" }), minutes("breakMin", 1, 60), h("span", { class: "hint", text: "minutes" })),
+    h("div", { class: "row" }, h("label", { text: "Long break" }), minutes("longBreakMin", 1, 90), h("span", { class: "hint", text: "minutes" })),
+    h("div", { class: "row" }, h("label", { text: "Long break after" }), minutes("blocksBeforeLong", 1, 12), h("span", { class: "hint", text: "blocks" })),
+    h("div", { class: "row" }, h("label", { text: "Ctrl+Alt+F shortcut" }),
+      toggle(settings.focusShortcut !== false, (v) => { settings.focusShortcut = v; void save(); }),
+      h("span", { class: "hint", text: "start, pause or resume a block from any app" })),
+    h("div", { class: "hint", text: "Do not disturb is on during each block and goes back to how it was at the end; approvals still reach the island, quietly. Start a block from the ⏱ in the island, the Claude Code card, the shortcut, or the chat: “focus 50 min on SHO-475”." }),
+  );
+}
+
 // ── Updates ───────────────────────────────────────────────────────────────────
 
 function updatesSection(): HTMLElement {
@@ -1548,6 +1579,7 @@ async function main() {
     phoneSection(),
     inboxSection(),
     voiceSection(canListen),
+    focusSection(),
     updatesSection(),
     generalSection(editors),
     h("div", {

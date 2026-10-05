@@ -156,6 +156,11 @@ struct NoteView: View {
             VStack(alignment: .leading, spacing: 4) {
                 Text(state.noteMessage ?? "")
                     .font(.system(size: 15, weight: .semibold))
+                // Focus timer (#119): the end-of-block / end-of-break prompt.
+                if let note = state.focusNote, note.text == state.noteMessage {
+                    FocusNoteButtons(state: state, note: note)
+                        .padding(.top, 4)
+                }
             }
             .padding(.leading, 98)
         }

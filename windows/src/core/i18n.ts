@@ -342,6 +342,16 @@ const ES: Record<string, string> = {
     "p. ej. Ctrl+Alt+L · vacío = desactivado · solo con una clave de Linear guardada",
   "Quick capture: #TEAM picks the team, p1–p4 the priority, @me assigns it to you, !today / !fri / !2026-12-01 sets a due date. Nothing is created until you press Enter on the preview. The + in the Linear card opens it too.":
     "Captura rápida: #TEAM elige el equipo, p1–p4 la prioridad, @me te la asigna y !today / !fri / !2026-12-01 pone fecha límite. No se crea nada hasta que pulsas Enter en la vista previa. El + de la tarjeta de Linear también la abre.",
+  // focus timer (#119)
+  "Focus": "Concentración", "Break": "Descanso", "Long break": "Descanso largo", "paused": "en pausa",
+  "Resume": "Reanudar", "Pause": "Pausar", "Stop": "Detener", "Skip to the break": "Pasar al descanso",
+  "Skip the break": "Saltar el descanso", "Take the break": "Tomar el descanso", "Keep working": "Seguir trabajando",
+  "Start focus": "Empezar a concentrarme", "Later": "Más tarde", "Break's over. Back to work?": "Se acabó el descanso. ¿Volvemos al trabajo?",
+  "Focus: click to pause or resume (right-click for more)": "Concentración: clic para pausar o reanudar (clic derecho para más)",
+  "Focus block": "Bloque de concentración", "Long break after": "Descanso largo cada", "minutes": "minutos", "blocks": "bloques",
+  "Ctrl+Alt+F shortcut": "Atajo Ctrl+Alt+F", "start, pause or resume a block from any app": "empezar, pausar o reanudar un bloque desde cualquier app",
+  "Do not disturb is on during each block and goes back to how it was at the end; approvals still reach the island, quietly. Start a block from the ⏱ in the island, the Claude Code card, the shortcut, or the chat: “focus 50 min on SHO-475”.":
+    "No molestar se activa durante cada bloque y vuelve a como estaba al terminar; las aprobaciones siguen llegando a la isla, en silencio. Empieza un bloque desde el ⏱ de la isla, la tarjeta de Claude Code, el atajo o el chat: “enfoque 50 min en SHO-475”.",
 };
 
 /** Texts with something in them that changes: [pattern, Spanish with $1, $2…]. */
@@ -420,6 +430,18 @@ const PATTERNS: [RegExp, string][] = [
   [/^(\d+)s$/, "$1 s"],
   [/^Due (\d{4}-\d\d-\d\d)$/, "Vence $1"],
   [/^No team with the key (.+)$/, "No hay ningún equipo con la clave $1"],
+  // focus timer (#119)
+  [/^(\d+) today$/, "$1 hoy"],
+  [/^(\d+) done today$/, "$1 hechos hoy"],
+  [/^Focus (\d+) min$/, "Concentración $1 min"],
+  [/^Blocks today: (\d+)$/, "Bloques de hoy: $1"],
+  [/^Start a (\d+)-min focus block with Do not disturb$/, "Empieza un bloque de concentración de $1 min con No molestar"],
+  [/^Focus: start a (\d+)-min block \(right-click for more\)$/, "Concentración: empieza un bloque de $1 min (clic derecho para más)"],
+  [/^Block done! Break, (\d+) min\?$/, "¡Bloque terminado! ¿Descanso de $1 min?"],
+  [/^Nice run! Long break, (\d+) min\?$/, "¡Buena racha! ¿Descanso largo de $1 min?"],
+  [/^A focus block is already running \((.+) left\)\.$/, "Ya hay un bloque de concentración en marcha (quedan $1)."],
+  [/^Focus: (\d+) min on (.+)\. Do not disturb is on until the end of the block\.$/, "Concentración: $1 min en $2. No molestar está activado hasta el final del bloque."],
+  [/^Focus: (\d+) min\. Do not disturb is on until the end of the block\.$/, "Concentración: $1 min. No molestar está activado hasta el final del bloque."],
 ];
 
 const RAW = ".chat-log, .code, .diff, .inbox-open .title, .path, .tl-time, [data-raw]";

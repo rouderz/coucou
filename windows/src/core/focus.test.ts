@@ -1,7 +1,7 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
 import {
-  DEFAULT_FOCUS_CONFIG, formatRemaining, initialFocus, nextWakeMs, pause, progress, remainingMs, resume,
+  DEFAULT_FOCUS_CONFIG, blocksDone, focusLengths, formatRemaining, initialFocus, parseFocusCommand, nextWakeMs, pause, progress, remainingMs, resume,
   sanitizeConfig, skip, start, stop, tick,
 } from "./focus.ts";
 
@@ -145,4 +145,25 @@ test("focus: blocks done today reset on a new day; config is sanitised", () => {
     { focusMin: 1, breakMin: 5, longBreakMin: 20, blocksBeforeLong: 4 });
   assert.equal(formatRemaining(0), "00:00");
   assert.equal(formatRemaining(1), "00:01");
+});
+
+test("focus: blocks done today, lengths offered", () => {
+  const s = tick(start(initialFocus(T0), T0, null).state, T0 + 25 * MIN, null).state;
+  assert.equal(blocksDone(s, T0 + 30 * MIN), 1);
+  assert.equal(blocksDone(s, T0 + 24 * 60 * MIN), 0);
+  assert.deepEqual(focusLengths(25), [25, 50]);
+  assert.deepEqual(focusLengths(40), [40, 25, 50]);
+});
+
+test("focus: chat command", () => {
+  assert.deepEqual(parseFocusCommand("focus 50 min on SHO-475"), { minutes: 50, issue: "SHO-475" });
+  assert.deepEqual(parseFocusCommand("Focus"), { minutes: null, issue: null });
+  assert.deepEqual(parseFocusCommand("focus 25"), { minutes: 25, issue: null });
+  assert.deepEqual(parseFocusCommand("focus 45m"), { minutes: 45, issue: null });
+  assert.deepEqual(parseFocusCommand("/focus sho-12"), { minutes: null, issue: "SHO-12" });
+  assert.deepEqual(parseFocusCommand("enfoque 30 minutos en ABC-9."), { minutes: 30, issue: "ABC-9" });
+  assert.deepEqual(parseFocusCommand("  focus 999 min  "), { minutes: 240, issue: null });
+  assert.equal(parseFocusCommand("focus on the login bug"), null);
+  assert.equal(parseFocusCommand("focusing is hard"), null);
+  assert.equal(parseFocusCommand("how do I focus 50 min?"), null);
 });

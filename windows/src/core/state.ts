@@ -6,6 +6,7 @@ import type { EyeShape } from "../mochi/engine";
 import type { EditPreview } from "../claude/preview.ts";
 import type { CodeContext } from "./bridge";
 import type { SavedChat } from "./chats";
+import { initialFocus, type FocusState } from "./focus.ts";
 
 export type AgentSource = "claudeCode" | "n8n";
 export type PillBadge = "approval" | "finished" | "error";
@@ -93,6 +94,12 @@ export interface ChatMessage {
 export type PromptContext =
   | { kind: "window"; appName: string; title: string; url?: string }
   | { kind: "file"; name: string; path?: string };
+
+/** The prompt shown when a focus block or a break runs out. */
+export interface FocusNote {
+  kind: "blockDone" | "breakDone";
+  text: string;
+}
 
 export interface ResultItem {
   label: string;
@@ -195,6 +202,12 @@ export interface Settings {
   checkUpdates: boolean;
   /** Time per Linear issue (#114), kept in a local file. */
   timeTracking: boolean;
+  /** Focus timer (#119): block lengths in minutes, long break after N blocks, Ctrl+Alt+F. */
+  focusMin: number;
+  breakMin: number;
+  longBreakMin: number;
+  blocksBeforeLong: number;
+  focusShortcut: boolean;
 }
 
 export const DEFAULT_SETTINGS: Settings = {
@@ -238,6 +251,11 @@ export const DEFAULT_SETTINGS: Settings = {
   gmailQuery: "is:unread in:inbox",
   captureShortcut: "Ctrl+Alt+L",
   linearDefaultTeam: "",
+  focusMin: 25,
+  breakMin: 5,
+  longBreakMin: 15,
+  blocksBeforeLong: 4,
+  focusShortcut: true,
 };
 
 type Listener = () => void;
@@ -299,6 +317,13 @@ class AppState {
   focusedSession: string | null = null;
 
   integrations: Record<string, IntegrationInfo> = {};
+
+  /** Focus timer (#119), driven by island/focus.ts; not persisted (a block doesn't survive a restart). */
+  focus: FocusState = initialFocus(Date.now());
+  /** Linear key the blocks are about ("SHO-475"), from the chat command; cleared on Stop. */
+  focusIssue: string | null = null;
+  /** The end-of-block / end-of-break prompt on the note view. */
+  focusNote: FocusNote | null = null;
 
   lastActivity = performance.now();
 

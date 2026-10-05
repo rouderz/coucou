@@ -202,6 +202,16 @@
         }
       }
     },
+    "%lld today": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%lld hoy"
+          }
+        }
+      }
+    },
     "%lld were already waiting when the tab opened (not in the per-hour chart or the waits).": {
       "localizations": {
         "es": {
@@ -338,6 +348,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "Una búsqueda de Gmail, p. ej. is:unread in:inbox o is:important is:unread. Activa la píldora de Gmail en Integraciones."
+          }
+        }
+      }
+    },
+    "A focus block is already running (%@ left).": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ya hay un bloque de concentración en marcha (quedan %@)."
           }
         }
       }
@@ -1008,6 +1028,66 @@
           "stringUnit": {
             "state": "translated",
             "value": "Comportamiento"
+          }
+        }
+      }
+    },
+    "Block done! Break, %lld min?": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "¡Bloque terminado! ¿Descanso de %lld min?"
+          }
+        }
+      }
+    },
+    "Blocks today: %lld": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Bloques de hoy: %lld"
+          }
+        }
+      }
+    },
+    "Break": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Descanso"
+          }
+        }
+      }
+    },
+    "Break · paused": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Descanso · en pausa"
+          }
+        }
+      }
+    },
+    "Break's over. Back to work?": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Se acabó el descanso. ¿Volvemos al trabajo?"
+          }
+        }
+      }
+    },
+    "Break: %lld min": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Descanso: %lld min"
           }
         }
       }
@@ -2392,6 +2472,16 @@
         }
       }
     },
+    "Do not disturb is on during each block and goes back to how it was at the end; approvals still reach the island, quietly. Start a block from the ⏱ in the island, the Claude Code card, the shortcut, or the chat: “focus 50 min on SHO-475”.": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No molestar se activa durante cada bloque y vuelve a como estaba al terminar; las aprobaciones siguen llegando a la isla, en silencio. Empieza un bloque desde el ⏱ de la isla, la tarjeta de Claude Code, el atajo o el chat: “enfoque 50 min en SHO-475”."
+          }
+        }
+      }
+    },
     "Do not disturb: no sounds, the island doesn't open by itself": {
       "localizations": {
         "es": {
@@ -2698,6 +2788,96 @@
           "stringUnit": {
             "state": "translated",
             "value": "Corrige la línea y pulsa Enter"
+          }
+        }
+      }
+    },
+    "Focus": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Concentración"
+          }
+        }
+      }
+    },
+    "Focus %lld min": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Concentración %lld min"
+          }
+        }
+      }
+    },
+    "Focus block: %lld min": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Bloque de concentración: %lld min"
+          }
+        }
+      }
+    },
+    "Focus · %lld": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Concentración · %lld"
+          }
+        }
+      }
+    },
+    "Focus · paused": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Concentración · en pausa"
+          }
+        }
+      }
+    },
+    "Focus: %lld min on %@. Do not disturb is on until the end of the block.": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Concentración: %lld min en %@. No molestar está activado hasta el final del bloque."
+          }
+        }
+      }
+    },
+    "Focus: %lld min. Do not disturb is on until the end of the block.": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Concentración: %lld min. No molestar está activado hasta el final del bloque."
+          }
+        }
+      }
+    },
+    "Focus: click to pause or resume (right-click for more)": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Concentración: clic para pausar o reanudar (clic derecho para más)"
+          }
+        }
+      }
+    },
+    "Focus: start a %lld-min block (right-click for more)": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Concentración: empieza un bloque de %lld min (clic derecho para más)"
           }
         }
       }
@@ -3452,6 +3632,16 @@
         }
       }
     },
+    "Keep working": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Seguir trabajando"
+          }
+        }
+      }
+    },
     "Language": {
       "localizations": {
         "es": {
@@ -3488,6 +3678,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "Último build: %@ · %@"
+          }
+        }
+      }
+    },
+    "Later": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Más tarde"
           }
         }
       }
@@ -3618,6 +3818,46 @@
           "stringUnit": {
             "state": "translated",
             "value": "Larga (4.096)"
+          }
+        }
+      }
+    },
+    "Long break": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Descanso largo"
+          }
+        }
+      }
+    },
+    "Long break after %lld blocks": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Descanso largo cada %lld bloques"
+          }
+        }
+      }
+    },
+    "Long break · paused": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Descanso largo · en pausa"
+          }
+        }
+      }
+    },
+    "Long break: %lld min": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Descanso largo: %lld min"
           }
         }
       }
@@ -4038,6 +4278,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "Próxima reunión"
+          }
+        }
+      }
+    },
+    "Nice run! Long break, %lld min?": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "¡Buena racha! ¿Descanso largo de %lld min?"
           }
         }
       }
@@ -4852,12 +5102,32 @@
         }
       }
     },
+    "Pause": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Pausar"
+          }
+        }
+      }
+    },
     "Paused: Do not disturb": {
       "localizations": {
         "es": {
           "stringUnit": {
             "state": "translated",
             "value": "En pausa: No molestar"
+          }
+        }
+      }
+    },
+    "Paused: focus block": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "En pausa: bloque de concentración"
           }
         }
       }
@@ -5372,6 +5642,16 @@
         }
       }
     },
+    "Resume": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Reanudar"
+          }
+        }
+      }
+    },
     "Retry": {
       "localizations": {
         "es": {
@@ -5732,6 +6012,16 @@
         }
       }
     },
+    "Shortcut ⌃⌥F: start, pause or resume a block": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Atajo ⌃⌥F: empezar, pausar o reanudar un bloque"
+          }
+        }
+      }
+    },
     "Show folder": {
       "localizations": {
         "es": {
@@ -5788,6 +6078,26 @@
           "stringUnit": {
             "state": "translated",
             "value": "Skills"
+          }
+        }
+      }
+    },
+    "Skip the break": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Saltar el descanso"
+          }
+        }
+      }
+    },
+    "Skip to the break": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Pasar al descanso"
           }
         }
       }
@@ -5852,6 +6162,26 @@
         }
       }
     },
+    "Start a %lld-min focus block with Do not disturb · %lld done today": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Empieza un bloque de concentración de %lld min con No molestar · %lld hechos hoy"
+          }
+        }
+      }
+    },
+    "Start focus": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Empezar a concentrarme"
+          }
+        }
+      }
+    },
     "Starting in 5 min · %@": {
       "localizations": {
         "es": {
@@ -5882,6 +6212,16 @@
         }
       }
     },
+    "Stop": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Detener"
+          }
+        }
+      }
+    },
     "Stop and send": {
       "localizations": {
         "es": {
@@ -5908,6 +6248,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "Subagente"
+          }
+        }
+      }
+    },
+    "Take the break": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tomar el descanso"
           }
         }
       }
@@ -6348,6 +6698,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "Desactivar No molestar"
+          }
+        }
+      }
+    },
+    "Turn off Hey Mochi during focus blocks": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Apagar Oye Mochi durante los bloques de concentración"
           }
         }
       }

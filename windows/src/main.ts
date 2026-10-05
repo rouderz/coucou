@@ -12,9 +12,11 @@ import { CI_ID, refreshCI, startCIPoller } from "./core/ciPoller";
 import { dndActive } from "./core/dnd.ts";
 import { setLanguage, startTranslating } from "./core/i18n.ts";
 import { speak } from "./core/voice.ts";
-import { setSpeaker, setListening } from "./views/chat";
 import { beginCapture, captureBusy } from "./views/capture";
 import { describeSource } from "./core/capture";
+import { setSpeaker, setListening, setFocusCommand } from "./views/chat";
+import { Focus, applyFocusSettings, registerFocus } from "./island/focus";
+import { parseFocusCommand } from "./core/focus.ts";
 
 async function main() {
   const root = document.getElementById("root");
@@ -92,6 +94,7 @@ async function main() {
     const ciWasOn = State.settings.activeIntegrations.includes(CI_ID);
     State.settings = { ...State.settings, ...s };
     island.applySettings();
+    applyFocusSettings();
     State.loadIntegrationTasks();
     void refreshConfigured();
     // The CI pill just switched on: poll now rather than at the next check.
@@ -102,6 +105,12 @@ async function main() {
   registerIntegrationHandlers(island);
   registerInboxHandlers(island);
   startCIPoller(() => island.reveal());
+  // Focus timer (#119): Ctrl+Alt+F, and "focus 50 min on SHO-475" in the chat.
+  registerFocus(island);
+  setFocusCommand((query) => {
+    const command = parseFocusCommand(query);
+    return command ? Focus.run(command) : null;
+  });
 
   // Mochi reads replies aloud (Settings → Voice), never in Do not disturb.
   setSpeaker((text) => { if (!dndActive(State.settings.dndUntil)) speak(text); });

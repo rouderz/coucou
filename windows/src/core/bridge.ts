@@ -99,6 +99,8 @@ export const Bridge = {
   updateInstall: () => callOrThrow<void>("update_install"),
   /** Alt+Enter / Alt+Backspace answer the card from any app, only while it's up. */
   approvalShortcuts: (armed: boolean) => call<void>("approval_shortcuts", { armed }),
+  /** Ctrl+Alt+F: start, pause or resume a focus block from any app (Settings → Focus). */
+  focusShortcut: (enabled: boolean) => call<void>("focus_shortcut", { enabled }),
 
   // ── Saved chats, other providers ────────────────────────────────────────────
   chatRestore: (messages: { user: boolean; text: string }[], sessionId: string | null, workDir: string | null) =>

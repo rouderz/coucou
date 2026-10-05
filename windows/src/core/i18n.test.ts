@@ -22,6 +22,10 @@ test("spanish: exact, patterns, pieces; the rest untouched", () => {
   assert.equal(t("Standup in 12 min"), "Standup en 12 min");
   assert.equal(t("Review in 1 h 5 min"), "Review en 1 h 5 min");
   assert.equal(t("Now: Standup (until 10:15)"), "Ahora: Standup (hasta las 10:15)");
+  assert.equal(t("Block done! Break, 5 min?"), "¡Bloque terminado! ¿Descanso de 5 min?");
+  assert.equal(t("Long break · paused"), "Descanso largo · en pausa");
+  assert.equal(t("Focus: 50 min on SHO-475. Do not disturb is on until the end of the block."),
+    "Concentración: 50 min en SHO-475. No molestar está activado hasta el final del bloque.");
   _test.setLang("en");
   assert.equal(t("Allow"), "Allow");
 });

@@ -517,6 +517,13 @@ final class IslandWindowController: NSWindowController {
             MainActor.assumeIsolated { self?.registerVoiceHotKey() }
         }
 
+        // Focus timer (#119): ⌃⌥F starts, pauses or resumes a block from any app.
+        focusHotKey = GlobalHotKey { FocusTimer.shared.toggle() }
+        registerFocusHotKey()
+        NotificationCenter.default.addObserver(forName: .focusHotkeyChanged, object: nil, queue: .main) { [weak self] _ in
+            MainActor.assumeIsolated { self?.registerFocusHotKey() }
+        }
+
         // Global hotkey to show island
         NSEvent.addGlobalMonitorForEvents(matching: .keyDown) { [weak self] event in
             Task { @MainActor in
@@ -715,6 +722,23 @@ final class IslandWindowController: NSWindowController {
 
     private func stopTalking() {
         VoiceSession.end(state)
+    }
+
+    // MARK: - Focus timer shortcut
+
+    /// ⌃⌥F ('f' is key code 3).
+    static let focusHotkeyCode: UInt16 = 3
+    static let focusHotkeyFlags: UInt = NSEvent.ModifierFlags([.control, .option]).rawValue
+
+    private var focusHotKey: GlobalHotKey?
+
+    private func registerFocusHotKey() {
+        guard let hotKey = focusHotKey else { return }
+        if state.focusHotkeyEnabled {
+            hotKey.register(keyCode: Self.focusHotkeyCode, flags: Self.focusHotkeyFlags)
+        } else {
+            hotKey.unregister()
+        }
     }
 
     // MARK: - Assistant: ask about the frontmost app
@@ -1012,6 +1036,7 @@ extension Notification.Name {
     static let assistantHotkeyChanged = Notification.Name("notchBuddy.assistantHotkeyChanged")
     static let voiceHotkeyChanged = Notification.Name("notchBuddy.voiceHotkeyChanged")
     static let captureHotkeyChanged = Notification.Name("notchBuddy.captureHotkeyChanged")
+    static let focusHotkeyChanged = Notification.Name("notchBuddy.focusHotkeyChanged")
     static let openFullSettings = Notification.Name("notchBuddy.openFullSettings")
     static let hookReveal       = Notification.Name("notchBuddy.hookReveal")
     // Greeting ↔ IslandWindowController

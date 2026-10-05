@@ -11,7 +11,9 @@ import {
 } from "../core/layout";
 import { Sound } from "../core/sound";
 import { State } from "../core/state";
-import { BotEngine, hexToRGB } from "../mochi/engine";
+import { BotEngine, hexToRGB, type EyeShape } from "../mochi/engine";
+import { progress as focusProgress } from "../core/focus.ts";
+import type { BotEmoteName } from "../core/layout";
 import { Greeting } from "../mochi/greeting";
 import { createMiniBot, pruneMiniBots, syncMiniBotStates, tickMiniBots } from "../mochi/minibots";
 import { UploadCanvas } from "../upload/canvas";
@@ -346,6 +348,12 @@ export class Island {
 
   reveal() {
     this.fsm.reveal();
+  }
+
+  /** An emote from outside the island (the focus timer's "proud" at the end of a block). */
+  emote(e: BotEmoteName) {
+    this.engine.triggerEmote(e);
+    this.ensureRunning();
   }
 
   /** An alert stopped waiting for an answer: let the island auto-close again. */
@@ -735,6 +743,7 @@ export class Island {
     this.viewsEl.classList.toggle("hidden-by-upload", uploadActive);
 
     tickMiniBots(dt);
+    this.header.tick?.(nowMs);
     this.views.get(State.view)?.tick?.(nowMs);
     if (UploadSeq.isActive) this.stepSequence();
     this.updateCountdown(nowMs);
@@ -823,6 +832,49 @@ export class Island {
     ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
     ctx.clearRect(0, 0, w, hCss);
     this.engine.draw(ctx, w, hCss);
+    this.drawFocusRing(ctx, w);
+  }
+
+  /**
+   * Focus timer (#119): what's left of the block as a thin ring around Mochi,
+   * shrinking clockwise. Drawn with Mochi, so only while the island is showing.
+   */
+  private drawFocusRing(ctx: CanvasRenderingContext2D, w: number) {
+    const f = State.focus;
+    if (f.phase === "idle" || State.mode === "hidden" || State.view === "uploading") return;
+    const left = 1 - focusProgress(f, Date.now());
+    const cx = w / 2;
+    const cy = BOT_OVERHANG + w / 2;
+    const r = w * 0.3 + (State.mode === "compact" ? 3 : 6);
+    const color = f.paused ? "#8E939C" : f.phase === "focus" ? "#A78BFA" : "#34D399";
+    ctx.save();
+    ctx.lineWidth = 2;
+    ctx.lineCap = "round";
+    ctx.strokeStyle = "rgba(255,255,255,0.08)";
+    ctx.beginPath();
+    ctx.arc(cx, cy, r, 0, Math.PI * 2);
+    ctx.stroke();
+    ctx.strokeStyle = color;
+    ctx.beginPath();
+    ctx.arc(cx, cy, r, -Math.PI / 2, -Math.PI / 2 + Math.PI * 2 * Math.max(0.002, left));
+    ctx.stroke();
+    ctx.restore();
+  }
+
+  /** During a block Mochi looks concentrated (flat eyes) while nothing else is going on. */
+  private applyFocusLook() {
+    const f = State.focus;
+    const on = f.phase === "focus" && !f.paused && State.effectiveState === "idle";
+    const eye: EyeShape | null = on ? "flat" : null;
+    if (this.engine.permanentEye === eye) return;
+    this.engine.permanentEye = eye;
+    if (eye) {
+      this.engine.eyeOverride = eye;
+      this.engine.eyeOverrideUntil = Number.POSITIVE_INFINITY;
+    } else if (this.engine.eyeOverrideUntil === Number.POSITIVE_INFINITY) {
+      this.engine.eyeOverride = null;
+      this.engine.eyeOverrideUntil = 0;
+    }
   }
 
   /** BotCanvasView.lookX / lookY — tanh of the distance to the bot. */
@@ -895,6 +947,7 @@ export class Island {
 
     syncMiniBotStates(State.tasks);
     this.engine.setState(State.effectiveState);
+    this.applyFocusLook();
   }
 
   /** Keyboard focus to the text field of the view on screen (chat, quick capture). */
