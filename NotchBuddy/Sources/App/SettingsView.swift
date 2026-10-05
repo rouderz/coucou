@@ -350,6 +350,9 @@ struct SettingsView: View {
                                         : L("Personal Access Token"),
                                         text: $githubToken)
                                 .textFieldStyle(.roundedBorder)
+                            Text("The CI pill (Active pills) follows GitHub Actions on your open PRs with this same connection.")
+                                .font(.system(size: 11)).foregroundColor(.secondary)
+                                .fixedSize(horizontal: false, vertical: true)
                         }
 
                         // Stripe

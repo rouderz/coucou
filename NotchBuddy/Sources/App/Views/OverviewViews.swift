@@ -129,6 +129,8 @@ struct OverviewView: View {
             if let url = WhaTicketRules.webURL(nil) { NSWorkspace.shared.open(url) }
         case "integration_gmail":
             AppLinks.open("https://mail.google.com")
+        case "integration_ci":
+            AppLinks.open("https://github.com/pulls")
         case "integration_calcom":
             NSWorkspace.shared.open(URL(string: "https://app.cal.com/bookings")!)
         default:
@@ -562,6 +564,14 @@ struct PillData: View {
                     .fixedSize()
                     .help(L("Last build: \(last.projectName) · \(time)"))
             }
+        case "integration_ci" where state.ciPill.color != .idle:
+            let pill = state.ciPill
+            Text(verbatim: pill.color == .failed ? "✗\(pill.count)" : pill.color == .running ? "●\(pill.count)" : "✓")
+                .font(.system(size: 9, weight: .semibold, design: .monospaced))
+                .foregroundColor(Color(hex: pill.color == .failed ? "#F4505E" : pill.color == .running ? "#4C8DFF" : "#22C55E"))
+                .fixedSize()
+                .help(pill.color == .failed ? L("PRs with failing checks: \(pill.count)")
+                      : pill.color == .running ? L("PRs with checks running: \(pill.count)") : L("All checks passed"))
         default:
             EmptyView()
         }

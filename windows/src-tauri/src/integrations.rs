@@ -74,7 +74,7 @@ pub fn start(app: AppHandle) {
 }
 
 /// True when the user has this integration switched on in settings.
-fn enabled(app: &AppHandle, id: &str) -> bool {
+pub(crate) fn enabled(app: &AppHandle, id: &str) -> bool {
     app.try_state::<crate::Shared>()
         .map(|shared| {
             let settings = shared.settings.lock().unwrap();

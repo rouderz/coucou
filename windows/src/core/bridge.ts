@@ -144,6 +144,15 @@ export const Bridge = {
   driveSearch: (text: string) => callOrThrow<DriveFile[]>("drive_search", { text }),
   driveAttach: (id: string, name: string, mime: string) => callOrThrow<DroppedFile>("drive_attach", { id, name, mime }),
 
+  // ── CI pill (#115) ──────────────────────────────────────────────────────────
+  /** One of the CI pill's GitHub reads (open PRs search, a PR, check runs), with ETags. */
+  ciGet: (path: string) => callOrThrow<unknown>("ci_get", { path }),
+  /** The end of a failed job's raw log (on a click). */
+  ciJobLog: (repo: string, jobId: number) => callOrThrow<string>("ci_job_log", { repo, jobId }),
+  /** Re-runs a workflow run's failed jobs (on a click). */
+  ciRerunFailed: (repo: string, runId: number) => callOrThrow<void>("ci_rerun_failed", { repo, runId }),
+  ciSaveLog: (name: string, text: string) => callOrThrow<DroppedFile>("ci_save_log", { name, text }),
+
   /** Codex CLI hooks in ~/.codex/hooks.json. */
   codexStatus: () => call<{ found: boolean; installed: boolean; hooksPath: string }>("codex_status"),
   codexInstall: (install: boolean) => callOrThrow<void>("codex_install", { install }),

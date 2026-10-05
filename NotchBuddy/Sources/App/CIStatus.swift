@@ -215,4 +215,58 @@ enum CICore {
         let cut = kept.count < lines.count
         return ((cut ? ["… (log cut, last lines only)"] : []) + kept).joined(separator: "\n")
     }
+
+    // MARK: Poller and card helpers (the rest of #115)
+
+    /// Your open PRs, newest first (REST search; `@me` is whoever the token or gh belongs to).
+    static let maxPRs = 10
+    static let myOpenPRsPath =
+        "search/issues?q=is%3Apr+is%3Aopen+author%3A%40me+archived%3Afalse&sort=updated&order=desc&per_page=\(maxPRs)"
+    static func pullPath(_ repo: String, number: Int) -> String { "repos/\(repo)/pulls/\(number)" }
+    /// "Ask Mochi why" keeps this much of the failed job's log.
+    static let logLines = 150
+    static let logChars = 12_000
+
+    /// The `check_runs` of GET …/check-runs. Entries without an id, name or status are skipped.
+    static func parseCheckRuns(_ json: Any?) -> [CheckRun] {
+        guard let list = (json as? [String: Any])?["check_runs"] as? [[String: Any]] else { return [] }
+        return list.compactMap(CheckRun.parse)
+    }
+
+    private static func cardRank(_ s: CheckState) -> Int {
+        switch s {
+        case .failed: return 0
+        case .running: return 1
+        case .passed: return 2
+        case .cancelled: return 3
+        case .neutral: return 4
+        case .skipped: return 5
+        }
+    }
+
+    /// The runs shown on the card: newest per name, failed first, then running, then the rest, by name.
+    static func cardRuns(_ runs: [CheckRun]) -> [CheckRun] {
+        latestRuns(runs).sorted { a, b in
+            let ra = cardRank(a.state), rb = cardRank(b.state)
+            return ra != rb ? ra < rb : a.name < b.name
+        }
+    }
+
+    /// "45s", "3m 07s", "1h 02m"; "" when unknown.
+    static func formatDuration(_ seconds: Int?) -> String {
+        guard let s = seconds, s >= 0 else { return "" }
+        if s < 60 { return "\(s)s" }
+        if s < 3600 { return "\(s / 60)m " + String(format: "%02d", s % 60) + "s" }
+        return "\(s / 3600)h " + String(format: "%02d", (s / 60) % 60) + "m"
+    }
+
+    /// The file attached to Mochi's chat by "Ask Mochi why": what failed, where, and the log's end.
+    static func logAttachment(pr: String, title: String, job: String, sha: String, url: String, tail: String) -> String {
+        var lines = ["CI check failed: \(job)",
+                     "Pull request: \(pr)" + (title.isEmpty ? "" : " · \(title)"),
+                     "Commit: \(sha.prefix(7))"]
+        if !url.isEmpty { lines.append("Run: \(url)") }
+        lines += ["", "Last lines of the job log:", tail]
+        return lines.joined(separator: "\n")
+    }
 }

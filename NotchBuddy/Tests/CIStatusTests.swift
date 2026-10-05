@@ -146,4 +146,49 @@ final class CIStatusTests: XCTestCase {
                        String(repeating: "y", count: 20), "one huge line: its last chars")
         XCTAssertEqual(CICore.trimLogTail(""), "")
     }
+
+    func testParseCheckRuns() {
+        let json: [String: Any] = ["total_count": 3, "check_runs": [
+            ["id": 7, "name": "build", "status": "completed", "conclusion": "failure",
+             "started_at": "2026-10-01T10:00:00Z", "completed_at": "2026-10-01T10:02:05Z",
+             "html_url": "https://github.com/o/r/actions/runs/11/job/22"],
+            ["id": 8, "name": "lint", "status": "in_progress", "conclusion": NSNull()],
+            ["name": "no id", "status": "queued"],
+        ] as [[String: Any]]]
+        let runs = CICore.parseCheckRuns(json)
+        XCTAssertEqual(runs.count, 2)
+        XCTAssertEqual(runs[0].name, "build")
+        XCTAssertEqual(runs[0].state, .failed)
+        XCTAssertEqual(runs[0].durationSeconds(), 125)
+        XCTAssertEqual(runs[0].htmlURL, "https://github.com/o/r/actions/runs/11/job/22")
+        XCTAssertNil(runs[1].conclusion)
+        XCTAssertNil(runs[1].startedAt)
+        XCTAssertTrue(CICore.parseCheckRuns(nil).isEmpty)
+        XCTAssertTrue(CICore.parseCheckRuns(["check_runs": "x"]).isEmpty)
+    }
+
+    func testCardRunsOrder() {
+        let early = Date(timeIntervalSince1970: 1_000), late = Date(timeIntervalSince1970: 2_000)
+        let order = CICore.cardRuns([
+            done("b-pass", "success"), run("a-run", "queued"), done("z-fail", "failure"), done("a-fail", "timed_out"),
+            done("skip", "skipped"), run("dup", "completed", "failure", start: early),
+            run("dup", "completed", "success", start: late),
+        ]).map(\.name)
+        XCTAssertEqual(order, ["a-fail", "z-fail", "a-run", "b-pass", "dup", "skip"])
+    }
+
+    func testFormatDurationAndPaths() {
+        XCTAssertEqual(CICore.formatDuration(nil), "")
+        XCTAssertEqual(CICore.formatDuration(45), "45s")
+        XCTAssertEqual(CICore.formatDuration(187), "3m 07s")
+        XCTAssertEqual(CICore.formatDuration(3720), "1h 02m")
+        XCTAssertTrue(CICore.myOpenPRsPath.hasPrefix("search/issues?q=is%3Apr+is%3Aopen+author%3A%40me"))
+        XCTAssertEqual(CICore.pullPath("o/r", number: 5), "repos/o/r/pulls/5")
+    }
+
+    func testLogAttachment() {
+        let text = CICore.logAttachment(pr: "o/r#5", title: "Fix it", job: "build", sha: "abcdef123456",
+                                        url: "https://x/y", tail: "error: boom")
+        XCTAssertEqual(text, "CI check failed: build\nPull request: o/r#5 · Fix it\nCommit: abcdef1\nRun: https://x/y\n\nLast lines of the job log:\nerror: boom")
+    }
 }

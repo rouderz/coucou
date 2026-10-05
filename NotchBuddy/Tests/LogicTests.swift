@@ -392,7 +392,7 @@ final class PortsTests: XCTestCase {
     func testEveryCardHasOneIntegration() {
         let ids = Integrations.all.map(\.integrationID)
         XCTAssertEqual(Set(ids).count, ids.count, "no duplicates")
-        for id in ["integration_github", "integration_linear", "integration_stripe", "integration_claude"] {
+        for id in ["integration_github", "integration_linear", "integration_stripe", "integration_claude", "integration_ci"] {
             XCTAssertNotNil(Integrations.source(id), id)
         }
         XCTAssertNil(Integrations.source("integration_nope"))

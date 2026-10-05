@@ -147,6 +147,15 @@ enum GitHubCLI {
         return try? JSONSerialization.jsonObject(with: out.stdoutData)
     }
 
+    /// `gh api <path>` for a body that isn't JSON (e.g. an Actions job log; gh follows the
+    /// redirect). Nil when gh is missing, signed out or fails. Blocking: call it off the main thread.
+    static func raw(_ path: String, timeout: TimeInterval = 45) -> Data? {
+        guard let gh = locate(),
+              let out = CLITool.run(gh.path, ["api", path], environment: environment(for: gh), timeout: timeout),
+              out.status == 0 else { return nil }
+        return out.stdoutData
+    }
+
     /// PATCH / POST / DELETE through gh (e.g. marking a notification as read). True on success.
     @discardableResult
     static func send(_ method: String, _ path: String) -> Bool {

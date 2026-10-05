@@ -18,6 +18,8 @@ const KEY_FOR: Record<string, string> = {
   integration_calcom: "calcom-api-key",
   integration_linear: "linear-api-key",
   integration_gmail: "google-refresh-token",
+  // The CI pill (#115) uses the GitHub connection.
+  integration_ci: "github-token",
 };
 
 const clearTimers = new Map<string, number>();
@@ -32,7 +34,7 @@ export async function refreshConfigured() {
   for (const [id, key] of Object.entries(KEY_FOR)) {
     let present = (await Bridge.secretPresent(key)) ?? false;
     // GitHub also works through a signed-in GitHub CLI, without a token.
-    if (!present && id === "integration_github") present = (await Bridge.githubCliStatus())?.signedIn ?? false;
+    if (!present && (id === "integration_github" || id === "integration_ci")) present = (await Bridge.githubCliStatus())?.signedIn ?? false;
     const info = State.integrations[id] ?? { data: {}, error: null, loaded: false, configured: false };
     State.integrations[id] = { ...info, configured: present };
   }
