@@ -236,6 +236,43 @@ struct FocusTimerState: Sendable, Equatable {
     }
 }
 
+extension FocusTimerState {
+    /// Blocks finished today; 0 when the last one was on another day (the count only rolls over on a transition).
+    func blocksDone(at now: Date, calendar: Calendar = .current) -> Int {
+        calendar.dateComponents([.year, .month, .day], from: now) == day ? blocksToday : 0
+    }
+}
+
+/// "focus 50 min on SHO-475" typed in the chat. English or Spanish ("enfoque 25 min en SHO-475");
+/// the minutes and the Linear key are optional. Same pattern as windows/src/core/focus.ts.
+struct FocusCommand: Equatable, Sendable {
+    var minutes: Int?
+    var issue: String?
+
+    static let pattern = #"^/?(?:focus|foco|enfoque|enf[oó]cate|concentraci[oó]n)(?:\s+(\d{1,3})\s*(?:m|min|mins|minutes?|minutos?)?)?(?:\s+(?:on|en|para|sobre|for)?\s*([a-z][a-z0-9]{0,9}-\d{1,6}))?\s*[.!]?$"#
+
+    /// nil when the text isn't a focus command (it then goes to the chat as usual).
+    static func parse(_ text: String) -> FocusCommand? {
+        let s = text.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard let re = try? NSRegularExpression(pattern: pattern, options: [.caseInsensitive]) else { return nil }
+        let ns = s as NSString
+        guard let m = re.firstMatch(in: s, range: NSRange(location: 0, length: ns.length)) else { return nil }
+        func group(_ i: Int) -> String? {
+            let r = m.range(at: i)
+            return r.location == NSNotFound ? nil : ns.substring(with: r)
+        }
+        let minutes = group(1).flatMap { Int($0) }.map { min(240, max(1, $0)) }
+        return FocusCommand(minutes: minutes, issue: group(2)?.uppercased())
+    }
+}
+
+/// The prompt shown when a block or a break runs out ("Break, 5 min?").
+struct FocusNote: Equatable, Sendable {
+    enum Kind: Sendable, Equatable { case blockDone, breakDone }
+    let kind: Kind
+    let text: String
+}
+
 /// Runs the state machine for the app: one one-shot Timer, only while a block is running.
 @MainActor
 final class FocusTimer {
@@ -249,26 +286,92 @@ final class FocusTimer {
         return until.flatMap { $0 > .now ? $0 : nil }
     }
 
-    func start(minutes: Int? = nil) { apply(AppState.shared.focus.start(now: .now, currentDnd: current, minutes: minutes)) }
+    /// `issue`: a Linear key ("SHO-475") shown with the block; kept for the next blocks until Stop.
+    func start(minutes: Int? = nil, issue: String? = nil) {
+        if let issue { AppState.shared.focusIssue = issue }
+        apply(AppState.shared.focus.start(now: .now, currentDnd: current, minutes: minutes))
+    }
     func pause() { apply(AppState.shared.focus.pause(now: .now, currentDnd: current)) }
     func resume() { apply(AppState.shared.focus.resume(now: .now, currentDnd: current)) }
     func skip() { apply(AppState.shared.focus.skip(now: .now, currentDnd: current)) }
-    func stop() { apply(AppState.shared.focus.stop(now: .now, currentDnd: current)) }
+    func stop() {
+        AppState.shared.focusIssue = nil
+        apply(AppState.shared.focus.stop(now: .now, currentDnd: current))
+    }
+
+    /// The global shortcut and a click on the header timer: start, pause or resume.
+    func toggle() {
+        let f = AppState.shared.focus
+        if f.phase == .idle { start() } else if f.paused { resume() } else { pause() }
+    }
+
+    /// "Keep working": no break (or the rest of it), the next block now.
+    func keepWorking(minutes: Int? = nil, issue: String? = nil) {
+        let f = AppState.shared.focus
+        if f.phase == .shortBreak || f.phase == .longBreak {
+            apply(f.skip(now: .now, currentDnd: current))
+        }
+        start(minutes: minutes, issue: issue)
+    }
+
+    /// A focus command typed in the chat; returns Mochi's answer.
+    func run(_ command: FocusCommand) -> String {
+        let s = AppState.shared
+        if s.focus.phase == .focus {
+            let left = FocusTimerState.format(s.focus.remaining(at: .now))
+            return L("A focus block is already running (\(left) left).")
+        }
+        keepWorking(minutes: command.minutes, issue: command.issue)
+        let mins = Int((s.focus.duration / 60).rounded())
+        if let issue = s.focusIssue {
+            return L("Focus: \(mins) min on \(issue). Do not disturb is on until the end of the block.")
+        }
+        return L("Focus: \(mins) min. Do not disturb is on until the end of the block.")
+    }
 
     private func fire() {
         timer = nil
-        apply(AppState.shared.focus.tick(now: .now, currentDnd: current))
+        apply(AppState.shared.focus.tick(now: .now, currentDnd: current), announce: true)
     }
 
-    private func apply(_ step: FocusStep) {
+    private func apply(_ step: FocusStep, announce: Bool = false) {
         let s = AppState.shared
         s.focus = step.state
         if let write = step.dnd {
             // Not DoNotDisturb.turnOff(): that also marks the current meeting as skipped.
             s.dndUntil = write
         }
-        if let event = step.event { log.info("focus \(String(describing: event), privacy: .public)") }
+        if let event = step.event {
+            log.info("focus \(String(describing: event), privacy: .public)")
+            if announce { self.announce(event) }
+        }
         rearm()
+    }
+
+    /// End of a block or a break: a soft sound and the next step as a prompt in the island.
+    private func announce(_ event: FocusEvent) {
+        let s = AppState.shared
+        let note: FocusNote
+        switch event {
+        case .focusDone:
+            let mins = Int((s.focus.duration / 60).rounded())
+            note = FocusNote(kind: .blockDone, text: s.focus.phase == .longBreak
+                             ? L("Nice run! Long break, \(mins) min?")
+                             : L("Block done! Break, \(mins) min?"))
+            SoundEngine.shared.play("proud")
+            NotificationCenter.default.post(name: .triggerEmote, object: BotEmote.proud)
+        case .breakDone:
+            note = FocusNote(kind: .breakDone, text: L("Break's over. Back to work?"))
+            SoundEngine.shared.play("pop")
+        default:
+            return
+        }
+        // An approval on screen keeps the island; Do not disturb (the user's own) keeps it closed.
+        guard s.pendingApproval == nil else { return }
+        s.focusNote = note
+        s.noteMessage = note.text
+        guard !DoNotDisturb.shared.isActive else { return }
+        NotificationCenter.default.post(name: .hookExpand, object: IslandView.note)
     }
 
     /// Exactly one timer while a phase runs, none otherwise (0 % CPU when idle or paused).

@@ -40,7 +40,10 @@ struct BotCanvasView: View {
         }
         .onChange(of: state.effectiveState) { _, newState in
             engine.setState(newState)
+            applyFocusLook()
         }
+        .onChange(of: state.focus.phase) { _, _ in applyFocusLook() }
+        .onChange(of: state.focus.paused) { _, _ in applyFocusLook() }
         .onChange(of: state.view) { _, newView in
             // Morph up when upload view is active
             if state.mode == .expanded && newView == .upload {
@@ -88,6 +91,24 @@ struct BotCanvasView: View {
         }
         .onAppear {
             engine.setState(state.effectiveState, force: true)
+            applyFocusLook()
+        }
+    }
+
+    /// Focus timer (#119): during a block Mochi looks concentrated (flat eyes) while nothing else
+    /// is going on; Claude Code states and emotes still show over it.
+    private func applyFocusLook() {
+        let f = state.focus
+        let on = f.phase == .focus && !f.paused && state.effectiveState == .idle
+        let eye: EyeShape? = on ? .flat : nil
+        guard engine.permanentEye != eye else { return }
+        engine.permanentEye = eye
+        if let eye {
+            engine.eyeOverride = eye
+            engine.eyeOverrideUntil = .greatestFiniteMagnitude
+        } else if engine.eyeOverrideUntil == .greatestFiniteMagnitude {
+            engine.eyeOverride = nil
+            engine.eyeOverrideUntil = 0
         }
     }
 

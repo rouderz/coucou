@@ -276,6 +276,15 @@ struct BotPlacement: View {
                     .animation(.easeInOut(duration: 0.4), value: state.effectiveState)
             }
 
+            // Focus timer (#119): what's left of the block, as a thin ring around Mochi.
+            if !isUploading {
+                FocusRing(state: state, diameter: diameter + (state.mode == .compact ? 6 : 12))
+                    .position(x: cx, y: cy)
+                    .animation(.spring(response: 0.5, dampingFraction: 0.72), value: cx)
+                    .animation(.spring(response: 0.5, dampingFraction: 0.72), value: cy)
+                    .animation(.spring(response: 0.5, dampingFraction: 0.72), value: diameter)
+            }
+
             // Uploading: no particle overhang (no hearts during upload), positioned directly at cy.
             // BotEngine cy = H/2 + 0 + oy*R + R*0.06 ≈ H/2 (body centered in canvas).
             // With .position(x:y:) placing the frame center at (uploadCx, cy), bot is at cy ✓.
@@ -485,6 +494,7 @@ struct IslandHeader: View {
 
             // Right: action icons
             HStack(spacing: 14) {
+                FocusHeaderButton()
                 InboxButton()
                 DoNotDisturbButton()
 

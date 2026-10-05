@@ -12,6 +12,7 @@ import { Bridge } from "../core/bridge";
 import { todayLine } from "../core/whaticketStats.ts";
 import { CI_ID, ciLogFile, ciRerunFailed, refreshCI, type CIPr } from "../core/ciPoller";
 import { checkState, durationSeconds, formatDuration, parseJobUrl, type CheckRun, type CheckState, type PillState, type PrState } from "../core/ci.ts";
+import { focusCardPanel, focusStartButton } from "./focus";
 
 /** Same shape as the Swift `timeAgo` computed properties. */
 export function timeAgo(value: unknown): string {
@@ -81,6 +82,8 @@ function idleCard(task: AgentTask, openSettings: () => void): HTMLElement {
         onclick: () => void Bridge.openInVSCode(task.sessionCwd ?? null),
       }),
     );
+    // Focus timer (#119): start a block from the card.
+    if (State.focus.phase === "idle") actions.append(focusStartButton());
   } else if (task.id === "integration_n8n") {
     actions.append(
       h("button", {
@@ -117,11 +120,13 @@ function idleCard(task: AgentTask, openSettings: () => void): HTMLElement {
     );
   }
 
+  // A running focus block takes the place of the status line on the Claude Code card.
+  const focusing = task.id === "integration_claude" && State.focus.phase !== "idle";
   return h(
     "div",
     { class: "int-card" },
     header(task.color, task.id === "integration_claude" ? "VS Code" : task.name, "Integration"),
-    h("div", { class: "int-status" }, dot(statusColor, 5), h("span", { text: label })),
+    focusing ? focusCardPanel() : h("div", { class: "int-status" }, dot(statusColor, 5), h("span", { text: label })),
     actions,
   );
 }

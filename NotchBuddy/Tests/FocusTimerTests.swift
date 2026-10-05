@@ -140,4 +140,23 @@ final class FocusTimerTests: XCTestCase {
         XCTAssertEqual(FocusTimerState.format(0), "00:00")
         XCTAssertEqual(FocusTimerState.format(0.2), "00:01")
     }
+
+    func testBlocksDoneIsZeroOnAnotherDay() {
+        let s = fresh().start(now: t0, currentDnd: nil).state.tick(now: at(25), currentDnd: nil).state
+        XCTAssertEqual(s.blocksDone(at: at(30)), 1)
+        XCTAssertEqual(s.blocksDone(at: at(24 * 60 + 30)), 0)
+    }
+
+    func testChatCommand() {
+        XCTAssertEqual(FocusCommand.parse("focus 50 min on SHO-475"), FocusCommand(minutes: 50, issue: "SHO-475"))
+        XCTAssertEqual(FocusCommand.parse("Focus"), FocusCommand(minutes: nil, issue: nil))
+        XCTAssertEqual(FocusCommand.parse("focus 25"), FocusCommand(minutes: 25, issue: nil))
+        XCTAssertEqual(FocusCommand.parse("focus 45m"), FocusCommand(minutes: 45, issue: nil))
+        XCTAssertEqual(FocusCommand.parse("/focus sho-12"), FocusCommand(minutes: nil, issue: "SHO-12"))
+        XCTAssertEqual(FocusCommand.parse("enfoque 30 minutos en ABC-9."), FocusCommand(minutes: 30, issue: "ABC-9"))
+        XCTAssertEqual(FocusCommand.parse("  focus 999 min  "), FocusCommand(minutes: 240, issue: nil))
+        XCTAssertNil(FocusCommand.parse("focus on the login bug"))
+        XCTAssertNil(FocusCommand.parse("focusing is hard"))
+        XCTAssertNil(FocusCommand.parse("how do I focus 50 min?"))
+    }
 }

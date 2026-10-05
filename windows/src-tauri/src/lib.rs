@@ -735,6 +735,31 @@ fn approval_shortcuts(app: AppHandle, armed: bool) {
     }
 }
 
+/// Ctrl+Alt+F starts, pauses or resumes a focus block from any app (⌃⌥F on macOS, #119).
+/// The page registers it at launch and whenever the setting changes.
+#[tauri::command]
+fn focus_shortcut(app: AppHandle, enabled: bool) {
+    use tauri_plugin_global_shortcut::GlobalShortcutExt;
+    let gs = app.global_shortcut();
+    let key = focus_key();
+    let registered = gs.is_registered(key);
+    let result = if enabled && !registered {
+        gs.register(key)
+    } else if !enabled && registered {
+        gs.unregister(key)
+    } else {
+        Ok(())
+    };
+    if let Err(err) = result {
+        log::line(format!("focus shortcut: {err}"));
+    }
+}
+
+fn focus_key() -> tauri_plugin_global_shortcut::Shortcut {
+    use tauri_plugin_global_shortcut::{Code, Modifiers, Shortcut};
+    Shortcut::new(Some(Modifiers::CONTROL | Modifiers::ALT), Code::KeyF)
+}
+
 fn approval_keys() -> [tauri_plugin_global_shortcut::Shortcut; 2] {
     use tauri_plugin_global_shortcut::{Code, Modifiers, Shortcut};
     [
@@ -922,6 +947,9 @@ pub fn run() {
                     } else if CAPTURE_SHORTCUT.lock().map(|c| c.as_ref() == Some(shortcut)).unwrap_or(false) {
                         // Quick capture (#118): the island opens its one-line input.
                         let _ = app.emit_to(island::WINDOW_LABEL, "quick-capture", ());
+                    } else if *shortcut == focus_key() {
+                        // Focus timer (#119): start, pause or resume a block.
+                        let _ = app.emit_to(island::WINDOW_LABEL, "focus-shortcut", ());
                     }
                 })
                 .build(),
@@ -974,6 +1002,7 @@ pub fn run() {
             update_can_install,
             update_install,
             approval_shortcuts,
+            focus_shortcut,
             chat_restore,
             chat_session_info,
             chats_load,

@@ -111,6 +111,34 @@ pub struct Settings {
     pub capture_shortcut: String,
     #[serde(default)]
     pub linear_default_team: String,
+    /// Focus timer (#119 on macOS): block, break and long-break lengths in minutes, how many
+    /// blocks before a long break, and the Ctrl+Alt+F shortcut. The timer itself runs in the page.
+    #[serde(default = "default_focus_min")]
+    pub focus_min: u32,
+    #[serde(default = "default_break_min")]
+    pub break_min: u32,
+    #[serde(default = "default_long_break_min")]
+    pub long_break_min: u32,
+    #[serde(default = "default_blocks_before_long")]
+    pub blocks_before_long: u32,
+    #[serde(default = "yes")]
+    pub focus_shortcut: bool,
+}
+
+fn default_focus_min() -> u32 {
+    25
+}
+
+fn default_break_min() -> u32 {
+    5
+}
+
+fn default_long_break_min() -> u32 {
+    15
+}
+
+fn default_blocks_before_long() -> u32 {
+    4
 }
 
 fn ids_as_text<'de, D: serde::Deserializer<'de>>(d: D) -> Result<Vec<String>, D::Error> {
@@ -207,6 +235,11 @@ impl Default for Settings {
             time_tracking: true,
             capture_shortcut: default_capture_shortcut(),
             linear_default_team: String::new(),
+            focus_min: default_focus_min(),
+            break_min: default_break_min(),
+            long_break_min: default_long_break_min(),
+            blocks_before_long: default_blocks_before_long(),
+            focus_shortcut: true,
         }
     }
 }

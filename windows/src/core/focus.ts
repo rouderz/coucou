@@ -210,3 +210,35 @@ export function resume(s0: FocusState, now: number, currentDnd: number | null): 
   const a = acquire(now, currentDnd, endsAt);
   return withDnd({ state: { ...state, lease: a.lease }, event: "resumed" }, a.dnd);
 }
+
+/** Blocks finished today; 0 when the last one was on another day (the count only rolls over on a transition). */
+export function blocksDone(s: FocusState, now: number): number {
+  return s.day === dayKey(now) ? s.blocksToday : 0;
+}
+
+/** Lengths offered to start a block: the configured one, then 25 and 50. */
+export function focusLengths(configured: number): number[] {
+  const out = [configured];
+  for (const m of [25, 50]) if (!out.includes(m)) out.push(m);
+  return out;
+}
+
+export interface FocusCommand {
+  minutes: number | null;
+  /** Linear key, upper case ("SHO-475"). */
+  issue: string | null;
+}
+
+/** Same pattern as FocusCommand.pattern in FocusTimer.swift. */
+const COMMAND = /^\/?(?:focus|foco|enfoque|enf[oó]cate|concentraci[oó]n)(?:\s+(\d{1,3})\s*(?:m|min|mins|minutes?|minutos?)?)?(?:\s+(?:on|en|para|sobre|for)?\s*([a-z][a-z0-9]{0,9}-\d{1,6}))?\s*[.!]?$/i;
+
+/**
+ * "focus 50 min on SHO-475" typed in the chat (English or Spanish: "enfoque 25 min en SHO-475").
+ * The minutes and the Linear key are optional; null when the text isn't a focus command.
+ */
+export function parseFocusCommand(text: string): FocusCommand | null {
+  const m = text.trim().match(COMMAND);
+  if (!m) return null;
+  const minutes = m[1] === undefined ? null : Math.min(240, Math.max(1, Number(m[1])));
+  return { minutes, issue: m[2] ? m[2].toUpperCase() : null };
+}

@@ -792,6 +792,11 @@ struct SettingsView: View {
                     .padding(6)
                 }
 
+                // MARK: Focus (#119)
+                GroupBox("Focus") {
+                    FocusSettingsSection(state: state)
+                }
+
                 // MARK: Language
                 GroupBox("Language") {
                     VStack(alignment: .leading, spacing: 8) {

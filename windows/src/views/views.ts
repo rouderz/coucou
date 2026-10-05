@@ -19,6 +19,9 @@ import type { EditPreview } from "../claude/preview.ts";
 import { dndActive, dndStatus, FOREVER, tomorrowMorning } from "../core/dnd.ts";
 import { Bridge } from "../core/bridge";
 import { deleteChat, loadChats, openChat } from "../core/chats";
+import { blocksDone, focusLengths } from "../core/focus.ts";
+import { Focus } from "../island/focus";
+import { focusCardKey, focusColor, syncFocusTimes } from "./focus";
 
 export interface ViewActions {
   setView(v: IslandViewName): void;
@@ -127,6 +130,17 @@ export function buildHeader(actions: ViewActions): ViewHost {
     },
   }, svg(ICONS.update, 13));
   const soundBtn = h("button", { title: "Mute", onclick: () => actions.toggleSound() }, svg(ICONS.speakerOn, 14));
+  // ⏱ Focus timer (#119): click starts a block, or pauses / resumes it; right-click for the rest.
+  const focusTime = h("span", { class: "focus-time" });
+  const focusBtn = h("button", {
+    class: "focus-btn",
+    onclick: () => Focus.toggle(),
+    oncontextmenu: (e: Event) => {
+      e.preventDefault();
+      const me = e as MouseEvent;
+      showPillMenu(me.clientX, me.clientY, focusMenu());
+    },
+  }, svg(ICONS.timer, 13), focusTime);
 
   function go(v: IslandViewName) {
     actions.blip();
@@ -137,12 +151,24 @@ export function buildHeader(actions: ViewActions): ViewHost {
     "div",
     { id: "header" },
     h("div", { class: "tabs" }, tabHome, tabChat, tabDrop),
-    h("div", { class: "header-actions" }, updateBtn, inboxBtn, dndBtn, gearBtn, soundBtn),
+    h("div", { class: "header-actions" }, updateBtn, focusBtn, inboxBtn, dndBtn, gearBtn, soundBtn),
   );
 
   return {
     el,
+    tick() {
+      syncFocusTimes(el);
+    },
     sync() {
+      const f = State.focus;
+      const active = f.phase !== "idle";
+      focusBtn.classList.toggle("on", active);
+      focusBtn.style.color = active ? focusColor(f) : "";
+      focusTime.style.display = active ? "" : "none";
+      if (active) syncFocusTimes(el);
+      focusBtn.title = active
+        ? "Focus: click to pause or resume (right-click for more)"
+        : `Focus: start a ${f.config.focusMin}-min block (right-click for more)`;
       const v = State.view;
       tabHome.classList.toggle("on", v === "overview" || v === "empty");
       tabChat.classList.toggle("on", v === "prompt");
@@ -225,6 +251,7 @@ function buildOverview(actions: ViewActions): ViewHost {
     el,
     tick(nowMs: number) {
       if (mode === "ticker") ticker.tick(nowMs);
+      syncFocusTimes(leftBody);
     },
     sync() {
       const task = State.focusTask;
@@ -274,6 +301,7 @@ function buildOverview(actions: ViewActions): ViewHost {
         const info = State.integrations[task.id];
         const key = [
           task.id, detailOpen, task.state, task.steps.join("|"),
+          task.id === "integration_claude" ? focusCardKey() : "",
           info?.loaded, info?.error, info?.configured,
           JSON.stringify(info?.data ?? {}),
         ].join("~");
@@ -832,15 +860,53 @@ function buildConfused(): ViewHost {
 
 // ── Note ──────────────────────────────────────────────────────────────────────
 
-function buildNote(): ViewHost {
+function buildNote(actions: ViewActions): ViewHost {
   const title = h("div", { class: "title" });
-  const el = h("div", { class: "view" }, card(null, h("div", { class: "stack", style: "padding:0 18px 0 98px" }, title)));
+  // Focus timer (#119): the end-of-block / end-of-break prompt.
+  const focusRow = h("div", { class: "actions" });
+  const el = h("div", { class: "view" }, card(null, h("div", { class: "stack", style: "padding:0 18px 0 98px" }, title, focusRow)));
+  let shown: string | null = null;
+  const done = () => {
+    State.focusNote = null;
+    actions.setView("overview");
+  };
   return {
     el,
     sync() {
       title.textContent = State.noteMessage ?? "";
+      const note = State.focusNote && State.focusNote.text === State.noteMessage ? State.focusNote : null;
+      const key = note?.kind ?? null;
+      if (key === shown) return;
+      shown = key;
+      clear(focusRow);
+      focusRow.style.display = note ? "" : "none";
+      if (note?.kind === "blockDone") {
+        focusRow.append(
+          btn("Take the break", "primary", done),
+          btn("Keep working", "secondary", () => { Focus.keepWorking(); done(); }),
+        );
+      } else if (note?.kind === "breakDone") {
+        focusRow.append(
+          btn("Start focus", "primary", () => { Focus.start(); done(); }),
+          btn("Later", "secondary", done),
+        );
+      }
     },
   };
+}
+
+/** The ⏱ menu: lengths to start with, or pause / skip / stop; blocks done today. */
+function focusMenu(): PillMenuItem[] {
+  const f = State.focus;
+  const items: PillMenuItem[] = f.phase === "idle"
+    ? focusLengths(f.config.focusMin).map((m) => ({ label: `Focus ${m} min`, run: () => Focus.start(m) }))
+    : [
+        { label: f.paused ? "Resume" : "Pause", run: () => Focus.toggle() },
+        { label: f.phase === "focus" ? "Skip to the break" : "Skip the break", run: () => Focus.skip() },
+        { label: "Stop", run: () => Focus.stop() },
+      ];
+  items.push({ label: `Blocks today: ${blocksDone(f, Date.now())}`, run: () => {} });
+  return items;
 }
 
 // ── In-island settings ────────────────────────────────────────────────────────
@@ -951,7 +1017,7 @@ export function buildViews(
   map.set("error", buildError(actions));
   map.set("finished", buildFinished(actions));
   map.set("confused", buildConfused());
-  map.set("note", buildNote());
+  map.set("note", buildNote(actions));
   map.set("settings", buildSettings(actions));
   map.set("timeline", buildTimeline(actions));
   map.set("inbox", buildInbox(actions));

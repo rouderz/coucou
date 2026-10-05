@@ -484,6 +484,34 @@ final class AppState: ObservableObject {
 
     // Focus timer (#119). Driven by FocusTimer.shared; not persisted (a block doesn't survive a relaunch).
     @Published var focus = FocusTimerState()
+    /// Block lengths (Settings → Focus) — persisted.
+    @Published var focusConfig = FocusConfig() {
+        didSet {
+            let ud = UserDefaults.standard
+            ud.set(focusConfig.focusMinutes, forKey: "focusMinutes")
+            ud.set(focusConfig.breakMinutes, forKey: "focusBreakMinutes")
+            ud.set(focusConfig.longBreakMinutes, forKey: "focusLongBreakMinutes")
+            ud.set(focusConfig.blocksBeforeLong, forKey: "focusBlocksBeforeLong")
+            focus.config = focusConfig.sanitized()
+        }
+    }
+    /// "Hey Mochi" stays off during focus blocks.
+    @Published var focusMutesWakeWord: Bool = true {
+        didSet { UserDefaults.standard.set(focusMutesWakeWord, forKey: "focusMutesWakeWord") }
+    }
+    /// ⌃⌥F starts, pauses or resumes a block from any app.
+    @Published var focusHotkeyEnabled: Bool = true {
+        didSet {
+            UserDefaults.standard.set(focusHotkeyEnabled, forKey: "focusHotkeyEnabled")
+            NotificationCenter.default.post(name: .focusHotkeyChanged, object: nil)
+        }
+    }
+    /// Linear key the blocks are about ("SHO-475"), from the chat command; cleared on Stop.
+    @Published var focusIssue: String? = nil
+    /// The end-of-block / end-of-break prompt on the note view.
+    @Published var focusNote: FocusNote? = nil
+    /// A focus block is running and "Hey Mochi" should keep quiet.
+    var focusSilencesWakeWord: Bool { focusMutesWakeWord && focus.phase == .focus && !focus.paused }
 
     // Claude Code sessions running at the same time (#24). The card shows the focused one.
     @Published var claudeSessions: [ClaudeSession] = []
@@ -553,6 +581,15 @@ final class AppState: ObservableObject {
         if let v = ud.stringArray(forKey: "pinnedPills") { pinnedPills = Set(v) }
         if let v = ud.object(forKey: "wakeWordEnabled") as? Bool { wakeWordEnabled = v }
         if let v = ud.object(forKey: "wakeWordOnlyOnPower") as? Bool { wakeWordOnlyOnPower = v }
+        var fc = FocusConfig()
+        if let v = ud.object(forKey: "focusMinutes") as? Int { fc.focusMinutes = v }
+        if let v = ud.object(forKey: "focusBreakMinutes") as? Int { fc.breakMinutes = v }
+        if let v = ud.object(forKey: "focusLongBreakMinutes") as? Int { fc.longBreakMinutes = v }
+        if let v = ud.object(forKey: "focusBlocksBeforeLong") as? Int { fc.blocksBeforeLong = v }
+        focusConfig = fc.sanitized()
+        focus = FocusTimerState(config: focusConfig)
+        if let v = ud.object(forKey: "focusMutesWakeWord") as? Bool { focusMutesWakeWord = v }
+        if let v = ud.object(forKey: "focusHotkeyEnabled") as? Bool { focusHotkeyEnabled = v }
         if let d = ud.data(forKey: "vercelProjectFilter"),
            let a = try? JSONDecoder().decode([String].self, from: d) { vercelProjectFilter = Set(a) }
         if let d = ud.data(forKey: "n8nWorkflowFilter"),

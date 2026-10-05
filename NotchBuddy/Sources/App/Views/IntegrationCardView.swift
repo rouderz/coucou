@@ -211,8 +211,14 @@ struct IntegrationCardView: View {
                 .padding(.leading, 108)
                 .padding(.trailing, 36)
 
-                // Claude Code with hooks installed: the plan usage bars say more than L("Hooks installed").
-                if task.id == "integration_claude" && isConfigured {
+                // Focus timer (#119): a running block takes the place of the usage bars.
+                if task.id == "integration_claude" && appState.focus.phase != .idle {
+                    FocusCardPanel()
+                        .padding(.leading, 108)
+                        .padding(.trailing, 16)
+                        .padding(.top, 2)
+                } else if task.id == "integration_claude" && isConfigured {
+                    // Claude Code with hooks installed: the plan usage bars say more than L("Hooks installed").
                     PlanUsageView(usage: appState.planUsage)
                         .padding(.leading, 108)
                         .padding(.trailing, 16)
@@ -248,6 +254,9 @@ struct IntegrationCardView: View {
                             .font(.system(size: 11, weight: .medium))
                             .foregroundColor(Color(hex: task.color).opacity(0.7))
                             .buttonStyle(.plain)
+                        }
+                        if appState.focus.phase == .idle {
+                            FocusStartButton()
                         }
                     } else if n8nHasActivity {
                         // Clickable pill — tap to open execution detail

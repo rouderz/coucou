@@ -15,6 +15,13 @@ import { draftFromAnswer } from "../core/capture";
 
 let nextId = 1;
 
+/** "focus 50 min on SHO-475": answered here, never sent to the model (#119). Set by main.ts. */
+let focusCommand: (query: string) => string | null = () => null;
+
+export function setFocusCommand(fn: (query: string) => string | null) {
+  focusCommand = fn;
+}
+
 function bubble(message: ChatMessage): HTMLElement {
   if (message.role === "user") {
     return h(
@@ -249,6 +256,18 @@ export function buildPrompt(
     if (!query || sending) return;
     input.value = "";
     closePicker();
+    if (!State.chatSkill) {
+      const answer = focusCommand(query);
+      if (answer !== null) {
+        Sound.play("send");
+        State.chatHistory.push({ id: nextId++, role: "user", content: query });
+        State.chatHistory.push({ id: nextId++, role: "assistant", content: answer });
+        State.notify();
+        onHeightChange();
+        input.focus();
+        return;
+      }
+    }
     const skill = State.chatSkill;
     State.chatSkill = null;
     sending = true;

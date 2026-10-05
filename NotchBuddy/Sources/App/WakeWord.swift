@@ -73,6 +73,8 @@ final class WakeWord {
             s.$dndUntil.map { _ in () }.eraseToAnyPublisher(),
             s.$dndInMeeting.map { _ in () }.eraseToAnyPublisher(),
             s.$dndDuringMeetings.map { _ in () }.eraseToAnyPublisher(),
+            s.$focus.map { _ in () }.eraseToAnyPublisher(),
+            s.$focusMutesWakeWord.map { _ in () }.eraseToAnyPublisher(),
         ]
         Publishers.MergeMany(changes)
             .debounce(for: .milliseconds(50), scheduler: DispatchQueue.main)
@@ -97,6 +99,7 @@ final class WakeWord {
         if !(recognizer(for: VoiceSession.locale(for: s))?.supportsOnDeviceRecognition ?? false) {
             return L("This Mac can't recognize speech on-device in this language, so it stays off")
         }
+        if s.focusSilencesWakeWord { return L("Paused: focus block") }
         if DoNotDisturb.shared.isActive { return L("Paused: Do not disturb") }
         if screenLocked { return L("Paused: screen locked") }
         if s.wakeWordOnlyOnPower && !Self.onACPower { return L("Paused: on battery") }
