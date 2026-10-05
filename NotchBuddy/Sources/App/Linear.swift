@@ -188,7 +188,7 @@ enum LinearLink {
         return nil
     }
 
-    private static func gitBranch(in cwd: String) async -> String? {
+    static func gitBranch(in cwd: String) async -> String? {
         await Task.detached(priority: .utility) {
             guard let out = CLITool.run("/usr/bin/git", ["-C", cwd, "rev-parse", "--abbrev-ref", "HEAD"],
                                         environment: ProcessInfo.processInfo.environment, timeout: 5),

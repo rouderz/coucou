@@ -326,6 +326,38 @@ fn chats_save(chats: serde_json::Value) -> Result<(), String> {
     std::fs::rename(&temp, chats_path()).map_err(|e| e.to_string())
 }
 
+// ── Time per Linear issue (#114) ─────────────────────────────────────────────
+
+fn time_store_path() -> std::path::PathBuf {
+    settings::local_dir().join("time-tracking.json")
+}
+
+/// The time store's JSON text ("" when there is none yet), kept on this computer only.
+#[tauri::command]
+fn time_store_load() -> String {
+    std::fs::read_to_string(time_store_path()).unwrap_or_default()
+}
+
+/// Replaces the time store (JSON only, written whole through a temp file).
+#[tauri::command]
+fn time_store_save(text: String) -> Result<(), String> {
+    serde_json::from_str::<serde_json::Value>(&text).map_err(|e| e.to_string())?;
+    let dir = settings::local_dir();
+    std::fs::create_dir_all(&dir).map_err(|e| e.to_string())?;
+    let temp = time_store_path().with_extension("json.tmp");
+    std::fs::write(&temp, text).map_err(|e| e.to_string())?;
+    std::fs::rename(&temp, time_store_path()).map_err(|e| e.to_string())
+}
+
+/// The git branch checked out in a session's folder (time without an issue goes to repo @ branch).
+#[tauri::command]
+async fn git_branch(cwd: String) -> Option<String> {
+    if cwd.is_empty() {
+        return None;
+    }
+    linear::git_branch(&cwd).await
+}
+
 /// A deleted chat takes its Claude Code folder with it — only ever one of ours.
 #[tauri::command]
 fn chat_delete_dir(dir: String) {
@@ -826,6 +858,9 @@ pub fn run() {
             codex_install,
             linear_issue_for_folder,
             linear_comment,
+            time_store_load,
+            time_store_save,
+            git_branch,
             inbox_refresh,
             inbox_dismiss,
             phone_alert,

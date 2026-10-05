@@ -7,7 +7,11 @@ import { setLanguage, startTranslating } from "../core/i18n.ts";
 import { Bridge, onDragDrop, onEvent, type BrowserStatus, type HookStatus, type SkillInfo, type SkillPreview } from "../core/bridge";
 import { DEFAULT_SETTINGS, type Settings } from "../core/state";
 import { h, clear } from "../views/dom";
-import { dayKey, duration, range, summary, toCsv, type Period, type StatEvent } from "../core/whaticketStats.ts";
+import { dayKey as wtDayKey, duration, range, summary, toCsv as wtToCsv, type Period, type StatEvent } from "../core/whaticketStats.ts";
+import {
+  addAdjustment, dayKey, formatDuration, formatHours, groupPeriod, parseStore, recentPeriods, rowsFromStore,
+  serializeStore, toCsv, toText, type DayRow, type TimeStore,
+} from "../core/timetrack.ts";
 
 let settings: Settings = { ...DEFAULT_SETTINGS };
 let version = "";
@@ -615,6 +619,168 @@ function inboxSection(): HTMLElement {
   );
 }
 
+// ── Time per Linear issue (#114) ──────────────────────────────────────────────
+
+const MINUTE_MS = 60_000;
+
+function timeSection(): HTMLElement {
+  let store: TimeStore = parseStore("");
+  let mode: "day" | "period" = "day";
+  const periods = recentPeriods(new Date(), 6);
+  let period = periods[0];
+  const body = h("div", { style: "display:flex;flex-direction:column;gap:8px" });
+  const feedback = h("div", {});
+
+  function say(text: string, kind: "ok" | "err" = "ok") {
+    clear(feedback);
+    feedback.append(h("div", { class: `notice ${kind}`, text }));
+  }
+
+  async function load() {
+    const text = await Bridge.timeStoreLoad();
+    store = parseStore(text);
+    draw();
+  }
+
+  /** Re-reads the file first: the island adds events to it while this window is open. */
+  async function adjust(day: string, key: string, deltaMs: number, title?: string) {
+    if (!key || !deltaMs) return false;
+    const text = await Bridge.timeStoreLoad();
+    if (text === null) {
+      say("Couldn't read the time file.", "err");
+      return false;
+    }
+    store = addAdjustment(parseStore(text), { day, key, deltaMs, ...(title ? { title } : {}) });
+    try {
+      await Bridge.timeStoreSave(serializeStore(store));
+    } catch (err) {
+      say(String(err).replace(/^Error:\s*/, ""), "err");
+      return false;
+    }
+    draw();
+    return true;
+  }
+
+  const rows = (): DayRow[] => rowsFromStore(store, { now: Date.now() });
+  const label = (r: DayRow) => r.issue?.identifier ?? r.key;
+
+  const dayBtn = h("button", { class: "small", text: "Day", onclick: () => { mode = "day"; clear(feedback); draw(); } });
+  const periodBtn = h("button", { class: "small", text: "Period", onclick: () => { mode = "period"; clear(feedback); draw(); } });
+  const refreshBtn = h("button", { class: "small", text: "Refresh", onclick: () => void load() });
+
+  function totalRow(text: string) {
+    return h("div", { class: "time-row", style: "font-weight:600" },
+      h("span", { class: "time-main", text: "Total" }), h("span", { class: "time-num", "data-raw": true, text }));
+  }
+
+  function drawDay() {
+    const today = dayKey(Date.now());
+    const list = rows().filter((r) => r.day === today);
+    if (!list.length) body.append(h("div", { class: "hint", text: "No time recorded today yet." }));
+    for (const r of list) {
+      body.append(h("div", { class: "time-row" },
+        h("div", { class: "time-main", "data-raw": true },
+          h("div", { class: "time-key time-ellipsis", text: label(r) }),
+          r.issue?.title ? h("div", { class: "hint time-ellipsis", text: r.issue.title }) : null),
+        h("span", { class: "time-num", "data-raw": true, text: formatDuration(r.ms) }),
+        h("button", { class: "small", text: "−15", title: "Remove 15 minutes",
+          onclick: () => void adjust(r.day, r.key, -Math.min(15 * MINUTE_MS, r.ms), r.issue?.title) }),
+        h("button", { class: "small", text: "+15", title: "Add 15 minutes",
+          onclick: () => void adjust(r.day, r.key, 15 * MINUTE_MS, r.issue?.title) }),
+      ));
+    }
+    if (list.length) {
+      const ms = list.reduce((n, r) => n + r.ms, 0);
+      body.append(totalRow(formatDuration(ms)));
+    }
+
+    const key = h("input", { type: "text", placeholder: "Issue or task (SHO-123)", spellcheck: "false",
+      style: "flex:0 1 190px;min-width:0" }) as HTMLInputElement;
+    const title = h("input", { type: "text", placeholder: "Description (optional)",
+      style: "flex:1 1 auto;min-width:0" }) as HTMLInputElement;
+    const minutes = h("select", { "data-raw": true }) as HTMLSelectElement;
+    for (let m = 15; m <= 720; m += 15) minutes.append(h("option", { value: String(m), text: formatDuration(m * MINUTE_MS) }));
+    minutes.value = "30";
+    const add = h("button", { text: "Add", onclick: async () => {
+      let k = key.value.trim();
+      if (!k) return;
+      if (/^[A-Za-z][A-Za-z0-9]+-\d+$/.test(k)) k = k.toUpperCase();
+      if (await adjust(today, k, Number(minutes.value) * MINUTE_MS, title.value.trim() || undefined)) {
+        say("Entry added.");
+      }
+    } });
+    body.append(
+      h("div", { style: "font-weight:600;margin-top:6px", text: "Add an entry (work outside Claude Code)" }),
+      h("div", { class: "row", style: "gap:8px" }, key, title),
+      h("div", { class: "row", style: "gap:8px" }, minutes, add),
+    );
+  }
+
+  function drawPeriod() {
+    const select = h("select", { "data-raw": true }) as HTMLSelectElement;
+    for (const p of periods) select.append(h("option", { value: p.from, text: `${p.from} – ${p.to}` }));
+    select.value = period.from;
+    select.addEventListener("change", () => {
+      period = periods.find((p) => p.from === select.value) ?? periods[0];
+      clear(feedback);
+      draw();
+    });
+    body.append(h("div", { class: "row" }, h("label", { text: "Period" }), select));
+
+    const days = groupPeriod(rows(), period.from, period.to);
+    if (!days.length) body.append(h("div", { class: "hint", text: "No time recorded in this period." }));
+    for (const d of days) {
+      body.append(h("div", { class: "time-day", "data-raw": true },
+        h("div", { class: "time-row" },
+          h("span", { class: "time-key", text: d.day }),
+          h("span", { class: "hint time-main time-ellipsis", style: "font-family:var(--mono)", text: d.rows.map(label).join(", ") }),
+          h("span", { class: "time-num", text: `${formatHours(d.ms)} h` })),
+        h("div", { class: "hint", text: d.description }),
+      ));
+    }
+    if (days.length) body.append(totalRow(`${formatHours(days.reduce((n, d) => n + d.ms, 0))} h`));
+
+    const copy = async (text: string, done: string) => {
+      try {
+        await navigator.clipboard.writeText(text);
+        say(done);
+      } catch (err) {
+        say(String(err).replace(/^Error:\s*/, ""), "err");
+      }
+    };
+    body.append(
+      h("div", { class: "row", style: "gap:8px" },
+        h("button", { text: "Copy as text", disabled: !days.length, onclick: () => void copy(toText(days), "Copied ✓") }),
+        h("button", { text: "Copy CSV", disabled: !days.length,
+          onclick: () => void copy(toCsv(days), "CSV copied. Paste it into your spreadsheet.") })),
+      h("div", { class: "hint", text: "Exports stay on this computer: nothing is sent anywhere." }),
+    );
+  }
+
+  function draw() {
+    dayBtn.className = mode === "day" ? "small primary" : "small";
+    periodBtn.className = mode === "period" ? "small primary" : "small";
+    clear(body);
+    if (mode === "day") drawDay();
+    else drawPeriod();
+  }
+
+  draw();
+  void load();
+  // The island keeps adding time while this window is open: fresh numbers when it comes back.
+  window.addEventListener("focus", () => void load());
+
+  return h("section", {},
+    h("h2", {}, statusDot(settings.timeTracking !== false), h("span", { text: "Time" })),
+    h("div", { class: "hint", text: "Active time of your Claude Code sessions per Linear issue (from the session's branch), or per repo @ branch when there's no issue. Gaps over 10 minutes aren't counted. Kept only on this computer." }),
+    h("div", { class: "row" }, h("label", { text: "Record time per issue" }),
+      toggle(settings.timeTracking !== false, (v) => { settings.timeTracking = v; void save(); })),
+    h("div", { class: "row", style: "gap:6px" }, dayBtn, periodBtn, h("span", { class: "spacer" }), refreshBtn),
+    body,
+    feedback,
+  );
+}
+
 // ── Google (Gmail, Drive) ─────────────────────────────────────────────────────
 
 function googleSection(connected: boolean, hasClient: boolean): HTMLElement {
@@ -800,8 +966,8 @@ function whaticketStatsBlock(): HTMLElement {
   const now = new Date();
   const weekAgo = new Date(now);
   weekAgo.setDate(weekAgo.getDate() - 6);
-  const from = h("input", { type: "date", value: dayKey(weekAgo) }) as HTMLInputElement;
-  const to = h("input", { type: "date", value: dayKey(now) }) as HTMLInputElement;
+  const from = h("input", { type: "date", value: wtDayKey(weekAgo) }) as HTMLInputElement;
+  const to = h("input", { type: "date", value: wtDayKey(now) }) as HTMLInputElement;
   const custom = h("span", { style: "display:none;align-items:center;gap:8px" },
     h("span", { class: "hint", text: "From" }), from, h("span", { class: "hint", text: "To" }), to);
   const body = h("div", { class: "wt-stats" });
@@ -890,7 +1056,7 @@ function whaticketStatsBlock(): HTMLElement {
   copy.addEventListener("click", async () => {
     clear(feedback);
     const r = currentRange();
-    const csv = toCsv(events, r.from, r.to);
+    const csv = wtToCsv(events, r.from, r.to);
     try {
       await navigator.clipboard.writeText(csv);
       const rows = csv.trim().split("\n").length - 1;
@@ -1318,6 +1484,7 @@ async function main() {
     skillsSection(skillTargets),
     apiSection(hasKey, claudeCode, presets, present),
     integrationsSection(present),
+    timeSection(),
     whaticketSection(browser),
     googleSection(googleConnected, googleClient),
     phoneSection(),

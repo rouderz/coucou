@@ -77,6 +77,10 @@ export const Bridge = {
     call<{ id: string; identifier: string; title: string; url: string } | null>("linear_issue_for_folder", { cwd }),
   /** Posts Markdown on the issue — only ever from a click. */
   linearComment: (issueId: string, body: string) => callOrThrow<void>("linear_comment", { issueId, body }),
+  /** Time per issue (#114): the local store's JSON text ("" = none yet; null = couldn't read). */
+  timeStoreLoad: () => call<string>("time_store_load"),
+  timeStoreSave: (text: string) => callOrThrow<void>("time_store_save", { text }),
+  gitBranch: (cwd: string) => call<string | null>("git_branch", { cwd }),
   inboxRefresh: () => call<void>("inbox_refresh"),
   inboxDismiss: (id: string) => call<void>("inbox_dismiss", { id }),
   /** True when the phone was told (set up, and away when that's asked for). */

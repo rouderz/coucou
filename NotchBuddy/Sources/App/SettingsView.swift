@@ -765,6 +765,11 @@ struct SettingsView: View {
                     .padding(6)
                 }
 
+                // MARK: Time per issue (#114)
+                GroupBox("Time") {
+                    TimeSettingsSection()
+                }
+
                 // MARK: WhaTicket
                 GroupBox("WhaTicket") {
                     WhaTicketSettingsSection()

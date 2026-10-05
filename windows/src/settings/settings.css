@@ -479,5 +479,37 @@ button.small {
 
 .wt-table td {
   padding: 2px 18px 2px 0;
+/* Settings → Time (#114) */
+.time-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.time-main {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+.time-key {
+  font: 600 12px var(--mono);
+}
+
+.time-num {
+  font: 400 12px var(--mono);
+  white-space: nowrap;
+}
+
+.time-ellipsis {
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.time-day {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 6px 0;
   border-top: 1px solid var(--hairline);
 }

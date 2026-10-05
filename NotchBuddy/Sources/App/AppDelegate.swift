@@ -19,6 +19,10 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         setupIsland()
     }
 
+    func applicationWillTerminate(_ notification: Notification) {
+        TimeTracker.shared.flush()   // time per issue (#114): the last few seconds of events
+    }
+
     // MARK: - Menu bar
 
     private func setupMenuBarItem() {

@@ -384,6 +384,18 @@ ES = {
 "Now: %@ (until %@)":"Ahora: %@ (hasta las %@)","%@ in %lld min":"%@ en %lld min","%@ in %lld h":"%@ en %lld h","%@ in %lld h %lld min":"%@ en %lld h %lld min",
 "Starting in 5 min · %@":"Empieza en 5 min · %@",
 "Meeting pill and Do not disturb during meetings (read-only). Turning it on asks Google for one more permission.":"Pastilla de reunión y No molestar durante las reuniones (solo lectura). Al activarlo, Google pide un permiso más.",
+# time per issue (#114)
+"Time":"Tiempo","Day":"Día","Period":"Periodo","Total":"Total","Add":"Agregar",
+"Active time of your Claude Code sessions per Linear issue (from the session's branch), or per repo @ branch when there's no issue. Gaps over 10 minutes aren't counted. Kept only on this Mac.":"Tiempo activo de tus sesiones de Claude Code por issue de Linear (según la rama de la sesión), o por repo @ rama cuando no hay issue. Las pausas de más de 10 minutos no cuentan. Se guarda solo en este Mac.",
+"Record time per issue":"Registrar el tiempo por issue",
+"No time recorded today yet.":"Aún no hay tiempo registrado hoy.",
+"Remove 15 minutes":"Quitar 15 minutos","Add 15 minutes":"Sumar 15 minutos",
+"Add an entry (work outside Claude Code)":"Agregar una entrada (trabajo fuera de Claude Code)",
+"Issue or task (SHO-123)":"Issue o tarea (SHO-123)","Description (optional)":"Descripción (opcional)",
+"Entry added.":"Entrada agregada.",
+"No time recorded in this period.":"No hay tiempo registrado en este periodo.",
+"Copy as text":"Copiar como texto","Save CSV…":"Guardar CSV…","CSV saved.":"CSV guardado.",
+"Exports stay on this Mac: nothing is sent anywhere.":"Las exportaciones se quedan en este Mac: no se envía nada a ningún sitio.",
 }
 catalog = {"sourceLanguage": "en", "version": "1.0", "strings": {
     k: {"localizations": {"es": {"stringUnit": {"state": "translated", "value": v}}}} for k, v in sorted(ES.items())

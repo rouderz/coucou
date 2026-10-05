@@ -189,6 +189,8 @@ export interface Settings {
   inboxLinear: boolean;
   inboxKinds: string[];
   checkUpdates: boolean;
+  /** Time per Linear issue (#114), kept in a local file. */
+  timeTracking: boolean;
 }
 
 export const DEFAULT_SETTINGS: Settings = {
@@ -218,6 +220,7 @@ export const DEFAULT_SETTINGS: Settings = {
   inboxLinear: true,
   inboxKinds: ["review", "mention", "assigned", "comment", "other"],
   checkUpdates: true,
+  timeTracking: true,
   providerId: "openai",
   providerBaseUrl: "",
   providerModel: "",
