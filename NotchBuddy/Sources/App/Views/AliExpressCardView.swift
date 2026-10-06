@@ -99,16 +99,55 @@ struct AliExpressCardView: View {
     }
 }
 
-/// Settings → AliExpress: the buyer details printed on the invoices, and how it works.
+/// Settings → AliExpress: its own browser extension (Coucou for AliExpress), the buyer details
+/// printed on the invoices, and how it works.
 struct AliExpressSettingsSection: View {
     @State private var buyer = AliBuyer.load()
     @State private var saved = false
+    @State private var browsers = BrowserExtension.registered(for: BrowserExtension.aliexpress)
+    @State private var installed = BrowserExtension.aliexpress.installed
+    @State private var status: String?
+    @State private var failed = false
+
+    private var ready: Bool { installed && !browsers.isEmpty }
 
     var body: some View {
         VStack(alignment: .leading, spacing: 8) {
-            Text("Coucou groups your AliExpress orders by the box they ship in (same tracking number) and makes one invoice per box — PDF to your Downloads/Coucou/AliExpress folder — plus a CSV of every product for Excel or Google Sheets. It reads your own order pages through the browser extension (Settings → WhaTicket → Set up browser extension, then open your AliExpress orders once).")
+            Text("Coucou groups your AliExpress orders by the box they ship in (same tracking number) and makes one invoice per box — PDF to your Downloads/Coucou/AliExpress folder — plus a CSV of every product for Excel or Google Sheets. It reads your own order pages through its own small Chrome / Edge extension, Coucou for AliExpress, with the session you already have open.")
                 .font(.system(size: 11)).foregroundColor(.secondary)
                 .fixedSize(horizontal: false, vertical: true)
+
+            #if APPSTORE
+            Text("The browser extension isn't available in the App Store version.")
+                .font(.system(size: 11)).foregroundColor(.secondary)
+            #else
+            HStack(spacing: 10) {
+                Button(ready ? "Set up again" : "Set up browser extension") { install() }
+                if installed {
+                    Button("Show folder") { BrowserExtension.reveal(BrowserExtension.aliexpress) }
+                }
+            }
+            if let status {
+                Text(verbatim: status).font(.system(size: 11))
+                    .foregroundColor(failed ? .red : .green)
+                    .fixedSize(horizontal: false, vertical: true)
+            } else if ready {
+                Text(verbatim: L("Ready for \(browsers.joined(separator: ", ")). Extension folder: \(BrowserExtension.aliexpress.dir.path)"))
+                    .font(.system(size: 11)).foregroundColor(.green)
+                    .fixedSize(horizontal: false, vertical: true)
+                    .textSelection(.enabled)
+            }
+            VStack(alignment: .leading, spacing: 2) {
+                Text("1. Click Set up browser extension.")
+                Text("2. In Chrome open chrome://extensions (in Edge: edge://extensions) and turn on Developer mode.")
+                Text("3. Click Load unpacked and pick the extension folder shown above.")
+                Text("4. Open your AliExpress orders once, and turn on the AliExpress pill under Integrations.")
+            }
+            .font(.system(size: 11)).foregroundColor(.secondary)
+            .fixedSize(horizontal: false, vertical: true)
+            #endif
+
+            Divider()
             Text("Printed on the invoices as the buyer:")
                 .font(.system(size: 11, weight: .medium))
             TextField(L("Full name"), text: $buyer.name).textFieldStyle(.roundedBorder)
@@ -130,5 +169,18 @@ struct AliExpressSettingsSection: View {
         }
         .padding(6)
         .onChange(of: buyer) { _, _ in saved = false }
+    }
+
+    private func install() {
+        do {
+            try BrowserExtension.install(BrowserExtension.aliexpress)
+            failed = false
+            status = nil
+        } catch {
+            failed = true
+            status = error.localizedDescription
+        }
+        browsers = BrowserExtension.registered(for: BrowserExtension.aliexpress)
+        installed = BrowserExtension.aliexpress.installed
     }
 }

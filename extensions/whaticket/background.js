@@ -226,9 +226,6 @@ if (typeof chrome !== "undefined" && chrome.runtime && chrome.runtime.onMessage)
   });
 }
 
-// AliExpress packages and invoices (aliexpress-core.js, aliexpress-bg.js).
-if (typeof importScripts === "function") importScripts("aliexpress-core.js", "aliexpress-bg.js");
-
 if (typeof module !== "undefined") {
   module.exports = { jwtPayload, userIdOf, ticketsPath, ticketView, validId, listOf, run, CHANNELS };
 }

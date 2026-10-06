@@ -496,17 +496,33 @@ fn whaticket_stats_reset() {
 /// with every Chromium browser found. Returns where the unpacked extension lives.
 #[tauri::command]
 fn browser_install() -> Result<browser::Status, String> {
-    browser::install()
+    browser::install(&browser::WHATICKET)
 }
 
 #[tauri::command]
 fn browser_status() -> browser::Status {
-    browser::status()
+    browser::status(&browser::WHATICKET)
 }
 
 #[tauri::command]
 fn browser_reveal() {
-    browser::reveal();
+    browser::reveal(&browser::WHATICKET);
+}
+
+/// Coucou for AliExpress: its own extension, on the same native-messaging host.
+#[tauri::command]
+fn aliexpress_extension_install() -> Result<browser::Status, String> {
+    browser::install(&browser::ALIEXPRESS)
+}
+
+#[tauri::command]
+fn aliexpress_extension_status() -> browser::Status {
+    browser::status(&browser::ALIEXPRESS)
+}
+
+#[tauri::command]
+fn aliexpress_extension_reveal() {
+    browser::reveal(&browser::ALIEXPRESS);
 }
 
 // ── Google (Gmail, Drive) ─────────────────────────────────────────────────────
@@ -1099,6 +1115,9 @@ pub fn run() {
             browser_install,
             browser_status,
             browser_reveal,
+            aliexpress_extension_install,
+            aliexpress_extension_status,
+            aliexpress_extension_reveal,
             google_connect,
             google_disconnect,
             google_connected,

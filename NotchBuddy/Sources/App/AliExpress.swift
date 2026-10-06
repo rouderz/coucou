@@ -3,11 +3,10 @@ import os
 
 // AliExpress: your orders grouped by the box they ship in, and one invoice per box.
 //
-// The Coucou browser extension (extensions/whaticket: aliexpress-core.js, aliexpress.js,
-// aliexpress-bg.js) reads your own AliExpress order pages in Chrome / Edge, groups the orders by
-// tracking number and checks in here through native messaging (kind "aliexpress"). Coucou shows the
-// packages and answers with what to do — make a package's invoice, export a CSV, refresh — which
-// the extension does in the browser, saving the files to Downloads/Coucou/AliExpress.
+// Coucou for AliExpress, its own browser extension (extensions/aliexpress), reads your own
+// AliExpress order pages in Chrome / Edge, groups the orders by tracking number and checks in here
+// through native messaging (kind "aliexpress"). Coucou shows the packages and answers with what to
+// do — make a package's invoice, export a CSV, refresh — which the extension does in the browser, saving the files to Downloads/Coucou/AliExpress.
 //
 // Coucou makes no AliExpress requests of its own and stores no AliExpress credentials. The buyer
 // details printed on the invoices are the user's own, kept in the Keychain.

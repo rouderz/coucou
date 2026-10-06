@@ -1,4 +1,4 @@
-// node --test extensions/whaticket/aliexpress.test.js
+// node --test extensions/aliexpress/aliexpress.test.js
 const { test } = require("node:test");
 const assert = require("node:assert/strict");
 const A = require("./aliexpress-core.js");

@@ -1,0 +1,23 @@
+{
+  "manifest_version": 3,
+  "name": "Coucou for AliExpress",
+  "description": "Groups your AliExpress orders by the box they ship in and makes one invoice per box in Coucou (Mochi), using your own session in this browser.",
+  "version": "0.1.0",
+  "key": "MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAt5YcVf8JUbYFEbgC0jFbX12AZRua7J56H5gZZcDkqBR2v+0nXwCkypz+kSnsY0e+JHZ9o6iwFDGof1CnOrOqVczoNEhD8Z4o+nzgZzsMr2AOZYvw+b8bNd9l8hbUBUhwa/GP6mfgX2axUbn46dIPbMSb7fJ4GOvyyJoiPGz8XjxgoOxYsh/GdPXzbhvqULCZciZWoqjpbjTpuZ9HHbqg3lCKwKBnJKoSKjwo6onnudkhZfDJy4cS1u1Of2ZTKlnqxqiwjXy7LUg6uvXYyDADT21e8K4G1CjM+L+FnxTHf20rsX2lxNucBk12JSaBvT1OsJEbyK9cnni6kjVDKIvA0QIDAQAB",
+  "minimum_chrome_version": "120",
+  "permissions": ["nativeMessaging", "storage", "alarms", "downloads"],
+  "host_permissions": ["https://www.aliexpress.com/*"],
+  "background": { "service_worker": "background.js" },
+  "content_scripts": [
+    {
+      "matches": [
+        "https://www.aliexpress.com/p/order/index.html*",
+        "https://www.aliexpress.com/p/order/detail.html*",
+        "https://www.aliexpress.com/p/tracking/*"
+      ],
+      "js": ["aliexpress-core.js", "content.js"],
+      "run_at": "document_idle"
+    }
+  ],
+  "action": { "default_title": "Coucou for AliExpress" }
+}

@@ -1,12 +1,42 @@
-// Coucou for AliExpress — the background part (loaded by background.js).
+// Coucou for AliExpress — the background service worker.
 //
 // Keeps the orders read from your AliExpress pages in this browser (chrome.storage.local), reads
 // the pages still missing (an order's detail, its tracking) in one minimised window of its own,
-// and tells Coucou about the packages. Coucou answers with what to do: make a package's invoice
-// (PDF), export everything (CSV for Excel / Sheets), or refresh. Files go to your Downloads folder,
-// under Coucou/AliExpress.
+// and tells Coucou about the packages through native messaging. Coucou answers with what to do:
+// make a package's invoice (PDF), export everything (CSV for Excel / Sheets), or refresh. Files go
+// to your Downloads folder, under Coucou/AliExpress.
+//
+// A separate extension from Coucou for WhaTicket (extensions/whaticket); both talk to the same
+// native-messaging host, which lets either extension id in.
 
 "use strict";
+
+if (typeof importScripts === "function") importScripts("aliexpress-core.js");
+
+const HOST = "fr.louisraille.coucou";
+
+function toCoucou(message) {
+  return new Promise((resolve) => {
+    try {
+      chrome.runtime.sendNativeMessage(HOST, message, (reply) => {
+        if (chrome.runtime.lastError) resolve({ unreachable: chrome.runtime.lastError.message });
+        else resolve(reply || {});
+      });
+    } catch (e) {
+      resolve({ unreachable: String(e) });
+    }
+  });
+}
+
+function badge(ok, title) {
+  try {
+    chrome.action.setBadgeText({ text: ok ? "" : "!" });
+    chrome.action.setBadgeBackgroundColor({ color: "#FF4747" });
+    chrome.action.setTitle({ title });
+  } catch {
+    // no action UI
+  }
+}
 
 (function () {
   if (typeof chrome === "undefined" || !chrome.runtime || !chrome.storage) return;
@@ -99,7 +129,11 @@
       syncing: fetching,
       files: state.files.slice(-10),
     });
-    if (reply.unreachable) return;
+    if (reply.unreachable) {
+      badge(false, "Coucou for AliExpress — Coucou isn't running or isn't set up (Settings → AliExpress)");
+      return;
+    }
+    badge(true, `Coucou for AliExpress — ${packages.length} packages`);
     nextCheckAt = Date.now() + (Number(reply.interval) || 60) * 1000;
     for (const cmd of reply.commands || []) await runCommand(cmd);
   }

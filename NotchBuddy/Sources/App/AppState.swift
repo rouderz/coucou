@@ -1059,7 +1059,7 @@ struct IntegrationStatus {
             let email = UserDefaults.standard.string(forKey: "googleEmail") ?? ""
             return .init(colorHex: green, help: email.isEmpty ? "Connected" : L("Signed in as \(email)"))
         case "integration_aliexpress":
-            guard BrowserExtension.isSetUp else { return notSet }
+            guard BrowserExtension.isSetUp(BrowserExtension.aliexpress) else { return notSet }
             guard let seen = s.aliSeenAt, Date.now.timeIntervalSince(seen) < 15 * 60 else {
                 return .init(colorHex: amber, help: L("Open your AliExpress orders in Chrome or Edge"))
             }

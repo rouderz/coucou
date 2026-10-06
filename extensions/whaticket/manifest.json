@@ -1,47 +1,19 @@
 {
   "manifest_version": 3,
-  "name": "Coucou",
-  "description": "Coucou (Mochi) in your browser: your whaticket.com queue, and your AliExpress orders grouped by package with one invoice per box — using your own sessions, nothing else.",
-  "version": "0.2.0",
+  "name": "Coucou for WhaTicket",
+  "description": "Shows your whaticket.com queue in Coucou (Mochi) and accepts tickets from it, using your own session in this browser.",
+  "version": "0.1.0",
   "key": "MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAntBk10OxR87uhKqLz8jnm9d2rUXIYDaUHEE4Q2FqZzNmisQf2zz3hDfLzObq0JSVUcy4dFTA44zlpPwxr56DnkJ0gWuiKcBo7/5JebBMjRTQVe3AqOA4MhD3Cz4GdcEBl4fpBqS7/FghjpI6yvLwxFzgo6GKVR2Y9oktJybg8OcxjMTTe0GGBgRwGQUbicNUF5Fwxh85NRK8ueAFD4yXnlWLH1Yzun54ECzD7kzfXz2Wz9bHcsPioeNJd//0oymv5SFKrkHLbLpGf3ifjzvwiMTgMT5pj0yaaCjHAR+c6S9tyBBzov4sJBy0jVfE92CUG5IvEVAys9AVW97UEbFQewIDAQAB",
-  "minimum_chrome_version": "120",
-  "permissions": [
-    "nativeMessaging",
-    "storage",
-    "alarms",
-    "downloads"
-  ],
-  "host_permissions": [
-    "https://api.whaticket.com/*",
-    "https://www.aliexpress.com/*"
-  ],
-  "background": {
-    "service_worker": "background.js"
-  },
+  "minimum_chrome_version": "116",
+  "permissions": ["nativeMessaging"],
+  "host_permissions": ["https://api.whaticket.com/*"],
+  "background": { "service_worker": "background.js" },
   "content_scripts": [
     {
-      "matches": [
-        "https://app.whaticket.com/*"
-      ],
-      "js": [
-        "content.js"
-      ],
-      "run_at": "document_idle"
-    },
-    {
-      "matches": [
-        "https://www.aliexpress.com/p/order/index.html*",
-        "https://www.aliexpress.com/p/order/detail.html*",
-        "https://www.aliexpress.com/p/tracking/*"
-      ],
-      "js": [
-        "aliexpress-core.js",
-        "aliexpress.js"
-      ],
+      "matches": ["https://app.whaticket.com/*"],
+      "js": ["content.js"],
       "run_at": "document_idle"
     }
   ],
-  "action": {
-    "default_title": "Coucou"
-  }
+  "action": { "default_title": "Coucou for WhaTicket" }
 }

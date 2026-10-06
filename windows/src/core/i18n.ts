@@ -373,6 +373,9 @@ const ES: Record<string, string> = {
   "No packages with a tracking number yet.": "Todavía no hay paquetes con número de seguimiento.",
   "I don't see that tracking number among your packages.": "No veo ese número de seguimiento entre tus paquetes.",
   "Exporting the CSV to Downloads/Coucou/AliExpress.": "Exportando el CSV a Descargas/Coucou/AliExpress.",
+  "Coucou groups your AliExpress orders by the box they ship in (same tracking number) and makes one invoice per box — PDF to your Downloads/Coucou/AliExpress folder — plus a CSV of every product for Excel or Google Sheets. It reads your own order pages through its own small Chrome / Edge extension, Coucou for AliExpress, with the session you already have open.":
+    "Coucou agrupa tus pedidos de AliExpress por la caja en que llegan (mismo número de seguimiento) y hace una factura por caja —PDF en tu carpeta Descargas/Coucou/AliExpress— y un CSV con todos los productos para Excel o Google Sheets. Lee tus propias páginas de pedidos con su propia extensión de Chrome / Edge, Coucou for AliExpress, usando la sesión que ya tienes abierta.",
+  "Open your AliExpress orders once, and turn on the AliExpress pill under Integrations.": "Abre tus pedidos de AliExpress una vez y activa la píldora AliExpress en Integraciones.",
   "Invoice": "Factura", "Export CSV": "Exportar CSV", "Reading…": "Leyendo…", "Show in the file manager": "Mostrar en el administrador de archivos",
   "Full name": "Nombre completo", "ID / RUC (cédula)": "Cédula / RUC", "Address (several lines are fine)": "Dirección (puede tener varias líneas)",
   "Email (optional)": "Correo (opcional)", "Phone (optional)": "Teléfono (opcional)", "Printed on the invoices as the buyer:": "Se imprime en las facturas como comprador:",
@@ -380,8 +383,6 @@ const ES: Record<string, string> = {
   "Open your AliExpress orders in Chrome or Edge once: Coucou reads them from there.": "Abre tus pedidos de AliExpress en Chrome o Edge una vez: Coucou los lee desde ahí.",
   "Make the invoice of this box (PDF in Downloads/Coucou/AliExpress)": "Hacer la factura de esta caja (PDF en Descargas/Coucou/AliExpress)",
   "Your orders grouped by box (tracking number), one invoice per box. Set up below.": "Tus pedidos agrupados por caja (número de seguimiento), una factura por caja. Se configura abajo.",
-  "Coucou groups your AliExpress orders by the box they ship in (same tracking number) and makes one invoice per box — PDF to your Downloads/Coucou/AliExpress folder — plus a CSV of every product for Excel or Google Sheets. It reads your own order pages through the browser extension (set it up in the WhaTicket section, then open your AliExpress orders once).":
-    "Coucou agrupa tus pedidos de AliExpress por la caja en que llegan (mismo número de seguimiento) y hace una factura por caja —PDF en tu carpeta Descargas/Coucou/AliExpress— y un CSV con todos los productos para Excel o Google Sheets. Lee tus propias páginas de pedidos con la extensión del navegador (configúrala en la sección WhaTicket y luego abre tus pedidos de AliExpress una vez).",
   "The invoice is your own document built from your orders: it lists the AliExpress order numbers it comes from and says it isn't issued by AliExpress. Keep the original order receipts (Download invoice on each order) for customs.":
     "La factura es un documento tuyo hecho a partir de tus pedidos: indica los números de pedido de AliExpress de los que sale y aclara que no la emite AliExpress. Guarda los comprobantes originales de cada pedido (Descargar factura en cada pedido) para aduanas.",
 };

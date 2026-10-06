@@ -1,7 +1,7 @@
 // AliExpress: your orders grouped by the box they ship in, and one invoice per box.
 // Same behaviour as NotchBuddy/Sources/App/AliExpress.swift.
 //
-// The Coucou browser extension (extensions/whaticket: aliexpress-*.js) reads your own AliExpress
+// Coucou for AliExpress, its own browser extension (extensions/aliexpress), reads your own AliExpress
 // order pages, groups the orders by tracking number and checks in here (kind "aliexpress").
 // Coucou shows the packages and answers with what to do — make a package's invoice, export a
 // CSV, refresh — which the extension does in the browser (files in Downloads/Coucou/AliExpress).

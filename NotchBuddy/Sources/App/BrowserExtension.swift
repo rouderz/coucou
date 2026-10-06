@@ -1,6 +1,7 @@
 import AppKit
 
-// The WhaTicket browser extension (Chrome, Edge, Brave, Chromium, Arc). Same as
+// Coucou's browser extensions (Chrome, Edge, Brave, Chromium, Arc): Coucou for WhaTicket and
+// Coucou for AliExpress, two separate extensions on one native-messaging host. Same as
 // windows/src-tauri/src/browser.rs.
 //
 // Setting it up puts three things in place:
@@ -13,13 +14,53 @@ import AppKit
 //
 // Not available in the App Store build: the sandbox can't write into other apps' folders.
 
+/// One of Coucou's browser extensions: its files ship in the app (Resources/<resources>) and are
+/// copied to ~/Library/Application Support/NotchBuddy/<dirName> for "Load unpacked".
+struct ChromeExtension: Sendable {
+    let name: String
+    /// Fixed by the public `key` in the extension's manifest.json.
+    let id: String
+    let resources: String
+    let dirName: String
+    let files: [String]
+
+    var dir: URL { HookServer.supportDir.appendingPathComponent(dirName) }
+
+    /// The extension files shipped in the app.
+    func bundled(_ file: String) -> Data? {
+        let base = (file as NSString).deletingPathExtension
+        let ext = (file as NSString).pathExtension
+        return Bundle.main.url(forResource: base, withExtension: ext, subdirectory: resources)
+            .flatMap { try? Data(contentsOf: $0) }
+    }
+
+    /// The extension files are written and match the ones in this build.
+    var installed: Bool {
+        files.allSatisfy { file in
+            guard let mine = bundled(file) else { return false }
+            return (try? Data(contentsOf: dir.appendingPathComponent(file))) == mine
+        }
+    }
+}
+
 enum BrowserExtension {
     static let host = "fr.louisraille.coucou"
-    /// Fixed by the public `key` in the extension's manifest.json.
-    static let extensionID = "jcdddeeehgafiakcgaabpiocfdijekce"
-    static let files = ["manifest.json", "background.js", "content.js", "aliexpress-core.js", "aliexpress.js", "aliexpress-bg.js"]
 
-    static var extensionDir: URL { HookServer.supportDir.appendingPathComponent("browser-extension") }
+    /// Coucou for WhaTicket (extensions/whaticket).
+    static let whaticket = ChromeExtension(
+        name: "Coucou for WhaTicket", id: "jcdddeeehgafiakcgaabpiocfdijekce", resources: "whaticket",
+        dirName: "browser-extension", files: ["manifest.json", "background.js", "content.js"])
+    /// Coucou for AliExpress (extensions/aliexpress): a separate extension on the same host.
+    static let aliexpress = ChromeExtension(
+        name: "Coucou for AliExpress", id: "fkdhifnmpmkjgkaacobdgohnnnlpgmil", resources: "aliexpress",
+        dirName: "aliexpress-extension", files: ["manifest.json", "background.js", "content.js", "aliexpress-core.js"])
+    static let all = [whaticket, aliexpress]
+
+    // The WhaTicket extension, as before.
+    static var extensionID: String { whaticket.id }
+    static var extensionDir: URL { whaticket.dir }
+    static var installed: Bool { whaticket.installed }
+
     static var hostScriptURL: URL { HookServer.supportDir.appendingPathComponent("coucou-native-host") }
 
     /// (name, the browser's folder under ~/Library/Application Support)
@@ -37,56 +78,43 @@ enum BrowserExtension {
         FileManager.default.urls(for: .applicationSupportDirectory, in: .userDomainMask)[0]
     }
 
-    /// The host manifest the browsers read.
+    /// The host manifest the browsers read: either of our extensions may start the host.
     static func hostManifest(path: String) -> String {
         let body: [String: Any] = [
             "name": host,
-            "description": "Coucou — WhaTicket queue in the notch",
+            "description": "Coucou — WhaTicket and AliExpress in the notch",
             "path": path,
             "type": "stdio",
-            "allowed_origins": ["chrome-extension://\(extensionID)/"],
+            "allowed_origins": all.map { "chrome-extension://\($0.id)/" },
         ]
         let data = (try? JSONSerialization.data(withJSONObject: body, options: [.prettyPrinted, .sortedKeys, .withoutEscapingSlashes])) ?? Data()
         return String(data: data, encoding: .utf8) ?? ""
     }
 
-    /// The extension files shipped in the app (Resources/whaticket).
-    private static func bundled(_ name: String) -> Data? {
-        let base = (name as NSString).deletingPathExtension
-        let ext = (name as NSString).pathExtension
-        return Bundle.main.url(forResource: base, withExtension: ext, subdirectory: "whaticket")
-            .flatMap { try? Data(contentsOf: $0) }
-    }
-
-    /// The extension files are written and match the ones in this build.
-    static var installed: Bool {
-        files.allSatisfy { name in
-            guard let mine = bundled(name) else { return false }
-            return (try? Data(contentsOf: extensionDir.appendingPathComponent(name))) == mine
-        }
-    }
-
-    /// Browsers the host is registered with.
-    static var registered: [String] {
+    /// Browsers the host is registered with, and that let `ext` in (an older manifest only knew WhaTicket).
+    static func registered(for ext: ChromeExtension) -> [String] {
         browsers.filter { _, folder in
-            FileManager.default.fileExists(atPath: appSupport.appendingPathComponent(folder)
-                .appendingPathComponent("NativeMessagingHosts/\(host).json").path)
+            let url = appSupport.appendingPathComponent(folder).appendingPathComponent("NativeMessagingHosts/\(host).json")
+            guard let text = try? String(contentsOf: url, encoding: .utf8) else { return false }
+            return text.contains(ext.id)
         }.map(\.0)
     }
+    static var registered: [String] { registered(for: whaticket) }
 
-    /// Read once (the card and the status light ask on every render), again after `install()`.
-    nonisolated(unsafe) private static var setUp: Bool?
+    /// Read once per extension (the card and the status light ask on every render), again after `install`.
+    nonisolated(unsafe) private static var setUp: [String: Bool] = [:]
 
-    static var isSetUp: Bool {
+    static func isSetUp(_ ext: ChromeExtension) -> Bool {
         #if APPSTORE
         return false
         #else
-        if let setUp { return setUp }
-        let now = installed && !registered.isEmpty
-        setUp = now
+        if let known = setUp[ext.id] { return known }
+        let now = ext.installed && !registered(for: ext).isEmpty
+        setUp[ext.id] = now
         return now
         #endif
     }
+    static var isSetUp: Bool { isSetUp(whaticket) }
 
     enum Failure: LocalizedError {
         case message(String)
@@ -95,18 +123,18 @@ enum BrowserExtension {
 
     /// Writes the extension, the relay and the host manifests. Returns the browsers set up.
     @discardableResult
-    static func install() throws -> [String] {
+    static func install(_ ext: ChromeExtension = whaticket) throws -> [String] {
         #if APPSTORE
         throw Failure.message(L("The browser extension isn't available in the App Store version."))
         #else
-        defer { setUp = nil }
+        defer { setUp = [:] }
         let fm = FileManager.default
-        try fm.createDirectory(at: extensionDir, withIntermediateDirectories: true)
-        for name in files {
-            guard let data = bundled(name) else {
+        try fm.createDirectory(at: ext.dir, withIntermediateDirectories: true)
+        for file in ext.files {
+            guard let data = ext.bundled(file) else {
                 throw Failure.message(L("This build of Coucou doesn't include the browser extension."))
             }
-            try data.write(to: extensionDir.appendingPathComponent(name), options: .atomic)
+            try data.write(to: ext.dir.appendingPathComponent(file), options: .atomic)
         }
         try nativeHostScript.write(to: hostScriptURL, atomically: true, encoding: .utf8)
         try fm.setAttributes([.posixPermissions: 0o755 as NSNumber], ofItemAtPath: hostScriptURL.path)
@@ -133,8 +161,8 @@ enum BrowserExtension {
         #endif
     }
 
-    static func reveal() {
-        NSWorkspace.shared.activateFileViewerSelecting([extensionDir])
+    static func reveal(_ ext: ChromeExtension = whaticket) {
+        NSWorkspace.shared.activateFileViewerSelecting([ext.dir])
     }
 }
 
@@ -144,7 +172,7 @@ enum BrowserExtension {
 /// hands Coucou's answer back — or says Coucou isn't running.
 private let nativeHostScript = """
 #!/usr/bin/env python3
-# coucou-native-host — native-messaging host for the Coucou for WhaTicket extension.
+# coucou-native-host — native-messaging host for the Coucou browser extensions (WhaTicket, AliExpress).
 import sys, json, os, socket, struct
 
 MAX = 1 << 20

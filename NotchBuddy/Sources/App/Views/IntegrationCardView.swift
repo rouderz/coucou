@@ -31,7 +31,7 @@ struct IntegrationCardView: View {
         case "integration_linear":  return LinearAPI.hasKey
         case "integration_whaticket": return BrowserExtension.isSetUp
         case "integration_gmail": return GoogleAPI.isConnected
-        case "integration_aliexpress": return BrowserExtension.isSetUp
+        case "integration_aliexpress": return BrowserExtension.isSetUp(BrowserExtension.aliexpress)
         case "integration_ci":    return AppState.shared.githubConnection.isConnected
                                       || Secrets.store.get("github-token") != nil
         default: return false

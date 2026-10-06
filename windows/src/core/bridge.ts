@@ -147,6 +147,10 @@ export const Bridge = {
   browserInstall: () => callOrThrow<BrowserStatus>("browser_install"),
   browserStatus: () => call<BrowserStatus>("browser_status"),
   browserReveal: () => call<void>("browser_reveal"),
+  /** Coucou for AliExpress: its own extension, same host. */
+  aliexpressExtensionInstall: () => callOrThrow<BrowserStatus>("aliexpress_extension_install"),
+  aliexpressExtensionStatus: () => call<BrowserStatus>("aliexpress_extension_status"),
+  aliexpressExtensionReveal: () => call<void>("aliexpress_extension_reveal"),
 
   // ── Google (Gmail, Drive) ───────────────────────────────────────────────────
   /** Opens Google's consent page; resolves with the account's email once signed in. */

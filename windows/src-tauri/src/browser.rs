@@ -1,4 +1,5 @@
-// The WhaTicket browser extension (Chrome, Edge, Brave, Chromium).
+// Coucou's browser extensions (Chrome, Edge, Brave, Chromium): Coucou for WhaTicket and
+// Coucou for AliExpress, two separate extensions on one native-messaging host.
 //
 // whaticket.com only lets admins create API tokens, so instead of signing in
 // ourselves we ride on the session the user already has open in their browser:
@@ -12,7 +13,7 @@
 //   * its registration with every Chromium browser: a file in the browser's
 //     NativeMessagingHosts folder on Linux, a registry key on Windows.
 //
-// Only our own extension id may start the host (`allowed_origins`).
+// Only our own extension ids may start the host (`allowed_origins`).
 
 use std::path::{Path, PathBuf};
 
@@ -21,17 +22,39 @@ use serde::Serialize;
 use crate::settings;
 
 pub const HOST: &str = "fr.louisraille.coucou";
-/// Fixed by the public `key` in the extension's manifest.json.
-pub const EXTENSION_ID: &str = "jcdddeeehgafiakcgaabpiocfdijekce";
 
-const FILES: &[(&str, &str)] = &[
-    ("manifest.json", include_str!("../../../extensions/whaticket/manifest.json")),
-    ("background.js", include_str!("../../../extensions/whaticket/background.js")),
-    ("content.js", include_str!("../../../extensions/whaticket/content.js")),
-    ("aliexpress-core.js", include_str!("../../../extensions/whaticket/aliexpress-core.js")),
-    ("aliexpress.js", include_str!("../../../extensions/whaticket/aliexpress.js")),
-    ("aliexpress-bg.js", include_str!("../../../extensions/whaticket/aliexpress-bg.js")),
-];
+/// One of Coucou's browser extensions, shipped inside the app and written out for "Load unpacked".
+pub struct Extension {
+    /// Fixed by the public `key` in the extension's manifest.json.
+    pub id: &'static str,
+    pub dir_name: &'static str,
+    pub files: &'static [(&'static str, &'static str)],
+}
+
+/// Coucou for WhaTicket (extensions/whaticket).
+pub const WHATICKET: Extension = Extension {
+    id: "jcdddeeehgafiakcgaabpiocfdijekce",
+    dir_name: "browser-extension",
+    files: &[
+        ("manifest.json", include_str!("../../../extensions/whaticket/manifest.json")),
+        ("background.js", include_str!("../../../extensions/whaticket/background.js")),
+        ("content.js", include_str!("../../../extensions/whaticket/content.js")),
+    ],
+};
+
+/// Coucou for AliExpress (extensions/aliexpress): a separate extension on the same host.
+pub const ALIEXPRESS: Extension = Extension {
+    id: "fkdhifnmpmkjgkaacobdgohnnnlpgmil",
+    dir_name: "aliexpress-extension",
+    files: &[
+        ("manifest.json", include_str!("../../../extensions/aliexpress/manifest.json")),
+        ("background.js", include_str!("../../../extensions/aliexpress/background.js")),
+        ("content.js", include_str!("../../../extensions/aliexpress/content.js")),
+        ("aliexpress-core.js", include_str!("../../../extensions/aliexpress/aliexpress-core.js")),
+    ],
+};
+
+const ALL: [&Extension; 2] = [&WHATICKET, &ALIEXPRESS];
 
 #[derive(Serialize, Clone, Debug, Default)]
 #[serde(rename_all = "camelCase")]
@@ -45,46 +68,52 @@ pub struct Status {
     pub extension_id: String,
 }
 
-pub fn extension_dir() -> PathBuf {
-    settings::local_dir().join("browser-extension")
+pub fn extension_dir(ext: &Extension) -> PathBuf {
+    settings::local_dir().join(ext.dir_name)
 }
 
 fn host_manifest_path() -> PathBuf {
     settings::local_dir().join(format!("{HOST}.json"))
 }
 
-/// The native-messaging host manifest the browsers read.
+/// The native-messaging host manifest the browsers read: either of our extensions may start it.
 pub fn host_manifest(exe: &Path) -> String {
+    let origins: Vec<String> = ALL.iter().map(|e| format!("chrome-extension://{}/", e.id)).collect();
     let body = serde_json::json!({
         "name": HOST,
-        "description": "Coucou — WhaTicket queue in the notch",
+        "description": "Coucou — WhaTicket and AliExpress in the notch",
         "path": exe.to_string_lossy(),
         "type": "stdio",
-        "allowed_origins": [format!("chrome-extension://{EXTENSION_ID}/")],
+        "allowed_origins": origins,
     });
     serde_json::to_string_pretty(&body).unwrap_or_default()
 }
 
-fn files_current(dir: &Path) -> bool {
-    FILES
+fn files_current(ext: &Extension, dir: &Path) -> bool {
+    ext.files
         .iter()
         .all(|(name, text)| std::fs::read_to_string(dir.join(name)).map(|t| t == *text).unwrap_or(false))
 }
 
-pub fn status() -> Status {
-    let dir = extension_dir();
+/// The host manifest we wrote lets this extension in (an older one only knew WhaTicket).
+fn host_allows(ext: &Extension) -> bool {
+    std::fs::read_to_string(host_manifest_path()).map(|t| t.contains(ext.id)).unwrap_or(false)
+}
+
+pub fn status(ext: &Extension) -> Status {
+    let dir = extension_dir(ext);
     Status {
         extension_dir: dir.to_string_lossy().to_string(),
-        installed: files_current(&dir),
-        browsers: registered(),
-        extension_id: EXTENSION_ID.into(),
+        installed: files_current(ext, &dir),
+        browsers: if host_allows(ext) { registered() } else { Vec::new() },
+        extension_id: ext.id.into(),
     }
 }
 
-pub fn install() -> Result<Status, String> {
-    let dir = extension_dir();
+pub fn install(ext: &Extension) -> Result<Status, String> {
+    let dir = extension_dir(ext);
     std::fs::create_dir_all(&dir).map_err(|e| format!("could not create {}: {e}", dir.display()))?;
-    for (name, text) in FILES {
+    for (name, text) in ext.files {
         std::fs::write(dir.join(name), text).map_err(|e| format!("could not write {name}: {e}"))?;
     }
     let exe = settings::hook_exe_path();
@@ -97,12 +126,12 @@ pub fn install() -> Result<Status, String> {
     if browsers.is_empty() {
         return Err("No Chrome, Edge, Brave or Chromium found for this user".into());
     }
-    crate::log::line(format!("browser extension installed for {}", browsers.join(", ")));
-    Ok(status())
+    crate::log::line(format!("browser extension {} installed for {}", ext.dir_name, browsers.join(", ")));
+    Ok(status(ext))
 }
 
-pub fn reveal() {
-    let dir = extension_dir();
+pub fn reveal(ext: &Extension) {
+    let dir = extension_dir(ext);
     if dir.exists() {
         crate::platform::open_folder(&dir.to_string_lossy());
     }
@@ -217,14 +246,22 @@ mod tests {
         assert_eq!(v["name"], HOST);
         assert_eq!(v["type"], "stdio");
         assert_eq!(v["path"], "/x/coucou-hook");
-        assert_eq!(v["allowed_origins"], serde_json::json!([format!("chrome-extension://{EXTENSION_ID}/")]));
+        assert_eq!(
+            v["allowed_origins"],
+            serde_json::json!([
+                format!("chrome-extension://{}/", WHATICKET.id),
+                format!("chrome-extension://{}/", ALIEXPRESS.id)
+            ])
+        );
     }
 
     #[test]
     fn ships_the_extension_files() {
-        let manifest: serde_json::Value = serde_json::from_str(FILES[0].1).unwrap();
-        assert_eq!(manifest["manifest_version"], 3);
-        assert!(manifest["permissions"].as_array().unwrap().iter().any(|p| p == "nativeMessaging"));
-        assert!(FILES[1].1.contains(HOST));
+        for ext in ALL {
+            let manifest: serde_json::Value = serde_json::from_str(ext.files[0].1).unwrap();
+            assert_eq!(manifest["manifest_version"], 3);
+            assert!(manifest["permissions"].as_array().unwrap().iter().any(|p| p == "nativeMessaging"));
+            assert!(ext.files[1].1.contains(HOST));
+        }
     }
 }

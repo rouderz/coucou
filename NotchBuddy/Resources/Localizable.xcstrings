@@ -402,6 +402,16 @@
         }
       }
     },
+    "4. Open your AliExpress orders once, and turn on the AliExpress pill under Integrations.": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "4. Abre tus pedidos de AliExpress una vez y activa la píldora AliExpress en Integraciones."
+          }
+        }
+      }
+    },
     "A Claude Code session is working on it": {
       "localizations": {
         "es": {
@@ -2312,12 +2322,12 @@
         }
       }
     },
-    "Coucou groups your AliExpress orders by the box they ship in (same tracking number) and makes one invoice per box — PDF to your Downloads/Coucou/AliExpress folder — plus a CSV of every product for Excel or Google Sheets. It reads your own order pages through the browser extension (Settings → WhaTicket → Set up browser extension, then open your AliExpress orders once).": {
+    "Coucou groups your AliExpress orders by the box they ship in (same tracking number) and makes one invoice per box — PDF to your Downloads/Coucou/AliExpress folder — plus a CSV of every product for Excel or Google Sheets. It reads your own order pages through its own small Chrome / Edge extension, Coucou for AliExpress, with the session you already have open.": {
       "localizations": {
         "es": {
           "stringUnit": {
             "state": "translated",
-            "value": "Coucou agrupa tus pedidos de AliExpress por la caja en que llegan (mismo número de seguimiento) y hace una factura por caja —PDF en tu carpeta Descargas/Coucou/AliExpress— y un CSV con todos los productos para Excel o Google Sheets. Lee tus propias páginas de pedidos con la extensión del navegador (Ajustes → WhaTicket → Configurar la extensión del navegador, y luego abre tus pedidos de AliExpress una vez)."
+            "value": "Coucou agrupa tus pedidos de AliExpress por la caja en que llegan (mismo número de seguimiento) y hace una factura por caja —PDF en tu carpeta Descargas/Coucou/AliExpress— y un CSV con todos los productos para Excel o Google Sheets. Lee tus propias páginas de pedidos con su propia extensión de Chrome / Edge, Coucou for AliExpress, usando la sesión que ya tienes abierta."
           }
         }
       }
