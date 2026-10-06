@@ -151,8 +151,9 @@ function badge(ok, title) {
       if (!pkg) return;
       const { number, numbers } = A.invoiceNumber(state.numbers, pkg.tracking, date.slice(0, 4));
       state.numbers = numbers;
-      const bytes = A.invoicePdf(A.invoiceOf(pkg, state.orders), {
-        buyer: cmd.buyer || {}, number, date, lang: cmd.lang === "es" ? "es" : "en",
+      const inv = A.invoiceOf(pkg, state.orders);
+      const bytes = A.invoicePdf(inv, {
+        buyer: cmd.buyer || {}, number, date, lang: cmd.lang === "es" ? "es" : "en", images: await pictures(inv.lines),
       });
       const name = `Coucou/AliExpress/${cmd.lang === "es" ? "Factura" : "Invoice"} ${number} ${safe(pkg.tracking)}.pdf`;
       await download(state, name, bytes, "application/pdf", { tracking: pkg.tracking, number });
@@ -161,6 +162,49 @@ function badge(ok, title) {
       await download(state, `Coucou/AliExpress/aliexpress-${date}.csv`, bytes, "text/csv", { csv: true });
     }
     await save(state);
+  }
+
+  // ── Product pictures for the invoice ──────────────────────────────────────
+
+  const thumbs = new Map(); // address → { w, h, data } | null, for this worker's life
+
+  /** A small JPEG of a product picture (at most 160 px), as the PDF wants it; null when it fails. */
+  async function thumb(url) {
+    if (thumbs.has(url)) return thumbs.get(url);
+    let out = null;
+    try {
+      const ctl = new AbortController();
+      const timer = setTimeout(() => ctl.abort(), 10000);
+      const res = await fetch(url, { credentials: "omit", signal: ctl.signal });
+      clearTimeout(timer);
+      if (res.ok) {
+        const bmp = await createImageBitmap(await res.blob());
+        const s = Math.min(1, 160 / Math.max(bmp.width, bmp.height));
+        const w = Math.max(1, Math.round(bmp.width * s)), h = Math.max(1, Math.round(bmp.height * s));
+        const canvas = new OffscreenCanvas(w, h);
+        const ctx = canvas.getContext("2d");
+        ctx.fillStyle = "#fff"; // transparent PNGs get a white background, not black
+        ctx.fillRect(0, 0, w, h);
+        ctx.drawImage(bmp, 0, 0, w, h);
+        const blob = await canvas.convertToBlob({ type: "image/jpeg", quality: 0.85 });
+        const bytes = new Uint8Array(await blob.arrayBuffer());
+        let data = "";
+        for (let i = 0; i < bytes.length; i += 0x8000) data += String.fromCharCode(...bytes.subarray(i, i + 0x8000));
+        out = { w, h, data };
+      }
+    } catch {
+      out = null; // no picture: the invoice shows a plain square instead
+    }
+    thumbs.set(url, out);
+    return out;
+  }
+
+  async function pictures(lines) {
+    const images = {};
+    for (const l of lines.slice(0, 60)) {
+      if (l.image && !(l.image in images)) images[l.image] = await thumb(l.image);
+    }
+    return images;
   }
 
   function safe(s) {
