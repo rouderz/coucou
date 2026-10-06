@@ -131,6 +131,13 @@ export const Bridge = {
   /** Queues an accept; the browser extension runs it at its next check-in. */
   whaticketAccept: (id: string) => callOrThrow<void>("whaticket_accept", { id }),
   whaticketOpen: (id: string | null) => call<void>("whaticket_open", { id }),
+  /** AliExpress: the invoice of one box / the CSV / a refresh, done by the browser extension. */
+  aliexpressInvoice: (tracking: string, lang: string) => callOrThrow<void>("aliexpress_invoice", { tracking, lang }),
+  aliexpressCsv: () => call<void>("aliexpress_csv"),
+  aliexpressBuyerGet: () => call<Record<string, string>>("aliexpress_buyer_get"),
+  aliexpressBuyerSet: (buyer: Record<string, string>) => callOrThrow<void>("aliexpress_buyer_set", { buyer }),
+  aliexpressSync: () => call<void>("aliexpress_sync"),
+  revealDownload: (path: string) => call<void>("reveal_download", { path }),
   /** Your queues, as of the extension's last check-in (empty until it has checked in). */
   whaticketQueues: () => call<{ id: string; name: string; color: string }[]>("whaticket_queues"),
   /** The local log of tickets that arrived and that we accepted (Settings → WhaTicket → Stats). */

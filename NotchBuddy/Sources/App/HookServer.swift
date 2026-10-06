@@ -61,7 +61,10 @@ final class HookServer: @unchecked Sendable {
         // tickets to accept. Not a Claude Code event — it never touches the sessions.
         if eventName == "WhaTicketBrowser" {
             Task { @MainActor in
-                let answer = WhaTicketBridge.shared.handle(payload)
+                // The same extension also reads AliExpress orders (kind "aliexpress").
+                let answer = (payload["kind"] as? String) == "aliexpress"
+                    ? AliExpressBridge.shared.handle(payload)
+                    : WhaTicketBridge.shared.handle(payload)
                 let line = (try? JSONSerialization.data(withJSONObject: answer))
                     .flatMap { String(data: $0, encoding: .utf8) } ?? #"{"commands":[],"interval":30}"#
                 Task.detached { connection.reply(line) }

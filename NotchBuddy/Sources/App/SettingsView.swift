@@ -899,6 +899,13 @@ struct SettingsView: View {
                     }
                 }
 
+                // MARK: AliExpress
+                if tab == .integrations {
+                    GroupBox("AliExpress") {
+                        AliExpressSettingsSection()
+                    }
+                }
+
                 // MARK: WhaTicket
                 if tab == .integrations {
                     GroupBox("WhaTicket") {

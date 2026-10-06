@@ -194,7 +194,12 @@ async fn handle<S: AsyncRead + AsyncWrite + Unpin>(app: AppHandle, mut pipe: S) 
     // coucou-hook's native-messaging mode: answer with the commands to run.
     // Not logged — it would be a line every 15 seconds.
     if event == "WhaTicketBrowser" {
-        let reply = crate::whaticket::handle_browser(&app, &payload);
+        // The same extension also reads AliExpress orders (kind "aliexpress").
+        let reply = if payload.get("kind").and_then(Value::as_str) == Some("aliexpress") {
+            crate::aliexpress::handle_browser(&app, &payload)
+        } else {
+            crate::whaticket::handle_browser(&app, &payload)
+        };
         let _ = pipe.write_all(format!("{reply}\n").as_bytes()).await;
         let _ = pipe.flush().await;
         let _ = pipe.shutdown().await;

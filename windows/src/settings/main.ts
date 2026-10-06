@@ -511,6 +511,9 @@ const INTEGRATIONS: IntegrationDef[] = [
   // Connected in the Google section below.
   { id: "integration_gmail", name: "Gmail", color: "#EA4335", fields: [] },
   // GitHub Actions on your open PRs (#115): no key of its own.
+  // Read by the browser extension from your own AliExpress pages: no key.
+  { id: "integration_aliexpress", name: "AliExpress", color: "#FF4747", fields: [],
+    hint: "Your orders grouped by box (tracking number), one invoice per box. Set up below." },
   { id: "integration_ci", name: "CI", color: "#2F81F7", fields: [],
     hint: "GitHub Actions on your open PRs. Uses the GitHub connection above (gh or the token)." },
 ];
@@ -961,6 +964,43 @@ function googleSection(connected: boolean, hasClient: boolean): HTMLElement {
 }
 
 // ── WhaTicket (browser extension) ─────────────────────────────────────────────
+
+// ── AliExpress (packages and invoices) ────────────────────────────────────────
+
+function aliexpressSection(): HTMLElement {
+  const fields: [string, string, boolean][] = [
+    ["name", "Full name", false], ["id", "ID / RUC (cédula)", false], ["address", "Address (several lines are fine)", true],
+    ["email", "Email (optional)", false], ["phone", "Phone (optional)", false],
+  ];
+  const inputs: Record<string, HTMLInputElement | HTMLTextAreaElement> = {};
+  const status = h("span", { class: "hint" });
+  const box = h("div", { style: "display:flex;flex-direction:column;gap:6px;max-width:420px" });
+  for (const [key, label, multi] of fields) {
+    const el = (multi ? h("textarea", { rows: "3", placeholder: label }) : h("input", { type: "text", placeholder: label })) as HTMLInputElement | HTMLTextAreaElement;
+    el.addEventListener("input", () => { status.textContent = ""; });
+    inputs[key] = el;
+    box.append(el);
+  }
+  void Bridge.aliexpressBuyerGet().then((b) => { for (const [k] of fields) inputs[k].value = (b && b[k]) || ""; });
+  const saveBtn = h("button", { text: "Save", onclick: async () => {
+    const buyer: Record<string, string> = {};
+    for (const [k] of fields) buyer[k] = inputs[k].value.trim();
+    try {
+      await Bridge.aliexpressBuyerSet(buyer);
+      status.textContent = "✓ Saved";
+    } catch (err) {
+      status.textContent = String(err).replace(/^Error:\s*/, "");
+    }
+  } });
+  return h("section", {},
+    h("h2", {}, h("i", { class: "dot", style: "background:#FF4747" }), h("span", { text: "AliExpress" })),
+    h("div", { class: "hint", text: "Coucou groups your AliExpress orders by the box they ship in (same tracking number) and makes one invoice per box — PDF to your Downloads/Coucou/AliExpress folder — plus a CSV of every product for Excel or Google Sheets. It reads your own order pages through the browser extension (set it up in the WhaTicket section, then open your AliExpress orders once)." }),
+    h("div", { class: "hint", text: "Printed on the invoices as the buyer:" }),
+    box,
+    h("div", { class: "row" }, saveBtn, status),
+    h("div", { class: "hint", text: "The invoice is your own document built from your orders: it lists the AliExpress order numbers it comes from and says it isn't issued by AliExpress. Keep the original order receipts (Download invoice on each order) for customs." }),
+  );
+}
 
 function whaticketSection(browser: BrowserStatus | null): HTMLElement {
   const status = h("div", { class: "hint" });
@@ -1654,7 +1694,7 @@ async function main() {
     ["claude", "Claude Code", [claudeSection(status), codexSection(codex), timeSection(), focusSection()]],
     ["integrations", "Integrations", [
       integrationsSection(present), captureSection(present["linear-api-key"] ?? false),
-      whaticketSection(browser), googleSection(googleConnected, googleClient),
+      whaticketSection(browser), aliexpressSection(), googleSection(googleConnected, googleClient),
     ]],
     ["alerts", "Alerts", [inboxSection(), phoneSection()]],
   ];

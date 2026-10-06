@@ -28,6 +28,9 @@ const FILES: &[(&str, &str)] = &[
     ("manifest.json", include_str!("../../../extensions/whaticket/manifest.json")),
     ("background.js", include_str!("../../../extensions/whaticket/background.js")),
     ("content.js", include_str!("../../../extensions/whaticket/content.js")),
+    ("aliexpress-core.js", include_str!("../../../extensions/whaticket/aliexpress-core.js")),
+    ("aliexpress.js", include_str!("../../../extensions/whaticket/aliexpress.js")),
+    ("aliexpress-bg.js", include_str!("../../../extensions/whaticket/aliexpress-bg.js")),
 ];
 
 #[derive(Serialize, Clone, Debug, Default)]

@@ -17,7 +17,7 @@ enum BrowserExtension {
     static let host = "fr.louisraille.coucou"
     /// Fixed by the public `key` in the extension's manifest.json.
     static let extensionID = "jcdddeeehgafiakcgaabpiocfdijekce"
-    static let files = ["manifest.json", "background.js", "content.js"]
+    static let files = ["manifest.json", "background.js", "content.js", "aliexpress-core.js", "aliexpress.js", "aliexpress-bg.js"]
 
     static var extensionDir: URL { HookServer.supportDir.appendingPathComponent("browser-extension") }
     static var hostScriptURL: URL { HookServer.supportDir.appendingPathComponent("coucou-native-host") }
