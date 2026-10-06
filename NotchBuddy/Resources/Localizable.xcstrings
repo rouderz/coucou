@@ -242,6 +242,16 @@
         }
       }
     },
+    "%lld waiting · %lld mine": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%lld en espera · %lld míos"
+          }
+        }
+      }
+    },
     "%lld were already waiting when the tab opened (not in the per-hour chart or the waits).": {
       "localizations": {
         "es": {
@@ -6692,6 +6702,16 @@
         }
       }
     },
+    "Tickets that arrived and that were accepted today (Settings → WhaTicket → Stats)": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tickets que llegaron y que se aceptaron hoy (Ajustes → WhaTicket → Estadísticas)"
+          }
+        }
+      }
+    },
     "Time": {
       "localizations": {
         "es": {
@@ -6742,22 +6762,22 @@
         }
       }
     },
-    "Today · Arrived %lld · Accepted %lld": {
+    "Today ↓%lld ✓%lld": {
       "localizations": {
         "es": {
           "stringUnit": {
             "state": "translated",
-            "value": "Hoy · Llegaron %lld · Aceptados %lld"
+            "value": "Hoy ↓%lld ✓%lld"
           }
         }
       }
     },
-    "Today · Arrived %lld · Accepted %lld (%lld auto)": {
+    "Today ↓%lld ✓%lld · %lld auto": {
       "localizations": {
         "es": {
           "stringUnit": {
             "state": "translated",
-            "value": "Hoy · Llegaron %lld · Aceptados %lld (%lld auto)"
+            "value": "Hoy ↓%lld ✓%lld · %lld auto"
           }
         }
       }
@@ -7178,6 +7198,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "¿Qué debe hacer?"
+          }
+        }
+      }
+    },
+    "When the engine runs out of quota, switch to the next one (Claude Code → Codex → Gemini → API)": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Si el motor se queda sin cuota, pasar al siguiente (Claude Code → Codex → Gemini → API)"
           }
         }
       }
@@ -7998,6 +8028,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "• subagente terminado"
+          }
+        }
+      }
+    },
+    "↪ %@ is out of quota or unavailable — %@ answered.": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "↪ %@ se quedó sin cuota o no está disponible — respondió %@."
           }
         }
       }

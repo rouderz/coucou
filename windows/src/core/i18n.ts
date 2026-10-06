@@ -306,6 +306,8 @@ const ES: Record<string, string> = {
   "Colours of the island and of this window. Pills keep their own colours.": "Colores de la isla y de esta ventana. Las píldoras mantienen sus propios colores.",
 
   // Chat engines (#108)
+  "Fallback": "Respaldo", "when the engine runs out of quota, the next one answers (Claude Code → Codex → Gemini → API)":
+    "si el motor se queda sin cuota, responde el siguiente (Claude Code → Codex → Gemini → API)",
   "Codex (ChatGPT plan)": "Codex (plan de ChatGPT)", "Gemini CLI": "Gemini CLI", "Chat engine": "Motor del chat",
   "Default of the CLI": "El predeterminado de la CLI", "Claude API": "API de Claude",
   "The engine gave no answer. Try again.": "El motor no dio respuesta. Inténtalo de nuevo.",
@@ -371,6 +373,7 @@ const ES: Record<string, string> = {
 
 /** Texts with something in them that changes: [pattern, Spanish with $1, $2…]. */
 const PATTERNS: [RegExp, string][] = [
+  [/^↪ (.+) is out of quota or unavailable — (.+) answered\.$/, "↪ $1 se quedó sin cuota o no está disponible — respondió $2."],
   [/^(Codex|Gemini CLI) not found\. Install it and sign in, then check again\.$/, "No se encontró $1. Instálalo e inicia sesión, luego vuelve a comprobar."],
   [/^(Codex|Gemini CLI) isn't signed in · run (.+)$/, "$1 no tiene la sesión iniciada · ejecuta $2"],
   [/^Uses (.+) with your ChatGPT plan\. It runs in its read-only sandbox in an empty folder: it can't touch your files\.$/,

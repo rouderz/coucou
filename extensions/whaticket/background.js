@@ -182,8 +182,14 @@ function badge(ok, title) {
 
 let busy = false;
 
+let lastTokenAt = 0;
+
 async function tick(token) {
   if (busy) return { interval: 5 };
+  // Several whaticket.com tabs: one without a session (the login page, a stale window)
+  // stays quiet while another tab is signed in, instead of reporting "signed out".
+  if (token) lastTokenAt = Date.now();
+  else if (Date.now() - lastTokenAt < 60_000) return { interval: 30 };
   busy = true;
   try {
     let data;

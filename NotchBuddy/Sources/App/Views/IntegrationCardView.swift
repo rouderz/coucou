@@ -474,25 +474,43 @@ struct UsageBar: View {
 /// A dot marks sessions that finished, failed or asked something while off the card.
 struct SessionSwitcher: View {
     @ObservedObject private var state = AppState.shared
-    private let maxChips = 3
 
+    /// The session on the card gets its name; every other one is a coloured dot (click to switch,
+    /// hover for its project). Dots never get squeezed, however many sessions run.
     var body: some View {
         let sessions = state.claudeSessions
-        HStack(spacing: 4) {
-            ForEach(sessions.prefix(maxChips)) { session in
-                SessionChip(session: session, focused: session.id == state.focusedClaudeSession)
+        let focused = sessions.first { $0.id == state.focusedClaudeSession } ?? sessions.first
+        HStack(spacing: 5) {
+            if let focused {
+                SessionChip(session: focused, focused: true)
+                    .layoutPriority(1)
             }
-            if sessions.count > maxChips {
+            ForEach(sessions.filter { $0.id != focused?.id }.prefix(6)) { session in
+                Button { HookServer.shared.focusSession(session.id) } label: {
+                    ZStack(alignment: .topTrailing) {
+                        Circle().fill(SessionChip.color(for: session.state)).frame(width: 7, height: 7)
+                        if session.unseen {
+                            Circle().fill(Color(hex: "#F5F6F8")).frame(width: 3, height: 3).offset(x: 2, y: -2)
+                        }
+                    }
+                    .frame(width: 12, height: 12)
+                    .contentShape(Rectangle())
+                }
+                .buttonStyle(.plain)
+                .help(session.project)
+            }
+            if sessions.count > 7 {
                 Menu {
-                    ForEach(sessions.dropFirst(maxChips)) { session in
+                    ForEach(sessions.dropFirst(7)) { session in
                         Button(session.project) { HookServer.shared.focusSession(session.id) }
                     }
                 } label: {
-                    Text("+\(sessions.count - maxChips)")
+                    Text("+\(sessions.count - 7)")
                         .font(.system(size: 10.5, weight: .medium))
                         .foregroundColor(Color(hex: "#8E939C"))
                 }
                 .menuStyle(.borderlessButton)
+                .menuIndicator(.hidden)
                 .fixedSize()
             }
         }
@@ -504,8 +522,10 @@ struct SessionChip: View {
     let focused: Bool
     @State private var hover = false
 
-    private var color: Color {
-        switch session.state {
+    private var color: Color { Self.color(for: session.state) }
+
+    static func color(for state: BotState) -> Color {
+        switch state {
         case .working, .searching: return Color(hex: "#4C8DFF")
         case .thinking:            return Color(hex: "#A78BFA")
         case .approval, .question: return Color(hex: "#F5A524")
@@ -528,7 +548,8 @@ struct SessionChip: View {
                     .font(.system(size: 11, weight: focused ? .semibold : .regular))
                     .foregroundColor(Color(hex: focused ? "#F5F6F8" : "#A3A8B0"))
                     .lineLimit(1)
-                    .frame(maxWidth: 90)
+                    .truncationMode(.tail)
+                    .frame(minWidth: 30, maxWidth: 120, alignment: .leading)
                 if session.unseen && !focused {
                     Circle().fill(Color(hex: "#F5F6F8")).frame(width: 4, height: 4)
                 }

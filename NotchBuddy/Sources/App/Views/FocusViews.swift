@@ -45,7 +45,8 @@ struct FocusTimeText: View {
 
 // MARK: - Ring around Mochi
 
-/// What's left of the block, as a thin ring around Mochi (shrinks clockwise as time passes).
+/// What's left of the block, as a thin bar under Mochi (it empties as time passes). It used to be a
+/// ring around Mochi, but Mochi isn't round: the ring cut through its body.
 struct FocusRing: View {
     @ObservedObject var state: AppState
     let diameter: CGFloat
@@ -55,15 +56,15 @@ struct FocusRing: View {
         if f.phase != .idle && state.mode != .hidden {
             TimelineView(AlignedAnimationSchedule(interval: 2, paused: f.paused)) { tl in
                 let left = 1 - f.progress(at: tl.date)
-                ZStack {
-                    Circle()
-                        .stroke(Color.white.opacity(0.08), lineWidth: 2)
-                    Circle()
-                        .trim(from: 0, to: max(0.002, left))
-                        .stroke(FocusStyle.color(f), style: StrokeStyle(lineWidth: 2, lineCap: .round))
-                        .rotationEffect(.degrees(-90))
+                let width = diameter * 0.6
+                ZStack(alignment: .leading) {
+                    Capsule().fill(Color.white.opacity(0.10))
+                    Capsule().fill(FocusStyle.color(f))
+                        .frame(width: max(3, width * left))
                 }
-                .frame(width: diameter, height: diameter)
+                .frame(width: width, height: 3)
+                // Under Mochi: the frame is Mochi-sized and centred on it, the bar sits at its bottom.
+                .frame(width: diameter, height: diameter * 0.74, alignment: .bottom)
             }
             .transition(.opacity)
         }

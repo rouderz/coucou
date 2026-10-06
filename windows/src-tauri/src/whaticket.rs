@@ -492,7 +492,12 @@ pub fn handle_browser(app: &AppHandle, msg: &Value) -> Value {
 
 fn snapshot(app: &AppHandle, msg: &Value, rules: &Rules) -> Value {
     if let Some(code) = msg.get("error").and_then(Value::as_str) {
-        emit(app, IntegrationUpdate { id: ID, data: json!({}), error: Some(error_text(code)), event: None });
+        // Another whaticket.com tab (a login page, a second window) has no session while the
+        // one in use does: its error must not hide the queue that keeps arriving.
+        let fresh = BRIDGE.lock().unwrap().checked_in.map(|at| at.elapsed() < STALE_AFTER).unwrap_or(false);
+        if !fresh {
+            emit(app, IntegrationUpdate { id: ID, data: json!({}), error: Some(error_text(code)), event: None });
+        }
         return json!({ "commands": [], "interval": INTERVAL });
     }
     let pending = tickets(msg, "pending");

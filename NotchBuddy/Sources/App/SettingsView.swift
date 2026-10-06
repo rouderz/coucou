@@ -195,6 +195,9 @@ struct SettingsView: View {
                                 .foregroundColor(.secondary)
                             }
 
+                            Toggle("When the engine runs out of quota, switch to the next one (Claude Code → Codex → Gemini → API)", isOn: $state.chatFallback)
+                                .font(.system(size: 11.5))
+
                             if state.chatEngine == .apiKey {
                                 Picker("Longest answer", selection: $state.apiMaxTokens) {
                                     Text("Short (1,024 tokens)").tag(1024)

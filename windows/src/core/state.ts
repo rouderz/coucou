@@ -172,6 +172,8 @@ export interface Settings {
   /** Codex / Gemini CLI chat engines (#108): model to ask for ("" = the CLI's default). */
   codexModel: string;
   geminiModel: string;
+  /** When the chat engine is out of quota (or unusable), answer with the next one that's ready. */
+  chatFallback: boolean;
   providerId: string;
   providerBaseUrl: string;
   providerModel: string;
@@ -265,6 +267,7 @@ export const DEFAULT_SETTINGS: Settings = {
   linearDefaultTeam: "",
   codexModel: "",
   geminiModel: "",
+  chatFallback: true,
   focusMin: 25,
   breakMin: 5,
   longBreakMin: 15,

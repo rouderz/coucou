@@ -54,18 +54,14 @@ struct IslandContainer: View {
         let greetingActive = state.mode == .expanded && state.view == .greeting
 
         return ZStack(alignment: .topLeading) {
-            // Black island shape. Other themes tint it below the notch; the top stays black so it
-            // still blends with the hardware notch.
+            // The island: pure black in Dark (the original look); open, other themes paint the whole
+            // island, top bar included, with their background.
             IslandShape(width: islandWidth, height: islandHeight,
                         cornerRadius: cornerRadius, topRadius: islandTopRadius)
-                .fill(Theme.current.id == Theme.dark.id ? AnyShapeStyle(Color.black) : AnyShapeStyle(LinearGradient(
-                    stops: [
-                        .init(color: .black, location: 0),
-                        .init(color: .black, location: min(0.9, IslandConst.notchHeight / max(islandHeight, 1))),
-                        .init(color: Color(hex: Theme.current.bg),
-                              location: min(0.95, (IslandConst.notchHeight + 14) / max(islandHeight, 1))),
-                    ],
-                    startPoint: .top, endPoint: .bottom)))
+                // Collapsed it stays black, so it still reads as the hardware notch.
+                .fill(Theme.current.id == Theme.dark.id || state.mode != .expanded
+                      ? Color.black : Color(hex: Theme.current.bg))
+                .animation(.easeInOut(duration: 0.25), value: state.mode)
 
             // Content
             if state.mode == .expanded {

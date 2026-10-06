@@ -53,7 +53,7 @@ export function themeVars(t: ThemePalette): Record<string, string> {
   if (t.id === DARK.id) return {};
   const hair = t.isLight ? "rgba(0, 0, 0, 0.08)" : "rgba(255, 255, 255, 0.06)";
   return {
-    "--ink": t.ink, "--ink-2": t.ink,
+    "--ink": t.ink, "--ink-2": t.ink, "--ink-3": t.ink2,
     "--dim": t.dim, "--dim-2": t.dim, "--dim-3": t.dim3, "--dim-4": t.dim3, "--dim-5": t.dim3,
     "--card": t.card, "--card-flat": t.bg, "--tab-on": t.card, "--bg": t.bg,
     "--hairline": hair, "--accent": t.accent, "--island": t.bg,

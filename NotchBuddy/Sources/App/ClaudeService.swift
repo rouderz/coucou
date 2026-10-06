@@ -147,37 +147,82 @@ final class ClaudeService {
     }
 
     func chat(query: String, context: PromptContext?, state: AppState) async {
-        let provider = Self.provider(for: state.chatEngine)
-        // The chat view only holds the new question: a fresh conversation.
-        if state.chatHistory.count <= 1 { provider.reset() }
-        var replyID: UUID?
-        func show(_ text: String) {
-            let clean = text.trimmingCharacters(in: .whitespacesAndNewlines)
-            guard !clean.isEmpty else { return }
-            if let id = replyID, let i = state.chatHistory.firstIndex(where: { $0.id == id }) {
-                state.chatHistory[i].content = clean
-            } else {
-                let msg = ChatMessage(role: .assistant, content: clean)
-                replyID = msg.id
-                state.chatHistory.append(msg)
-                state.stateOverride = nil  // hide the typing dots once text streams in
-            }
-            VoiceOutput.shared.feed(clean)
-        }
+        var engine = state.chatEngine
+        var tried: Set<ChatEngine> = []
+        var switchedFrom: ChatEngine?
+        // The conversation before this question, to hand over if another engine has to answer.
+        let earlier = state.chatHistory.dropLast().map { SavedChat.Message(user: $0.role == .user, text: $0.content) }
         let request = ChatRequest(query: query, context: context, systemPrompt: Self.systemPrompt)
-        do {
-            let answer = try await provider.stream(request) { show($0) }
-            show(answer)
-            VoiceOutput.shared.finish(answer.trimmingCharacters(in: .whitespacesAndNewlines))
-            ChatStore.shared.saveCurrent(state)
-            state.stateOverride = nil
-            state.view = .prompt
-            NotificationCenter.default.post(name: .triggerEmote, object: BotEmote.happy)
-        } catch {
-            if let id = replyID { state.chatHistory.removeAll { $0.id == id } }
-            VoiceOutput.shared.stop()
-            await showError(provider.describe(error), state: state)
+        while true {
+            tried.insert(engine)
+            let provider = Self.provider(for: engine)
+            // The chat view only holds the new question: a fresh conversation.
+            if state.chatHistory.count <= 1 { provider.reset() }
+            var replyID: UUID?
+            let notice = switchedFrom.map { L("↪ \($0.shortName) is out of quota or unavailable — \(engine.shortName) answered.") }
+            func show(_ text: String) {
+                var clean = text.trimmingCharacters(in: .whitespacesAndNewlines)
+                guard !clean.isEmpty else { return }
+                if let notice { clean = notice + "\n\n" + clean }
+                if let id = replyID, let i = state.chatHistory.firstIndex(where: { $0.id == id }) {
+                    state.chatHistory[i].content = clean
+                } else {
+                    let msg = ChatMessage(role: .assistant, content: clean)
+                    replyID = msg.id
+                    state.chatHistory.append(msg)
+                    state.stateOverride = nil  // hide the typing dots once text streams in
+                }
+                VoiceOutput.shared.feed(clean)
+            }
+            do {
+                let answer = try await provider.stream(request) { show($0) }
+                show(answer)
+                VoiceOutput.shared.finish(answer.trimmingCharacters(in: .whitespacesAndNewlines))
+                ChatStore.shared.saveCurrent(state)
+                state.stateOverride = nil
+                state.view = .prompt
+                NotificationCenter.default.post(name: .triggerEmote, object: BotEmote.happy)
+                return
+            } catch {
+                if let id = replyID { state.chatHistory.removeAll { $0.id == id } }
+                VoiceOutput.shared.stop()
+                let message = provider.describe(error)
+                // Out of quota (or not usable): the next engine that's ready answers, and stays picked.
+                if state.chatFallback, Self.isOutOfQuota(message),
+                   let next = await Self.nextEngine(after: tried) {
+                    switchedFrom = switchedFrom ?? engine
+                    Self.provider(for: next).restore(Array(earlier))
+                    state.chatEngine = next
+                    engine = next
+                    continue
+                }
+                await showError(message, state: state)
+                return
+            }
         }
+    }
+
+    /// The engine says it hit a limit, or it can't be used at all (not installed / signed out).
+    nonisolated static func isOutOfQuota(_ message: String) -> Bool {
+        message.range(of: #"\b429\b|rate[ _-]?limit|usage limit|hit (its|your|the) limit|limit reached|quota|too many requests|overloaded|isn't installed|not installed|isn't signed in|not signed in|not logged in"#,
+                      options: [.regularExpression, .caseInsensitive]) != nil
+    }
+
+    /// The next engine ready to answer, in a fixed order, skipping the ones already tried.
+    static func nextEngine(after tried: Set<ChatEngine>) async -> ChatEngine? {
+        for engine in [ChatEngine.claudeCode, .codex, .gemini, .apiKey, .provider] where !tried.contains(engine) {
+            switch engine {
+            case .claudeCode:
+                if await ClaudeCodeChat.locate() != nil { return engine }
+            case .codex, .gemini:
+                if let cli = engine.cli, await AgentCLIChat.locate(cli) != nil { return engine }
+            case .apiKey:
+                if Secrets.store.get("anthropic-api-key") != nil { return engine }
+            case .provider:
+                if ProviderSettings.preset.needsKey && ProviderSettings.key != nil { return engine }
+            }
+        }
+        return nil
     }
 
     // MARK: - Structured search (M8 — window attach + web search)

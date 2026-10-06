@@ -161,6 +161,11 @@ final class AppState: ObservableObject {
 
     // Claude model used by the chat and the search — persisted
     static let defaultClaudeModel = "claude-opus-5-5"
+    /// When the chat engine is out of quota (or unusable), answer with the next one that's ready.
+    @Published var chatFallback: Bool = true {
+        didSet { UserDefaults.standard.set(chatFallback, forKey: "chatFallback") }
+    }
+
     /// Model for the Codex / Gemini CLI engines; empty = the CLI's own default.
     @Published var codexModel: String = "" {
         didSet { UserDefaults.standard.set(codexModel, forKey: "codexModel") }
@@ -597,6 +602,7 @@ final class AppState: ObservableObject {
         #endif
         preferredEditor = ud.string(forKey: "preferredEditor")
         if let v = ud.object(forKey: "apiMaxTokens") as? Int, v >= 256 { apiMaxTokens = v }
+        if let v = ud.object(forKey: "chatFallback") as? Bool { chatFallback = v }
         codexModel = ud.string(forKey: "codexModel") ?? ""
         geminiModel = ud.string(forKey: "geminiModel") ?? ""
         if let v = ud.string(forKey: "claudeModel"),
