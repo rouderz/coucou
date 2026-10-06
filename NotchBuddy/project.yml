@@ -64,6 +64,10 @@ targets:
       - path: ../extensions/whaticket
         buildPhase: resources
         type: folder
+      # Coucou for AliExpress, its own extension, copied out by Settings → AliExpress.
+      - path: ../extensions/aliexpress
+        buildPhase: resources
+        type: folder
       - path: Resources/Localizable.xcstrings
         buildPhase: resources
       - path: Resources/InfoPlist.xcstrings

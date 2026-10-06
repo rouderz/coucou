@@ -61,6 +61,7 @@ has the details for Windows and Linux.
 
 **Work apps**
 - **WhaTicket** — the WhatsApp ticket queue and your tickets in the island, Accept in one click, and optional auto-accept (by queue and hours). It works through a small Chrome / Edge extension ([`extensions/whaticket`](extensions/whaticket)) that uses the whaticket.com session you already have open — no token, no admin access. Set it up from Settings → WhaTicket. Stats there count the tickets that arrived and the ones you accepted (by click, auto-accept or elsewhere), with waits, per hour, day and queue, and CSV export — kept locally for a year, ticket ids and queues only.
+- **AliExpress** — your orders grouped by the box they ship in (same tracking number), with one PDF invoice per box and a CSV of every product for Excel or Google Sheets, saved to Downloads/Coucou/AliExpress. Its own small Chrome / Edge extension, Coucou for AliExpress ([`extensions/aliexpress`](extensions/aliexpress)), reads your own order pages with the session you already have open; Coucou never calls AliExpress. Set it up from Settings → AliExpress. The invoice is your own document: it cites the AliExpress order numbers and says it isn't issued by AliExpress. Buyer details for the invoice live in the Keychain / credential store (Settings → AliExpress).
 - **Gmail** — what matches your search (unread in the inbox by default); "Ask" hands a mail to Mochi. Read-only, with your own Google Cloud OAuth client.
 
 **Everyday**
@@ -142,7 +143,7 @@ Menu bar icon (Mac) or tray icon (Windows, Linux) → **Settings…**
 | **Chat → Engine** | *Claude Code (subscription)* needs nothing else; *Anthropic API key* goes to the Keychain. |
 | **Hotkey** | ⌃⌥M ask about the file · ⌃⌥V push-to-talk · ⌥⏎ / ⌥⌫ approvals. Grant Accessibility for ⌃⌥M (Mac). |
 | **Auto-approve · Phone alerts · Do not disturb** | optional, all off by default. |
-| **Integrations** | GitHub (uses `gh` if signed in), Linear, Vercel, Stripe, Resend, n8n, Notion, Cal.com, WhaTicket — all optional. |
+| **Integrations** | GitHub (uses `gh` if signed in), Linear, Vercel, Stripe, Resend, n8n, Notion, Cal.com, WhaTicket, AliExpress — all optional. |
 | **Google** | Gmail and Drive: create a free "Desktop app" OAuth client in Google Cloud, paste it, Connect. |
 | **General → Idle notch** | Windows / Linux: the small notch left at the top when the island hides; turn it off to leave only an invisible strip. |
 
@@ -166,7 +167,7 @@ Secret Service (GNOME Keyring, KWallet) — never on disk. Coucou talks only to 
 - your ntfy server, if you turn on phone alerts (it receives the project and the command — keep the topic private);
 - GitHub (`api.github.com`, `github.com`), to check for and download updates — turn it off in Settings → Updates;
 - GitHub again only when you paste a link to install a skill from it;
-- Google's APIs (Gmail, Drive), only if you connect them. WhaTicket is read by the browser extension in your own tab; Coucou itself never calls it.
+- Google's APIs (Gmail, Drive), only if you connect them. WhaTicket and AliExpress are read by the browser extension in your own tab; Coucou itself never calls it.
 
 The editor extension talks to Coucou over a local socket (named pipe on Windows) only.
 

@@ -24,6 +24,7 @@ mod skills;
 mod tray;
 mod voice;
 mod whaticket;
+mod aliexpress;
 mod browser;
 
 use std::sync::atomic::Ordering;
@@ -428,6 +429,52 @@ fn whaticket_open(id: Option<String>) {
     open_url(whaticket::web_url(id.as_deref()));
 }
 
+/// AliExpress: the invoice of one box, done by the browser extension at its next check-in.
+#[tauri::command]
+fn aliexpress_invoice(app: AppHandle, tracking: String, lang: String) -> Result<(), String> {
+    aliexpress::queue_invoice(&app, &tracking, &lang)
+}
+
+/// Settings → AliExpress: the buyer details printed on the invoices (the user's own, not a secret
+/// in the API-key sense, but kept in the credential store like one).
+#[tauri::command]
+fn aliexpress_buyer_get() -> serde_json::Value {
+    secrets::get("aliexpress-buyer")
+        .and_then(|t| serde_json::from_str(&t).ok())
+        .unwrap_or_else(|| serde_json::json!({}))
+}
+
+#[tauri::command]
+fn aliexpress_buyer_set(buyer: serde_json::Value) -> Result<(), String> {
+    let clip = |k: &str, max: usize| buyer.get(k).and_then(|v| v.as_str()).unwrap_or("").chars().take(max).collect::<String>();
+    let clean = serde_json::json!({
+        "name": clip("name", 120), "id": clip("id", 40), "address": clip("address", 400),
+        "email": clip("email", 120), "phone": clip("phone", 40),
+    });
+    secrets::set("aliexpress-buyer", &clean.to_string())
+}
+
+#[tauri::command]
+fn aliexpress_csv(app: AppHandle) {
+    aliexpress::queue_csv(&app);
+}
+
+#[tauri::command]
+fn aliexpress_sync() {
+    aliexpress::queue_sync();
+}
+
+/// Shows a file the extension saved (an invoice, the CSV) in the file manager.
+#[tauri::command]
+fn reveal_download(path: String) {
+    let p = std::path::Path::new(&path);
+    if p.is_absolute() && p.exists() {
+        if let Some(dir) = p.parent() {
+            platform::open_folder(&dir.to_string_lossy());
+        }
+    }
+}
+
 #[tauri::command]
 fn whaticket_queues() -> serde_json::Value {
     whaticket::queues()
@@ -449,17 +496,33 @@ fn whaticket_stats_reset() {
 /// with every Chromium browser found. Returns where the unpacked extension lives.
 #[tauri::command]
 fn browser_install() -> Result<browser::Status, String> {
-    browser::install()
+    browser::install(&browser::WHATICKET)
 }
 
 #[tauri::command]
 fn browser_status() -> browser::Status {
-    browser::status()
+    browser::status(&browser::WHATICKET)
 }
 
 #[tauri::command]
 fn browser_reveal() {
-    browser::reveal();
+    browser::reveal(&browser::WHATICKET);
+}
+
+/// Coucou for AliExpress: its own extension, on the same native-messaging host.
+#[tauri::command]
+fn aliexpress_extension_install() -> Result<browser::Status, String> {
+    browser::install(&browser::ALIEXPRESS)
+}
+
+#[tauri::command]
+fn aliexpress_extension_status() -> browser::Status {
+    browser::status(&browser::ALIEXPRESS)
+}
+
+#[tauri::command]
+fn aliexpress_extension_reveal() {
+    browser::reveal(&browser::ALIEXPRESS);
 }
 
 // ── Google (Gmail, Drive) ─────────────────────────────────────────────────────
@@ -1041,11 +1104,20 @@ pub fn run() {
             whaticket_accept,
             whaticket_open,
             whaticket_queues,
+            aliexpress_invoice,
+            aliexpress_csv,
+            aliexpress_buyer_get,
+            aliexpress_buyer_set,
+            aliexpress_sync,
+            reveal_download,
             whaticket_stats,
             whaticket_stats_reset,
             browser_install,
             browser_status,
             browser_reveal,
+            aliexpress_extension_install,
+            aliexpress_extension_status,
+            aliexpress_extension_reveal,
             google_connect,
             google_disconnect,
             google_connected,

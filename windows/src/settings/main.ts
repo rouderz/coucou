@@ -511,6 +511,9 @@ const INTEGRATIONS: IntegrationDef[] = [
   // Connected in the Google section below.
   { id: "integration_gmail", name: "Gmail", color: "#EA4335", fields: [] },
   // GitHub Actions on your open PRs (#115): no key of its own.
+  // Read by the browser extension from your own AliExpress pages: no key.
+  { id: "integration_aliexpress", name: "AliExpress", color: "#FF4747", fields: [],
+    hint: "Your orders grouped by box (tracking number), one invoice per box. Set up below." },
   { id: "integration_ci", name: "CI", color: "#2F81F7", fields: [],
     hint: "GitHub Actions on your open PRs. Uses the GitHub connection above (gh or the token)." },
 ];
@@ -961,6 +964,77 @@ function googleSection(connected: boolean, hasClient: boolean): HTMLElement {
 }
 
 // ── WhaTicket (browser extension) ─────────────────────────────────────────────
+
+// ── AliExpress (packages and invoices) ────────────────────────────────────────
+
+function aliexpressSection(ext: BrowserStatus | null): HTMLElement {
+  // Coucou for AliExpress: its own browser extension, on the same native-messaging host.
+  const extStatus = h("div", { class: "hint" });
+  const install = h("button", { text: "Set up browser extension" }) as HTMLButtonElement;
+  const reveal = h("button", { text: "Show folder" }) as HTMLButtonElement;
+  reveal.addEventListener("click", () => void Bridge.aliexpressExtensionReveal());
+  function show(b: BrowserStatus | null) {
+    const ready = !!b && b.installed && b.browsers.length > 0;
+    reveal.style.display = b?.installed ? "" : "none";
+    install.textContent = ready ? "Set up again" : "Set up browser extension";
+    extStatus.className = ready ? "notice ok" : "hint";
+    extStatus.textContent = ready
+      ? `Ready for ${b!.browsers.join(", ")}. Extension folder: ${b!.extensionDir}`
+      : "Not set up yet.";
+  }
+  show(ext);
+  install.addEventListener("click", async () => {
+    install.disabled = true;
+    try {
+      show(await Bridge.aliexpressExtensionInstall());
+    } catch (err) {
+      extStatus.className = "notice err";
+      extStatus.textContent = String(err).replace(/^Error:\s*/, "");
+    } finally {
+      install.disabled = false;
+    }
+  });
+  const fields: [string, string, boolean][] = [
+    ["name", "Full name", false], ["id", "ID / RUC (cédula)", false], ["address", "Address (several lines are fine)", true],
+    ["email", "Email (optional)", false], ["phone", "Phone (optional)", false],
+  ];
+  const inputs: Record<string, HTMLInputElement | HTMLTextAreaElement> = {};
+  const status = h("span", { class: "hint" });
+  const box = h("div", { style: "display:flex;flex-direction:column;gap:6px;max-width:420px" });
+  for (const [key, label, multi] of fields) {
+    const el = (multi ? h("textarea", { rows: "3", placeholder: label }) : h("input", { type: "text", placeholder: label })) as HTMLInputElement | HTMLTextAreaElement;
+    el.addEventListener("input", () => { status.textContent = ""; });
+    inputs[key] = el;
+    box.append(el);
+  }
+  void Bridge.aliexpressBuyerGet().then((b) => { for (const [k] of fields) inputs[k].value = (b && b[k]) || ""; });
+  const saveBtn = h("button", { text: "Save", onclick: async () => {
+    const buyer: Record<string, string> = {};
+    for (const [k] of fields) buyer[k] = inputs[k].value.trim();
+    try {
+      await Bridge.aliexpressBuyerSet(buyer);
+      status.textContent = "✓ Saved";
+    } catch (err) {
+      status.textContent = String(err).replace(/^Error:\s*/, "");
+    }
+  } });
+  return h("section", {},
+    h("h2", {}, h("i", { class: "dot", style: "background:#FF4747" }), h("span", { text: "AliExpress" })),
+    h("div", { class: "hint", text: "Coucou groups your AliExpress orders by the box they ship in (same tracking number) and makes one invoice per box — PDF to your Downloads/Coucou/AliExpress folder — plus a CSV of every product for Excel or Google Sheets. It reads your own order pages through its own small Chrome / Edge extension, Coucou for AliExpress, with the session you already have open." }),
+    h("div", { class: "row" }, install, reveal),
+    extStatus,
+    h("ol", { class: "hint", style: "margin:4px 0 0 18px;padding:0;line-height:1.6" },
+      h("li", { text: "Click Set up browser extension." }),
+      h("li", { text: "In Chrome open chrome://extensions (in Edge: edge://extensions) and turn on Developer mode." }),
+      h("li", { text: "Click Load unpacked and pick the extension folder shown above." }),
+      h("li", { text: "Open your AliExpress orders once, and turn on the AliExpress pill under Integrations." }),
+    ),
+    h("div", { class: "hint", text: "Printed on the invoices as the buyer:" }),
+    box,
+    h("div", { class: "row" }, saveBtn, status),
+    h("div", { class: "hint", text: "The invoice is your own document built from your orders: it lists the AliExpress order numbers it comes from and says it isn't issued by AliExpress. Keep the original order receipts (Download invoice on each order) for customs." }),
+  );
+}
 
 function whaticketSection(browser: BrowserStatus | null): HTMLElement {
   const status = h("div", { class: "hint" });
@@ -1632,6 +1706,7 @@ async function main() {
   const canListen = (await Bridge.voiceAvailable()) ?? false;
   const googleConnected = (await Bridge.googleConnected()) ?? false;
   const browser = await Bridge.browserStatus();
+  const aliBrowser = await Bridge.aliexpressExtensionStatus();
   const googleClient = (await Bridge.secretPresent("google-client-id")) ?? false;
   const skillTargets = (await Bridge.skillsTargets()) ?? [{ id: "personal", label: "Claude Code — personal (~/.claude/skills)" }];
 
@@ -1654,7 +1729,7 @@ async function main() {
     ["claude", "Claude Code", [claudeSection(status), codexSection(codex), timeSection(), focusSection()]],
     ["integrations", "Integrations", [
       integrationsSection(present), captureSection(present["linear-api-key"] ?? false),
-      whaticketSection(browser), googleSection(googleConnected, googleClient),
+      whaticketSection(browser), aliexpressSection(aliBrowser), googleSection(googleConnected, googleClient),
     ]],
     ["alerts", "Alerts", [inboxSection(), phoneSection()]],
   ];

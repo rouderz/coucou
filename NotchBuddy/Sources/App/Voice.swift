@@ -294,6 +294,14 @@ extension ChatSession {
             state.chatHistory.append(ChatMessage(role: .assistant, content: FocusTimer.shared.run(command)))
             return
         }
+        // "aliexpress facturas": one invoice per package, made by the browser extension.
+        if state.chatSkill == nil, let command = AliExpressCommand.parse(query) {
+            VoiceOutput.shared.stop()
+            if state.view != .prompt { state.view = .prompt }
+            state.chatHistory.append(ChatMessage(role: .user, content: query))
+            state.chatHistory.append(ChatMessage(role: .assistant, content: AliExpressBridge.shared.run(command)))
+            return
+        }
         if spoken && state.voiceSpeakReplies {
             VoiceOutput.shared.arm(locale: VoiceSession.locale(for: state))
         } else {

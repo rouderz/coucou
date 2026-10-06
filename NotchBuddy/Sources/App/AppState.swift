@@ -19,13 +19,14 @@ extension AgentTask {
         AgentTask(id: "integration_whaticket", name: "WhaTicket", color: "#25D366", state: .idle, steps: [], source: .n8n, isIntegration: true),
         AgentTask(id: "integration_gmail", name: "Gmail", color: "#EA4335", state: .idle, steps: [], source: .n8n, isIntegration: true),
         AgentTask(id: "integration_ci", name: "CI", color: "#2F81F7", state: .idle, steps: [], source: .n8n, isIntegration: true),
+        AgentTask(id: "integration_aliexpress", name: "AliExpress", color: "#FF4747", state: .idle, steps: [], source: .n8n, isIntegration: true),
     ]
 
     /// IDs that can be toggled (VS Code is always on and excluded from this list)
     static let toggleableIntegrationIds: [String] = [
         "integration_resend", "integration_n8n", "integration_vercel", "integration_github",
         "integration_notion", "integration_calcom", "integration_stripe", "integration_linear",
-        "integration_whaticket", "integration_gmail", "integration_ci",
+        "integration_whaticket", "integration_gmail", "integration_ci", "integration_aliexpress",
     ]
 
 }
@@ -75,6 +76,16 @@ final class AppState: ObservableObject {
     @Published var chatAllowEdits: Bool = false
     /// A skill picked with "/" in the chat; its SKILL.md goes with the next question.
     @Published var chatSkill: SkillRef? = nil
+
+    // AliExpress, as of the browser extension's last check-in: packages by tracking number
+    @Published var aliPackages: [AliPackage] = []
+    @Published var aliOrders = 0
+    @Published var aliSyncing = false
+    @Published var aliSeenAt: Date? = nil
+    @Published var aliLoaded = false
+    /// Invoices / CSV asked for and not saved yet (tracking numbers, or "csv").
+    @Published var aliBusy: Set<String> = []
+    @Published var aliLastFile: AliFile? = nil
 
     // WhaTicket, as of the browser extension's last check-in (pending queue, my tickets)
     @Published var whaticketUser: String? = nil
@@ -1047,6 +1058,12 @@ struct IntegrationStatus {
             guard s.gmailLoaded else { return checking }
             let email = UserDefaults.standard.string(forKey: "googleEmail") ?? ""
             return .init(colorHex: green, help: email.isEmpty ? "Connected" : L("Signed in as \(email)"))
+        case "integration_aliexpress":
+            guard BrowserExtension.isSetUp(BrowserExtension.aliexpress) else { return notSet }
+            guard let seen = s.aliSeenAt, Date.now.timeIntervalSince(seen) < 15 * 60 else {
+                return .init(colorHex: amber, help: L("Open your AliExpress orders in Chrome or Edge"))
+            }
+            return .init(colorHex: green, help: L("\(s.aliPackages.count) packages · \(s.aliOrders) orders"))
         case "integration_ci":
             guard s.githubConnection.isConnected || key("github-token") else {
                 if case .checking = s.githubConnection { return checking }

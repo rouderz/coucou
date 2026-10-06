@@ -65,8 +65,8 @@ jobs:
       - name: Front-end logic tests (risk, auto-approve, timeline, Codex)
         run: npm test
 
-      - name: WhaTicket browser extension tests
-        run: node --test ../extensions/whaticket/background.test.js
+      - name: Browser extension tests
+        run: node --test ../extensions/whaticket/background.test.js ../extensions/aliexpress/aliexpress.test.js
 
       # The front end must exist before the app crate compiles (tauri embeds it).
       - name: Unit tests
