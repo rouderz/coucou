@@ -56,12 +56,16 @@ final class WhaTicketTests: XCTestCase {
         XCTAssertTrue(WhaTicketRules.errorText("session").contains("expired"))
     }
 
-    func testOnlyOurExtensionMayStartTheHost() throws {
+    /// Coucou for WhaTicket and Coucou for AliExpress share the host; no other extension may start it.
+    func testOnlyOurExtensionsMayStartTheHost() throws {
         let text = BrowserExtension.hostManifest(path: "/x/coucou-native-host")
         let json = try XCTUnwrap(JSONSerialization.jsonObject(with: Data(text.utf8)) as? [String: Any])
         XCTAssertEqual(json["name"] as? String, "fr.louisraille.coucou")
         XCTAssertEqual(json["type"] as? String, "stdio")
         XCTAssertEqual(json["path"] as? String, "/x/coucou-native-host")
-        XCTAssertEqual(json["allowed_origins"] as? [String], ["chrome-extension://jcdddeeehgafiakcgaabpiocfdijekce/"])
+        XCTAssertEqual(json["allowed_origins"] as? [String], [
+            "chrome-extension://jcdddeeehgafiakcgaabpiocfdijekce/",
+            "chrome-extension://fkdhifnmpmkjgkaacobdgohnnnlpgmil/",
+        ])
     }
 }
