@@ -136,12 +136,13 @@ export const INTEGRATION_AGENTS: AgentTask[] = [
   task("integration_whaticket", "WhaTicket", "#25D366", "n8n"),
   task("integration_gmail", "Gmail", "#EA4335", "n8n"),
   task("integration_ci", "CI", "#2F81F7", "n8n"),
+  task("integration_aliexpress", "AliExpress", "#FF4747", "n8n"),
 ];
 
 export const TOGGLEABLE_INTEGRATION_IDS = [
   "integration_resend", "integration_n8n", "integration_vercel", "integration_github",
   "integration_notion", "integration_calcom", "integration_stripe", "integration_linear",
-  "integration_whaticket", "integration_gmail", "integration_ci",
+  "integration_whaticket", "integration_gmail", "integration_ci", "integration_aliexpress",
 ];
 
 /** What an integration poller last reported. */

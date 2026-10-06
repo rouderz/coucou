@@ -58,6 +58,7 @@ const OPEN_URLS: Record<string, string> = {
   integration_calcom: "https://app.cal.com/bookings",
   integration_whaticket: "https://app.whaticket.com/tickets",
   integration_ci: "https://github.com/pulls",
+  integration_aliexpress: "https://www.aliexpress.com/p/order/index.html",
 };
 
 function idleCard(task: AgentTask, openSettings: () => void): HTMLElement {
@@ -429,6 +430,64 @@ function whaticketCard(): HTMLElement {
   return h("div", { class: "int-card" }, header("#25D366", "WhaTicket", kind), today, rows);
 }
 
+// ── AliExpress: packages by tracking number, one invoice per box ──────────────
+
+function aliexpressCard(): HTMLElement {
+  const d = get("integration_aliexpress");
+  const packages = arr("integration_aliexpress", "packages");
+  const busy = new Set(Array.isArray(d.busy) ? (d.busy as unknown[]).map(String) : []);
+  const delivered = (s: unknown) => /deliver|entreg/i.test(String(s ?? ""));
+  const onTheWay = packages.filter((p) => !delivered(p.status)).length;
+  const rows = h("div", { class: "int-rows tight" });
+  const lang = State.settings.language === "es" || (State.settings.language !== "en" && navigator.language.startsWith("es")) ? "es" : "en";
+
+  const tools = h("div", { class: "int-page" },
+    h("button", { class: "int-mini", text: d.syncing ? "Reading…" : "Refresh", onclick: (e: Event) => { e.stopPropagation(); void Bridge.aliexpressSync(); } }),
+    h("button", { class: "int-mini", text: busy.has("csv") ? "…" : "Export CSV", onclick: (e: Event) => { e.stopPropagation(); void Bridge.aliexpressCsv(); } }),
+  );
+  const file = d.lastFile && typeof (d.lastFile as { path?: unknown }).path === "string" ? (d.lastFile as { path: string }).path : null;
+  if (file) {
+    tools.append(h("button", { class: "link-btn", style: "color:#8e939c;font-size:10px", title: "Show in the file manager",
+      text: "↓ " + file.split(/[\\/]/).pop(), onclick: (e: Event) => { e.stopPropagation(); void Bridge.revealDownload(file); } }));
+  }
+  rows.append(tools);
+  if (!packages.length) rows.append(h("div", { class: "int-empty", text: "Open your AliExpress orders in Chrome or Edge once: Coucou reads them from there." }));
+  const sorted = [...packages].sort((a, b) => Number(delivered(a.status)) - Number(delivered(b.status)));
+  for (const p of sorted.slice(0, 12)) {
+    const tracking = String(p.tracking);
+    const orders = Array.isArray(p.orders) ? p.orders.length : 0;
+    const money = `${p.currency === "USD" || !p.currency ? "$" : `${p.currency} `}${Number(p.total ?? 0).toFixed(2)}`;
+    const invoice = h("button", { class: "int-mini", text: busy.has(tracking) ? "…" : "Invoice",
+      title: "Make the invoice of this box (PDF in Downloads/Coucou/AliExpress)" }) as HTMLButtonElement;
+    invoice.disabled = busy.has(tracking);
+    invoice.addEventListener("click", async (e) => {
+      e.stopPropagation();
+      invoice.textContent = "…";
+      invoice.disabled = true;
+      try {
+        await Bridge.aliexpressInvoice(tracking, lang);
+      } catch (err) {
+        invoice.textContent = "Invoice";
+        invoice.disabled = false;
+        State.noteMessage = String(err).replace(/^Error:\s*/, "");
+        State.view = "note";
+        State.notify();
+      }
+    });
+    rows.append(h("div", {
+      class: "int-page",
+      title: [p.carrier, p.status, p.lastEvent, p.lastTime].filter(Boolean).join(" · "),
+      onclick: () => { const first = Array.isArray(p.orders) ? p.orders[0] : null; if (first) void Bridge.openUrl(`https://www.aliexpress.com/p/tracking/index.html?tradeOrderId=${first}`); },
+    },
+      dot(delivered(p.status) ? "#22C55E" : "#F5A524", 6),
+      h("span", { class: "int-name", style: "font-family:var(--mono)", text: tracking }),
+      h("span", { class: "int-ago", text: `${orders} orders · ${money}` }),
+      invoice,
+    ));
+  }
+  return h("div", { class: "int-card" }, header("#FF4747", "AliExpress", `${packages.length} packages · ${onTheWay} on the way`), rows);
+}
+
 // ── Gmail ─────────────────────────────────────────────────────────────────────
 
 /** Puts a file (a mail, a Drive file) in the chat; it goes with the next question. */
@@ -662,6 +721,7 @@ export function hasIntegrationData(id: string): boolean {
     case "integration_linear":
     case "integration_whaticket":
     case "integration_gmail":
+    case "integration_aliexpress":
     case CI_ID:
       return info.loaded;
     default:
@@ -696,6 +756,8 @@ export function renderIntegrationCard(task: AgentTask, hooks: IntegrationCardHoo
       return linearCard(hooks.openCapture);
     case "integration_whaticket":
       return whaticketCard();
+    case "integration_aliexpress":
+      return aliexpressCard();
     case "integration_gmail":
       return gmailCard();
     case CI_ID:

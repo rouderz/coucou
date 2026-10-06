@@ -21,6 +21,7 @@ pub const KNOWN_KEYS: &[&str] = &[
     "google-client-id",
     "google-client-secret",
     "google-refresh-token",
+    "aliexpress-buyer",
     "provider-key-openai",
     "provider-key-gemini",
     "provider-key-openrouter",
