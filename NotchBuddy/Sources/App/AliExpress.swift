@@ -166,3 +166,71 @@ final class AliExpressBridge {
         }
     }
 }
+
+/// "aliexpress facturas" typed in the chat: answered here, never sent to the model.
+/// English or Spanish; always starts with "aliexpress" so ordinary questions about orders still go to the chat.
+/// Same pattern as windows/src/core/aliexpressCommand.ts.
+///   aliexpress                       → refresh and say how many packages there are
+///   aliexpress facturas | invoices   → one invoice per package, plus the CSV
+///   aliexpress factura LP00123…      → the invoice of that package
+///   aliexpress csv | excel           → the CSV only
+struct AliExpressCommand: Equatable, Sendable {
+    enum Op: String, Sendable { case sync, invoices, invoice, csv }
+    let op: Op
+    var tracking: String?
+
+    static let pattern = #"^/?aliexpress(?:\s+(pedidos|orders|actualizar|refresh|sync|facturas|invoices|todas|all|factura|invoice|csv|excel))?(?:\s+([a-z0-9]{6,60}))?\s*[.!]?$"#
+
+    static func parse(_ text: String) -> AliExpressCommand? {
+        let s = text.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard let re = try? NSRegularExpression(pattern: pattern, options: [.caseInsensitive]) else { return nil }
+        let ns = s as NSString
+        guard let m = re.firstMatch(in: s, range: NSRange(location: 0, length: ns.length)) else { return nil }
+        func group(_ i: Int) -> String? {
+            let r = m.range(at: i)
+            return r.location == NSNotFound ? nil : ns.substring(with: r)
+        }
+        let word = group(1)?.lowercased()
+        let tracking = group(2)?.uppercased()
+        switch word {
+        case "facturas", "invoices", "todas", "all": return .init(op: .invoices)
+        case "factura", "invoice": return tracking.map { .init(op: .invoice, tracking: $0) } ?? .init(op: .invoices)
+        case "csv", "excel": return .init(op: .csv)
+        default: return tracking == nil ? .init(op: .sync) : nil
+        }
+    }
+}
+
+extension AliExpressBridge {
+    /// Runs a chat command and returns the answer shown in the chat.
+    func run(_ command: AliExpressCommand) -> String {
+        let state = AppState.shared
+        guard state.activeIntegrations.contains(Self.id) else {
+            return L("Turn on the AliExpress pill first (Settings → Integrations), then open your AliExpress orders in Chrome or Edge.")
+        }
+        guard state.aliLoaded else {
+            sync()
+            return L("Open your AliExpress orders in Chrome or Edge once: Coucou reads them from there.")
+        }
+        switch command.op {
+        case .sync:
+            sync()
+            let onTheWay = state.aliPackages.filter { !$0.delivered }.count
+            return L("Reading your orders again. So far: \(state.aliPackages.count) packages, \(onTheWay) on the way. Type “aliexpress facturas” for one invoice per package.")
+        case .invoices:
+            guard !state.aliPackages.isEmpty else { return L("No packages with a tracking number yet.") }
+            state.aliPackages.forEach { makeInvoice($0.tracking) }
+            exportCSV()
+            return L("Making \(state.aliPackages.count) invoices (one per package) and the CSV. They go to Downloads/Coucou/AliExpress.")
+        case .invoice:
+            guard let t = command.tracking, state.aliPackages.contains(where: { $0.tracking == t }) else {
+                return L("I don't see that tracking number among your packages.")
+            }
+            makeInvoice(t)
+            return L("Making the invoice of \(t). It goes to Downloads/Coucou/AliExpress.")
+        case .csv:
+            exportCSV()
+            return L("Exporting the CSV to Downloads/Coucou/AliExpress.")
+        }
+    }
+}

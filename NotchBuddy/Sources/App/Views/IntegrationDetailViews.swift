@@ -868,8 +868,11 @@ struct LinearCardView: View {
             HStack(spacing: 6) {
                 StatusDot(id: "integration_linear")
                 Text("Linear").font(.system(size: 12, weight: .semibold)).foregroundColor(Color(hex: "#F5F6F8"))
+                    .fixedSize()
+                // One line, always: a wrapped subtitle pushed the list out of the card.
                 Text(appState.linearIssues.isEmpty ? "Assigned to you" : "Assigned to you · \(appState.linearIssues.count)")
                     .font(.system(size: 11)).foregroundColor(Color(hex: "#8E939C"))
+                    .lineLimit(1).truncationMode(.tail)
                 Spacer(minLength: 4)
                 // Quick capture (#118): a one-line input in the island.
                 Button {
@@ -886,7 +889,7 @@ struct LinearCardView: View {
                 .buttonStyle(.plain)
                 .help("New Linear issue")
             }
-            .padding(.top, 6).padding(.leading, 108).padding(.trailing, 36)
+            .padding(.top, 6).padding(.leading, 108).padding(.trailing, 62)  // room for ↻ and ↗
 
             if let error = appState.linearError {
                 NotionHint(dot: "#F4505E", text: error)

@@ -369,6 +369,10 @@ const ES: Record<string, string> = {
   "Ctrl+Alt+F shortcut": "Atajo Ctrl+Alt+F", "start, pause or resume a block from any app": "empezar, pausar o reanudar un bloque desde cualquier app",
   "Do not disturb is on during each block and goes back to how it was at the end; approvals still reach the island, quietly. Start a block from the ⏱ in the island, the Claude Code card, the shortcut, or the chat: “focus 50 min on SHO-475”.":
     "No molestar se activa durante cada bloque y vuelve a como estaba al terminar; las aprobaciones siguen llegando a la isla, en silencio. Empieza un bloque desde el ⏱ de la isla, la tarjeta de Claude Code, el atajo o el chat: “enfoque 50 min en SHO-475”.",
+  "Turn on the AliExpress pill first (Settings → Integrations), then open your AliExpress orders in Chrome or Edge.": "Activa primero la píldora AliExpress (Ajustes → Integraciones) y luego abre tus pedidos de AliExpress en Chrome o Edge.",
+  "No packages with a tracking number yet.": "Todavía no hay paquetes con número de seguimiento.",
+  "I don't see that tracking number among your packages.": "No veo ese número de seguimiento entre tus paquetes.",
+  "Exporting the CSV to Downloads/Coucou/AliExpress.": "Exportando el CSV a Descargas/Coucou/AliExpress.",
   "Invoice": "Factura", "Export CSV": "Exportar CSV", "Reading…": "Leyendo…", "Show in the file manager": "Mostrar en el administrador de archivos",
   "Full name": "Nombre completo", "ID / RUC (cédula)": "Cédula / RUC", "Address (several lines are fine)": "Dirección (puede tener varias líneas)",
   "Email (optional)": "Correo (opcional)", "Phone (optional)": "Teléfono (opcional)", "Printed on the invoices as the buyer:": "Se imprime en las facturas como comprador:",
@@ -384,6 +388,11 @@ const ES: Record<string, string> = {
 
 /** Texts with something in them that changes: [pattern, Spanish with $1, $2…]. */
 const PATTERNS: [RegExp, string][] = [
+  [/^Reading your orders again\. So far: (\d+) packages, (\d+) on the way\. Type “aliexpress facturas” for one invoice per package\.$/,
+    "Leyendo tus pedidos de nuevo. Por ahora: $1 paquetes, $2 en camino. Escribe “aliexpress facturas” para una factura por paquete."],
+  [/^Making (\d+) invoices \(one per package\) and the CSV\. They go to Downloads\/Coucou\/AliExpress\.$/,
+    "Haciendo $1 facturas (una por paquete) y el CSV. Van a Descargas/Coucou/AliExpress."],
+  [/^Making the invoice of (\S+)\. It goes to Downloads\/Coucou\/AliExpress\.$/, "Haciendo la factura de $1. Va a Descargas/Coucou/AliExpress."],
   [/^(\d+) packages · (\d+) on the way$/, "$1 paquetes · $2 en camino"],
   [/^(\d+) packages · (\d+) orders$/, "$1 paquetes · $2 pedidos"],
   [/^(\d+) orders · (.+)$/, "$1 pedidos · $2"],

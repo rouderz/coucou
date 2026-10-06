@@ -10,13 +10,14 @@ import { registerIntegrationHandlers, refreshConfigured } from "./island/integra
 import { registerInboxHandlers } from "./island/inbox";
 import { CI_ID, refreshCI, startCIPoller } from "./core/ciPoller";
 import { dndActive } from "./core/dnd.ts";
-import { setLanguage, startTranslating } from "./core/i18n.ts";
+import { setLanguage, startTranslating, t } from "./core/i18n.ts";
 import { speak } from "./core/voice.ts";
 import { beginCapture, captureBusy } from "./views/capture";
 import { describeSource } from "./core/capture";
 import { setSpeaker, setListening, setFocusCommand } from "./views/chat";
 import { Focus, applyFocusSettings, registerFocus } from "./island/focus";
 import { parseFocusCommand } from "./core/focus.ts";
+import { parseAliCommand } from "./core/aliexpressCommand.ts";
 import { applyTheme } from "./core/themes.ts";
 
 async function main() {
@@ -116,7 +117,9 @@ async function main() {
   registerFocus(island);
   setFocusCommand((query) => {
     const command = parseFocusCommand(query);
-    return command ? Focus.run(command) : null;
+    if (command) return Focus.run(command);
+    const ali = parseAliCommand(query);
+    return ali ? runAliCommand(ali) : null;
   });
 
   // Mochi reads replies aloud (Settings → Voice), never in Do not disturb.
@@ -151,3 +154,38 @@ async function main() {
 }
 
 void main();
+
+/** "aliexpress facturas" in the chat: the browser extension makes the files. */
+function runAliCommand(command: ReturnType<typeof parseAliCommand> & object): string {
+  const id = "integration_aliexpress";
+  if (!State.settings.activeIntegrations.includes(id)) {
+    return t("Turn on the AliExpress pill first (Settings → Integrations), then open your AliExpress orders in Chrome or Edge.");
+  }
+  const data = (State.integrations[id]?.data ?? {}) as Record<string, unknown>;
+  const packages = (Array.isArray(data.packages) ? data.packages : []) as Record<string, unknown>[];
+  if (!data.seenAt) {
+    void Bridge.aliexpressSync();
+    return t("Open your AliExpress orders in Chrome or Edge once: Coucou reads them from there.");
+  }
+  const lang = State.settings.language === "es" || (State.settings.language !== "en" && navigator.language.startsWith("es")) ? "es" : "en";
+  const trackings = packages.map((p) => String(p.tracking ?? "")).filter(Boolean);
+  switch (command.op) {
+    case "sync": {
+      void Bridge.aliexpressSync();
+      const onTheWay = packages.filter((p) => !/deliver|entreg/i.test(String(p.status ?? ""))).length;
+      return t(`Reading your orders again. So far: ${packages.length} packages, ${onTheWay} on the way. Type “aliexpress facturas” for one invoice per package.`);
+    }
+    case "invoices":
+      if (!trackings.length) return t("No packages with a tracking number yet.");
+      for (const tr of trackings) void Bridge.aliexpressInvoice(tr, lang).catch(() => {});
+      void Bridge.aliexpressCsv();
+      return t(`Making ${trackings.length} invoices (one per package) and the CSV. They go to Downloads/Coucou/AliExpress.`);
+    case "invoice":
+      if (!command.tracking || !trackings.includes(command.tracking)) return t("I don't see that tracking number among your packages.");
+      void Bridge.aliexpressInvoice(command.tracking, lang).catch(() => {});
+      return t(`Making the invoice of ${command.tracking}. It goes to Downloads/Coucou/AliExpress.`);
+    case "csv":
+      void Bridge.aliexpressCsv();
+      return t("Exporting the CSV to Downloads/Coucou/AliExpress.");
+  }
+}

@@ -2922,6 +2922,16 @@
         }
       }
     },
+    "Exporting the CSV to Downloads/Coucou/AliExpress.": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Exportando el CSV a Descargas/Coucou/AliExpress."
+          }
+        }
+      }
+    },
     "Exports stay on this Mac: nothing is sent anywhere.": {
       "localizations": {
         "es": {
@@ -3572,6 +3582,16 @@
         }
       }
     },
+    "I don't see that tracking number among your packages.": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No veo ese número de seguimiento entre tus paquetes."
+          }
+        }
+      }
+    },
     "ID / RUC (cédula)": {
       "localizations": {
         "es": {
@@ -4192,6 +4212,26 @@
         }
       }
     },
+    "Making %lld invoices (one per package) and the CSV. They go to Downloads/Coucou/AliExpress.": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Haciendo %lld facturas (una por paquete) y el CSV. Van a Descargas/Coucou/AliExpress."
+          }
+        }
+      }
+    },
+    "Making the invoice of %@. It goes to Downloads/Coucou/AliExpress.": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Haciendo la factura de %@. Va a Descargas/Coucou/AliExpress."
+          }
+        }
+      }
+    },
     "Mark all read": {
       "localizations": {
         "es": {
@@ -4698,6 +4738,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "No hay pull requests abiertos."
+          }
+        }
+      }
+    },
+    "No packages with a tracking number yet.": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Todavía no hay paquetes con número de seguimiento."
           }
         }
       }
@@ -5798,6 +5848,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "Solo lectura"
+          }
+        }
+      }
+    },
+    "Reading your orders again. So far: %lld packages, %lld on the way. Type “aliexpress facturas” for one invoice per package.": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Leyendo tus pedidos de nuevo. Por ahora: %lld paquetes, %lld en camino. Escribe “aliexpress facturas” para una factura por paquete."
           }
         }
       }
@@ -7068,6 +7128,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "Apagar Oye Mochi durante los bloques de concentración"
+          }
+        }
+      }
+    },
+    "Turn on the AliExpress pill first (Settings → Integrations), then open your AliExpress orders in Chrome or Edge.": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Activa primero la píldora AliExpress (Ajustes → Integraciones) y luego abre tus pedidos de AliExpress en Chrome o Edge."
           }
         }
       }

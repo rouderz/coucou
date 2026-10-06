@@ -481,6 +481,13 @@ ES = {
 "Email (optional)":"Correo (opcional)","Phone (optional)":"Teléfono (opcional)",
 "Coucou groups your AliExpress orders by the box they ship in (same tracking number) and makes one invoice per box — PDF to your Downloads/Coucou/AliExpress folder — plus a CSV of every product for Excel or Google Sheets. It reads your own order pages through the browser extension (Settings → WhaTicket → Set up browser extension, then open your AliExpress orders once).":"Coucou agrupa tus pedidos de AliExpress por la caja en que llegan (mismo número de seguimiento) y hace una factura por caja —PDF en tu carpeta Descargas/Coucou/AliExpress— y un CSV con todos los productos para Excel o Google Sheets. Lee tus propias páginas de pedidos con la extensión del navegador (Ajustes → WhaTicket → Configurar la extensión del navegador, y luego abre tus pedidos de AliExpress una vez).",
 "The invoice is your own document built from your orders: it lists the AliExpress order numbers it comes from and says it isn't issued by AliExpress. Keep the original order receipts (Download invoice on each order) for customs.":"La factura es un documento tuyo hecho a partir de tus pedidos: indica los números de pedido de AliExpress de los que sale y aclara que no la emite AliExpress. Guarda los comprobantes originales de cada pedido (Descargar factura en cada pedido) para aduanas.",
+"Turn on the AliExpress pill first (Settings → Integrations), then open your AliExpress orders in Chrome or Edge.":"Activa primero la píldora AliExpress (Ajustes → Integraciones) y luego abre tus pedidos de AliExpress en Chrome o Edge.",
+"No packages with a tracking number yet.":"Todavía no hay paquetes con número de seguimiento.",
+"I don't see that tracking number among your packages.":"No veo ese número de seguimiento entre tus paquetes.",
+"Exporting the CSV to Downloads/Coucou/AliExpress.":"Exportando el CSV a Descargas/Coucou/AliExpress.",
+"Reading your orders again. So far: %lld packages, %lld on the way. Type “aliexpress facturas” for one invoice per package.":"Leyendo tus pedidos de nuevo. Por ahora: %lld paquetes, %lld en camino. Escribe “aliexpress facturas” para una factura por paquete.",
+"Making %lld invoices (one per package) and the CSV. They go to Downloads/Coucou/AliExpress.":"Haciendo %lld facturas (una por paquete) y el CSV. Van a Descargas/Coucou/AliExpress.",
+"Making the invoice of %@. It goes to Downloads/Coucou/AliExpress.":"Haciendo la factura de %@. Va a Descargas/Coucou/AliExpress.",
 }
 catalog = {"sourceLanguage": "en", "version": "1.0", "strings": {
     k: {"localizations": {"es": {"stringUnit": {"state": "translated", "value": v}}}} for k, v in sorted(ES.items())
