@@ -31,6 +31,7 @@ struct IntegrationCardView: View {
         case "integration_linear":  return LinearAPI.hasKey
         case "integration_whaticket": return BrowserExtension.isSetUp
         case "integration_gmail": return GoogleAPI.isConnected
+        case "integration_aliexpress": return BrowserExtension.isSetUp
         case "integration_ci":    return AppState.shared.githubConnection.isConnected
                                       || Secrets.store.get("github-token") != nil
         default: return false
@@ -60,6 +61,7 @@ struct IntegrationCardView: View {
         case "integration_whaticket": return WhaTicketRules.webURL(nil)
         case "integration_gmail": return URL(string: "https://mail.google.com")
         case "integration_ci":    return URL(string: "https://github.com/pulls")
+        case "integration_aliexpress": return URL(string: "https://www.aliexpress.com/p/order/index.html")
         default: return nil
         }
     }
@@ -144,6 +146,9 @@ struct IntegrationCardView: View {
                 .transition(.opacity)
         } else if task.id == "integration_gmail" && appState.gmailLoaded {
             GmailCardView()
+                .transition(.opacity)
+        } else if task.id == "integration_aliexpress" && appState.aliLoaded {
+            AliExpressCardView()
                 .transition(.opacity)
         } else if task.id == "integration_ci" && (appState.ciLoaded || appState.ciError != nil) {
             CICardView()

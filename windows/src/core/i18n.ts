@@ -369,10 +369,25 @@ const ES: Record<string, string> = {
   "Ctrl+Alt+F shortcut": "Atajo Ctrl+Alt+F", "start, pause or resume a block from any app": "empezar, pausar o reanudar un bloque desde cualquier app",
   "Do not disturb is on during each block and goes back to how it was at the end; approvals still reach the island, quietly. Start a block from the ⏱ in the island, the Claude Code card, the shortcut, or the chat: “focus 50 min on SHO-475”.":
     "No molestar se activa durante cada bloque y vuelve a como estaba al terminar; las aprobaciones siguen llegando a la isla, en silencio. Empieza un bloque desde el ⏱ de la isla, la tarjeta de Claude Code, el atajo o el chat: “enfoque 50 min en SHO-475”.",
+  "Invoice": "Factura", "Export CSV": "Exportar CSV", "Reading…": "Leyendo…", "Show in the file manager": "Mostrar en el administrador de archivos",
+  "Full name": "Nombre completo", "ID / RUC (cédula)": "Cédula / RUC", "Address (several lines are fine)": "Dirección (puede tener varias líneas)",
+  "Email (optional)": "Correo (opcional)", "Phone (optional)": "Teléfono (opcional)", "Printed on the invoices as the buyer:": "Se imprime en las facturas como comprador:",
+  "Open your AliExpress orders in Chrome or Edge": "Abre tus pedidos de AliExpress en Chrome o Edge",
+  "Open your AliExpress orders in Chrome or Edge once: Coucou reads them from there.": "Abre tus pedidos de AliExpress en Chrome o Edge una vez: Coucou los lee desde ahí.",
+  "Make the invoice of this box (PDF in Downloads/Coucou/AliExpress)": "Hacer la factura de esta caja (PDF en Descargas/Coucou/AliExpress)",
+  "Your orders grouped by box (tracking number), one invoice per box. Set up below.": "Tus pedidos agrupados por caja (número de seguimiento), una factura por caja. Se configura abajo.",
+  "Coucou groups your AliExpress orders by the box they ship in (same tracking number) and makes one invoice per box — PDF to your Downloads/Coucou/AliExpress folder — plus a CSV of every product for Excel or Google Sheets. It reads your own order pages through the browser extension (set it up in the WhaTicket section, then open your AliExpress orders once).":
+    "Coucou agrupa tus pedidos de AliExpress por la caja en que llegan (mismo número de seguimiento) y hace una factura por caja —PDF en tu carpeta Descargas/Coucou/AliExpress— y un CSV con todos los productos para Excel o Google Sheets. Lee tus propias páginas de pedidos con la extensión del navegador (configúrala en la sección WhaTicket y luego abre tus pedidos de AliExpress una vez).",
+  "The invoice is your own document built from your orders: it lists the AliExpress order numbers it comes from and says it isn't issued by AliExpress. Keep the original order receipts (Download invoice on each order) for customs.":
+    "La factura es un documento tuyo hecho a partir de tus pedidos: indica los números de pedido de AliExpress de los que sale y aclara que no la emite AliExpress. Guarda los comprobantes originales de cada pedido (Descargar factura en cada pedido) para aduanas.",
 };
 
 /** Texts with something in them that changes: [pattern, Spanish with $1, $2…]. */
 const PATTERNS: [RegExp, string][] = [
+  [/^(\d+) packages · (\d+) on the way$/, "$1 paquetes · $2 en camino"],
+  [/^(\d+) packages · (\d+) orders$/, "$1 paquetes · $2 pedidos"],
+  [/^(\d+) orders · (.+)$/, "$1 pedidos · $2"],
+  [/^Package delivered · (.*)$/, "Paquete entregado · $1"],
   [/^↪ (.+) is out of quota or unavailable — (.+) answered\.$/, "↪ $1 se quedó sin cuota o no está disponible — respondió $2."],
   [/^(Codex|Gemini CLI) not found\. Install it and sign in, then check again\.$/, "No se encontró $1. Instálalo e inicia sesión, luego vuelve a comprobar."],
   [/^(Codex|Gemini CLI) isn't signed in · run (.+)$/, "$1 no tiene la sesión iniciada · ejecuta $2"],

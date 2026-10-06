@@ -131,6 +131,8 @@ struct OverviewView: View {
             AppLinks.open("https://mail.google.com")
         case "integration_ci":
             AppLinks.open("https://github.com/pulls")
+        case "integration_aliexpress":
+            AppLinks.open("https://www.aliexpress.com/p/order/index.html")
         case "integration_calcom":
             NSWorkspace.shared.open(URL(string: "https://app.cal.com/bookings")!)
         default:
