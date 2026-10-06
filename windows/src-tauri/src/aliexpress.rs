@@ -49,12 +49,17 @@ pub fn packages(msg: &Value) -> Vec<Value> {
                         .filter(|o| o.as_str().map(|s| !s.is_empty() && s.chars().all(|c| c.is_ascii_digit())).unwrap_or(false))
                         .take(50)
                         .collect();
+                    // Computed first: inside json! a `{ … }` value is read as a JSON object.
+                    let currency = match s(p, "currency", 4) {
+                        c if c.is_empty() => "USD".to_string(),
+                        c => c,
+                    };
                     json!({
                         "tracking": s(p, "tracking", 60), "carrier": s(p, "carrier", 60), "status": s(p, "status", 120),
                         "lastEvent": s(p, "lastEvent", 200), "lastTime": s(p, "lastTime", 40), "orders": orders,
                         "items": p.get("items").and_then(Value::as_u64).unwrap_or(0),
                         "total": p.get("total").and_then(Value::as_f64).unwrap_or(0.0),
-                        "currency": { let c = s(p, "currency", 4); if c.is_empty() { "USD".to_string() } else { c } },
+                        "currency": currency,
                     })
                 })
                 .collect()
@@ -128,7 +133,8 @@ pub fn handle_browser(app: &AppHandle, msg: &Value) -> Value {
     st.last = Some(data.clone());
     drop(st);
     emit(app, IntegrationUpdate { id: ID, data, error: None, event });
-    json!({ "commands": commands, "interval": if commands.is_empty() { 30 } else { 15 } })
+    let interval = if commands.is_empty() { 30 } else { 15 };
+    json!({ "commands": commands, "interval": interval })
 }
 
 fn republish(app: &AppHandle, st: &State) {
@@ -147,7 +153,8 @@ pub fn queue_invoice(app: &AppHandle, tracking: &str, lang: &str) -> Result<(), 
         .and_then(|t| serde_json::from_str(&t).ok())
         .unwrap_or_else(|| json!({}));
     let mut st = STATE.lock().unwrap();
-    st.queued.push(json!({ "op": "invoice", "tracking": tracking, "buyer": buyer, "lang": if lang == "es" { "es" } else { "en" } }));
+    let lang = if lang == "es" { "es" } else { "en" };
+    st.queued.push(json!({ "op": "invoice", "tracking": tracking, "buyer": buyer, "lang": lang }));
     st.busy.insert(tracking.to_string());
     republish(app, &st);
     Ok(())
