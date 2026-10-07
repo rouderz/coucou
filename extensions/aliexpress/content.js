@@ -1,7 +1,7 @@
 // Coucou for AliExpress — runs on your AliExpress order pages, with your own session.
 //
-// Reads what the page shows (nothing else): the order list, an order's detail (products and
-// amounts) and an order's tracking page (carrier, tracking number, what's in the box). It hands
+// Reads what the page shows (nothing else): the order list, an order's detail (products, their
+// pictures, amounts and when it was placed) and an order's tracking page (carrier, tracking number, what's in the box). It hands
 // that to the extension's background, which keeps it in this browser and tells Coucou. Nothing is
 // clicked, bought or changed.
 
@@ -13,6 +13,39 @@
   const all = (sel, root = document) => [...root.querySelectorAll(sel)];
   const byPrefix = (prefix, root = document) => all(`[class*="${prefix}"]`, root);
 
+  /**
+   * The product picture next to a line: an <img> or a background-image in the line's own block
+   * (never climbing into a block that holds several products).
+   */
+  function imageOf(el, lineSel) {
+    let n = el;
+    for (let i = 0; n && i < 4; i++, n = n.parentElement) {
+      if (i > 0 && n.querySelectorAll(lineSel).length > 1) break;
+      for (const img of n.querySelectorAll("img")) {
+        const u = A.imageUrl(img.currentSrc || img.src || img.getAttribute("data-src"));
+        if (u) return u;
+      }
+      for (const bg of n.querySelectorAll('[style*="background-image"]')) {
+        const u = A.imageUrl(bg.style.backgroundImage);
+        if (u) return u;
+      }
+    }
+    return null;
+  }
+
+  /** When the order was placed, from the detail page's info block ("Order placed on: …"). */
+  function orderTime() {
+    const lines = document.body.innerText.split("\n").map((s) => s.trim()).filter(Boolean);
+    let dateOnly = null;
+    for (let i = 0; i < lines.length; i++) {
+      if (!/order (placed|time|date)|placed on|pedido realizado|realizado el|hora del pedido|fecha del pedido/i.test(lines[i])) continue;
+      const t = A.dateTime(lines[i]) || A.dateTime(lines[i + 1] || "");
+      if (t && t.length > 10) return t;
+      dateOnly = dateOnly || t;
+    }
+    return dateOnly;
+  }
+
   function readList() {
     return all(".order-item").map((o) => {
       const link = o.querySelector('a[href*="orderId="]');
@@ -21,7 +54,7 @@
       const lines = all(".order-item-content-body", o).map((body) => {
         const pq = A.priceQty(body.innerText) || { price: 0, qty: 1, currency: "USD" };
         return { title: text(body.querySelector(".order-item-content-info-name")), sku: text(body.querySelector(".order-item-content-info-sku")),
-          price: pq.price, qty: pq.qty, currency: pq.currency };
+          price: pq.price, qty: pq.qty, currency: pq.currency, image: imageOf(body, ".order-item-content-body") };
       }).filter((l) => l.title);
       return {
         id, source: "list",
@@ -44,14 +77,15 @@
       // Title first; the variant is the short line between the title and the price.
       const priceAt = parts.findIndex((p) => A.priceQty(p));
       const sku = priceAt > 1 ? parts.slice(1, priceAt).join(" ") : "";
-      return { title: parts[0] || "", sku, price: pq.price, qty: pq.qty, currency: pq.currency };
+      return { title: parts[0] || "", sku, price: pq.price, qty: pq.qty, currency: pq.currency,
+        image: imageOf(el, ".order-detail-item-content-info") };
     }).filter((l) => l.title);
     const rows = all(".order-price-item").map((el) => {
       const parts = el.innerText.split("\n").map((s) => s.trim()).filter(Boolean);
       return [parts[0] || "", parts[parts.length - 1] || ""];
     });
     const prices = A.priceBlock(rows);
-    return { id, source: "detail", lines, currency: lines[0] ? lines[0].currency : undefined, ...prices,
+    return { id, source: "detail", lines, currency: lines[0] ? lines[0].currency : undefined, ...prices, time: orderTime() || undefined,
       status: text(document.querySelector(".order-status-content, .order-status")).split("\n")[0] || undefined,
       store: text(document.querySelector(".order-detail-item-store")).split("\n")[0] || undefined };
   }

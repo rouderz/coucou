@@ -87,11 +87,48 @@ test("what still needs reading: detail for missing amounts, tracking for parcels
   const now = 10 * 3600e3;
   const o = {
     x: { id: "x", status: "Awaiting shipment" },
-    y: { id: "y", status: "Awaiting delivery", detailAt: 1, trackedAt: now - 7 * 3600e3 },
-    z: { id: "z", status: "Completed", detailAt: 1, trackedAt: 1 },
-    w: { id: "w", status: "Completed", detailAt: 1 },
+    y: { id: "y", status: "Awaiting delivery", detailAt: 1, detailV: 2, trackedAt: now - 7 * 3600e3 },
+    z: { id: "z", status: "Completed", detailAt: 1, detailV: 2, trackedAt: 1 },
+    w: { id: "w", status: "Completed", detailAt: 1, detailV: 2 },
+    v: { id: "v", status: "Completed", detailAt: 1, trackedAt: 1 }, // read before pictures and order times
   };
-  assert.deepEqual(A.pendingFetches(o, now), [{ id: "x", page: "detail" }, { id: "y", page: "tracking" }, { id: "w", page: "tracking" }]);
+  assert.deepEqual(A.pendingFetches(o, now), [{ id: "x", page: "detail" }, { id: "y", page: "tracking" }, { id: "w", page: "tracking" }, { id: "v", page: "detail" }]);
   const merged = A.mergeOrder({ id: "y", lines: [{ title: "detail" }], linesFromDetail: true }, { id: "y", lines: [{ title: "list" }], source: "list" }, 5);
   assert.equal(merged.lines[0].title, "detail");
+});
+
+test("order times, short titles and picture addresses", () => {
+  assert.equal(A.dateTime("Order placed on: Oct 01, 2026 10:23:45"), "2026-10-01 10:23");
+  assert.equal(A.dateTime("Pedido realizado el: 1 oct 2026, 9:05 PM"), "2026-10-01 21:05");
+  assert.equal(A.dateTime("2026-09-21 14:05:00"), "2026-09-21 14:05");
+  assert.equal(A.dateTime("Sep 21, 2026"), "2026-09-21");
+  assert.equal(A.dateTime("no date here"), null);
+  assert.equal(A.shortTitle("Alfileres de solapa esmaltados de Pokémon para mochilas, broches, insignias de hierro"),
+    "Alfileres de solapa esmaltados de Pokémon para mochilas");
+  assert.equal(A.shortTitle("Sakura Cardcaptor-Alfileres de esmalte duro, broche mágico"), "Sakura Cardcaptor-Alfileres de esmalte duro");
+  assert.ok(A.shortTitle("x".repeat(30) + " " + "y".repeat(50)).length <= 63);
+  assert.equal(A.imageUrl('url("//ae-pic-a1.aliexpress-media.com/kf/Sabc.jpg_220x220.jpg_.avif")'),
+    "https://ae-pic-a1.aliexpress-media.com/kf/Sabc.jpg_220x220.jpg");
+  assert.equal(A.imageUrl("https://ae01.alicdn.com/kf/H1.png?x=1"), "https://ae01.alicdn.com/kf/H1.png");
+  assert.equal(A.imageUrl("https://evil.example.com/a.jpg"), null);
+  assert.equal(A.imageUrl("http://ae01.alicdn.com/kf/H1.png"), null);
+});
+
+test("pictures survive a page that doesn't show them, and go into the PDF once each", () => {
+  const img = "https://ae01.alicdn.com/kf/P.jpg";
+  const stored = { id: "y", lines: [{ title: "Pins", image: img }] };
+  const merged = A.mergeOrder(stored, { id: "y", source: "detail", lines: [{ title: "Pins", price: 2, qty: 1 }] }, 5);
+  assert.equal(merged.lines[0].image, img);
+  assert.equal(merged.detailV, 2);
+  const o = { y: { ...merged, id: "y", time: "2026-10-01 10:23", currency: "USD", packages: [{ tracking: "LP1" }] } };
+  merged.lines.push({ title: "Pins 2", price: 1, qty: 1, image: img });
+  const inv = A.invoiceOf(A.packagesOf(o)[0], o);
+  const jpeg = { w: 2, h: 1, data: "\xFF\xD8 fake \xFF\xD9" };
+  const text = Buffer.from(A.invoicePdf(inv, { number: "INV-1", date: "2026-10-06", lang: "es", images: { [img]: jpeg } })).toString("latin1");
+  assert.equal(text.match(/\/Subtype \/Image/g).length, 1);
+  assert.ok(text.includes("/Im1 Do"));
+  assert.ok(text.includes("(Pedido y)"));
+  assert.equal(text.match(/\(Pedido y\)/g).length, 1); // one band per order, not per line
+  assert.ok(text.includes("1 oct 2026"));
+  assert.ok(!/AliExpress/.test(text)); // the buyer's own document: no AliExpress name on it
 });
