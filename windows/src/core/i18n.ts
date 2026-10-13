@@ -132,8 +132,6 @@ const ES: Record<string, string> = {
   "no keyboard or mouse for 2 min (Windows)": "sin teclado ni ratón durante 2 min (Windows)",
   "An approval still waiting after 20 seconds goes to your phone through ntfy (free app, no account). Subscribe to the topic in the app; it carries the project and the command, so keep it private.":
     "Una aprobación que sigue esperando tras 20 segundos llega a tu móvil por ntfy (app gratuita, sin cuenta). Suscríbete al tema en la app; lleva el proyecto y el comando, así que mantenlo en privado.",
-  "GitHub (your token, or a signed-in gh) and Linear notifications that need you, behind the 🔔. Mochi peeks out when something new arrives.":
-    "Las notificaciones de GitHub (tu token, o gh con sesión) y de Linear que te necesitan, detrás de la 🔔. Mochi se asoma cuando llega algo nuevo.",
   "Review requests": "Solicitudes de revisión", "Mentions": "Menciones", "Assignments": "Asignaciones", "Comments": "Comentarios",
   "Other updates": "Otras novedades", "Check daily": "Comprobar cada día", "Check now": "Comprobar ahora",
   "Island lives on": "La isla vive en", "Main display": "Pantalla principal", "Display under the cursor": "Pantalla bajo el cursor",
@@ -141,7 +139,6 @@ const ES: Record<string, string> = {
   "File manager (no editor found)": "Explorador de archivos (no hay editor)", "Language": "Idioma", "Same as the system": "Igual que el sistema",
   "Rotate the rest": "Rotar las demás", "Every 10 s": "Cada 10 s", "Every 30 s": "Cada 30 s", "Every minute": "Cada minuto",
   "Pin (always visible)": "Fijar (siempre visible)", "Unpin": "Dejar de fijar", "Hide": "Ocultar",
-  "Mochi moves with the music": "Mochi se mueve con la música",
   "bobs along while music plays; off in Do not disturb and with reduced motion. Music detection isn't available on this system yet":
     "se balancea mientras suena música; se desactiva en No molestar y con movimiento reducido. La detección de música aún no está disponible en este sistema",
   "Idle notch": "Notch en reposo", "a small notch stays at the top when the island hides": "una pequeña notch queda arriba cuando la isla se esconde",
@@ -234,10 +231,6 @@ const ES: Record<string, string> = {
   "You're already up to date.": "Ya estás al día.",
   "Speak your question": "Di tu pregunta", "Listening…": "Escuchando…",
   "I didn't catch that. Try again.": "No te he entendido. Inténtalo de nuevo.",
-  "🎙 in the chat: say your question and Mochi sends it (Windows speech recognition; dictation needs online speech recognition on in Windows Settings → Privacy & security → Speech).":
-    "🎙 en el chat: di tu pregunta y Mochi la envía (reconocimiento de voz de Windows; el dictado necesita el reconocimiento de voz en línea activado en Configuración → Privacidad y seguridad → Voz).",
-  "Speaking your questions isn't available on Linux: it has no built-in speech recognition. Mochi can still read its replies aloud.":
-    "Hablarle a Mochi no está disponible en Linux: no trae reconocimiento de voz. Mochi sí puede leer sus respuestas en voz alta.",
   "Speech recognition isn't available on Linux.": "El reconocimiento de voz no está disponible en Linux.",
   "No telemetry. Network requests only go to the services you configure yourself.":
     "Sin telemetría. Las peticiones de red solo van a los servicios que tú configuras.",
@@ -319,7 +312,7 @@ const ES: Record<string, string> = {
   "CI failed": "CI falló", "All checks passed": "Todas las comprobaciones pasaron",
   "No open pull requests.": "No hay pull requests abiertos.", "Your open PRs": "Tus PRs abiertos",
   "No checks on this commit": "No hay comprobaciones en este commit",
-  "Open log": "Abrir log", "Ask Mochi why": "Preguntar a Mochi por qué", "Re-run": "Relanzar",
+  "Open log": "Abrir log", "Re-run": "Relanzar",
   "Re-running…": "Relanzando…", "Re-run failed jobs": "Relanzar los jobs fallidos",
   "queued": "en cola", "skipped": "omitido", "cancelled": "cancelado", "neutral": "neutral",
   "Not connected to GitHub · sign in with gh or add a token in Settings":
@@ -491,6 +484,16 @@ const PATTERNS: [RegExp, string][] = [
   [/^A focus block is already running \((.+) left\)\.$/, "Ya hay un bloque de concentración en marcha (quedan $1)."],
   [/^Focus: (\d+) min on (.+)\. Do not disturb is on until the end of the block\.$/, "Concentración: $1 min en $2. No molestar está activado hasta el final del bloque."],
   [/^Focus: (\d+) min\. Do not disturb is on until the end of the block\.$/, "Concentración: $1 min. No molestar está activado hasta el final del bloque."],
+  // the character's name (Settings → Character)
+  [/^(Bao|Pip|Nube|Lumo|Tecla) moves with the music$/, "$1 se mueve con la música"],
+  [/^Ask (Bao|Pip|Nube|Lumo|Tecla) why$/, "Preguntar a $1 por qué"],
+  [/^GitHub \(your token, or a signed-in gh\) and Linear notifications that need you, behind the 🔔\. (Bao|Pip|Nube|Lumo|Tecla) peeks out when something new arrives\.$/,
+    "Las notificaciones de GitHub (tu token, o gh con sesión) y de Linear que te necesitan, detrás de la 🔔. $1 se asoma cuando llega algo nuevo."],
+  [/^🎙 in the chat: say your question and (Bao|Pip|Nube|Lumo|Tecla) sends it \(Windows speech recognition; dictation needs online speech recognition on in Windows Settings → Privacy & security → Speech\)\.$/,
+    "🎙 en el chat: di tu pregunta y $1 la envía (reconocimiento de voz de Windows; el dictado necesita el reconocimiento de voz en línea activado en Configuración → Privacidad y seguridad → Voz)."],
+  [/^Speaking your questions isn't available on Linux: it has no built-in speech recognition\. (Bao|Pip|Nube|Lumo|Tecla) can still read its replies aloud\.$/,
+    "Hablarle a $1 no está disponible en Linux: no trae reconocimiento de voz. $1 sí puede leer sus respuestas en voz alta."],
+  [/^The interface calls it by its name, like “Ask Lumo”\.$/, "La interfaz lo llama por su nombre, como «Preguntar a Lumo»."],
 ];
 
 const RAW = ".chat-log, .code, .diff, .inbox-open .title, .path, .tl-time, [data-raw]";

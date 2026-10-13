@@ -8,18 +8,23 @@ import SwiftUI
 // mailbox morph. A character only brings its own silhouette (sampled by angle, so it still
 // morphs into the upload box), its colours, and a few drawn extras that react to the state
 // (Bao's steam, Pip's sprout, Nube's sun and rain, Lumo's tentacles, Tecla's key top).
-//
-// Mochi is the original Coucou character and stays the property of its author
-// (LICENSE-ASSETS.md): it is kept as an option for local use only. Builds you publish should
-// default to one of the others.
+// Its name is the one the interface uses ("Ask Lumo", "Hey Pip"): see botName().
+
+/// The picked character's name, for the interface ("Ask Lumo", "Hey Pip").
+@MainActor func botName() -> String { AppState.shared.critter.displayName }
 
 enum Critter: String, CaseIterable, Identifiable, Sendable {
-    case bao, pip, nube, lumo, tecla, mochi
+    case bao, pip, nube, lumo, tecla
 
     var id: String { rawValue }
 
     static let storageKey = "critter"
     static let fallback: Critter = .bao
+
+    /// The saved choice, readable off the main actor (the wake word listens there).
+    static var stored: Critter {
+        Critter(rawValue: UserDefaults.standard.string(forKey: storageKey) ?? "") ?? fallback
+    }
 
     var displayName: String {
         switch self {
@@ -28,7 +33,6 @@ enum Critter: String, CaseIterable, Identifiable, Sendable {
         case .nube:  return "Nube"
         case .lumo:  return "Lumo"
         case .tecla: return "Tecla"
-        case .mochi: return "Mochi"
         }
     }
 
@@ -39,7 +43,6 @@ enum Critter: String, CaseIterable, Identifiable, Sendable {
         case .nube:  return L("A little cloud: rain on errors, sun when done")
         case .lumo:  return L("A glowing jellyfish that wiggles while it works")
         case .tecla: return L("A keycap that presses itself while it types")
-        case .mochi: return L("The original character (local use only)")
         }
     }
 
@@ -69,9 +72,6 @@ enum Critter: String, CaseIterable, Identifiable, Sendable {
         case .tecla:
             return Palette(top: .from("#5FBFA2"), bottom: .from("#3E957B"), ink: .from("#1F3D35"),
                            blush: (0.961, 0.620, 0.545), accent: .from("#A3ECD5"), accent2: .from("#86DCC0"))
-        case .mochi:
-            return Palette(top: MochiConst.baseTop, bottom: MochiConst.baseBottom, ink: MochiConst.ink,
-                           blush: (1, 0.471, 0.588), accent: MochiConst.baseTop, accent2: MochiConst.baseTop)
         }
     }
 
@@ -86,10 +86,6 @@ enum Critter: String, CaseIterable, Identifiable, Sendable {
     func outline(a: CGFloat, rx: CGFloat, ry: CGFloat, R: CGFloat) -> CGPoint {
         let ca = cos(a), sa = sin(a)
         switch self {
-        case .mochi:
-            let e: CGFloat = 2.0 / 2.7
-            return CGPoint(x: rx * spow(ca, e), y: ry * spow(sa, e))
-
         case .bao:
             // Round dome, flat bottom.
             let x = rx * 0.98 * spow(ca, 0.8)
@@ -212,7 +208,7 @@ extension BotEngine {
         let pal = critter.palette
         let t = critterTime
         switch critter {
-        case .mochi, .tecla:
+        case .tecla:
             break
 
         case .bao:
@@ -329,7 +325,7 @@ extension BotEngine {
             hl.addLine(to: CGPoint(x: -rx * 0.22, y: -ry * 0.7))
             c.stroke(hl, with: .color(Color.white.opacity(0.6)),
                      style: StrokeStyle(lineWidth: R * 0.06, lineCap: .round))
-        case .mochi, .pip, .nube:
+        case .pip, .nube:
             break
         }
     }

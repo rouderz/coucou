@@ -97,7 +97,7 @@ pub struct Settings {
     #[serde(default = "yes")]
     pub idle_notch: bool,
 
-    /// The character (src/mochi/critters.ts): "bao", "pip", "nube", "lumo", "tecla" or "mochi".
+    /// The character (src/mochi/critters.ts): "bao", "pip", "nube", "lumo", or "tecla".
     #[serde(default = "default_critter")]
     pub critter: String,
     /// "notch" = the island at the top of the screen; "free" = the character floats in its

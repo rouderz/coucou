@@ -102,7 +102,7 @@ struct CICardView: View {
                     if let url = run.htmlURL {
                         action(L("Open log"), help: L("Open log")) { AppLinks.open(url) }
                     }
-                    action(busy == "ask\(run.id)" ? "…" : L("Ask Mochi why"), help: L("Ask Mochi why")) { ask(pr, run) }
+                    action(busy == "ask\(run.id)" ? "…" : L("Ask \(botName()) why"), help: L("Ask \(botName()) why")) { ask(pr, run) }
                     let runId = CICore.parseJobURL(run.htmlURL)?.runId
                     if let runId {
                         action(rerunning.contains(runId) ? L("Re-running…") : busy == "rerun\(run.id)" ? "…" : L("Re-run"),

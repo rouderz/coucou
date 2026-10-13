@@ -46,8 +46,8 @@ struct PromptView: View {
                             }
                             .buttonStyle(.plain)
                             .help(state.chatAllowEdits
-                                  ? L("Mochi can change files in this project. You approve every change in the island.")
-                                  : L("Mochi can only read this project. Click to let it propose edits."))
+                                  ? L("\(botName()) can change files in this project. You approve every change in the island.")
+                                  : L("\(botName()) can only read this project. Click to let it propose edits."))
                         }
                     }
                     if let skill = state.chatSkill {
@@ -210,7 +210,7 @@ struct PromptView: View {
                                 .frame(width: 22, height: 22)
                         }
                         .buttonStyle(.plain)
-                        .help(state.voicePhase == .listening ? L("Stop and send") : L("Talk to Mochi (or hold the push-to-talk shortcut)"))
+                        .help(state.voicePhase == .listening ? L("Stop and send") : L("Talk to \(botName()) (or hold the push-to-talk shortcut)"))
                     }
 
                     Button(action: sendMessage) {
@@ -549,7 +549,7 @@ struct ChatHistoryList: View {
                 Text("No saved chats yet")
                     .font(.system(size: 12, weight: .medium))
                     .foregroundColor(Color(hex: "#C5C8CD"))
-                Text("Conversations with Mochi are kept here so you can pick them up later.")
+                Text("Conversations with \(botName()) are kept here so you can pick them up later.")
                     .font(.system(size: 11))
                     .foregroundColor(Color(hex: "#6B7079"))
                     .multilineTextAlignment(.center)

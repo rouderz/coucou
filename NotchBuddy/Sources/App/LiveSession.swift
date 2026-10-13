@@ -542,7 +542,7 @@ private struct CodePanel: View {
             ChipButton("Timeline", icon: "list.bullet.rectangle") { state.liveShowsTimeline = true }
                 .help("Everything Claude did in this session, with times")
             if let edit = state.liveEdit {
-                ChipButton("Ask Mochi", icon: "bubble.left") { askMochi(about: edit) }
+                ChipButton("Ask \(botName())", icon: "bubble.left") { askMochi(about: edit) }
                     .help("Ask about this change in the chat")
                 ChipButton("Open", icon: "pencil") {
                     if let editor = Editor.preferred(state.preferredEditor) {

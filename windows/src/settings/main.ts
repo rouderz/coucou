@@ -10,7 +10,7 @@ import { parseTeams, type TeamInfo } from "../core/capture";
 import { h, clear } from "../views/dom";
 import { THEMES, applyTheme } from "../core/themes.ts";
 import { BotEngine } from "../mochi/engine";
-import { CRITTERS, CRITTER_INFO, DEFAULT_CRITTER, type CritterId } from "../mochi/critters";
+import { CRITTERS, CRITTER_INFO, DEFAULT_CRITTER, botName, isCritter, setCurrentCritter, type CritterId } from "../mochi/critters";
 import { dayKey as wtDayKey, duration, range, summary, toCsv as wtToCsv, type Period, type StatEvent } from "../core/whaticketStats.ts";
 import {
   addAdjustment, dayKey, formatDuration, formatHours, groupPeriod, parseStore, recentPeriods, rowsFromStore,
@@ -662,7 +662,7 @@ function inboxSection(): HTMLElement {
   }
   return h("section", {},
     h("h2", {}, statusDot(settings.inboxEnabled), h("span", { text: "Inbox" })),
-    h("div", { class: "hint", text: "GitHub (your token, or a signed-in gh) and Linear notifications that need you, behind the 🔔. Mochi peeks out when something new arrives." }),
+    h("div", { class: "hint", text: `GitHub (your token, or a signed-in gh) and Linear notifications that need you, behind the 🔔. ${botName()} peeks out when something new arrives.` }),
     h("div", { class: "row" }, h("label", { text: "Inbox" }),
       toggle(settings.inboxEnabled, (v) => { settings.inboxEnabled = v; void save(); })),
     h("div", { class: "row" }, h("label", { text: "GitHub" }),
@@ -1473,8 +1473,8 @@ function voiceSection(canListen: boolean): HTMLElement {
     h("div", { class: "row" }, h("label", { text: "Read replies aloud" }),
       toggle(settings.speakReplies, (v) => { settings.speakReplies = v; void save(); })),
     h("div", { class: "hint", text: canListen
-      ? "🎙 in the chat: say your question and Mochi sends it (Windows speech recognition; dictation needs online speech recognition on in Windows Settings → Privacy & security → Speech)."
-      : "Speaking your questions isn't available on Linux: it has no built-in speech recognition. Mochi can still read its replies aloud." }),
+      ? `🎙 in the chat: say your question and ${botName()} sends it (Windows speech recognition; dictation needs online speech recognition on in Windows Settings → Privacy & security → Speech).`
+      : `Speaking your questions isn't available on Linux: it has no built-in speech recognition. ${botName()} can still read its replies aloud.` }),
   );
 }
 
@@ -1591,7 +1591,7 @@ function characterSection(): HTMLElement {
     for (const c of CRITTERS) {
       grid.append(h("button", {
         class: "theme-choice critter-choice" + (current === c ? " on" : ""),
-        onclick: () => { settings.critter = c; void save(); draw(); },
+        onclick: () => { settings.critter = c; setCurrentCritter(c); void save(); draw(); },
       },
       critterPreview(c),
       h("span", { class: "critter-text" },
@@ -1604,7 +1604,7 @@ function characterSection(): HTMLElement {
   return h("section", {},
     h("h2", {}, h("span", { text: "Character" })),
     grid,
-    h("div", { class: "hint", text: "Mochi is the original Coucou character and isn't covered by the open-source licence: keep it for your own use, pick another one in builds you share." }),
+    h("div", { class: "hint", text: "The interface calls it by its name, like \u201CAsk Lumo\u201D." }),
   );
 }
 
@@ -1738,7 +1738,7 @@ function generalSection(editors: { id: string; name: string }[]): HTMLElement {
       h("span", { class: "hint", text: "a small notch stays at the top when the island hides" }),
     ),
     h("div", { class: "row" },
-      h("label", { text: "Mochi moves with the music" }),
+      h("label", { text: `${botName()} moves with the music` }),
       toggle(settings.mochiDance === true, (v) => { settings.mochiDance = v; void save(); }),
       h("span", { class: "hint", text: "bobs along while music plays; off in Do not disturb and with reduced motion. Music detection isn't available on this system yet" }),
     ),
@@ -1759,6 +1759,7 @@ async function main() {
   const boot = await Bridge.boot();
   if (boot) {
     settings = { ...settings, ...boot.settings };
+    setCurrentCritter(isCritter(settings.critter) ? settings.critter : DEFAULT_CRITTER);
     version = boot.version;
     if (boot.platform === "linux") keychainName = "your keyring (Secret Service)";
   }
@@ -1836,6 +1837,7 @@ async function main() {
 
   void onEvent<Settings>("settings-changed", (s) => {
     settings = { ...settings, ...s };
+    setCurrentCritter(isCritter(settings.critter) ? settings.critter : DEFAULT_CRITTER);
   });
 }
 

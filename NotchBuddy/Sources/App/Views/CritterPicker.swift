@@ -11,7 +11,7 @@ struct CritterPicker: View {
             LazyVGrid(columns: columns, alignment: .leading, spacing: 8) {
                 ForEach(Critter.allCases) { c in card(c) }
             }
-            Text("Mochi is the original Coucou character and isn't covered by the open-source licence: keep it for your own use, pick another one in builds you share.")
+            Text("The interface calls it by its name: \u{201C}Ask \(botName())\u{201D}, \u{201C}Hey \(botName())\u{201D}.")
                 .font(.system(size: 11))
                 .foregroundColor(.secondary)
                 .fixedSize(horizontal: false, vertical: true)

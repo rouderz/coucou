@@ -4,14 +4,22 @@
 // Every character shares the engine (eyes, blush, badges, particles, hands, the upload
 // mailbox morph). A character only brings its silhouette (sampled by angle, so it still
 // morphs into the mailbox), its colours and a few drawn extras that react to the state.
-//
-// Mochi is the original Coucou character and stays the property of its author
-// (LICENSE-ASSETS.md): kept as an option for local use only.
+// Its name is the one the interface uses ("Ask Lumo", "Hey Pip"): see botName().
 
-export type CritterId = "bao" | "pip" | "nube" | "lumo" | "tecla" | "mochi";
+export type CritterId = "bao" | "pip" | "nube" | "lumo" | "tecla";
 
-export const CRITTERS: readonly CritterId[] = ["bao", "pip", "nube", "lumo", "tecla", "mochi"];
+export const CRITTERS: readonly CritterId[] = ["bao", "pip", "nube", "lumo", "tecla"];
 export const DEFAULT_CRITTER: CritterId = "bao";
+
+let current: CritterId = DEFAULT_CRITTER;
+/** The character picked in Settings (the island and the settings window keep it current). */
+export function setCurrentCritter(c: CritterId) {
+  current = c;
+}
+/** Its name, for the interface ("Ask Lumo", "Hey Pip"). */
+export function botName(): string {
+  return CRITTER_INFO[current].name;
+}
 
 export function isCritter(v: unknown): v is CritterId {
   return typeof v === "string" && (CRITTERS as readonly string[]).includes(v);
@@ -23,7 +31,6 @@ export const CRITTER_INFO: Record<CritterId, { name: string; tagline: string }> 
   nube: { name: "Nube", tagline: "A little cloud: rain on errors, sun when done" },
   lumo: { name: "Lumo", tagline: "A glowing jellyfish that wiggles while it works" },
   tecla: { name: "Tecla", tagline: "A keycap that presses itself while it types" },
-  mochi: { name: "Mochi", tagline: "The original character (local use only)" },
 };
 
 type RGB = readonly [number, number, number];
@@ -48,7 +55,6 @@ export const PALETTES: Record<CritterId, CritterPalette> = {
   nube: { top: hex("#F5F7FF"), bottom: hex("#C9D4F2"), ink: "#2B3350", blush: [245, 163, 181], accent: "#FFD36E", accent2: "#7FB2FF" },
   lumo: { top: hex("#D6CBFF"), bottom: hex("#AE9CF7"), ink: "#2E2357", blush: [249, 168, 212], accent: "#A996F5", accent2: "#FFFFFF" },
   tecla: { top: hex("#5FBFA2"), bottom: hex("#3E957B"), ink: "#1F3D35", blush: [245, 158, 139], accent: "#A3ECD5", accent2: "#86DCC0" },
-  mochi: { top: [0.929, 0.929, 0.937], bottom: [0.769, 0.773, 0.792], ink: "rgb(26,20,18)", blush: [255, 120, 150], accent: "#EDEDEF", accent2: "#EDEDEF" },
 };
 
 /** How far the eyes and blush sit above Mochi's, in units of ry (Lumo's face is up in its dome). */
@@ -92,10 +98,6 @@ export function rrPointShared(ca: number, sa: number, W: number, H: number, cr: 
 export function outline(c: CritterId, a: number, rx: number, ry: number, R: number): { x: number; y: number } {
   const ca = Math.cos(a), sa = Math.sin(a);
   switch (c) {
-    case "mochi": {
-      const e = 2 / 2.7;
-      return { x: rx * spow(ca, e), y: ry * spow(sa, e) };
-    }
     case "bao": {
       const x = rx * 0.98 * spow(ca, 0.8);
       const y = sa < 0 ? ry * 1.02 * spow(sa, 0.9) : ry * 0.62 * spow(sa, 0.35);
@@ -245,7 +247,6 @@ export function drawCritterBack(x: CanvasRenderingContext2D, k: CritterCtx, R: n
       break;
     }
     case "tecla":
-    case "mochi":
       break;
   }
   x.restore();

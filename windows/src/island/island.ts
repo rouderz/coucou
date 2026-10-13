@@ -16,7 +16,7 @@ import { progress as focusProgress } from "../core/focus.ts";
 import type { BotEmoteName } from "../core/layout";
 import { Greeting } from "../mochi/greeting";
 import { createMiniBot, pruneMiniBots, setMiniCritter, syncMiniBotStates, tickMiniBots } from "../mochi/minibots";
-import { DEFAULT_CRITTER, isCritter } from "../mochi/critters";
+import { DEFAULT_CRITTER, isCritter, setCurrentCritter } from "../mochi/critters";
 import { UploadCanvas } from "../upload/canvas";
 import { USC, UploadSeq } from "../upload/sequence";
 import { buildHeader, buildViews, type ViewActions, type ViewHost } from "../views/views";
@@ -1005,6 +1005,7 @@ export class Island {
   applySettings() {
     const critter = isCritter(State.settings.critter) ? State.settings.critter : DEFAULT_CRITTER;
     this.engine.critter = critter;
+    setCurrentCritter(critter);
     setMiniCritter(critter);
     // The notch left on screen when hidden, and a wake strip that covers it (none in free placement).
     IDLE.notch = State.settings.idleNotch !== false && State.settings.placement !== "free";

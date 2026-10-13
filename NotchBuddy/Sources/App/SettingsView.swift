@@ -538,8 +538,8 @@ struct SettingsView: View {
                                     .frame(width: 48)
                                 Text("min without movement")
                             }
-                            Toggle("Mochi moves with the music", isOn: $state.mochiDance)
-                            Text("While Music or Spotify plays, Mochi bobs along and puts on headphones when the song changes. Off in Do not disturb and with Reduce Motion.")
+                            Toggle("\(botName()) moves with the music", isOn: $state.mochiDance)
+                            Text("While Music or Spotify plays, \(botName()) bobs along and puts on headphones when the song changes. Off in Do not disturb and with Reduce Motion.")
                                 .font(.system(size: 11))
                                 .foregroundColor(.secondary)
                                 .fixedSize(horizontal: false, vertical: true)
@@ -617,7 +617,7 @@ struct SettingsView: View {
                             }
 
                             Divider().padding(.vertical, 2)
-                            Toggle("Ask Mochi about the file you're editing", isOn: $state.assistantHotkeyEnabled)
+                            Toggle("Ask \(botName()) about the file you're editing", isOn: $state.assistantHotkeyEnabled)
                             if state.assistantHotkeyEnabled {
                                 HStack(spacing: 8) {
                                     Text("Shortcut")
@@ -629,7 +629,7 @@ struct SettingsView: View {
                                         .font(.system(size: 11))
                                         .foregroundColor(.secondary)
                                 }
-                                Text("Mochi can read and search that project but never edits it.")
+                                Text("\(botName()) can read and search that project but never edits it.")
                                     .font(.system(size: 11))
                                     .foregroundColor(.secondary)
                                     .fixedSize(horizontal: false, vertical: true)
@@ -654,7 +654,7 @@ struct SettingsView: View {
                                 .fixedSize(horizontal: false, vertical: true)
 
                             Divider().padding(.vertical, 2)
-                            Toggle("Push-to-talk: hold to talk to Mochi", isOn: $state.voiceEnabled)
+                            Toggle("Push-to-talk: hold to talk to \(botName())", isOn: $state.voiceEnabled)
                             if state.voiceEnabled {
                                 HStack(spacing: 8) {
                                     Text("Shortcut")
@@ -680,16 +680,16 @@ struct SettingsView: View {
                                     .labelsHidden()
                                     .frame(width: 180)
                                 }
-                                Toggle("Read Mochi's answers aloud", isOn: $state.voiceSpeakReplies)
-                                Toggle("Hey Mochi: start by voice, without the shortcut", isOn: $state.wakeWordEnabled)
+                                Toggle("Read \(botName())'s answers aloud", isOn: $state.voiceSpeakReplies)
+                                Toggle("Hey \(botName()): start by voice, without the shortcut", isOn: $state.wakeWordEnabled)
                                 if state.wakeWordEnabled {
                                     Toggle("Only when the Mac is plugged in", isOn: $state.wakeWordOnlyOnPower)
-                                    Text(WakeWord.shared.blocker ?? L("Listening for \u{201C}Hey Mochi\u{201D} (or \u{201C}Oye Mochi\u{201D}) on this Mac only. macOS shows the orange microphone dot while it listens."))
+                                    Text(WakeWord.shared.blocker ?? L("Listening for \u{201C}Hey \(botName())\u{201D} (or \u{201C}Oye \(botName())\u{201D}) on this Mac only. macOS shows the orange microphone dot while it listens."))
                                         .font(.system(size: 11))
                                         .foregroundColor(WakeWord.shared.blocker == nil ? .secondary : .orange)
                                         .fixedSize(horizontal: false, vertical: true)
                                 }
-                                Text("Speech is transcribed on this Mac when it supports it. Mochi only listens while you hold the shortcut.")
+                                Text("Speech is transcribed on this Mac when it supports it. \(botName()) only listens while you hold the shortcut.")
                                     .font(.system(size: 11))
                                     .foregroundColor(.secondary)
                                     .fixedSize(horizontal: false, vertical: true)
@@ -753,14 +753,14 @@ struct SettingsView: View {
                 if tab == .alerts {
                     GroupBox("Inbox") {
                         VStack(alignment: .leading, spacing: 8) {
-                            Toggle("Mochi tells me when someone needs me", isOn: $state.inboxEnabled)
+                            Toggle("\(botName()) tells me when someone needs me", isOn: $state.inboxEnabled)
                             if state.inboxEnabled {
                                 HStack(spacing: 16) {
                                     Toggle("GitHub (through gh)", isOn: $state.inboxGitHub)
                                     Toggle("Linear", isOn: $state.inboxLinear)
                                 }
                                 HStack(spacing: 8) {
-                                    Toggle("Mochi says it out loud", isOn: $state.inboxSpeak)
+                                    Toggle("\(botName()) says it out loud", isOn: $state.inboxSpeak)
                                     Button("Try it") {
                                         let sample = InboxItem(id: "sample", remoteID: "", source: .github, kind: .review,
                                                                title: "Fix the cart total", subtitle: "rouderz/coucou #80",
@@ -782,7 +782,7 @@ struct SettingsView: View {
                                             }))
                                     }
                                 }
-                                Text("Checked every minute. New items make Mochi peek out (only a badge in Do not disturb); the 🔔 in the island lists them. Opening or dismissing one marks it read on GitHub / Linear.")
+                                Text("Checked every minute. New items make \(botName()) peek out (only a badge in Do not disturb); the 🔔 in the island lists them. Opening or dismissing one marks it read on GitHub / Linear.")
                                     .font(.system(size: 11))
                                     .foregroundColor(.secondary)
                                     .fixedSize(horizontal: false, vertical: true)
@@ -1409,7 +1409,7 @@ struct ProviderSettingsSection: View {
             }
 
             Text(preset.needsKey
-                 ? "Mochi's chat goes to \(preset.name) with your key. Files and the code you're on are sent as text; edits and web search stay with the Claude engines."
+                 ? "\(botName())'s chat goes to \(preset.name) with your key. Files and the code you're on are sent as text; edits and web search stay with the Claude engines."
                  : "Runs on your Mac: nothing leaves it. Start \(preset.name) first, then Load models.")
                 .font(.system(size: 11))
                 .foregroundColor(.secondary)
