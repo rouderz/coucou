@@ -4,7 +4,7 @@
 
 # Coucou for Windows and Linux
 
-**Mochi doesn't get a notch on a PC — so it brings its own, at the top of your screen.**
+**Your character doesn't get a notch on a PC — so it brings its own, at the top of your screen.**
 
 Approve Claude Code permissions, watch your session work, drop a file, chat with Claude, keep an eye on your services — without leaving what you're doing.
 
@@ -16,7 +16,7 @@ Approve Claude Code permissions, watch your session work, drop a file, chat with
 
 </div>
 
-<img src="screenshots/greeting.png" width="640" alt="Mochi waving hello at launch">
+<img src="screenshots/greeting.png" width="640" alt="The character waving hello at launch">
 
 ---
 
@@ -44,26 +44,26 @@ check off in Settings → Updates.
 
 ## Using it
 
-<img src="screenshots/compact.png" width="292" alt="The compact island, with the integration pills as mini Mochis">
+<img src="screenshots/compact.png" width="292" alt="The compact island, with the integration pills as mini characters">
 <img src="screenshots/overview.png" width="640" alt="The overview: the focused integration on the left, the other pills on the right">
 <img src="screenshots/approval.png" width="640" alt="A Claude Code permission request, with Deny and Allow">
 <img src="screenshots/chat.png" width="640" alt="Chatting with Claude from the island">
-<img src="screenshots/drop.png" width="640" alt="Mochi turned into a box, waiting for a file">
+<img src="screenshots/drop.png" width="640" alt="The character turned into a box, waiting for a file">
 
 | What you do | What happens |
 |---|---|
-| Move the mouse to the small notch at the top centre of the screen | Mochi peeks out |
+| Move the mouse to the small notch at the top centre of the screen | The character peeks out |
 | Click the small island | It opens |
-| Click Mochi | It gets annoyed. Three times in a row and it goes dizzy |
-| Rest the pointer on Mochi for two seconds | Hearts |
-| Drag a file onto the island | Mochi turns into a box, swallows it, then offers to answer questions about it |
+| Click the character | It gets annoyed. Three times in a row and it goes dizzy |
+| Rest the pointer on the character for two seconds | Hearts |
+| Drag a file onto the island | The character turns into a box, swallows it, then offers to answer questions about it |
 | `Esc` | Closes the island |
 | `Alt+Enter` / `Alt+Backspace` | Allow / deny the waiting approval, from any app (X11 only on Linux) |
 | Tray icon | Open, Settings…, Pause, Quit |
 
 Everything else happens on its own: a Claude Code permission request opens the
 island with **Deny / Allow**, a finished session shows what it did, and
-your integrations sit in the coloured pills next to Mochi.
+your integrations sit in the coloured pills next to the character.
 
 When the island hides, a small notch stays at the top centre, like the Mac's, so
 Coucou never seems gone. Coucou also keeps itself above other always-on-top
@@ -133,13 +133,13 @@ root does the tagging).
 
 Installing is optional — `target/release/coucou.exe` runs on its own. There is no
 window in the taskbar and no console: the island at the top of the screen and the
-Mochi in the notification area are the whole app, and Quit lives in its menu.
+icon in the notification area are the whole app, and Quit lives in its menu.
 
 The 28 sounds are the macOS app's own files; they are never duplicated in this
 folder. The path is declared once, in `SOUNDS_DIR` at the top of
 `vite.config.ts` — when they move to `shared/sounds/`, change that one line.
 
-The app icon and the tray icon are drawn in code, like Mochi itself:
+The app icon and the tray icon are drawn in code, like the characters:
 
 ```powershell
 npm run icons          # regenerates src-tauri/icons from scripts/gen-icons.mjs
@@ -150,7 +150,7 @@ npm run icons          # regenerates src-tauri/icons from scripts/gen-icons.mjs
 ```
 windows/
   src/                 island front end (TypeScript, no framework)
-    mochi/             Mochi and the launch greeting, in Canvas 2D
+    mochi/             the characters and the launch greeting, in Canvas 2D
     island/            state machine, hooks, integrations
     views/             every island view
     settings/          the settings window
@@ -208,7 +208,7 @@ npx tauri build         # .deb, .rpm and .AppImage in target/release/bundle/
   small notch of its own there when it hides (Settings → General → Idle notch).
 - Permission approval works from **any** terminal; the Mac build only listens to
   VS Code sessions.
-- Not in this version: sending a file by email, dragging Mochi onto a window to
+- Not in this version: sending a file by email, dragging the character onto a window to
   attach it as context, and jumping to a specific terminal window — "Open
   terminal" opens the working folder in the editor picked in Settings (VS Code,
   Cursor, Windsurf or Zed, whichever are on your `PATH`).
@@ -224,9 +224,9 @@ npx tauri build         # .deb, .rpm and .AppImage in target/release/bundle/
   Linux). Not here: Do not disturb during calendar events (needs macOS EventKit).
 - Chats are saved (History, New chat); the chat can also use OpenAI, Gemini,
   OpenRouter, Ollama, LM Studio or any OpenAI-compatible server; the interface
-  is in English or Spanish; Mochi can read its replies aloud, and on Windows
+  is in English or Spanish; the character can read its replies aloud, and on Windows
   you can speak your question (🎙). The VS Code / Cursor extension works here
-  too ("Ask Mochi about this"). Not here: "Hey Mochi" (no on-device keyword
+  too ("Ask Coucou about this"). Not here: "Hey <character>" (no on-device keyword
   detection) and speaking questions on Linux (no built-in speech recognition).
 - The chat runs on an Anthropic API key or on your own Claude Code (Settings →
   Chat → Engine), signed in with your Claude plan; GitHub works with a token or
@@ -238,6 +238,8 @@ npx tauri build         # .deb, .rpm and .AppImage in target/release/bundle/
 The code is [MIT](../LICENSE). The name Coucou, the Mochi character, the icons
 (including the ones `scripts/gen-icons.mjs` draws) and the sounds are Louis
 Raillé's and are not covered by it — see [LICENSE-ASSETS.md](../LICENSE-ASSETS.md).
+The characters (Bao, Pip, Nube, Lumo, Tecla) are under CC BY 4.0 — see
+[LICENSE-CHARACTERS.md](../LICENSE-CHARACTERS.md).
 The builds include open-source libraries (Tauri and its plugins, the `windows`
 crate, GTK / WebKitGTK bindings and the rest of [`Cargo.lock`](Cargo.lock) and
 [`package-lock.json`](package-lock.json)), each under its own license.

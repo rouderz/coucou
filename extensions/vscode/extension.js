@@ -5,8 +5,8 @@
 //   Linux    $XDG_RUNTIME_DIR/coucou.sock (or /tmp/coucou-<uid>/coucou.sock)
 //
 //   EditorContext  on editor / selection / diagnostics changes (debounced) — Coucou keeps the
-//                  latest one and uses it when you press ⌃⌥M or drop Mochi on the window.
-//   EditorAsk      "Ask Mochi about this" — Coucou opens its chat with this context attached.
+//                  latest one and uses it when you press ⌃⌥M or drop your character on the window.
+//   EditorAsk      "Ask Coucou about this" — Coucou opens its chat with this context attached.
 'use strict';
 const vscode = require('vscode');
 const net = require('net');
@@ -119,8 +119,8 @@ function updateStatusBar() {
 
 function activate(context) {
   statusItem = vscode.window.createStatusBarItem(vscode.StatusBarAlignment.Right, 100);
-  statusItem.text = '$(comment-discussion) Mochi';
-  statusItem.tooltip = 'Ask Mochi about this file (⌃⌥M)';
+  statusItem.text = '$(comment-discussion) Ask';
+  statusItem.tooltip = 'Ask Coucou about this file (⌃⌥M)';
   statusItem.command = 'coucou.ask';
   updateStatusBar();
 

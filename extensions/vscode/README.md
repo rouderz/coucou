@@ -1,4 +1,4 @@
-# Coucou: Ask Mochi (VS Code · Cursor · Windsurf · VSCodium)
+# Coucou: Ask about your code (VS Code · Cursor · Windsurf · VSCodium)
 
 Gives [Coucou](https://github.com/rouderz/coucou) the exact context of what you're editing, so
 questions like *"why is this red?"* get real answers:
@@ -13,9 +13,9 @@ on Linux `$XDG_RUNTIME_DIR/coucou.sock`. If Coucou isn't running, it does nothin
 
 ## Use
 
-- **Mochi** in the status bar, or right-click → **Ask Mochi about this**: Coucou opens its chat
+- **Ask** in the status bar, or right-click → **Ask Coucou about this**: Coucou opens its chat
   with the file, cursor, selection and problems attached.
-- On macOS, Coucou's global **⌃⌥M** (and dropping Mochi on the window) use this same context while
+- On macOS, Coucou's global **⌃⌥M** (and dropping your character on the window) use this same context while
   the extension is active, instead of guessing the file from the window title.
 
 Settings: `coucou.shareContext` (keep Coucou updated) and `coucou.showStatusBar`.
@@ -39,5 +39,5 @@ Copy-Item -Recurse "$HOME\code\coucou\extensions\vscode" "$HOME\.vscode\extensio
 
 Or package it: `npx @vscode/vsce package`, then *Extensions → … → Install from VSIX*.
 
-On Windows and Linux, **Ask Mochi about this** opens the island's chat with the code attached, and
+On Windows and Linux, **Ask Coucou about this** opens the island's chat with the code attached, and
 the chat offers to attach the file you were last in (`+ app.ts:42`).
