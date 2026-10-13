@@ -468,9 +468,11 @@ final class IslandWindowController: NSWindowController {
                      NSWindow.willCloseNotification, NSWindow.didMiniaturizeNotification,
                      NSWindow.didDeminiaturizeNotification] {
             nc.addObserver(forName: name, object: nil, queue: .main) { [weak self] note in
-                guard let win = note.object as? NSWindow, win.identifier == .coucouSettings else { return }
                 let gone = note.name == NSWindow.willCloseNotification || note.name == NSWindow.didMiniaturizeNotification
-                MainActor.assumeIsolated { self?.settingsWindowChanged(gone ? nil : win.frame) }
+                MainActor.assumeIsolated {
+                    guard let win = note.object as? NSWindow, win.identifier == .coucouSettings else { return }
+                    self?.settingsWindowChanged(gone ? nil : win.frame)
+                }
             }
         }
         // Integrations come and go, characters get assigned (#151): one floating character each.
