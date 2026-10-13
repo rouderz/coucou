@@ -109,6 +109,12 @@ pub struct Settings {
     pub buddy_x: Option<f64>,
     #[serde(default)]
     pub buddy_y: Option<f64>,
+    /// Who handles what (#151): integration id → character. Missing = the main character.
+    #[serde(default)]
+    pub critter_assignments: HashMap<String, String>,
+    /// Where each integration's own floating character was left (logical px, top-left).
+    #[serde(default)]
+    pub buddy_spots: HashMap<String, [f64; 2]>,
 
     /// Mochi moves with the music (#117). Off by default.
     #[serde(default)]
@@ -275,6 +281,8 @@ impl Default for Settings {
             placement: default_placement(),
             buddy_x: None,
             buddy_y: None,
+            critter_assignments: HashMap::new(),
+            buddy_spots: HashMap::new(),
             mochi_dance: false,
             whaticket_auto_accept: false,
             whaticket_queues: Vec::new(),

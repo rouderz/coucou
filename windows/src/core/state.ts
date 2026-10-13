@@ -194,6 +194,10 @@ export interface Settings {
   /** Where the free character was left (logical px, top-left of its window); null = default spot. */
   buddyX: number | null;
   buddyY: number | null;
+  /** Who handles what (#151): integration id → character. Missing = the main character. */
+  critterAssignments: Record<string, string>;
+  /** Where each integration's own floating character was left (logical px, top-left). */
+  buddySpots: Record<string, [number, number]>;
   /** WhaTicket: accept new tickets on their own, from these queues (empty = any), in these hours. */
   whaticketAutoAccept: boolean;
   whaticketQueues: string[];
@@ -271,6 +275,8 @@ export const DEFAULT_SETTINGS: Settings = {
   placement: "notch",
   buddyX: null,
   buddyY: null,
+  critterAssignments: {},
+  buddySpots: {},
   whaticketAutoAccept: false,
   whaticketQueues: [],
   whaticketHours: "",

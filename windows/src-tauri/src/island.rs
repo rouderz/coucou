@@ -352,10 +352,8 @@ pub fn spawn_topmost_keeper(app: AppHandle) {
         let Some(win) = window(&app) else { continue };
         platform::keep_on_top(&win);
         // The character sitting on the open island stays in front of it.
-        if crate::buddy::is_perched() {
-            if let Some(buddy) = crate::buddy::window(&app) {
-                platform::keep_on_top(&buddy);
-            }
+        if let Some(buddy) = crate::buddy::perched_window(&app) {
+            platform::keep_on_top(&buddy);
         }
     });
 }

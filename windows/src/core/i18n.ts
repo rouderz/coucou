@@ -26,6 +26,20 @@ export function language(): Lang {
 }
 
 const ES: Record<string, string> = {
+  // characters (#147–#151)
+  "Character": "Personaje",
+  "Who handles what": "Quién se encarga de qué",
+  "An integration with its own character shows it in its pill and, in free placement, floats on its own: click it to open just that integration.": "Una integración con personaje propio lo muestra en su píldora y, en modo libre, flota por su cuenta: haz clic en él para abrir solo esa integración.",
+  "Where it lives": "Dónde vive",
+  "At the top of the screen": "Arriba de la pantalla",
+  "Free on the desktop": "Libre en el escritorio",
+  "Reset position": "Restablecer posición",
+  "free: drag the character anywhere, click it to open the island next to it, right-click for options": "libre: arrastra el personaje a donde quieras, haz clic para abrir la isla junto a él y clic derecho para ver opciones",
+  "A steamed bun that steams while it works": "Un panecillo al vapor que echa vapor mientras trabaja",
+  "A bean with a sprout that tells how things go": "Un frijol con un brote que cuenta cómo va todo",
+  "A little cloud: rain on errors, sun when done": "Una nubecita: llueve si hay errores, sale el sol al terminar",
+  "A glowing jellyfish that wiggles while it works": "Una medusa que brilla y se agita mientras trabaja",
+  "A keycap that presses itself while it types": "Una tecla que se pulsa sola mientras escribe",
   // header, tabs, common
   "Overview": "Resumen", "Code": "Código", "Ask": "Preguntar", "Drop": "Soltar", "Settings": "Ajustes", "Mute": "Silenciar",
   "Settings…": "Ajustes…", "Back": "Atrás", "Cancel": "Cancelar", "Save": "Guardar", "Remove": "Quitar",
@@ -486,6 +500,7 @@ const PATTERNS: [RegExp, string][] = [
   [/^Focus: (\d+) min\. Do not disturb is on until the end of the block\.$/, "Concentración: $1 min. No molestar está activado hasta el final del bloque."],
   // the character's name (Settings → Character)
   [/^Code  (.+)$/, "Código  $1"],
+  [/^Same as (Bao|Pip|Nube|Lumo|Tecla)$/, "Igual que $1"],
   [/^(Bao|Pip|Nube|Lumo|Tecla) moves with the music$/, "$1 se mueve con la música"],
   [/^Ask (Bao|Pip|Nube|Lumo|Tecla) why$/, "Preguntar a $1 por qué"],
   [/^GitHub \(your token, or a signed-in gh\) and Linear notifications that need you, behind the 🔔\. (Bao|Pip|Nube|Lumo|Tecla) peeks out when something new arrives\.$/,

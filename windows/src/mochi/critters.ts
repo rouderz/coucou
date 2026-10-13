@@ -21,6 +21,13 @@ export function botName(): string {
   return CRITTER_INFO[current].name;
 }
 
+/** Who handles what (#151), keeping only valid characters. */
+export function assignments(raw: Record<string, string> | undefined): Record<string, CritterId> {
+  const out: Record<string, CritterId> = {};
+  for (const [id, c] of Object.entries(raw ?? {})) if (isCritter(c)) out[id] = c;
+  return out;
+}
+
 export function isCritter(v: unknown): v is CritterId {
   return typeof v === "string" && (CRITTERS as readonly string[]).includes(v);
 }

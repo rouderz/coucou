@@ -2,7 +2,7 @@
 // Mirrors IslandRootView.swift + IslandWindowController.swift.
 
 import { Tracked, Spring, clamp } from "../core/anim";
-import { Bridge, IS_TAURI, onDragDrop, toBuddy } from "../core/bridge";
+import { Bridge, IS_TAURI, onDragDrop, toBuddies } from "../core/bridge";
 import {
   EXPANDED_CORNER, EXPANDED_W, NOTCH_W, PANEL_H, PANEL_W,
   ROUNDED_CORNER, VIEW_LAYOUTS, botGlowColor, botGlowOpacity, botPosition, chatPromptHeight,
@@ -16,7 +16,7 @@ import { progress as focusProgress } from "../core/focus.ts";
 import type { BotEmoteName } from "../core/layout";
 import { Greeting } from "../mochi/greeting";
 import { createMiniBot, pruneMiniBots, setMiniCritter, syncMiniBotStates, tickMiniBots } from "../mochi/minibots";
-import { DEFAULT_CRITTER, isCritter, setCurrentCritter } from "../mochi/critters";
+import { DEFAULT_CRITTER, assignments, isCritter, setCurrentCritter, type CritterId } from "../mochi/critters";
 import { UploadCanvas } from "../upload/canvas";
 import { USC, UploadSeq } from "../upload/sequence";
 import { buildHeader, buildViews, type ViewActions, type ViewHost } from "../views/views";
@@ -566,6 +566,7 @@ export class Island {
         this.collapseTimer = null;
         if (!this.folded) return;
         this.collapsed = true;
+        this.activeBuddy = "main";   // the next alert opens on the main character
         void Bridge.setCollapsed(true);
       }, 420);
     } else if (this.collapsed) {
@@ -984,6 +985,7 @@ export class Island {
 
     syncMiniBotStates(State.tasks);
     this.engine.setState(State.effectiveState);
+    this.engine.critter = this.focusCritter(this.mainCritter);
     this.pushBuddyState();
     this.applyFocusLook();
   }
@@ -995,29 +997,57 @@ export class Island {
     window.setTimeout(() => this.views.get(view)?.focus?.(), 120);
   }
 
-  /** Free placement: a click on the floating character opens or folds the island. */
-  toggleFromBuddy() {
+  /** The floating character the open island belongs to ("main" or an integration id). */
+  private activeBuddy = "main";
+
+  /** Free placement: a click on a floating character opens the island on its task, sitting
+   *  on it; a click on the one the island belongs to folds it. */
+  toggleFromBuddy(key: string) {
     Sound.resume();
-    if (State.mode === "expanded") this.collapse();
+    if (State.mode === "expanded" && this.activeBuddy === key) {
+      this.collapse();
+      return;
+    }
+    this.activeBuddy = key;
+    const own = assignments(State.settings.critterAssignments);
+    const target = key === "main" ? State.tasks.find((t) => !own[t.id])?.id : key;
+    if (target) State.focusId = target;
+    if (State.mode === "expanded") this.setView("overview");
     else this.fsm.forceHome();
+    State.notify();
   }
 
-  private lastBuddyState = "";
-  /** Keeps the floating character (buddy window) in the same state as this one. */
+  private mainCritter: CritterId = DEFAULT_CRITTER;
+  private lastBuddyStates = "";
+  /** Keeps the floating characters in step: the main one shows the focused task unless that
+   *  one has its own character, the others show their integration (#151). */
   private pushBuddyState(force = false) {
     if (State.settings.placement !== "free") return;
-    const s = this.engine.state;
-    if (s === this.lastBuddyState && !force) return;
-    this.lastBuddyState = s;
-    toBuddy(s);
+    const own = assignments(State.settings.critterAssignments);
+    const focus = State.focusTask;
+    const states: Record<string, string> = {
+      main: focus && !own[focus.id] ? this.engine.state : State.tasks.find((t) => !own[t.id])?.state ?? "idle",
+    };
+    for (const t of State.tasks) if (own[t.id]) states[t.id] = t.state;
+    const json = JSON.stringify(states);
+    if (json === this.lastBuddyStates && !force) return;
+    this.lastBuddyStates = json;
+    toBuddies(states);
+  }
+
+  /** The character in charge of the focused task (its own, or the main one). */
+  private focusCritter(main: CritterId): CritterId {
+    const id = State.focusTask?.id;
+    return (id && assignments(State.settings.critterAssignments)[id]) || main;
   }
 
   /** Applies settings coming from Rust at boot. */
   applySettings() {
     const critter = isCritter(State.settings.critter) ? State.settings.critter : DEFAULT_CRITTER;
-    this.engine.critter = critter;
+    this.mainCritter = critter;
+    this.engine.critter = this.focusCritter(critter);
     setCurrentCritter(critter);
-    setMiniCritter(critter);
+    setMiniCritter(critter, assignments(State.settings.critterAssignments));
     // The notch left on screen when hidden, and a wake strip that covers it (none in free placement).
     IDLE.notch = State.settings.idleNotch !== false && State.settings.placement !== "free";
     document.documentElement.classList.toggle("free-placement", State.settings.placement === "free");

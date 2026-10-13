@@ -5,7 +5,7 @@
 import "./settings.css";
 import { setLanguage, startTranslating } from "../core/i18n.ts";
 import { Bridge, onDragDrop, onEvent, type BrowserStatus, type HookStatus, type SkillInfo, type SkillPreview } from "../core/bridge";
-import { DEFAULT_SETTINGS, type Settings } from "../core/state";
+import { DEFAULT_SETTINGS, INTEGRATION_AGENTS, type Settings } from "../core/state";
 import { parseTeams, type TeamInfo } from "../core/capture";
 import { h, clear } from "../views/dom";
 import { THEMES, applyTheme } from "../core/themes.ts";
@@ -25,6 +25,7 @@ let keychainName = "the Windows Credential Manager";
 const root = document.getElementById("settings-root")!;
 
 async function save() {
+  onCritterChange();
   await Bridge.saveSettings(settings);
 }
 
@@ -1591,7 +1592,7 @@ function characterSection(): HTMLElement {
     for (const c of CRITTERS) {
       grid.append(h("button", {
         class: "theme-choice critter-choice" + (current === c ? " on" : ""),
-        onclick: () => { settings.critter = c; setCurrentCritter(c); void save(); draw(); },
+        onclick: () => { settings.critter = c; setCurrentCritter(c); void save(); draw(); onCritterChange(); },
       },
       critterPreview(c),
       h("span", { class: "critter-text" },
@@ -1601,12 +1602,44 @@ function characterSection(): HTMLElement {
     }
   }
   draw();
+
+  // Who handles what (#151): every active integration can have its own character.
+  const who = h("div", { class: "critter-who" });
+  function drawWho() {
+    clear(who);
+    const main = isCritter(settings.critter) ? settings.critter : DEFAULT_CRITTER;
+    who.append(h("div", { class: "row" }, h("label", { text: "Claude Code" }),
+      h("span", { class: "hint", text: CRITTER_INFO[main].name })));
+    for (const agent of INTEGRATION_AGENTS) {
+      if (agent.id === "integration_claude" || !settings.activeIntegrations.includes(agent.id)) continue;
+      const pick = h("select", {}) as HTMLSelectElement;
+      pick.append(h("option", { value: "", text: `Same as ${CRITTER_INFO[main].name}` }));
+      for (const c of CRITTERS) pick.append(h("option", { value: c, text: CRITTER_INFO[c].name }));
+      pick.value = settings.critterAssignments?.[agent.id] ?? "";
+      pick.addEventListener("change", () => {
+        const next = { ...(settings.critterAssignments ?? {}) };
+        if (pick.value) next[agent.id] = pick.value; else delete next[agent.id];
+        settings.critterAssignments = next;
+        void save();
+      });
+      who.append(h("div", { class: "row" }, h("label", { text: agent.name }), pick));
+    }
+  }
+  drawWho();
+  onCritterChange = drawWho;
+
   return h("section", {},
     h("h2", {}, h("span", { text: "Character" })),
     grid,
     h("div", { class: "hint", text: "The interface calls it by its name, like \u201CAsk Lumo\u201D." }),
+    h("h3", { text: "Who handles what" }),
+    who,
+    h("div", { class: "hint", text: "An integration with its own character shows it in its pill and, in free placement, floats on its own: click it to open just that integration." }),
   );
 }
+
+/** Redraws "Who handles what" when the main character or the integrations change. */
+let onCritterChange: () => void = () => {};
 
 function appearanceSection(): HTMLElement {
   const grid = h("div", { class: "theme-grid" });

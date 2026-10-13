@@ -110,7 +110,7 @@ async function main() {
   });
 
   // Free placement: the floating character was clicked.
-  await onEvent<null>("buddy-click", () => island.toggleFromBuddy());
+  await onEvent<string>("buddy-click", (key) => island.toggleFromBuddy(key || "main"));
 
   registerHookHandlers(island);
   registerIntegrationHandlers(island);

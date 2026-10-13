@@ -85,7 +85,9 @@ fn save_settings(app: AppHandle, shared: State<Shared>, settings: Settings) {
         // The idle notch changes the hidden window's size too.
         let screen_changed = current.screen != settings.screen
             || current.idle_notch != settings.idle_notch
-            || current.placement != settings.placement;
+            || current.placement != settings.placement
+            || current.critter_assignments != settings.critter_assignments
+            || current.active_integrations != settings.active_integrations;
         shared.gate.idle_notch.store(settings.idle_notch, Ordering::Relaxed);
         let autostart_changed = current.autostart != settings.autostart;
         *current = settings.clone();
@@ -1135,6 +1137,7 @@ pub fn run() {
             ci_rerun_failed,
             ci_save_log,
             buddy::buddy_clicked,
+            buddy::buddy_key,
             buddy::buddy_moved,
             buddy::buddy_menu,
         ])
@@ -1143,7 +1146,7 @@ pub fn run() {
             tray::build(&handle)?;
             // Before the island: see create_settings_window.
             create_settings_window(&handle);
-            buddy::create(&handle, BROWSER_ARGS);
+            buddy::create(&handle, BROWSER_ARGS, loaded.placement == "free");
 
             if let Some(win) = island::window(&handle) {
                 platform::prepare_island(&win);

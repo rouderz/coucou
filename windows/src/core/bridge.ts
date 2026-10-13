@@ -3,7 +3,7 @@
 // `npm run dev` alone.
 
 import { invoke } from "@tauri-apps/api/core";
-import { emitTo, listen } from "@tauri-apps/api/event";
+import { emit, listen } from "@tauri-apps/api/event";
 import { getCurrentWebview } from "@tauri-apps/api/webview";
 import type { Settings } from "./state";
 import type { StatEvent } from "./whaticketStats.ts";
@@ -334,10 +334,10 @@ export async function onDragDrop(handler: (e: DragDropPayload) => void) {
   });
 }
 
-/** Tells the free-floating character (buddy window) what state to show. */
-export function toBuddy(state: string) {
+/** Tells the free-floating characters what to show: key ("main" or integration id) → state. */
+export function toBuddies(states: Record<string, string>) {
   if (!IS_TAURI) return;
-  void emitTo("buddy", "buddy-state", state).catch(() => {});
+  void emit("buddy-state", states).catch(() => {});
 }
 
 export async function onEvent<T>(name: string, handler: (payload: T) => void) {

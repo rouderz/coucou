@@ -6,9 +6,12 @@ import type { AgentTask } from "../core/state";
 import { DEFAULT_CRITTER, type CritterId } from "./critters";
 
 let critter: CritterId = DEFAULT_CRITTER;
-/** The character picked in Settings: mini bots take its silhouette, in their pill colour. */
-export function setMiniCritter(c: CritterId) {
+let assigned: Record<string, CritterId> = {};
+/** The characters picked in Settings: each mini bot takes the silhouette of the character in
+ *  charge of its integration (#151), or the main one, in its pill colour. */
+export function setMiniCritter(c: CritterId, byTask: Record<string, CritterId> = {}) {
   critter = c;
+  assigned = byTask;
 }
 
 interface MiniBot {
@@ -84,7 +87,7 @@ export function tickMiniBots(dt: number) {
   for (const mb of live.values()) {
     const ctx = mb.canvas.getContext("2d");
     if (!ctx) continue;
-    mb.engine.critter = critter;
+    mb.engine.critter = assigned[mb.taskId] ?? critter;
     mb.engine.update(dt);
     ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
     ctx.clearRect(0, 0, mb.cssSize, mb.cssSize);

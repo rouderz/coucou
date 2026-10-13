@@ -6,7 +6,7 @@ import { invoke } from "@tauri-apps/api/core";
 import { listen } from "@tauri-apps/api/event";
 import { getCurrentWindow } from "@tauri-apps/api/window";
 import { BotEngine } from "../mochi/engine";
-import { DEFAULT_CRITTER, isCritter } from "../mochi/critters";
+import { DEFAULT_CRITTER, assignments, isCritter } from "../mochi/critters";
 import type { BotStateName } from "../core/layout";
 import type { Settings } from "../core/state";
 
@@ -25,9 +25,14 @@ const ctx = canvas.getContext("2d")!;
 const engine = new BotEngine();
 engine.setState("idle", true);
 
+/** "main" (Claude Code) or the id of the integration this character handles (#151). */
+let key = "main";
+let settings: Partial<Settings> = {};
+
 function applySettings(s: Partial<Settings> | null | undefined) {
-  if (!s) return;
-  engine.critter = isCritter(s.critter) ? s.critter : DEFAULT_CRITTER;
+  if (s) settings = s;
+  const main = isCritter(settings.critter) ? settings.critter : DEFAULT_CRITTER;
+  engine.critter = key === "main" ? main : assignments(settings.critterAssignments)[key] ?? main;
 }
 
 // ── Frame loop (~30 fps: breathing, blinking, extras) ─────────────────────────
@@ -97,8 +102,17 @@ async function boot() {
   const info = await invoke<{ settings: Settings }>("boot").catch(() => null);
   applySettings(info?.settings);
 
+  const refreshKey = async () => {
+    key = (await invoke<string>("buddy_key").catch(() => null)) ?? "main";
+    applySettings(null);
+  };
+  await refreshKey();
   await listen<Settings>("settings-changed", (e) => applySettings(e.payload));
-  await listen<string>("buddy-state", (e) => engine.setState(e.payload as BotStateName));
+  await listen("buddy-keys", () => void refreshKey());
+  await listen<Record<string, string>>("buddy-state", (e) => {
+    const s = e.payload[key];
+    if (s) engine.setState(s as BotStateName);
+  });
 
   // Remember where it was dropped (logical px), once the window stops moving.
   const win = getCurrentWindow();
