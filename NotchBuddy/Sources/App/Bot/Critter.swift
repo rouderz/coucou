@@ -133,7 +133,18 @@ enum Critter: String, CaseIterable, Identifiable, Sendable {
         }
     }
 
-    /// How far the eyes and blush sit above Mochi's, in units of ry (Lumo's face is up in its dome).
+    /// Each character's eyes: rounder, taller or narrower than the shared ones.
+    var eyeAspect: (w: CGFloat, h: CGFloat) {
+        switch self {
+        case .bao:   return (1.05, 0.92)
+        case .pip:   return (0.88, 1.12)
+        case .nube:  return (1.0, 1.0)
+        case .lumo:  return (0.85, 1.18)
+        case .tecla: return (1.0, 0.86)
+        }
+    }
+
+    /// How far the eyes and blush sit above the shared ones, in units of ry (Lumo's face is up in its dome).
     var faceLift: CGFloat { self == .lumo ? 0.3 : 0 }
 
     /// Where the top of the head is (used to anchor Pip's sprout and Bao's steam).
@@ -382,5 +393,117 @@ extension BotEngine {
             ctx.fill(Path(ellipseIn: CGRect(x: fc.x - cr, y: fc.y - cr, width: cr * 2, height: cr * 2)),
                      with: .color(Color(cgColor: .from("#F08A5D"))))
         }
+    }
+}
+
+// MARK: - Face: mouth, eye shine, brows
+
+@MainActor
+extension BotEngine {
+
+    private enum Mouth { case smile, open, grin, wobble, flat, tiny }
+
+    private func mouth(for shape: EyeShape) -> Mouth {
+        switch state {
+        case .finished: return .grin
+        case .approval: return .open
+        case .question: return .open
+        case .error, .dizzy: return .wobble
+        case .ratelimit: return .flat
+        case .sleeping: return .tiny
+        default: break
+        }
+        switch shape {
+        case .happy, .heart, .star, .wink: return .grin
+        case .wide: return .open
+        case .spiral: return .wobble
+        case .flat, .tired, .line: return .flat
+        case .closed: return .tiny
+        default: return .smile
+        }
+    }
+
+    /// The mouth, under the eyes, following where the head looks. Fades out into the mailbox.
+    func drawMouth(ctx: GraphicsContext, shape: EyeShape, R: CGFloat, rx: CGFloat, ry: CGFloat) {
+        var pitchNow = MochiConst.eyeP + pitch + roll
+        pitchNow = ((pitchNow + .pi).truncatingRemainder(dividingBy: .pi * 2) + .pi * 2)
+            .truncatingRemainder(dividingBy: .pi * 2) - .pi
+        let cp = cos(pitchNow)
+        let facing = cos(yaw) * cp
+        guard facing > 0.3 else { return }
+
+        let mx = sin(yaw) * cp * rx
+        let my = -sin(pitchNow) * ry - critter.faceLift * ry + R * 0.24
+        var c = ctx
+        c.translateBy(x: mx, y: my)
+        c.scaleBy(x: max(0.3, cos(yaw)), y: max(0.3, cp))
+        c.opacity = Double(max(0, 1 - morph / 0.3))
+        let ink = Color(cgColor: critter.palette.ink)
+        let w = R * 0.1
+        let line = StrokeStyle(lineWidth: R * 0.05, lineCap: .round, lineJoin: .round)
+
+        switch mouth(for: shape) {
+        case .smile:
+            var p = Path()
+            p.move(to: CGPoint(x: -w, y: 0))
+            p.addQuadCurve(to: CGPoint(x: w, y: 0), control: CGPoint(x: 0, y: w * 0.95))
+            c.stroke(p, with: .color(ink), style: line)
+        case .open:
+            let s: CGFloat = state == .question ? 0.8 : 1
+            c.fill(Path(ellipseIn: CGRect(x: -w * 0.5 * s, y: -w * 0.2, width: w * s, height: w * 1.25 * s)),
+                   with: .color(ink))
+        case .grin:
+            var p = Path()
+            p.move(to: CGPoint(x: -w * 1.25, y: -w * 0.15))
+            p.addQuadCurve(to: CGPoint(x: w * 1.25, y: -w * 0.15), control: CGPoint(x: 0, y: w * 1.7))
+            p.closeSubpath()
+            c.fill(p, with: .color(ink))
+            var tongue = c
+            tongue.clip(to: p)
+            tongue.fill(Path(ellipseIn: CGRect(x: -w * 0.55, y: w * 0.35, width: w * 1.1, height: w * 0.8)),
+                        with: .color(Color(red: 0.98, green: 0.47, blue: 0.53)))
+        case .wobble:
+            var p = Path()
+            for i in 0...12 {
+                let t = CGFloat(i) / 12
+                let pt = CGPoint(x: -w * 1.1 + t * w * 2.2, y: sin(t * .pi * 3) * w * 0.25)
+                if i == 0 { p.move(to: pt) } else { p.addLine(to: pt) }
+            }
+            c.stroke(p, with: .color(ink), style: line)
+        case .flat:
+            var p = Path()
+            p.move(to: CGPoint(x: -w * 0.75, y: w * 0.15))
+            p.addLine(to: CGPoint(x: w * 0.75, y: w * 0.15))
+            c.stroke(p, with: .color(ink), style: line)
+        case .tiny:
+            c.fill(Path(ellipseIn: CGRect(x: -w * 0.32, y: 0, width: w * 0.64, height: w * 0.7)),
+                   with: .color(ink.opacity(0.85)))
+        }
+    }
+
+    /// A shine in open eyes, and brows for the strong states (cross, worried, puzzled).
+    /// Drawn in the eye's own coordinates (already placed and squashed with the head).
+    func drawEyeExtras(ctx: inout GraphicsContext, shape: EyeShape, w: CGFloat, h: CGFloat, sd: CGFloat) {
+        if (shape == .pill || shape == .wide || shape == .dot) && open > 0.5 {
+            let r = w * 0.2
+            ctx.fill(Path(ellipseIn: CGRect(x: w * 0.12 - r, y: -h * 0.22 - r, width: r * 2, height: r * 2)),
+                     with: .color(Color.white.opacity(0.9)))
+        }
+
+        // Brows: the inner end (towards the other eye) is at x = -sd.
+        let innerY: CGFloat, outerY: CGFloat
+        switch state {
+        case .error:                  innerY = -h * 0.72; outerY = -h * 1.0    // cross
+        case .approval, .ratelimit:   innerY = -h * 1.02; outerY = -h * 0.82   // worried
+        case .question:
+            guard sd > 0 else { return }                                      // one raised brow
+            innerY = -h * 1.08; outerY = -h * 1.0
+        default: return
+        }
+        var brow = Path()
+        brow.move(to: CGPoint(x: -sd * w * 0.62, y: innerY))
+        brow.addLine(to: CGPoint(x: sd * w * 0.62, y: outerY))
+        ctx.stroke(brow, with: .color(Color(cgColor: critter.palette.ink)),
+                   style: StrokeStyle(lineWidth: w * 0.3, lineCap: .round))
     }
 }

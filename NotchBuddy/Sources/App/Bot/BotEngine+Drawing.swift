@@ -415,13 +415,20 @@ extension BotEngine {
             let fy = lerp(max(0.18, cp),          1, morph * 0.7)
 
             let eyeMult: CGFloat = isMini ? 1.9 : 1.0
-            let ew = R * MochiConst.eyeW * es * eyeMult
-            let eh = R * MochiConst.eyeH * es * eyeMult
+            let aspect = critter.eyeAspect
+            let ew = R * MochiConst.eyeW * es * eyeMult * aspect.w
+            let eh = R * MochiConst.eyeH * es * eyeMult * aspect.h
 
             var eyeCtx = ctx
             eyeCtx.translateBy(x: ex, y: ey)
             eyeCtx.scaleBy(x: fx, y: fy)
             drawEyeShape(ctx: &eyeCtx, shape: shape, w: ew, h: eh, open: open, sd: CGFloat(sd), R: R)
+            if !isMini && morph < 0.3 {
+                drawEyeExtras(ctx: &eyeCtx, shape: shape, w: ew, h: eh, sd: CGFloat(sd))
+            }
+        }
+        if !isMini && morph < 0.3 {
+            drawMouth(ctx: ctx, shape: shape, R: R, rx: rx, ry: ry)
         }
     }
 

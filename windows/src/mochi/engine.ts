@@ -10,7 +10,7 @@ import { Sound } from "../core/sound";
 import type { BotEmoteName, BotStateName } from "../core/layout";
 import {
   DEFAULT_CRITTER, PALETTES, critterPress, drawCritterBack, drawCritterSurface, drawCritterSurfaceBase,
-  faceLift, outline, type CritterCtx, type CritterId,
+  drawEyeExtras, drawFaceMouth, eyeAspect, faceLift, outline, type CritterCtx, type CritterId,
 } from "./critters";
 
 // ── Types ─────────────────────────────────────────────────────────────────────
@@ -818,14 +818,22 @@ export class BotEngine {
       const fx = lerp(Math.max(0.18, Math.cos(eyeYaw)), 1, this.morph * 0.7);
       const fy = lerp(Math.max(0.18, cp), 1, this.morph * 0.7);
       const eyeMult = this.isMini ? 1.9 : 1.0;
-      const ew = R * EYE_W * this.es * eyeMult;
-      const eh = R * EYE_H * this.es * eyeMult;
+      const aspect = eyeAspect(this.critter);
+      const ew = R * EYE_W * this.es * eyeMult * aspect.w;
+      const eh = R * EYE_H * this.es * eyeMult * aspect.h;
 
       x.save();
       x.translate(ex, ey);
       x.scale(fx, fy);
       this.drawEyeShape(x, shape, ew, eh, sd, ink);
+      if (!this.isMini && this.morph < 0.3) drawEyeExtras(x, this.critter, this.state, shape, this.open, ew, eh, sd);
       x.restore();
+    }
+    if (!this.isMini && this.morph < 0.3) {
+      drawFaceMouth(x, {
+        critter: this.critter, state: this.state, shape, yaw: this.yaw, pitch: EYE_P + this.pitch + this.roll,
+        morph: this.morph, R, rx, ry,
+      });
     }
     x.restore();
   }

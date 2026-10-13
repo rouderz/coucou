@@ -369,3 +369,150 @@ function drawSprout(x: CanvasRenderingContext2D, k: CritterCtx, R: number, rx: n
     x.fill();
   }
 }
+
+// ── Face: mouth, eye shine, brows (Critter.swift, "Face") ─────────────────────
+
+/** Each character's eyes: rounder, taller or narrower than the shared ones. */
+export function eyeAspect(c: CritterId): { w: number; h: number } {
+  switch (c) {
+    case "bao": return { w: 1.05, h: 0.92 };
+    case "pip": return { w: 0.88, h: 1.12 };
+    case "nube": return { w: 1, h: 1 };
+    case "lumo": return { w: 0.85, h: 1.18 };
+    case "tecla": return { w: 1, h: 0.86 };
+  }
+}
+
+type MouthKind = "smile" | "open" | "grin" | "wobble" | "flat" | "tiny";
+
+function mouthFor(state: string, shape: string): MouthKind {
+  switch (state) {
+    case "finished": return "grin";
+    case "approval": case "question": return "open";
+    case "error": case "dizzy": return "wobble";
+    case "ratelimit": return "flat";
+    case "sleeping": return "tiny";
+  }
+  switch (shape) {
+    case "happy": case "heart": case "star": case "wink": return "grin";
+    case "wide": return "open";
+    case "spiral": return "wobble";
+    case "flat": case "tired": case "line": return "flat";
+    case "closed": return "tiny";
+    default: return "smile";
+  }
+}
+
+export interface MouthCtx {
+  critter: CritterId;
+  state: string;
+  shape: string;
+  yaw: number;
+  /** Eye pitch before wrapping (EYE_P + pitch + roll). */
+  pitch: number;
+  morph: number;
+  R: number;
+  rx: number;
+  ry: number;
+}
+
+/** The mouth, under the eyes, following where the head looks. Body coordinates, clipped to the body. */
+export function drawFaceMouth(x: CanvasRenderingContext2D, m: MouthCtx) {
+  const pitch = (((m.pitch + Math.PI) % (Math.PI * 2)) + Math.PI * 2) % (Math.PI * 2) - Math.PI;
+  const cp = Math.cos(pitch);
+  if (Math.cos(m.yaw) * cp <= 0.3) return;
+  const { R, rx, ry } = m;
+  const ink = PALETTES[m.critter].ink;
+  const w = R * 0.1;
+  x.save();
+  x.translate(Math.sin(m.yaw) * cp * rx, -Math.sin(pitch) * ry - faceLift(m.critter) * ry + R * 0.24);
+  x.scale(Math.max(0.3, Math.cos(m.yaw)), Math.max(0.3, cp));
+  x.globalAlpha *= Math.max(0, 1 - m.morph / 0.3);
+  x.strokeStyle = ink;
+  x.fillStyle = ink;
+  x.lineWidth = R * 0.05;
+  x.lineCap = "round";
+  x.lineJoin = "round";
+  x.beginPath();
+  switch (mouthFor(m.state, m.shape)) {
+    case "smile":
+      x.moveTo(-w, 0);
+      x.quadraticCurveTo(0, w * 0.95, w, 0);
+      x.stroke();
+      break;
+    case "open": {
+      const s = m.state === "question" ? 0.8 : 1;
+      x.ellipse(0, -w * 0.2 + (w * 1.25 * s) / 2, (w * s) / 2, (w * 1.25 * s) / 2, 0, 0, Math.PI * 2);
+      x.fill();
+      break;
+    }
+    case "grin": {
+      const grin = new Path2D();
+      grin.moveTo(-w * 1.25, -w * 0.15);
+      grin.quadraticCurveTo(0, w * 1.7, w * 1.25, -w * 0.15);
+      grin.closePath();
+      x.fill(grin);
+      x.save();
+      x.clip(grin);
+      x.fillStyle = "rgb(250,120,135)";
+      x.beginPath();
+      x.ellipse(0, w * 0.75, w * 0.55, w * 0.4, 0, 0, Math.PI * 2);
+      x.fill();
+      x.restore();
+      break;
+    }
+    case "wobble":
+      for (let i = 0; i <= 12; i++) {
+        const t = i / 12;
+        const px = -w * 1.1 + t * w * 2.2;
+        const py = Math.sin(t * Math.PI * 3) * w * 0.25;
+        if (i === 0) x.moveTo(px, py); else x.lineTo(px, py);
+      }
+      x.stroke();
+      break;
+    case "flat":
+      x.moveTo(-w * 0.75, w * 0.15);
+      x.lineTo(w * 0.75, w * 0.15);
+      x.stroke();
+      break;
+    case "tiny":
+      x.globalAlpha *= 0.85;
+      x.ellipse(0, w * 0.35, w * 0.32, w * 0.35, 0, 0, Math.PI * 2);
+      x.fill();
+      break;
+  }
+  x.restore();
+}
+
+/** A shine in open eyes, and brows for the strong states. Eye coordinates (placed and squashed). */
+export function drawEyeExtras(
+  x: CanvasRenderingContext2D, c: CritterId, state: string, shape: string, open: number,
+  w: number, h: number, sd: number,
+) {
+  if ((shape === "pill" || shape === "wide" || shape === "dot") && open > 0.5) {
+    x.save();
+    x.fillStyle = "rgba(255,255,255,0.9)";
+    x.beginPath();
+    x.arc(w * 0.12, -h * 0.22, w * 0.2, 0, Math.PI * 2);
+    x.fill();
+    x.restore();
+  }
+  let inner: number, outer: number;
+  switch (state) {
+    case "error": inner = -h * 0.72; outer = -h * 1.0; break;
+    case "approval": case "ratelimit": inner = -h * 1.02; outer = -h * 0.82; break;
+    case "question":
+      if (sd <= 0) return;
+      inner = -h * 1.08; outer = -h * 1.0; break;
+    default: return;
+  }
+  x.save();
+  x.strokeStyle = PALETTES[c].ink;
+  x.lineWidth = w * 0.3;
+  x.lineCap = "round";
+  x.beginPath();
+  x.moveTo(-sd * w * 0.62, inner);
+  x.lineTo(sd * w * 0.62, outer);
+  x.stroke();
+  x.restore();
+}

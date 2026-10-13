@@ -1,0 +1,16 @@
+<!doctype html><html><body style="margin:0;background:#111">
+<div id="g" style="display:grid;grid-template-columns:repeat(8,130px);gap:4px;padding:8px"></div>
+<script type="module">
+import { BotEngine } from "/src/mochi/engine.ts";
+import { CRITTERS } from "/src/mochi/critters.ts";
+const states=["idle","working","thinking","question","approval","error","finished","sleeping"];
+const g=document.getElementById("g");
+for (const c of CRITTERS) for (const s of states) {
+  const cv=document.createElement("canvas"); cv.width=260; cv.height=220; cv.style.width="130px"; cv.style.height="110px";
+  g.append(cv);
+  const e=new BotEngine(); e.critter=c; e.setState(s,true);
+  for(let i=0;i<60;i++) e.update(1/30);
+  const x=cv.getContext("2d"); x.setTransform(2,0,0,2,0,0); e.draw(x,130,110);
+}
+document.body.dataset.done="1";
+</script></body></html>
