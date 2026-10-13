@@ -44,6 +44,8 @@ export interface ApprovalInfo {
   agent: string;
   /** The change an edit would make, shown as a diff in the review card. */
   preview: EditPreview | null;
+  /** Asked by Coucou's own chat (Code mode, #152): no session card, back to the chat after. */
+  fromChat?: boolean;
 }
 
 /** Plan usage from Claude Code's status line (the macOS bars). */
@@ -200,6 +202,9 @@ export interface Settings {
   critterColors: Record<string, string>;
   /** Where each integration's own floating character was left (logical px, top-left). */
   buddySpots: Record<string, [number, number]>;
+  /** Code mode (#152): the folder Claude Code works in, and the ones used lately. */
+  codeFolder: string | null;
+  recentCodeFolders: string[];
   /** WhaTicket: accept new tickets on their own, from these queues (empty = any), in these hours. */
   whaticketAutoAccept: boolean;
   whaticketQueues: string[];
@@ -279,6 +284,8 @@ export const DEFAULT_SETTINGS: Settings = {
   buddyY: null,
   critterAssignments: {},
   critterColors: {},
+  codeFolder: null,
+  recentCodeFolders: [],
   buddySpots: {},
   whaticketAutoAccept: false,
   whaticketQueues: [],
@@ -340,6 +347,11 @@ class AppState {
   /** Saved chats, newest first, and the one on screen. */
   chats: SavedChat[] = [];
   currentChatId: string | null = null;
+  /** Chat or Code (#152), and the other mode's conversation while this one is on screen. */
+  chatMode: "chat" | "code" = "chat";
+  stashedChatIds: { chat?: string | null; code?: string | null } = {};
+  /** Code mode: Claude Code may change files and run commands (each one approved in the island). */
+  codeEdits = true;
   /** The editor's latest context (VS Code / Cursor extension), and the one attached to the chat. */
   editorContext: (CodeContext & { at: number }) | null = null;
   codeContext: CodeContext | null = null;

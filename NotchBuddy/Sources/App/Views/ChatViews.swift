@@ -173,9 +173,6 @@ struct PromptView: View {
                         }
                     }
                     .frame(maxHeight: .infinity)
-                } else if state.isCoding && state.codeFolder == nil {
-                    CodeFolderPrompt(state: state)
-                        .frame(maxHeight: .infinity)
                 } else {
                     Spacer()
                 }
@@ -186,6 +183,7 @@ struct PromptView: View {
                         VoiceListeningLabel(phase: state.voicePhase, transcript: state.voiceTranscript)
                     } else {
                         TextField(state.chatSkill != nil ? "What should it do?"
+                                  : state.isCoding && state.codeFolder == nil ? "Choose a folder first ↑"
                                   : state.isCoding && state.chatHistory.isEmpty ? "What should we build? (/ skills)"
                                   : state.chatHistory.isEmpty ? "Ask me anything… (/ skills, @ Drive)" : "Continue…", text: $text)
                             .textFieldStyle(.plain)
@@ -307,6 +305,11 @@ struct PromptView: View {
     private func sendMessage() {
         let query = text.trimmingCharacters(in: .whitespacesAndNewlines)
         guard !query.isEmpty else { return }
+        // Code mode needs its folder first (#152).
+        if state.isCoding && state.codeFolder == nil {
+            CodeMode.pickFolder(state: state)
+            return
+        }
         text = ""
         ChatSession.send(query, state: state, spoken: false)
         focused = true

@@ -48,6 +48,8 @@ let pendingTimeout: number | null = null;
 const queueTimers = new Map<string, number>();
 
 interface HookPayload {
+  /** Coucou's own chat (Code mode, #152) asking to edit or run something. */
+  coucou_internal?: boolean;
   hook_event_name?: string;
   request_id?: string;
   session_id?: string;
@@ -292,8 +294,10 @@ function permissionRequest(island: Island, payload: HookPayload, project: string
   const tool = payload.tool_name ?? "Tool";
   const input = payload.tool_input ?? {};
   const verdict = classify(tool, input, cwd);
-  void recordTime("PermissionRequest", sessionId, cwd, payload as unknown as Record<string, unknown>);
+  const fromChat = payload.coucou_internal === true;
+  if (!fromChat) void recordTime("PermissionRequest", sessionId, cwd, payload as unknown as Record<string, unknown>);
   const approval: ApprovalInfo = {
+    fromChat,
     requestId, sessionId, tool,
     command: approvalTarget(tool, input),
     risk: verdict.risk, riskReason: verdict.reason,
@@ -335,11 +339,11 @@ function permissionRequest(island: Island, payload: HookPayload, project: string
 
 function show(island: Island, approval: ApprovalInfo) {
   const { requestId, sessionId } = approval;
-  if (sessionId) {
+  if (sessionId && !approval.fromChat) {
     routeSession(sessionId, approval.agent, approval.project, approval.cwd, "PermissionRequest");
     if (State.focusedSession !== sessionId) focusSession(sessionId);
   }
-  upsert(approval.project, approval.cwd);
+  if (!approval.fromChat) upsert(approval.project, approval.cwd);
   if (pendingTimeout != null) window.clearTimeout(pendingTimeout);
   State.pendingApproval = approval;
   // The relay's short ack window closes in 800 ms; everything below this
@@ -393,6 +397,8 @@ export function approvalDecided(approval: ApprovalInfo, decision: "allow" | "den
   syncFocused();
   showNextApproval();
   if (!State.pendingApproval) void Bridge.approvalShortcuts(false);
+  // Code mode: back to the conversation once nothing else waits.
+  if (approval.fromChat && !State.pendingApproval && islandRef) islandRef.setView("prompt");
 }
 
 function showNextApproval() {

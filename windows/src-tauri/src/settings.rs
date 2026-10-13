@@ -115,6 +115,11 @@ pub struct Settings {
     /// A colour per integration for its character (#156): id → "#RRGGBB".
     #[serde(default)]
     pub critter_colors: HashMap<String, String>,
+    /// Code mode (#152): the folder Claude Code works in, and the ones used lately.
+    #[serde(default)]
+    pub code_folder: Option<String>,
+    #[serde(default)]
+    pub recent_code_folders: Vec<String>,
     /// Where each integration's own floating character was left (logical px, top-left).
     #[serde(default)]
     pub buddy_spots: HashMap<String, [f64; 2]>,
@@ -286,6 +291,8 @@ impl Default for Settings {
             buddy_y: None,
             critter_assignments: HashMap::new(),
             critter_colors: HashMap::new(),
+            code_folder: None,
+            recent_code_folders: Vec::new(),
             buddy_spots: HashMap::new(),
             mochi_dance: false,
             whaticket_auto_accept: false,

@@ -8682,16 +8682,6 @@
         }
       }
     },
-    "Pick the folder to code in. Claude Code reads it, and changes files or runs commands only when you approve each one in the island.": {
-      "localizations": {
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Elige la carpeta en la que programar. Claude Code la lee, y solo cambia archivos o ejecuta comandos cuando apruebas cada uno en la isla."
-          }
-        }
-      }
-    },
     "Edits & commands": {
       "localizations": {
         "es": {
@@ -8708,6 +8698,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "¿Qué construimos? (/ habilidades)"
+          }
+        }
+      }
+    },
+    "Choose a folder first ↑": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Primero elige una carpeta ↑"
           }
         }
       }

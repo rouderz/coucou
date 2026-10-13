@@ -268,6 +268,28 @@ async fn chat_send(
     }
 }
 
+/// Code mode (#152): one turn of Claude Code at work in the folder the user picked.
+#[tauri::command]
+async fn code_send(
+    shared: State<'_, Shared>,
+    code_chat: State<'_, ClaudeCodeChat>,
+    query: String,
+    folder: String,
+    edits: bool,
+) -> Result<ChatReply, String> {
+    let model = shared.settings.lock().unwrap().model.clone();
+    claude_code::send_code(&code_chat, &model, query, folder, edits).await
+}
+
+/// Code mode: the system's folder picker. None when cancelled.
+#[tauri::command]
+async fn pick_folder(start: Option<String>) -> Option<String> {
+    tauri::async_runtime::spawn_blocking(move || platform::pick_folder(start.as_deref()))
+        .await
+        .ok()
+        .flatten()
+}
+
 /// Codex / Gemini CLI engines (#108): one turn. The page sends the conversation as text and
 /// reads the CLI's JSON output (src/claude/chatEngines.ts).
 #[tauri::command]
@@ -1145,6 +1167,8 @@ pub fn run() {
             ci_rerun_failed,
             ci_save_log,
             buddy::buddy_clicked,
+            code_send,
+            pick_folder,
             buddy::buddy_key,
             buddy::buddy_moved,
             buddy::buddy_menu,

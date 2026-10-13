@@ -27,6 +27,17 @@ export function language(): Lang {
 
 const ES: Record<string, string> = {
   // characters (#147–#151)
+  "Choose a folder": "Elegir una carpeta",
+  "📁 Choose a folder": "📁 Elegir una carpeta",
+  "Choose a folder first ↑": "Primero elige una carpeta ↑",
+  "Other folder…": "Otra carpeta…",
+  "Pick the folder to code in. Claude Code reads it, and changes files or runs commands only when you approve each one in the island.": "Elige la carpeta en la que programar. Claude Code la lee, y solo cambia archivos o ejecuta comandos cuando apruebas cada uno en la isla.",
+  "✎ Edits & commands": "✎ Ediciones y comandos",
+  "Read-only": "Solo lectura",
+  "What should we build? (/ skills)": "¿Qué construimos? (/ habilidades)",
+  "The folder Claude Code works in": "La carpeta en la que trabaja Claude Code",
+  "Claude Code can change files and run commands here. You approve each one in the island.": "Claude Code puede cambiar archivos y ejecutar comandos aquí. Apruebas cada uno en la isla.",
+  "Claude Code can only read this folder. Click to let it change files and run commands.": "Claude Code solo puede leer esta carpeta. Haz clic para que pueda cambiar archivos y ejecutar comandos.",
   "Character": "Personaje",
   "Who handles what": "Quién se encarga de qué",
   "Its own colours": "Sus propios colores",

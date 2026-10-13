@@ -1,6 +1,7 @@
 // The island: DOM shell, sizing animation, Mochi placement, mouse handling.
 // Mirrors IslandRootView.swift + IslandWindowController.swift.
 
+import { showMode } from "../core/codeMode";
 import { Tracked, Spring, clamp } from "../core/anim";
 import { Bridge, IS_TAURI, onDragDrop, toBuddies } from "../core/bridge";
 import {
@@ -611,7 +612,7 @@ export class Island {
       if (e.ctrlKey && e.altKey && !e.shiftKey && !e.metaKey && State.mode === "expanded"
         && (e.key === "ArrowLeft" || e.key === "ArrowRight")) {
         e.preventDefault();
-        this.setView(e.key === "ArrowLeft" ? "prompt" : "overview");
+        void showMode(e.key === "ArrowLeft" ? "chat" : "code").then(() => this.setView("prompt"));
       }
       State.lastActivity = performance.now();
     });

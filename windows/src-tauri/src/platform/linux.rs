@@ -282,3 +282,25 @@ pub fn unzip(zip: &std::path::Path, dest: &std::path::Path) -> Result<(), String
     }
     Err("Can't open the archive: install unzip (e.g. sudo apt install unzip).".into())
 }
+
+/// Code mode (#152): the desktop's folder picker (zenity on GNOME, kdialog on KDE).
+/// Blocking: call it off the main thread. None when cancelled or no picker is installed.
+pub fn pick_folder(start: Option<&str>) -> Option<String> {
+    let start = start.unwrap_or("~").to_string();
+    let attempts: [(&str, Vec<String>); 2] = [
+        ("zenity", vec!["--file-selection".into(), "--directory".into(),
+                        "--title=The folder Claude Code works in".into(),
+                        format!("--filename={}/", start)]),
+        ("kdialog", vec!["--getexistingdirectory".into(), start.clone()]),
+    ];
+    for (name, args) in attempts {
+        let Some(program) = find_program(name) else { continue };
+        let out = Command::new(program).args(&args).stderr(Stdio::null()).output().ok()?;
+        if !out.status.success() {
+            return None;
+        }
+        let path = String::from_utf8_lossy(&out.stdout).trim().to_string();
+        return (!path.is_empty()).then_some(path);
+    }
+    None
+}

@@ -125,23 +125,3 @@ struct CodeFolderChip: View {
         .help(state.codeFolder ?? L("The folder Claude Code works in"))
     }
 }
-
-/// Code mode without a folder yet: one big button.
-struct CodeFolderPrompt: View {
-    @ObservedObject var state: AppState
-
-    var body: some View {
-        VStack(spacing: 8) {
-            Spacer(minLength: 0)
-            Text("Pick the folder to code in. Claude Code reads it, and changes files or runs commands only when you approve each one in the island.")
-                .font(.system(size: 12))
-                .foregroundColor(Color(hex: "#9398A1"))
-                .multilineTextAlignment(.center)
-                .fixedSize(horizontal: false, vertical: true)
-            PrimaryButton(L("Choose a folder")) { CodeMode.pickFolder(state: state) }
-            Spacer(minLength: 0)
-        }
-        .frame(maxWidth: .infinity)
-        .padding(.horizontal, 24)
-    }
-}

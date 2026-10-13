@@ -119,10 +119,9 @@ fn connect() -> Option<std::fs::File> {
 
 fn main() {
     // Coucou's own chat runs through Claude Code too (the subscription engine):
-    // its activity is not the user's work and never reaches the island.
-    if std::env::var("COUCOU_INTERNAL").as_deref() == Ok("1") {
-        std::process::exit(0);
-    }
+    // its activity is not the user's work and never reaches the island — only its
+    // approvals do (Code mode, #152: edits and commands approved in the island).
+    let internal = std::env::var("COUCOU_INTERNAL").as_deref() == Ok("1");
     // Claude Code's status line (`coucou-hook --statusline`): forward the plan
     // usage to the island, print a short line for the terminal.
     if std::env::args().any(|a| a == "--statusline") {
@@ -134,7 +133,13 @@ fn main() {
         native_host(&origin);
         std::process::exit(0);
     }
-    let Some((payload, event)) = read_event() else { std::process::exit(0) };
+    let Some((mut payload, event)) = read_event() else { std::process::exit(0) };
+    if internal {
+        if event != "PermissionRequest" {
+            std::process::exit(0);
+        }
+        payload = mark_internal(&payload);
+    }
 
     let waits_for_answer = event == "PermissionRequest";
     let budget = if waits_for_answer { DECISION_BUDGET } else { FIRE_AND_FORGET_BUDGET };
@@ -223,6 +228,18 @@ fn decision_json(decision: &str) -> Option<String> {
 }
 
 /// Reads stdin and returns the payload to forward plus the event name.
+/// Tags a request from Coucou's own chat, so the island approves it without a session card.
+fn mark_internal(payload: &str) -> String {
+    let line = payload.trim_end();
+    match serde_json::from_str::<serde_json::Value>(line) {
+        Ok(mut v) if v.is_object() => {
+            v["coucou_internal"] = serde_json::Value::Bool(true);
+            v.to_string() + "\n"
+        }
+        _ => payload.to_string(),
+    }
+}
+
 fn read_event() -> Option<(String, String)> {
     let mut raw = Vec::new();
     if std::io::stdin().read_to_end(&mut raw).is_err() || raw.is_empty() {
