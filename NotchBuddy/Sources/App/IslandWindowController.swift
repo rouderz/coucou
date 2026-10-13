@@ -44,7 +44,7 @@ final class IslandWindowController: NSWindowController {
     private var notchH: CGFloat = IslandConst.notchHeight
 
     convenience init() {
-        let screen = Self.notchScreen() ?? NSScreen.main!
+        let screen = IslandDisplay.resolve()
         let nW = Self.notchWidth(for: screen)
         let nH = Self.notchHeight(for: screen)
 
@@ -133,6 +133,8 @@ final class IslandWindowController: NSWindowController {
         startPolling()
         startKeyMonitor()
         wireFSM()
+        observeDisplays()
+        applyScreenSize(screen)
 
         // Make panel key whenever the prompt/chat view becomes active
         // (nonactivatingPanel never auto-becomes key, but TextField needs it)
@@ -144,6 +146,64 @@ final class IslandWindowController: NSWindowController {
                     self.islandPanel.makeKey()
                 }
             }
+    }
+
+    // MARK: - Monitor placement
+
+    /// True while a full-screen app covers the island's monitor: the island is invisible and click-through.
+    private var suppressedForFullscreen = false
+    private var displayObservers: [NSObjectProtocol] = []
+
+    private func observeDisplays() {
+        let nc = NotificationCenter.default
+        let ws = NSWorkspace.shared.notificationCenter
+        let again: (Notification) -> Void = { [weak self] _ in
+            MainActor.assumeIsolated {
+                self?.moveToChosenDisplay()
+                // The full-screen animation takes ~0.8 s: look again once it settles.
+                DispatchQueue.main.asyncAfter(deadline: .now() + 1.0) { self?.updateFullscreenSuppression() }
+            }
+        }
+        displayObservers = [
+            nc.addObserver(forName: NSApplication.didChangeScreenParametersNotification, object: nil, queue: .main, using: again),
+            nc.addObserver(forName: .islandDisplayChanged, object: nil, queue: .main, using: again),
+            ws.addObserver(forName: NSWorkspace.activeSpaceDidChangeNotification, object: nil, queue: .main, using: again),
+            ws.addObserver(forName: NSWorkspace.didActivateApplicationNotification, object: nil, queue: .main, using: again),
+        ]
+    }
+
+    /// Re-reads the monitor choice and moves the panel there, resizing the notch to that screen.
+    func moveToChosenDisplay() {
+        guard let panel = window as? IslandPanel else { return }
+        let screen = IslandDisplay.resolve()
+        let sf = screen.frame
+        let target = NSRect(x: sf.midX - panel.frame.width / 2, y: sf.maxY - panel.frame.height,
+                            width: panel.frame.width, height: panel.frame.height)
+        if panel.frame != target { panel.setFrame(target, display: true) }
+        applyScreenSize(screen)
+        updateFullscreenSuppression()
+    }
+
+    private func applyScreenSize(_ screen: NSScreen) {
+        guard let panel = window as? IslandPanel else { return }
+        notchW = Self.notchWidth(for: screen)
+        notchH = Self.notchHeight(for: screen)
+        panel.notchWidth = notchW
+        panel.notchHeight = notchH
+        state.notchWidth = notchW
+        state.notchHeight = notchH
+        state.islandScreenWidth = screen.frame.width
+    }
+
+    private func updateFullscreenSuppression() {
+        let screen = IslandDisplay.resolve()
+        let covered = IslandDisplay.hideInFullscreen && !IslandDisplay.hasNotch(screen)
+            && IslandDisplay.fullscreenAppCovers(screen)
+        guard covered != suppressedForFullscreen else { return }
+        suppressedForFullscreen = covered
+        guard let panel = window as? IslandPanel else { return }
+        panel.alphaValue = covered ? 0 : 1
+        if covered { panel.ignoresMouseEvents = true; if state.mode == .expanded { collapse() } }
     }
 
     // MARK: - FSM wiring
@@ -223,6 +283,7 @@ final class IslandWindowController: NSWindowController {
 
     private func pollFrame() {
         guard let panel = window as? IslandPanel else { return }
+        if suppressedForFullscreen { return }
 
         let mouse = NSEvent.mouseLocation
 
@@ -675,8 +736,7 @@ final class IslandWindowController: NSWindowController {
     }
 
     private func windowBoundsAtScreenPoint(_ screenPoint: NSPoint) -> (CGRect, pid_t)? {
-        guard let screen = window?.screen ?? NSScreen.main else { return nil }
-        let screenMaxY = screen.frame.maxY
+        let screenMaxY = IslandDisplay.primaryMaxY
         let cgPoint = CGPoint(x: screenPoint.x, y: screenMaxY - screenPoint.y)
 
         guard let list = CGWindowListCopyWindowInfo(
@@ -820,9 +880,8 @@ final class IslandWindowController: NSWindowController {
     // MARK: - Window context at screen point (for drag-attach)
 
     private func windowContextAtPoint(_ screenPoint: NSPoint) -> PromptContext? {
-        let screen = window?.screen ?? NSScreen.main
-        // CGWindowList uses top-left origin; NSEvent.mouseLocation uses bottom-left
-        let screenMaxY = screen?.frame.maxY ?? NSScreen.main!.frame.maxY
+        // CGWindowList uses top-left origin of the primary screen; NSEvent.mouseLocation uses bottom-left
+        let screenMaxY = IslandDisplay.primaryMaxY
         let cgPoint = CGPoint(x: screenPoint.x, y: screenMaxY - screenPoint.y)
 
         guard let windowList = CGWindowListCopyWindowInfo(

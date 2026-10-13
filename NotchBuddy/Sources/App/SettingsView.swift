@@ -870,6 +870,13 @@ struct SettingsView: View {
                     }
                 }
 
+                // MARK: Display
+                if tab == .general {
+                    GroupBox("Display") {
+                        DisplaySettingsSection().padding(6)
+                    }
+                }
+
                 // MARK: Language
                 if tab == .general {
                     GroupBox("Language") {
@@ -1491,5 +1498,33 @@ struct HookStatusRow: View {
             }
         }
         .help(path)
+    }
+}
+
+
+// MARK: - Display (which monitor the island lives on)
+
+struct DisplaySettingsSection: View {
+    @State private var choice = IslandDisplay.choice
+    @State private var hideInFullscreen = IslandDisplay.hideInFullscreen
+    @State private var screens = IslandDisplay.screens
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 8) {
+            Picker("Monitor", selection: $choice) {
+                Text("Automatic (notch, else main)").tag(IslandDisplay.auto)
+                ForEach(screens, id: \.id) { Text($0.name).tag($0.id) }
+            }
+            .onChange(of: choice) { _, v in IslandDisplay.choice = v }
+            Toggle("Hide while a full-screen app is open on that monitor", isOn: $hideInFullscreen)
+                .onChange(of: hideInFullscreen) { _, v in IslandDisplay.hideInFullscreen = v }
+            Text("Applies to monitors without a notch. The island never takes clicks outside its own pill.")
+                .font(.system(size: 11))
+                .foregroundColor(.secondary)
+                .fixedSize(horizontal: false, vertical: true)
+        }
+        .onReceive(NotificationCenter.default.publisher(for: NSApplication.didChangeScreenParametersNotification)) { _ in
+            screens = IslandDisplay.screens
+        }
     }
 }

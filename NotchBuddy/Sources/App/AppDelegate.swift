@@ -75,8 +75,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     /// Centres the window on the notch screen (the island is folded away while Settings is
     /// open), keeping it under the island's compact pill and shrinking it to fit small screens.
     private func placeBelowIsland(_ win: NSWindow) {
-        let screen = IslandWindowController.notchScreen() ?? NSScreen.main ?? win.screen
-        guard let screen else { win.center(); return }
+        let screen = IslandDisplay.resolve()
         let visible = screen.visibleFrame
         let top = min(visible.maxY, screen.frame.maxY - 60)   // clear of the compact pill
         var frame = win.frame

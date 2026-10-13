@@ -57,6 +57,8 @@ final class AppState: ObservableObject {
     // Real notch dimensions (set by IslandWindowController on launch)
     var notchWidth:  CGFloat = IslandConst.notchWidth
     var notchHeight: CGFloat = IslandConst.notchHeight
+    /// Width of the monitor the island is on (for the character's eyes).
+    var islandScreenWidth: CGFloat = NSScreen.main?.frame.width ?? 1440
 
     // Last app active before NotchBuddy (for window context capture)
     var lastExternalApp: NSRunningApplication? = nil
