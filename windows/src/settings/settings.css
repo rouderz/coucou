@@ -584,3 +584,16 @@ button.small {
   background: var(--card);
   border-color: transparent;
 }
+
+/* Settings → Characters: your team */
+.team { display: flex; flex-direction: column; gap: 8px; margin: 8px 0 4px; }
+.team-row { display: flex; flex-direction: column; gap: 8px; padding: 8px 10px; border-radius: 10px; background: rgba(127, 127, 127, 0.08); }
+.team-head, .team-colour { display: flex; align-items: center; gap: 10px; }
+.team-head canvas { border-radius: 8px; background: #000; }
+.team-text { display: flex; flex-direction: column; }
+.team-text small { opacity: 0.7; }
+.team .spacer { flex: 1 1 auto; }
+.team-picks { display: flex; gap: 6px; flex-wrap: wrap; }
+.team-pick { display: flex; flex-direction: column; align-items: center; gap: 1px; padding: 4px; border-radius: 8px; border: 1.5px solid transparent; background: rgba(127, 127, 127, 0.06); }
+.team-pick.on { border-color: var(--accent, #5e6ad2); background: rgba(127, 127, 127, 0.16); }
+.team-pick small { font-size: 9.5px; font-weight: 600; }

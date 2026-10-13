@@ -127,6 +127,9 @@ pub struct Settings {
     /// stay in the island's character rail).
     #[serde(default = "yes")]
     pub float_all: bool,
+    /// Characters kept off the desktop one by one; they stay in the island's rail.
+    #[serde(default)]
+    pub grounded_characters: Vec<String>,
 
     /// Mochi moves with the music (#117). Off by default.
     #[serde(default)]
@@ -299,6 +302,7 @@ impl Default for Settings {
             recent_code_folders: Vec::new(),
             buddy_spots: HashMap::new(),
             float_all: true,
+            grounded_characters: Vec::new(),
             mochi_dance: false,
             whaticket_auto_accept: false,
             whaticket_queues: Vec::new(),

@@ -105,14 +105,41 @@ body {
   flex: 0 0 62px;
   flex-direction: column;
   align-items: center;
-  gap: 4px;
   padding: 4px 0;
   border-radius: 16px;
   background: rgba(255, 255, 255, 0.045);
+}
+#rail::-webkit-scrollbar { display: none; }
+.rail-list {
+  flex: 1 1 auto;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
   overflow-y: auto;
   scrollbar-width: none;
 }
-#rail::-webkit-scrollbar { display: none; }
+.rail-list::-webkit-scrollbar { display: none; }
+.rail-tools {
+  flex: 0 0 auto;
+  display: grid;
+  grid-template-columns: repeat(4, 13px);
+  gap: 2px;
+  padding: 6px 0 2px;
+}
+.rail-tool {
+  width: 13px;
+  height: 20px;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: var(--dim-2);
+  display: grid;
+  place-items: center;
+  cursor: default;
+}
+.rail-tool:hover, .rail-tool.on { color: var(--ink); }
 .rail-on #rail { display: flex; }
 
 .rail-item {
@@ -164,6 +191,51 @@ body {
 
 .rail-on #header { margin-left: 0; }
 .rail-on .tabs { padding-left: 4px; }
+
+/* Design C's header beside the rail. */
+.rail-head { display: none; }
+#header.rail .tabs, #header.rail .char-tabs, #header.rail .header-actions { display: none !important; }
+#header.rail .rail-head {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex: 1 1 auto;
+  min-width: 0;
+  padding: 0 10px 0 4px;
+}
+.rh-name { font: 700 15px var(--font); }
+.rh-sub {
+  font: 400 11.5px var(--font);
+  color: var(--dim-2);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  min-width: 0;
+}
+.rh-spacer { flex: 1 1 auto; }
+.rh-seg {
+  display: flex;
+  gap: 2px;
+  padding: 3px;
+  border-radius: 11px;
+  background: rgba(255, 255, 255, 0.06);
+  flex: 0 0 auto;
+}
+.rh-tab {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  height: 24px;
+  padding: 0 10px;
+  border: 0;
+  border-radius: 8px;
+  background: transparent;
+  color: #9a9ea6;
+  font: 600 12px var(--font);
+  cursor: default;
+}
+.rh-tab:hover { color: #c5c8cd; }
+.rh-tab.on { background: #34363d; color: var(--ink); }
 
 /* An integration's character: its name and its integration instead of Chat / Code. */
 .char-tabs { align-items: center; gap: 8px; }
@@ -2174,6 +2246,8 @@ input[type="range"]::-webkit-slider-thumb {
   margin-left: 0;
   padding: 1px 7px;
   font-size: 10px;
+}
+
 /* Focus timer (#119): ⏱ in the header, the panel on the Claude Code card. */
 .header-actions .focus-btn {
   display: flex;
@@ -2236,4 +2310,66 @@ input[type="range"]::-webkit-slider-thumb {
   align-items: center;
   gap: 3px;
   color: rgba(167, 139, 250, 0.85);
+}
+
+/* ── The main character's base (design C) ──────────────────────────────────── */
+
+.main-base { display: none; }
+.overview.base > .left, .overview.base > .right { display: none; }
+.overview.base .main-base {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  flex: 1 1 auto;
+  min-width: 0;
+  padding-top: 4px;
+}
+.mb-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  height: 26px;
+  padding: 0 10px;
+  border: 0;
+  border-radius: 9px;
+  background: rgba(255, 255, 255, 0.045);
+  color: var(--ink);
+  font: 400 11.5px var(--font);
+  text-align: left;
+  cursor: default;
+}
+.mb-row b { font: 600 12px var(--font); white-space: nowrap; }
+.mb-detail { color: #9a9ea6; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; flex: 1 1 auto; min-width: 0; }
+.mb-badge { padding: 2px 7px; border-radius: 9px; background: #3a2e1c; color: #f5b651; font: 700 10.5px var(--font); }
+.mb-usage {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 7px 10px;
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.045);
+}
+.mb-usage-row { display: flex; align-items: center; gap: 8px; font: 400 11px var(--font); }
+.mb-ulabel { width: 44px; color: #c5c8cd; font-weight: 500; }
+.mb-bar { flex: 1 1 auto; height: 5px; border-radius: 3px; background: rgba(255, 255, 255, 0.08); overflow: hidden; }
+.mb-bar i { display: block; height: 5px; border-radius: 3px; }
+.mb-usage-row b { width: 36px; text-align: right; font-weight: 600; }
+.mb-reset { color: #6b7079; white-space: nowrap; }
+.mb-hint { color: #6b7079; font: 400 11px var(--font); }
+.mb-chips { display: flex; gap: 6px; overflow-x: auto; scrollbar-width: none; }
+.mb-chips::-webkit-scrollbar { display: none; }
+.mb-chip {
+  flex: 0 0 auto;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  height: 22px;
+  padding: 0 9px;
+  border: 0;
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.06);
+  color: #c5c8cd;
+  font: 500 11px var(--font);
+  white-space: nowrap;
+  cursor: default;
 }

@@ -48,9 +48,36 @@ export function selectCharacter(taskId: string | null) {
   }
   State.soloTaskId = null;
   const own = assignments(State.settings.critterAssignments);
+  // With the rail, the main character's base is Claude Code.
+  if (assignedTaskIds().length && State.tasks.some((t) => t.id === "integration_claude")) {
+    State.focusId = "integration_claude";
+    return;
+  }
   if (State.focusId && !own[State.focusId]) return;
   const first = State.tasks.find((t) => !own[t.id]);
   if (first) State.focusId = first.id;
+}
+
+/** The island's height while the rail shows (design C). */
+export const RAIL_HEIGHT = 224;
+
+/** The main character's base shows Claude Code unless one of its integrations was picked. */
+export function showsClaude(): boolean {
+  const task = State.focusTask;
+  return !task || task.id === "integration_claude" || (!task.isIntegration && task.source === "claudeCode");
+}
+
+/** What an integration's base tab is called: its mail, its tickets, its orders… */
+export function baseTab(taskId: string): string {
+  switch (taskId) {
+    case "integration_gmail": case "integration_resend": return "Mail";
+    case "integration_whaticket": return "Tickets";
+    case "integration_aliexpress": return "Orders";
+    case "integration_github": return "PRs";
+    case "integration_linear": return "Issues";
+    case "integration_calcom": return "Calendar";
+    default: return "Home";
+  }
 }
 
 /** The main character's mode when a character's chat took over, to come back to it. */

@@ -16,8 +16,9 @@ import { BotEngine, hexToRGB, type EyeShape } from "../mochi/engine";
 import { progress as focusProgress } from "../core/focus.ts";
 import type { BotEmoteName } from "../core/layout";
 import { Greeting } from "../mochi/greeting";
+import { dndActive } from "../core/dnd.ts";
 import { buildRail, type Rail } from "../views/rail";
-import { characterTint, leaveCharacterChat, railShown, selectCharacter } from "../core/characters";
+import { RAIL_HEIGHT, characterTint, leaveCharacterChat, railShown, selectCharacter } from "../core/characters";
 import { setMiniCritter, syncMiniBotStates, tickMiniBots } from "../mochi/minibots";
 import { DEFAULT_CRITTER, assignments, isCritter, setCurrentCritter, tintFor, type CritterId } from "../mochi/critters";
 import { UploadCanvas } from "../upload/canvas";
@@ -229,6 +230,11 @@ export class Island {
     this.rail = buildRail((id) => {
       Sound.play("blip");
       void this.pickCharacter(id);
+    }, {
+      inbox: () => this.setView("inbox"),
+      dnd: () => (dndActive(State.settings.dndUntil) ? actions.setDnd(null) : this.setView("settings")),
+      sound: () => actions.toggleSound(),
+      settings: () => this.setView("settings"),
     });
     // Design C: the characters run down the left, the header and the views sit beside them.
     this.contentEl = h("div", { id: "content" }, this.rail.el,
@@ -513,7 +519,10 @@ export class Island {
   // ── Geometry ────────────────────────────────────────────────────────────────
 
   private targetSize(): { w: number; h: number; r: number } {
-    const { w, h } = islandSize(State.mode, State.view, State.chatHistory.length);
+    const size = islandSize(State.mode, State.view, State.chatHistory.length);
+    const { w } = size;
+    // Design C: the character rail and the main character's base need a little more room.
+    const h = railShown() && State.view !== "prompt" ? Math.max(size.h, RAIL_HEIGHT) : size.h;
     const r = State.mode === "expanded" ? EXPANDED_CORNER : ROUNDED_CORNER;
     return { w, h, r };
   }

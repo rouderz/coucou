@@ -12,6 +12,8 @@ export const ICONS = {
   chats: "M4 5h10a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2H9l-4 3v-3H4a2 2 0 0 1-2-2V7a2 2 0 0 1 2-2z M19 9h1a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-1v2.5L16 18h-3",
   // chevron.left.forwardslash.chevron.right (Code mode, stroked)
   code: "M8 7l-5 5 5 5 M16 7l5 5-5 5 M14 4l-4 16",
+  // envelope (an integration character's mail tab)
+  envelope: "M3 6h18v12H3z M3 7l9 6 9-6",
   // house.fill
   house: "M12 3.2 2.8 10.6V21h6.6v-5.4h5.2V21h6.6V10.6L12 3.2z",
   // bubble.left.fill

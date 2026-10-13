@@ -205,6 +205,8 @@ export interface Settings {
   /** Free placement: every character floats on its own, or just the main one (the others stay
    *  in the island's character rail). */
   floatAll?: boolean;
+  /** Characters kept off the desktop one by one (Settings → Characters); they stay in the rail. */
+  groundedCharacters?: string[];
   /** Code mode (#152): the folder Claude Code works in, and the ones used lately. */
   codeFolder: string | null;
   recentCodeFolders: string[];
@@ -291,6 +293,7 @@ export const DEFAULT_SETTINGS: Settings = {
   recentCodeFolders: [],
   buddySpots: {},
   floatAll: true,
+  groundedCharacters: [],
   whaticketAutoAccept: false,
   whaticketQueues: [],
   whaticketHours: "",

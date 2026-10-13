@@ -3,7 +3,8 @@
 // identically.
 
 import { showMode } from "../core/codeMode";
-import { RAIL_VIEWS, characterFor, characterName, characterTint, openCharacterChat } from "../core/characters";
+import { RAIL_VIEWS, baseTab, characterFor, characterName, characterTint, openCharacterChat, railShown, showsClaude } from "../core/characters";
+import { buildMainBase } from "./mainBase";
 import { PALETTES, tintedPalette } from "../mochi/critters";
 import { h, svg, clear, dot } from "./dom";
 import { ICONS } from "./icons";
@@ -125,6 +126,45 @@ export function buildHeader(actions: ViewActions): ViewHost {
     svg(ICONS.chats, 14, { stroke: 1.8 }));
   const charTabs = h("div", { class: "tabs char-tabs" }, charName, charTask, h("div", { class: "mode-switch" }, charHome, charAsk));
 
+  // Design C's header, beside the rail: the character's name and what it handles, then labelled
+  // tabs — Home · Chat · Code for the main character, its base · Ask for an integration's.
+  const rhName = h("span", { class: "rh-name" });
+  const rhSub = h("span", { class: "rh-sub" });
+  const rhSeg = h("div", { class: "rh-seg" });
+  const railHead = h("div", { class: "rail-head" }, rhName, rhSub, h("span", { class: "rh-spacer" }), rhSeg);
+  let rhKey = "";
+  function labelled(icon: string, label: string, on: boolean, run: () => void): HTMLElement {
+    return h("button", { class: on ? "rh-tab on" : "rh-tab", "aria-label": label, onclick: () => { actions.blip(); run(); } },
+      svg(icon, 12, { stroke: 1.8 }), h("span", { text: label }));
+  }
+  function syncRailHead(v: IslandViewName) {
+    const solo = State.soloTaskId ? State.tasks.find((t) => t.id === State.soloTaskId) : undefined;
+    const critter = characterFor(solo?.id ?? null);
+    const tint = characterTint(solo?.id ?? null);
+    const top = (tint ? tintedPalette(critter, tint) : PALETTES[critter]).top;
+    rhName.textContent = characterName(solo?.id ?? null);
+    rhName.style.color = `rgb(${top.map((c) => Math.round(c * 255)).join(", ")})`;
+    rhSub.textContent = solo ? (solo.steps[0] ? `${solo.name} · ${solo.steps[0]}` : solo.name) : "Claude Code";
+    const inChat = CHAT_VIEWS.has(v);
+    const key = `${solo?.id ?? ""}|${v}|${State.chatMode}|${State.chatOwner ?? ""}`;
+    if (key === rhKey) return;
+    rhKey = key;
+    clear(rhSeg);
+    if (solo) {
+      rhSeg.append(
+        labelled(baseTab(solo.id) === "Mail" ? ICONS.envelope : ICONS.house, baseTab(solo.id), !inChat,
+          () => actions.pickCharacter(solo.id)),
+        labelled(ICONS.chats, "Ask", inChat && State.chatOwner === solo.id, () => void openCharacterChat(solo.id)),
+      );
+    } else {
+      rhSeg.append(
+        labelled(ICONS.house, "Home", v === "overview" || v === "empty", () => actions.pickCharacter(null)),
+        labelled(ICONS.chats, "Chat", inChat && State.chatMode === "chat", () => void showMode("chat").then(() => go("prompt"))),
+        labelled(ICONS.code, "Code", inChat && State.chatMode === "code", () => void showMode("code").then(() => go("prompt"))),
+      );
+    }
+  }
+
   const gearBtn = h("button", { title: "Settings", onclick: () => go("settings") }, svg(ICONS.gear, 14));
   // 🌙 Do not disturb: on → click turns it off; off → the choices (island settings).
   const dndBtn = h("button", {
@@ -180,6 +220,7 @@ export function buildHeader(actions: ViewActions): ViewHost {
     { id: "header" },
     mainTabs,
     charTabs,
+    railHead,
     h("div", { class: "header-actions" }, updateBtn, focusBtn, inboxBtn, dndBtn, gearBtn, soundBtn),
   );
 
@@ -199,8 +240,11 @@ export function buildHeader(actions: ViewActions): ViewHost {
         ? "Focus: click to pause or resume (right-click for more)"
         : `Focus: start a ${f.config.focusMin}-min block (right-click for more)`;
       const v = State.view;
+      const rail = railShown();
+      el.classList.toggle("rail", rail);
+      if (rail) syncRailHead(v);
       const solo = State.soloTaskId ? State.tasks.find((t) => t.id === State.soloTaskId) : undefined;
-      const charOn = !!solo && RAIL_VIEWS.has(v);
+      const charOn = !!solo && RAIL_VIEWS.has(v) && !rail;
       mainTabs.style.display = charOn ? "none" : "";
       charTabs.style.display = charOn ? "" : "none";
       if (solo && charOn) {
@@ -261,10 +305,10 @@ function buildOverview(actions: ViewActions): ViewHost {
   const pills = h("div", { class: "pills" });
   const right = card(null, pills);
 
-  const el = h("div", { class: "view overview" },
-    h("div", { class: "left" }, left),
-    h("div", { class: "right" }, right),
-  );
+  const mainBase = buildMainBase(actions);
+  const leftCol = h("div", { class: "left" }, left);
+  const rightCol = h("div", { class: "right" }, right);
+  const el = h("div", { class: "view overview" }, leftCol, rightCol, mainBase.el);
 
   let pillIds = "";
   let detailOpen = false;
@@ -300,7 +344,12 @@ function buildOverview(actions: ViewActions): ViewHost {
       syncFocusTimes(leftBody);
     },
     sync() {
-      el.classList.toggle("solo", State.soloTaskId != null && State.soloTaskId === State.focusId);
+      // Design C: one thing, full width — the main character's base, or the integration picked.
+      const rail = railShown();
+      const base = rail && !State.soloTaskId && showsClaude();
+      el.classList.toggle("solo", rail || (State.soloTaskId != null && State.soloTaskId === State.focusId));
+      el.classList.toggle("base", base);
+      if (base) mainBase.sync();
       const task = State.focusTask;
       if (task?.id !== lastFocus) {
         lastFocus = task?.id ?? null;

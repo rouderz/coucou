@@ -8,7 +8,8 @@ import { attachToChat } from "./integrations";
 import { matchSkills, withSkill } from "../core/skills";
 import { saveCurrent, startNewChat } from "../core/chats";
 import { folderName, folderSuggestions, pickFolder, useFolder } from "../core/codeMode";
-import { characterPlaceholder } from "../core/characters";
+import { characterFor, characterPlaceholder, characterTint } from "../core/characters";
+import { PALETTES, tintedPalette } from "../mochi/critters";
 import { Sound } from "../core/sound";
 import { State, type ChatMessage } from "../core/state";
 import type { ViewHost } from "./views";
@@ -520,6 +521,15 @@ export function buildPrompt(
         log.scrollTop = log.scrollHeight;
       }
 
+      // An integration character's chat sends in its colour.
+      if (State.chatOwner) {
+        const c = characterFor(State.chatOwner);
+        const tint = characterTint(State.chatOwner);
+        const top = (tint ? tintedPalette(c, tint) : PALETTES[c]).top;
+        send.style.background = `rgb(${top.map((v) => Math.round(v * 255)).join(", ")})`;
+      } else {
+        send.style.background = "";
+      }
       if (!mic.classList.contains("on")) {
         input.placeholder = State.chatSkill ? "What should it do?"
           : State.chatOwner && State.chatHistory.length === 0 ? characterPlaceholder() ?? "Continue…"

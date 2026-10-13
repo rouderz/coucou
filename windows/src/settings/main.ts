@@ -10,7 +10,7 @@ import { parseTeams, type TeamInfo } from "../core/capture";
 import { h, clear } from "../views/dom";
 import { THEMES, applyTheme } from "../core/themes.ts";
 import { BotEngine } from "../mochi/engine";
-import { CRITTERS, CRITTER_INFO, DEFAULT_CRITTER, TINT_CHOICES, botName, isCritter, setCurrentCritter, type CritterId } from "../mochi/critters";
+import { CRITTERS, CRITTER_INFO, DEFAULT_CRITTER, TINT_CHOICES, assignments, botName, isCritter, setCurrentCritter, tintFor, type CritterId } from "../mochi/critters";
 import { dayKey as wtDayKey, duration, range, summary, toCsv as wtToCsv, type Period, type StatEvent } from "../core/whaticketStats.ts";
 import {
   addAdjustment, dayKey, formatDuration, formatHours, groupPeriod, parseStore, recentPeriods, rowsFromStore,
@@ -1566,8 +1566,7 @@ darkQuery.addEventListener("change", paintTheme);
 // ── Character ─────────────────────────────────────────────────────────────────
 
 /** A still drawing of a character at rest (drawn once, no animation loop). */
-function critterPreview(c: CritterId): HTMLCanvasElement {
-  const w = 44, ht = 36;
+function critterPreview(c: CritterId, tint: string | null = null, w = 44, ht = 38): HTMLCanvasElement {
   const dpr = Math.min(2, window.devicePixelRatio || 1);
   const canvas = h("canvas", { class: "critter-preview" }) as HTMLCanvasElement;
   canvas.width = Math.round(w * dpr);
@@ -1578,6 +1577,7 @@ function critterPreview(c: CritterId): HTMLCanvasElement {
   if (ctx) {
     const engine = new BotEngine();
     engine.critter = c;
+    engine.userTint = tint;
     ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
     engine.draw(ctx, w, ht);
   }
@@ -1603,28 +1603,50 @@ function characterSection(): HTMLElement {
   }
   draw();
 
-  // Who handles what (#151): every active integration can have its own character.
-  const who = h("div", { class: "critter-who" });
+  // Your team (#151): every active integration can have a character of its own — a separate
+  // entry in the island's rail, with its own base and chat.
+  const who = h("div", { class: "team" });
   function drawWho() {
     clear(who);
     const main = isCritter(settings.critter) ? settings.critter : DEFAULT_CRITTER;
-    who.append(h("div", { class: "row" }, h("label", { text: "Claude Code" }),
-      h("span", { class: "hint", text: CRITTER_INFO[main].name })));
-    for (const agent of INTEGRATION_AGENTS) {
-      if (agent.id === "integration_claude" || !settings.activeIntegrations.includes(agent.id)) continue;
-      const pick = h("select", {}) as HTMLSelectElement;
-      pick.append(h("option", { value: "", text: `Same as ${CRITTER_INFO[main].name}` }));
-      for (const c of CRITTERS) pick.append(h("option", { value: c, text: CRITTER_INFO[c].name }));
-      pick.value = settings.critterAssignments?.[agent.id] ?? "";
-      pick.addEventListener("change", () => {
+    const assigned = assignments(settings.critterAssignments);
+    const agents = INTEGRATION_AGENTS.filter((a) => a.id !== "integration_claude" && settings.activeIntegrations.includes(a.id));
+    if (!agents.length) who.append(h("div", { class: "hint", text: "Turn on an integration (Integrations tab) to give it a character." }));
+    for (const agent of agents) {
+      const own = assigned[agent.id];
+      const tint = own ? tintFor(agent.id, assigned, settings.critterColors, main) : null;
+      const setOwn = (c: CritterId | null) => {
         const next = { ...(settings.critterAssignments ?? {}) };
-        if (pick.value) next[agent.id] = pick.value; else delete next[agent.id];
+        if (c) next[agent.id] = c; else delete next[agent.id];
         settings.critterAssignments = next;
         void save();
-      });
-      const row = h("div", { class: "row" }, h("label", { text: agent.name }), pick);
-      // Its own colour (#156): two of the same character can tell apart what they handle.
-      if (settings.critterAssignments?.[agent.id]) {
+        drawWho();
+      };
+      const preview = critterPreview(own ?? main, tint);
+      if (!own) preview.style.opacity = "0.45";
+      const head = h("div", { class: "team-head" },
+        preview,
+        h("span", { class: "team-text" },
+          h("b", { text: agent.name }),
+          h("small", { text: own ? `${CRITTER_INFO[own].name} · its own character` : `Handled by ${CRITTER_INFO[main].name}` })),
+        h("span", { class: "spacer" }),
+        h("span", { class: "hint", text: "Own character" }),
+        toggle(!!own, (v) => {
+          // A new one starts with a character not used yet, so it's separate from the start.
+          const used = new Set<string>([main, ...Object.values(assigned)]);
+          setOwn(v ? CRITTERS.find((c) => !used.has(c)) ?? "lumo" : null);
+        }),
+      );
+      const card = h("div", { class: "team-row" }, head);
+      if (own) {
+        const picks = h("div", { class: "team-picks" });
+        for (const c of CRITTERS) {
+          picks.append(h("button", {
+            class: "team-pick" + (c === own ? " on" : ""),
+            "aria-label": CRITTER_INFO[c].name,
+            onclick: () => setOwn(c),
+          }, critterPreview(c, null, 34, 30), h("small", { text: CRITTER_INFO[c].name })));
+        }
         const dots = h("span", { class: "tint-dots" });
         const current = settings.critterColors?.[agent.id] ?? null;
         for (const c of [null, ...TINT_CHOICES]) {
@@ -1642,21 +1664,65 @@ function characterSection(): HTMLElement {
             },
           }));
         }
-        row.append(dots);
+        const colourRow = h("div", { class: "team-colour" }, h("span", { class: "hint", text: "Colour" }), dots);
+        if (!current && tint) colourRow.append(h("span", { class: "hint", text: "automatic, to tell it apart" }));
+        if (settings.placement === "free") {
+          const grounded = settings.groundedCharacters ?? [];
+          colourRow.append(h("span", { class: "spacer" }), h("span", { class: "hint", text: "Floats on the desktop" }),
+            toggle(!grounded.includes(agent.id), (v) => {
+              settings.groundedCharacters = v ? grounded.filter((id) => id !== agent.id) : [...grounded, agent.id];
+              void save();
+            }));
+        }
+        card.append(picks, colourRow);
       }
-      who.append(row);
+      who.append(card);
     }
   }
   drawWho();
   onCritterChange = drawWho;
 
+  // Where they live, and which ones float.
+  const placement = h("select", {}) as HTMLSelectElement;
+  placement.append(
+    h("option", { value: "notch", text: "At the top of the screen" }),
+    h("option", { value: "free", text: "Free on the desktop" }),
+  );
+  placement.value = settings.placement === "free" ? "free" : "notch";
+  const floatAll = h("select", {}) as HTMLSelectElement;
+  floatAll.append(
+    h("option", { value: "all", text: "All of them" }),
+    h("option", { value: "main", text: "Just the main one (the others in the island)" }),
+  );
+  floatAll.value = settings.floatAll === false ? "main" : "all";
+  const floatRow = h("div", { class: "row" }, h("label", { text: "Floating characters" }), floatAll);
+  floatRow.style.display = settings.placement === "free" ? "" : "none";
+  placement.addEventListener("change", () => {
+    settings.placement = placement.value === "free" ? "free" : "notch";
+    floatRow.style.display = settings.placement === "free" ? "" : "none";
+    void save();
+    drawWho();
+  });
+  floatAll.addEventListener("change", () => {
+    settings.floatAll = floatAll.value === "all";
+    void save();
+  });
+
   return h("section", {},
-    h("h2", {}, h("span", { text: "Character" })),
+    h("h2", {}, h("span", { text: "Main character" })),
     grid,
-    h("div", { class: "hint", text: "The interface calls it by its name, like \u201CAsk Lumo\u201D." }),
-    h("h3", { text: "Who handles what" }),
+    h("div", { class: "hint", text: "It handles Claude Code — Chat and Code — and every integration without a character of its own. The interface calls it by its name, like \u201CAsk Lumo\u201D." }),
+    h("h2", {}, h("span", { text: "Your team" })),
+    h("div", { class: "hint", text: "Give an integration its own character: it gets its own place in the island's rail, its own base and its own chat about what it handles. The same character can work for several integrations; each one is separate, in a colour of its own." }),
     who,
-    h("div", { class: "hint", text: "An integration with its own character gets its place in the island's character rail, with its own chat about it; in free placement it also floats on its own." }),
+    h("h2", {}, h("span", { text: "On the desktop" })),
+    h("div", { class: "row" }, h("label", { text: "Where they live" }), placement,
+      h("button", {
+        text: "Reset positions",
+        onclick: () => { settings.buddyX = null; settings.buddyY = null; settings.buddySpots = {}; void save(); },
+      }),
+      h("span", { class: "hint", text: "free: drag a character anywhere, click it to open the island next to it, right-click for options" })),
+    floatRow,
   );
 }
 
@@ -1743,31 +1809,6 @@ function generalSection(editors: { id: string; name: string }[]): HTMLElement {
     void save();
   });
 
-  // Free placement: the character floats in its own window you drag anywhere (buddy.rs).
-  const placement = h("select", {}) as HTMLSelectElement;
-  placement.append(
-    h("option", { value: "notch", text: "At the top of the screen" }),
-    h("option", { value: "free", text: "Free on the desktop" }),
-  );
-  placement.value = settings.placement === "free" ? "free" : "notch";
-  placement.addEventListener("change", () => {
-    settings.placement = placement.value === "free" ? "free" : "notch";
-    void save();
-  });
-  const floatAll = h("select", {}) as HTMLSelectElement;
-  floatAll.append(
-    h("option", { value: "all", text: "All of them" }),
-    h("option", { value: "main", text: `Just ${botName()} (the others in the island)` }),
-  );
-  floatAll.value = settings.floatAll === false ? "main" : "all";
-  floatAll.addEventListener("change", () => {
-    settings.floatAll = floatAll.value === "all";
-    void save();
-  });
-  const resetSpot = h("button", {
-    text: "Reset position",
-    onclick: () => { settings.buddyX = null; settings.buddyY = null; settings.placement = "free"; placement.value = "free"; void save(); },
-  });
 
   return h(
     "section",
@@ -1789,13 +1830,7 @@ function generalSection(editors: { id: string; name: string }[]): HTMLElement {
     ),
     h("div", { class: "row" },
       h("label", { text: "Where it lives" }),
-      placement,
-      resetSpot,
-      h("span", { class: "hint", text: "free: drag the character anywhere, click it to open the island next to it, right-click for options" }),
-    ),
-    h("div", { class: "row" },
-      h("label", { text: "Floating characters" }),
-      floatAll,
+      h("span", { class: "hint", text: "Characters tab" }),
     ),
     h("div", { class: "row" },
       h("label", { text: "Island lives on" }),
@@ -1862,9 +1897,10 @@ async function main() {
 
   clear(root);
   // Tabs: everything used to be one long page.
-  type Tab = "general" | "chat" | "claude" | "integrations" | "alerts";
+  type Tab = "general" | "characters" | "chat" | "claude" | "integrations" | "alerts";
   const pages: [Tab, string, HTMLElement[]][] = [
-    ["general", "General", [characterSection(), appearanceSection(), generalSection(editors), voiceSection(canListen), updatesSection()]],
+    ["general", "General", [appearanceSection(), generalSection(editors), voiceSection(canListen), updatesSection()]],
+    ["characters", "Characters", [characterSection()]],
     ["chat", "Chat", [apiSection(hasKey, claudeCode, presets, present), skillsSection(skillTargets)]],
     ["claude", "Claude Code", [claudeSection(status), codexSection(codex), timeSection(), focusSection()]],
     ["integrations", "Integrations", [

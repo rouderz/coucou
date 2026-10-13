@@ -1,0 +1,52 @@
+<!doctype html><html><head><link rel="stylesheet" href="/src/style.css">
+<style>body{margin:0;background:#2a2d33;width:1400px;height:300px} #island{left:20px!important;transform:none!important;top:20px!important;width:640px;height:224px;border-radius:22px} #island2{left:700px!important}</style></head>
+<body>
+<script type="module">
+import { State } from "/src/core/state.ts";
+import { buildHeader, buildViews } from "/src/views/views.ts";
+import { buildRail } from "/src/views/rail.ts";
+import { h } from "/src/views/dom.ts";
+import { railShown } from "/src/core/characters.ts";
+const params = new URLSearchParams(location.search);
+document.documentElement.classList.add("rail-on");
+State.mode = "expanded";
+State.tasks = [
+  { id: "integration_claude", name: "Claude Code", color: "#E8DCC6", state: "working", steps: ["Editing IslandRootView.swift"], stepIndex: 0, source: "claudeCode", isIntegration: true },
+  { id: "integration_gmail", name: "Gmail", color: "#E8604F", state: "idle", steps: ["3 unread"], stepIndex: 0, source: "integration", isIntegration: true },
+  { id: "integration_whaticket", name: "WhaTicket", color: "#5BC46A", state: "idle", steps: ["2 waiting"], stepIndex: 0, source: "integration", isIntegration: true },
+  { id: "integration_github", name: "GitHub", color: "#E3807A", state: "idle", steps: ["CI green"], stepIndex: 0, source: "integration", isIntegration: true },
+];
+State.sessions = [
+  { id: "a", agent: "claude", project: "coucou", cwd: "~/code/coucou", state: "working", steps: ["editing IslandRootView.swift"], updatedAt: 2, unseen: false },
+  { id: "b", agent: "claude", project: "shopit-api", cwd: "~/code/shopit", state: "approval", steps: ["wants to run npm test"], updatedAt: 1, unseen: false },
+];
+State.pendingApproval = { id: "x" };
+State.planUsage = { fiveHour: { percent: 100, resetsAt: Date.now() + 32 * 60000 }, sevenDay: { percent: 32, resetsAt: Date.now() + 4 * 86400000 }, context: null, model: null };
+State.settings.critterAssignments = { integration_gmail: "pip", integration_whaticket: "bao" };
+State.focusId = "integration_claude";
+const noop = () => {};
+const actions = new Proxy({}, { get: () => noop });
+function mount(left, solo, view) {
+  State.soloTaskId = solo; State.view = view;
+  if (solo) State.focusId = solo; else State.focusId = "integration_claude";
+  if (solo && view === "prompt") { State.chatOwner = solo; State.chatHistory = [{ id: 1, role: "user", content: "¿Algo urgente hoy?" }, { id: 2, role: "assistant", content: "Solo uno: Ana Ruiz mandó el contrato firmado y pide confirmación antes del viernes." }]; }
+  const header = buildHeader(actions);
+  const views = buildViews(actions, noop);
+  const viewsEl = h("div", { id: "views" });
+  for (const v of views.values()) viewsEl.append(v.el);
+  const rail = buildRail(noop, { inbox: noop, dnd: noop, sound: noop, settings: noop });
+  const content = h("div", { id: "content" }, rail.el, h("div", { id: "content-col" }, header.el, viewsEl));
+  const island = h("div", { id: "island" }, h("div", { id: "island-clip" }, content));
+  island.style.left = left + "px";
+  document.body.append(island);
+  rail.sync("working");
+  header.sync();
+  for (const [n, v] of views) { v.el.classList.toggle("on", n === view); if (n === view) v.sync(); }
+  for (let i = 0; i < 30; i++) rail.tick(1 / 30);
+}
+const c = params.get("c") || "main";
+if (c === "main") mount(20, null, "overview");
+else if (c === "pip") mount(20, "integration_gmail", "prompt");
+else mount(20, "integration_gmail", "overview");
+document.body.dataset.done = "1";
+</script></body></html>

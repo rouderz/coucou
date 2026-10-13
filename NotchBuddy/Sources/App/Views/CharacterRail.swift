@@ -30,31 +30,28 @@ struct CharacterRail: View {
             }
             // The island's quick controls, under the characters (the gear at the bottom, as in
             // the design).
-            VStack(spacing: 8) {
-                HStack(spacing: 12) {
-                    InboxButton()
-                    DoNotDisturbButton()
+            HStack(spacing: 4) {
+                InboxButton()
+                DoNotDisturbButton()
+                Button { state.soundEnabled.toggle() } label: {
+                    Image(systemName: state.soundEnabled ? "speaker.wave.2" : "speaker.slash")
+                        .font(.system(size: 12))
+                        .foregroundColor(Color(hex: "#8E939C"))
                 }
-                HStack(spacing: 12) {
-                    Button { state.soundEnabled.toggle() } label: {
-                        Image(systemName: state.soundEnabled ? "speaker.wave.2" : "speaker.slash")
-                            .font(.system(size: 12))
-                            .foregroundColor(Color(hex: "#8E939C"))
-                    }
-                    .buttonStyle(.plain)
-                    .help(state.soundEnabled ? L("Mute") : L("Sound on"))
-                    Button {
-                        withAnimation(.spring(response: 0.3, dampingFraction: 0.8)) { state.view = .settings }
-                    } label: {
-                        Image(systemName: "gearshape")
-                            .font(.system(size: 13))
-                            .foregroundColor(Color(hex: "#8E939C"))
-                    }
-                    .buttonStyle(.plain)
-                    .help(L("Settings"))
+                .buttonStyle(.plain)
+                .help(state.soundEnabled ? L("Mute") : L("Sound on"))
+                Button {
+                    withAnimation(.spring(response: 0.3, dampingFraction: 0.8)) { state.view = .settings }
+                } label: {
+                    Image(systemName: "gearshape")
+                        .font(.system(size: 13))
+                        .foregroundColor(Color(hex: "#8E939C"))
                 }
+                .buttonStyle(.plain)
+                .help(L("Settings"))
             }
-            .padding(.vertical, 8)
+            .scaleEffect(0.9)
+            .padding(.vertical, 6)
         }
         .frame(width: Self.width)
         .frame(maxHeight: .infinity)
@@ -103,7 +100,7 @@ private struct RailItem: View {
             VStack(spacing: 0) {
                 // Room above and below the body for sprouts, steam, tentacles and hands.
                 RailCharacterView(state: state, taskID: taskID)
-                    .frame(width: 44, height: 46)
+                    .frame(width: 40, height: 40)
                 Text(verbatim: label)
                     .font(.system(size: 9.5, weight: .bold, design: .rounded))
                     .foregroundColor(selected ? color : Color(hex: "#8E939C"))

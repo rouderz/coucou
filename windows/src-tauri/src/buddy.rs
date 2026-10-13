@@ -155,6 +155,7 @@ pub fn sync(app: &AppHandle) {
         .iter()
         .filter(|id| {
             settings.float_all
+                && !settings.grounded_characters.contains(id)
                 && id.as_str() != "integration_claude"
                 && settings.critter_assignments.contains_key(id.as_str())
         })
