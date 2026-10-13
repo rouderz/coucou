@@ -8711,6 +8711,36 @@
           }
         }
       }
+    },
+    "Home": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Inicio"
+          }
+        }
+      }
+    },
+    "Ask %@ about %@…": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Pregúntale a %@ por %@…"
+          }
+        }
+      }
+    },
+    "An integration with its own character gets its place in the island's character rail, with its own chat about it; in free placement it also floats on its own.": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Una integración con su propio personaje tiene su lugar en el riel de personajes de la isla, con su propio chat sobre ella; en modo libre también flota por su cuenta."
+          }
+        }
+      }
     }
   }
 }

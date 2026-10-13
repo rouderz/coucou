@@ -186,13 +186,13 @@ struct IntegrationCardView: View {
                     }
                 }
                 .padding(.top, 6)
-                .padding(.leading, 108)
+                .padding(.leading, botInset(108))
                 .padding(.trailing, 62)  // room for the ✎ and ↗ buttons
 
                 TickerView(task: task)
                     .frame(height: 44)
                     .padding(.top, 6)
-                    .padding(.leading, 108)
+                    .padding(.leading, botInset(108))
                     .padding(.trailing, 12)
             }
             .frame(maxWidth: .infinity, alignment: .topLeading)
@@ -213,19 +213,19 @@ struct IntegrationCardView: View {
                     Spacer(minLength: 2)
                 }
                 .padding(.top, 6)
-                .padding(.leading, 108)
+                .padding(.leading, botInset(108))
                 .padding(.trailing, 36)
 
                 // Focus timer (#119): a running block takes the place of the usage bars.
                 if task.id == "integration_claude" && appState.focus.phase != .idle {
                     FocusCardPanel()
-                        .padding(.leading, 108)
+                        .padding(.leading, botInset(108))
                         .padding(.trailing, 16)
                         .padding(.top, 2)
                 } else if task.id == "integration_claude" && isConfigured {
                     // Claude Code with hooks installed: the plan usage bars say more than L("Hooks installed").
                     PlanUsageView(usage: appState.planUsage)
-                        .padding(.leading, 108)
+                        .padding(.leading, botInset(108))
                         .padding(.trailing, 16)
                         .padding(.top, 4)
                 } else {
@@ -241,7 +241,7 @@ struct IntegrationCardView: View {
                             .font(.system(size: 11))
                             .foregroundColor(Color(hex: "#6B7079"))
                     }
-                    .padding(.leading, 108)
+                    .padding(.leading, botInset(108))
                     .padding(.top, 2)
                 }
 
@@ -315,7 +315,7 @@ struct IntegrationCardView: View {
                         .buttonStyle(.plain)
                     }
                 }
-                .padding(.leading, 108)
+                .padding(.leading, botInset(108))
                 .padding(.top, 2)
             }
             .frame(maxWidth: .infinity, alignment: .topLeading)
@@ -381,7 +381,7 @@ struct NotionHint: View {
                 .lineLimit(3)
         }
         .padding(.top, 8)
-        .padding(.leading, 108)
+        .padding(.leading, botInset(108))
         .padding(.trailing, 16)
     }
 }

@@ -459,6 +459,11 @@ final class IslandWindowController: NSWindowController {
         ) { [weak self] _ in
             MainActor.assumeIsolated { self?.applyPlacement() }
         }
+        // A character picked in the rail: it's the one that reacts from now on.
+        NotificationCenter.default.addObserver(forName: .characterRailPicked, object: nil, queue: .main) { [weak self] note in
+            let key = (note.object as? String) ?? FreeBuddyController.mainKey
+            MainActor.assumeIsolated { self?.buddy.activeKey = key }
+        }
         NotificationCenter.default.addObserver(forName: .freeBuddyReset, object: nil, queue: .main) { [weak self] _ in
             MainActor.assumeIsolated { self?.buddy.resetPositions() }
         }
@@ -516,17 +521,9 @@ final class IslandWindowController: NSWindowController {
         let switching = state.mode == .expanded && buddy.activeKey != key
         if switching { buddy.unperch() }
         buddy.activeKey = key
-        if key == FreeBuddyController.mainKey {
-            state.soloTaskID = nil
-            if let f = state.focusId, state.critterAssignments[f] == nil {
-                // already on one of the main character's tasks
-            } else if let id = state.tasks.first(where: { state.critterAssignments[$0.id] == nil })?.id {
-                state.setFocus(id)
-            }
-        } else {
-            state.soloTaskID = key
-            state.setFocus(key)
-        }
+        let taskID = key == FreeBuddyController.mainKey ? nil : key
+        if state.chatOwner != nil && state.chatOwner != taskID { CharacterChat.leave(state) }
+        state.selectCharacter(taskID)
         if state.mode == .expanded {
             state.view = .overview
             positionIslandNearBuddy()

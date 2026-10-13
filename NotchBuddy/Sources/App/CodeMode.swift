@@ -28,6 +28,11 @@ enum CodeMode {
 
     /// Shows Chat or Code, each with its own conversation.
     static func show(_ mode: ChatMode, state: AppState) {
+        // Back from an integration character's own chat to the main character's.
+        if state.chatOwner != nil || state.soloTaskID != nil {
+            CharacterChat.leave(state)
+            state.selectCharacter(nil)
+        }
         if mode != state.chatMode {
             ChatStore.shared.saveCurrent(state)
             state.stashedChatIDs[state.chatMode] = state.currentChatID

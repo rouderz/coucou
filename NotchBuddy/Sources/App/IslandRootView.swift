@@ -110,7 +110,9 @@ struct IslandContainer: View {
             // Hidden during upload canvas or greeting (both draw their own Mochi).
             // Free placement: the floating character sits on top of the island, so the cards
             // don't draw it a second time (alerts still do, with their expressions).
-            let botAbove = state.freePlacement && (state.view == .overview || state.view == .empty)
+            // With the character rail, the characters are drawn there instead.
+            let botAbove = (state.freePlacement && (state.view == .overview || state.view == .empty))
+                || state.railShown
             BotPlacement(state: state, islandW: islandWidth, islandH: islandHeight)
                 .opacity(uploadActive || greetingActive || botAbove ? 0 : 1)
                 .animation(.easeInOut(duration: 0.25), value: uploadActive || greetingActive)
@@ -457,27 +459,35 @@ struct IslandContentView: View {
                 .opacity(state.view == .confused ? 0 : 1)
                 .animation(.easeInOut(duration: 0.2), value: state.view == .confused)
 
-            ZStack {
-                ForEach(IslandView.allCases, id: \.self) { v in
-                    let active = state.view == v
-                    // Views that fill available height instead of the fixed 98pt content frame:
-                    // chat (prompt) is always flexible; mail is flexible only when active so
-                    // it doesn't push the ZStack taller when inactive.
-                    let isTall = v == .prompt || (v == .mail && active) || (v == .live && active)
-                    let anim: Animation = active
-                        ? .spring(response: 0.4, dampingFraction: 0.8).delay(0.16)
-                        : .easeIn(duration: 0.16)
-                    IslandViewContent(view: v, state: state)
-                        .frame(maxWidth: .infinity)
-                        .frame(height: isTall ? nil : 98)
-                        .frame(maxHeight: isTall ? .infinity : nil)
-                        .opacity(active ? 1 : 0)
-                        .scaleEffect(active ? 1 : 0.97)
-                        .allowsHitTesting(active)
-                        .animation(anim, value: state.view)
+            HStack(alignment: .top, spacing: 8) {
+                // Design C: the characters on the left, once integrations have their own.
+                if state.railShown {
+                    CharacterRail(state: state)
+                        .transition(.move(edge: .leading).combined(with: .opacity))
                 }
+                ZStack {
+                    ForEach(IslandView.allCases, id: \.self) { v in
+                        let active = state.view == v
+                        // Views that fill available height instead of the fixed 98pt content frame:
+                        // chat (prompt) is always flexible; mail is flexible only when active so
+                        // it doesn't push the ZStack taller when inactive.
+                        let isTall = v == .prompt || (v == .mail && active) || (v == .live && active)
+                        let anim: Animation = active
+                            ? .spring(response: 0.4, dampingFraction: 0.8).delay(0.16)
+                            : .easeIn(duration: 0.16)
+                        IslandViewContent(view: v, state: state)
+                            .frame(maxWidth: .infinity)
+                            .frame(height: isTall ? nil : 98)
+                            .frame(maxHeight: isTall ? .infinity : nil)
+                            .opacity(active ? 1 : 0)
+                            .scaleEffect(active ? 1 : 0.97)
+                            .allowsHitTesting(active)
+                            .animation(anim, value: state.view)
+                    }
+                }
+                .frame(maxWidth: .infinity, maxHeight: .infinity)
             }
-            .frame(maxWidth: .infinity, maxHeight: .infinity)
+            .animation(.spring(response: 0.35, dampingFraction: 0.85), value: state.railShown)
             .padding(.horizontal, 10)
         }
         .padding(.top, 8)
@@ -493,13 +503,20 @@ struct IslandHeader: View {
 
     var body: some View {
         HStack(spacing: 0) {
-            // Left: tab capsules
-            HStack(spacing: 6) {
-                TabButton(icon: "house.fill", view: .overview, state: state)
-                ModeSwitch(state: state)
-                TabButton(icon: "plus", view: .upload, state: state)
+            // Left: tab capsules. Only the main character has Chat and Code; an integration's
+            // character has its base and its own chat (CharacterRail.swift).
+            if let id = state.soloTaskID, CharacterRail.views.contains(state.view),
+               let task = state.tasks.first(where: { $0.id == id }) {
+                CharacterTabs(state: state, task: task)
+                    .padding(.leading, 14)
+            } else {
+                HStack(spacing: 6) {
+                    TabButton(icon: "house.fill", view: .overview, state: state)
+                    ModeSwitch(state: state)
+                    TabButton(icon: "plus", view: .upload, state: state)
+                }
+                .padding(.leading, 14)
             }
-            .padding(.leading, 14)
 
             Spacer()
 

@@ -12,6 +12,17 @@ struct PromptView: View {
     @ObservedObject private var skillsStore = SkillsStore.shared
     @State private var pickIndex = 0
 
+    private var placeholder: String {
+        if state.chatSkill != nil { return L("What should it do?") }
+        if let owner = state.chatOwner, let task = state.tasks.first(where: { $0.id == owner }) {
+            let name = state.critter(for: owner).displayName
+            return state.chatHistory.isEmpty ? L("Ask \(name) about \(task.name)…") : L("Continue…")
+        }
+        if state.isCoding && state.codeFolder == nil { return L("Choose a folder first ↑") }
+        if state.isCoding && state.chatHistory.isEmpty { return L("What should we build? (/ skills)") }
+        return state.chatHistory.isEmpty ? L("Ask me anything… (/ skills, @ Drive)") : L("Continue…")
+    }
+
     /// "/" at the start of the field lists the skills, in the chat's place.
     private var picking: Bool { text.hasPrefix("/") && !text.contains(" ") }
     private var matches: [SkillInfo] { SkillFiles.match(skillsStore.skills, typed: text) }
@@ -182,10 +193,7 @@ struct PromptView: View {
                     if state.voicePhase != .idle {
                         VoiceListeningLabel(phase: state.voicePhase, transcript: state.voiceTranscript)
                     } else {
-                        TextField(state.chatSkill != nil ? "What should it do?"
-                                  : state.isCoding && state.codeFolder == nil ? "Choose a folder first ↑"
-                                  : state.isCoding && state.chatHistory.isEmpty ? "What should we build? (/ skills)"
-                                  : state.chatHistory.isEmpty ? "Ask me anything… (/ skills, @ Drive)" : "Continue…", text: $text)
+                        TextField(placeholder, text: $text)
                             .textFieldStyle(.plain)
                             .font(.system(size: 13))
                             .focused($focused)
@@ -241,7 +249,7 @@ struct PromptView: View {
                 .simultaneousGesture(TapGesture().onEnded { focused = true })
                 }
             }
-            .padding(.leading, 84)
+            .padding(.leading, state.railShown ? 12 : 84)
             .padding(.trailing, 16)
             .padding(.top, 12)
             .padding(.bottom, 14)
@@ -473,7 +481,7 @@ struct SearchingView: View {
                 ShimmeringText(label)
                     .font(.system(size: 13.5))
             }
-            .padding(.leading, 84)
+            .padding(.leading, state.railShown ? 12 : 84)
             .padding(.trailing, 16)
         }
     }
@@ -524,7 +532,7 @@ struct ResultView: View {
                         SecondaryButton("Close") { state.view = state.tasks.isEmpty ? .empty : .overview }
                     }
                 }
-                .padding(.leading, 84)
+                .padding(.leading, state.railShown ? 12 : 84)
                 .padding(.trailing, 16)
             }
         }

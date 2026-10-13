@@ -460,9 +460,29 @@ final class AppState: ObservableObject {
     /// just that integration, full width, without the pills of the others.
     @Published var soloTaskID: String? = nil
 
-    /// Tasks that float on their own character in free placement don't need a pill.
+    /// Tasks with their own character live in the character rail (or float on their own in free
+    /// placement): they don't need a pill.
     private var pillTasks: [AgentTask] {
-        freePlacement ? tasks.filter { critterAssignments[$0.id] == nil } : tasks
+        tasks.filter { critterAssignments[$0.id] == nil }
+    }
+
+    /// The character rail at the island's left (CharacterRail.swift): shown on the overview and in
+    /// the chat once at least one integration has its own character.
+    var railShown: Bool {
+        mode == .expanded && CharacterRail.views.contains(view) && !assignedTaskIDs.isEmpty
+    }
+
+    /// Picks whose island this is: the main character (nil) or the integration with its own
+    /// character. The main one comes back to the first task without a character of its own.
+    func selectCharacter(_ taskID: String?) {
+        if let taskID {
+            soloTaskID = taskID
+            setFocus(taskID)
+        } else {
+            soloTaskID = nil
+            if let f = focusId, critterAssignments[f] == nil { return }
+            if let id = tasks.first(where: { critterAssignments[$0.id] == nil })?.id { setFocus(id) }
+        }
     }
 
     var visiblePills: [AgentTask] {
@@ -650,6 +670,10 @@ final class AppState: ObservableObject {
     /// Chat or Code (#152), and the other mode's conversation while this one is on screen.
     @Published var chatMode: ChatMode = .chat
     var stashedChatIDs: [ChatMode: UUID] = [:]
+    /// The conversation on screen belongs to this integration's character (its own chat about
+    /// what it handles), nil for the main character's Chat / Code.
+    @Published var chatOwner: String? = nil
+    var stashedCharacterChats: [String: UUID] = [:]
     /// Code mode on screen: no other context took over (a file from the editor, a window, a drop
     /// make it a chat about that thing).
     var isCoding: Bool {

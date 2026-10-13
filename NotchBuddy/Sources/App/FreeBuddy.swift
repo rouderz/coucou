@@ -65,7 +65,10 @@ enum IslandPlacement: String, CaseIterable, Sendable {
 /// Cards leave room on their left for the character; in free placement it sits on top of the
 /// island instead, so the room goes back to the text.
 @MainActor func botInset(_ notch: CGFloat) -> CGFloat {
-    AppState.shared.freePlacement ? notch - 88 : notch
+    let state = AppState.shared
+    // The character rail (CharacterRail.swift) sits beside the cards, not inside them.
+    if state.railShown { return notch - 92 }
+    return state.freePlacement ? notch - 88 : notch
 }
 
 // MARK: - Controller

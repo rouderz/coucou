@@ -19,7 +19,7 @@ struct CritterPicker: View {
             Divider().padding(.vertical, 4)
             Text("Who handles what").font(.system(size: 12, weight: .semibold))
             assignments
-            Text("An integration with its own character shows it in its pill and, in free placement, floats on its own: click it to open just that integration.")
+            Text("An integration with its own character gets its place in the island's character rail, with its own chat about it; in free placement it also floats on its own.")
                 .font(.system(size: 11))
                 .foregroundColor(.secondary)
                 .fixedSize(horizontal: false, vertical: true)
