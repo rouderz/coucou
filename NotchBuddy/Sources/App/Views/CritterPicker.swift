@@ -15,8 +15,39 @@ struct CritterPicker: View {
                 .font(.system(size: 11))
                 .foregroundColor(.secondary)
                 .fixedSize(horizontal: false, vertical: true)
+
+            Divider().padding(.vertical, 4)
+            Text("Who handles what").font(.system(size: 12, weight: .semibold))
+            assignments
+            Text("An integration with its own character shows it in its pill and, in free placement, floats on its own: click it to open just that integration.")
+                .font(.system(size: 11))
+                .foregroundColor(.secondary)
+                .fixedSize(horizontal: false, vertical: true)
         }
         .padding(6)
+    }
+
+    /// One row per integration on screen: Claude Code has the main character, the others can
+    /// have their own (#151).
+    private var assignments: some View {
+        VStack(alignment: .leading, spacing: 6) {
+            HStack {
+                Text(verbatim: "Claude Code").font(.system(size: 12))
+                Spacer()
+                Text(verbatim: state.critter.displayName).font(.system(size: 12)).foregroundColor(.secondary)
+            }
+            ForEach(state.tasks.filter { $0.isIntegration && $0.id != "integration_claude" }) { task in
+                Picker(selection: Binding(
+                    get: { state.critterAssignments[task.id]?.rawValue ?? "" },
+                    set: { v in state.critterAssignments[task.id] = Critter(rawValue: v) }
+                )) {
+                    Text("Same as \(state.critter.displayName)").tag("")
+                    ForEach(Critter.allCases) { c in Text(verbatim: c.displayName).tag(c.rawValue) }
+                } label: {
+                    Text(verbatim: task.name).font(.system(size: 12))
+                }
+            }
+        }
     }
 
     private func card(_ c: Critter) -> some View {

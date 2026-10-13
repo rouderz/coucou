@@ -11,13 +11,15 @@ import SwiftUI
 
 extension Notification.Name {
     static let islandPlacementChanged = Notification.Name("notchBuddy.islandPlacementChanged")
+    static let freeBuddyReset = Notification.Name("notchBuddy.freeBuddyReset")
 }
 
 enum IslandPlacement: String, CaseIterable, Sendable {
     case notch, free
 
     private static let key = "islandPlacement"
-    private static let originKey = "freeBuddyOrigin"
+    private static let originKey = "freeBuddyOrigin"          // the main character (older builds)
+    private static let originsKey = "freeBuddyOrigins"        // one per character: [key: [x, y]]
 
     static var current: IslandPlacement {
         get { IslandPlacement(rawValue: UserDefaults.standard.string(forKey: key) ?? "") ?? .notch }
@@ -29,16 +31,29 @@ enum IslandPlacement: String, CaseIterable, Sendable {
 
     static var isFree: Bool { current == .free }
 
-    /// Bottom-left corner of the floating window, in global screen coordinates.
-    static var savedOrigin: NSPoint? {
-        get {
-            guard let a = UserDefaults.standard.array(forKey: originKey) as? [Double], a.count == 2 else { return nil }
+    /// Bottom-left corner of a floating character, in global screen coordinates.
+    /// `key` is "main" (Claude Code) or the id of the integration it handles.
+    static func savedOrigin(_ key: String) -> NSPoint? {
+        let all = UserDefaults.standard.dictionary(forKey: originsKey) as? [String: [Double]] ?? [:]
+        if let a = all[key], a.count == 2 { return NSPoint(x: a[0], y: a[1]) }
+        if key == FreeBuddyController.mainKey,
+           let a = UserDefaults.standard.array(forKey: originKey) as? [Double], a.count == 2 {
             return NSPoint(x: a[0], y: a[1])
         }
-        set {
-            if let p = newValue { UserDefaults.standard.set([Double(p.x), Double(p.y)], forKey: originKey) }
-            else { UserDefaults.standard.removeObject(forKey: originKey) }
-        }
+        return nil
+    }
+
+    static func setSavedOrigin(_ key: String, _ p: NSPoint?) {
+        var all = UserDefaults.standard.dictionary(forKey: originsKey) as? [String: [Double]] ?? [:]
+        all[key] = p.map { [Double($0.x), Double($0.y)] }
+        UserDefaults.standard.set(all, forKey: originsKey)
+        if key == FreeBuddyController.mainKey && p == nil { UserDefaults.standard.removeObject(forKey: originKey) }
+    }
+
+    /// Every character back to its default spot.
+    static func resetOrigins() {
+        UserDefaults.standard.removeObject(forKey: originsKey)
+        UserDefaults.standard.removeObject(forKey: originKey)
     }
 }
 
@@ -50,97 +65,117 @@ enum IslandPlacement: String, CaseIterable, Sendable {
 
 // MARK: - Controller
 
+/// The floating characters: the main one (Claude Code) and one per integration that has its
+/// own character (Settings → General → Character, "Who handles what").
 @MainActor
 final class FreeBuddyController {
     static let size = NSSize(width: 104, height: 112)
-
-    /// Centre of the floating character on screen (global coords, y up): where it looks from.
-    static private(set) var center: NSPoint = .zero
-
-    private var panel: NSPanel?
-    private let menuTarget = FreeBuddyMenu()
-
-    /// Click (no drag) on the character.
-    var onClick: (() -> Void)?
-
-    /// Dropped somewhere new by the user (the open island follows it).
-    var onMovedByUser: (() -> Void)?
-
-    var frame: NSRect? { panel?.frame }
-    var isShown: Bool { panel != nil }
+    static let mainKey = "main"
 
     /// How far above the window's bottom edge the character's feet are: the island's top edge
     /// goes there, so it looks like the character sits on it.
     static let seat: CGFloat = 30
 
-    /// Where the window was before it hopped onto the open island, to go back when it folds.
-    private var perchedFrom: NSPoint?
+    /// Centre of each floating character on screen (global coords, y up): where it looks from.
+    static private(set) var centers: [String: NSPoint] = [:]
 
-    /// Where the user left it, even while it sits on the open island.
-    var homeFrame: NSRect? {
-        guard let panel else { return nil }
-        if let o = perchedFrom { return NSRect(origin: o, size: panel.frame.size) }
+    private var panels: [String: NSPanel] = [:]
+    private var order: [String] = []
+    private let menuTarget = FreeBuddyMenu()
+
+    /// Click (no drag) on a character: its key.
+    var onClick: ((String) -> Void)?
+    /// A character was dropped somewhere new by the user (the open island follows it).
+    var onMovedByUser: ((String) -> Void)?
+
+    /// The character the open island belongs to (the last one clicked or alerted).
+    var activeKey: String = FreeBuddyController.mainKey
+
+    /// Where a window was before it hopped onto the open island, to go back when it folds.
+    private var perchedFrom: (key: String, origin: NSPoint)?
+
+    var isShown: Bool { !panels.isEmpty }
+
+    /// Where the user left a character, even while it sits on the open island.
+    func homeFrame(_ key: String) -> NSRect? {
+        guard let panel = panels[key] ?? panels[Self.mainKey] else { return nil }
+        if let p = perchedFrom, p.key == key { return NSRect(origin: p.origin, size: panel.frame.size) }
         return panel.frame
     }
 
-    /// The island opened: hop down (or up) so the feet sit on its top edge, in front of it.
+    /// The island opened: the active character hops down (or up) so its feet sit on the
+    /// island's top edge, in front of it.
     func perch(bottomY: CGFloat) {
-        guard let panel else { return }
+        let key = panels[activeKey] != nil ? activeKey : Self.mainKey
+        guard let panel = panels[key] else { return }
+        if let p = perchedFrom, p.key != key { unperch() }
         panel.level = NSWindow.Level(rawValue: Int(CGWindowLevelForKey(.mainMenuWindow)) + 4)
         guard abs(panel.frame.minY - bottomY) > 0.5 else { return }
-        if perchedFrom == nil { perchedFrom = panel.frame.origin }
+        if perchedFrom == nil { perchedFrom = (key, panel.frame.origin) }
         panel.setFrameOrigin(NSPoint(x: panel.frame.minX, y: bottomY))
-        Self.center = NSPoint(x: panel.frame.midX, y: panel.frame.midY)
+        Self.centers[key] = NSPoint(x: panel.frame.midX, y: panel.frame.midY)
     }
 
-    /// The island folded: back to its own spot, behind other floating panels again.
+    /// The island folded: everyone back to their own spot, behind other floating panels again.
     func unperch() {
-        guard let panel else { return }
-        panel.level = .floating
-        if let o = perchedFrom {
-            panel.setFrameOrigin(o)
-            perchedFrom = nil
-            Self.center = NSPoint(x: panel.frame.midX, y: panel.frame.midY)
+        for panel in panels.values { panel.level = .floating }
+        if let p = perchedFrom, let panel = panels[p.key] {
+            panel.setFrameOrigin(p.origin)
+            Self.centers[p.key] = NSPoint(x: panel.frame.midX, y: panel.frame.midY)
         }
+        perchedFrom = nil
     }
 
-    /// Shows or removes the window to match the setting. Removing it frees the canvas (0 % CPU).
-    func sync() {
-        if IslandPlacement.isFree { show() } else { hide() }
+    /// Shows the characters for these keys (main first) and removes the others, or all of them
+    /// outside free placement. A removed window frees its canvas (0 % CPU).
+    func sync(keys: [String]) {
+        let wanted = IslandPlacement.isFree ? keys : []
+        for key in panels.keys where !wanted.contains(key) { remove(key) }
+        order = wanted
+        for (i, key) in wanted.enumerated() where panels[key] == nil { show(key, index: i) }
+        if panels[activeKey] == nil { activeKey = Self.mainKey }
     }
 
-    func show() {
-        if panel == nil { panel = makePanel() }
-        guard let panel else { return }
-        let origin = clamped(IslandPlacement.savedOrigin ?? defaultOrigin())
+    private func show(_ key: String, index: Int) {
+        let panel = makePanel(key)
+        panels[key] = panel
+        let origin = clamped(IslandPlacement.savedOrigin(key) ?? defaultOrigin(index))
         panel.setFrameOrigin(origin)
-        Self.center = NSPoint(x: panel.frame.midX, y: panel.frame.midY)
+        Self.centers[key] = NSPoint(x: panel.frame.midX, y: panel.frame.midY)
         panel.orderFrontRegardless()
     }
 
-    func hide() {
-        panel?.orderOut(nil)
-        panel?.contentView = nil
-        panel = nil
+    private func remove(_ key: String) {
+        if perchedFrom?.key == key { perchedFrom = nil }
+        panels[key]?.orderOut(nil)
+        panels[key]?.contentView = nil
+        panels[key] = nil
+        Self.centers[key] = nil
     }
 
-    /// Back to the default spot (bottom-right of the main screen).
-    func resetPosition() {
-        IslandPlacement.savedOrigin = nil
-        if panel != nil { show() }
+    /// Everyone back to the default spots (a row along the bottom-right of the main screen).
+    func resetPositions() {
+        IslandPlacement.resetOrigins()
+        perchedFrom = nil
+        for (i, key) in order.enumerated() {
+            guard let panel = panels[key] else { continue }
+            panel.setFrameOrigin(clamped(defaultOrigin(i)))
+            Self.centers[key] = NSPoint(x: panel.frame.midX, y: panel.frame.midY)
+        }
     }
 
-    /// Screens can be unplugged or rearranged: keep the window fully on the screen it is over.
+    /// Screens can be unplugged or rearranged: keep every window fully on the screen it is over.
     func revalidate() {
-        guard let panel else { return }
-        let o = clamped(panel.frame.origin)
-        if o != panel.frame.origin { panel.setFrameOrigin(o) }
-        Self.center = NSPoint(x: panel.frame.midX, y: panel.frame.midY)
+        for (key, panel) in panels {
+            let o = clamped(panel.frame.origin)
+            if o != panel.frame.origin { panel.setFrameOrigin(o) }
+            Self.centers[key] = NSPoint(x: panel.frame.midX, y: panel.frame.midY)
+        }
     }
 
-    private func defaultOrigin() -> NSPoint {
+    private func defaultOrigin(_ index: Int) -> NSPoint {
         let vf = (NSScreen.main ?? NSScreen.screens[0]).visibleFrame
-        return NSPoint(x: vf.maxX - Self.size.width - 40, y: vf.minY + 60)
+        return NSPoint(x: vf.maxX - Self.size.width - 40 - CGFloat(index) * (Self.size.width + 8), y: vf.minY + 60)
     }
 
     private func clamped(_ p: NSPoint) -> NSPoint {
@@ -152,34 +187,35 @@ final class FreeBuddyController {
                        y: min(max(p.y, vf.minY), vf.maxY - s.height))
     }
 
-    private func makePanel() -> NSPanel {
+    private func makePanel(_ key: String) -> NSPanel {
         let p = NSPanel(contentRect: NSRect(origin: .zero, size: Self.size),
                         styleMask: [.borderless, .nonactivatingPanel],
                         backing: .buffered, defer: false)
         p.backgroundColor = .clear
         p.isOpaque = false
         p.hasShadow = false
-        // Above normal windows, below the island (mainMenu + 3) so the open island covers it.
+        // Above normal windows, below the island (mainMenu + 3); perch() lifts the active one.
         p.level = .floating
         p.collectionBehavior = [.canJoinAllSpaces, .stationary, .fullScreenAuxiliary, .ignoresCycle]
         p.isMovable = false            // the drag view moves it, so a click stays a click
         p.isReleasedWhenClosed = false
 
         let drag = FreeBuddyDragView(frame: NSRect(origin: .zero, size: Self.size))
-        drag.onClick = { [weak self] in self?.onClick?() }
-        drag.onMoving = { frame in Self.center = NSPoint(x: frame.midX, y: frame.midY) }
+        drag.onClick = { [weak self] in self?.onClick?(key) }
+        drag.onMoving = { frame in Self.centers[key] = NSPoint(x: frame.midX, y: frame.midY) }
         drag.onDropped = { [weak self] in
-            guard let self, let panel = self.panel else { return }
+            guard let self, let panel = self.panels[key] else { return }
             let o = self.clamped(panel.frame.origin)
             panel.setFrameOrigin(o)
-            Self.center = NSPoint(x: panel.frame.midX, y: panel.frame.midY)
-            IslandPlacement.savedOrigin = o
-            self.perchedFrom = nil
-            self.onMovedByUser?()
+            Self.centers[key] = NSPoint(x: panel.frame.midX, y: panel.frame.midY)
+            IslandPlacement.setSavedOrigin(key, o)
+            if self.perchedFrom?.key == key { self.perchedFrom = nil }
+            self.onMovedByUser?(key)
         }
         drag.menu = menuTarget.makeMenu()
 
-        let host = NSHostingView(rootView: FreeBuddyView().environmentObject(AppState.shared))
+        let task: String? = key == Self.mainKey ? nil : key
+        let host = NSHostingView(rootView: FreeBuddyView(taskID: task).environmentObject(AppState.shared))
         host.frame = drag.bounds
         host.autoresizingMask = [.width, .height]
         drag.addSubview(host)
@@ -192,11 +228,19 @@ final class FreeBuddyController {
 
 struct FreeBuddyView: View {
     @EnvironmentObject var state: AppState
+    /// The integration this character handles; nil for the main one (Claude Code).
+    let taskID: String?
 
     var body: some View {
-        BotCanvasView(state: state, freeBuddy: true)
+        BotCanvasView(state: state, freeBuddy: true, buddyTaskID: taskID)
             .frame(width: FreeBuddyController.size.width, height: FreeBuddyController.size.height)
-            .help(Text("Click to open, drag to move, right-click for options"))
+            .help(Text(verbatim: helpText))
+    }
+
+    private var helpText: String {
+        let name = state.critter(for: taskID).displayName
+        let job = taskID.flatMap { id in state.tasks.first { $0.id == id }?.name } ?? "Claude Code"
+        return "\(name) · \(job)"
     }
 }
 

@@ -8471,6 +8471,166 @@
           }
         }
       }
+    },
+    "Character": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Personaje"
+          }
+        }
+      }
+    },
+    "Who handles what": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Quién se encarga de qué"
+          }
+        }
+      }
+    },
+    "An integration with its own character shows it in its pill and, in free placement, floats on its own: click it to open just that integration.": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Una integración con personaje propio lo muestra en su píldora y, en modo libre, flota por su cuenta: haz clic en él para abrir solo esa integración."
+          }
+        }
+      }
+    },
+    "Same as %@": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Igual que %@"
+          }
+        }
+      }
+    },
+    "Reset positions": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Restablecer posiciones"
+          }
+        }
+      }
+    },
+    "Where it lives": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Dónde vive"
+          }
+        }
+      }
+    },
+    "In the notch": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "En el notch"
+          }
+        }
+      }
+    },
+    "Free on the desktop": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Libre en el escritorio"
+          }
+        }
+      }
+    },
+    "Drag the character anywhere. Click it to open the island next to it, right-click for options.": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Arrastra el personaje a donde quieras. Haz clic para abrir la isla junto a él y clic derecho para ver opciones."
+          }
+        }
+      }
+    },
+    "The interface calls it by its name: “Ask %@”, “Hey %@”.": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "La interfaz lo llama por su nombre: “Pregúntale a %@”, “Oye %@”."
+          }
+        }
+      }
+    },
+    "A steamed bun that steams while it works": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Un panecillo al vapor que echa vapor mientras trabaja"
+          }
+        }
+      }
+    },
+    "A bean with a sprout that tells how things go": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Un frijol con un brote que cuenta cómo va todo"
+          }
+        }
+      }
+    },
+    "A little cloud: rain on errors, sun when done": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Una nubecita: llueve si hay errores, sale el sol al terminar"
+          }
+        }
+      }
+    },
+    "A glowing jellyfish that wiggles while it works": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Una medusa que brilla y se agita mientras trabaja"
+          }
+        }
+      }
+    },
+    "A keycap that presses itself while it types": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Una tecla que se pulsa sola mientras escribe"
+          }
+        }
+      }
+    },
+    "Back to the notch": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Volver al notch"
+          }
+        }
+      }
     }
   }
 }

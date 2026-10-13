@@ -9,6 +9,9 @@ struct BotCanvasView: View {
     /// Drawn in the free-floating window (Settings → Display → Free): keeps animating while
     /// the island is hidden and looks at the pointer from where that window is.
     var freeBuddy: Bool = false
+    /// Free placement, a character in charge of an integration (#151): shows that task's state.
+    var buddyTaskID: String? = nil
+    private var buddyKey: String { buddyTaskID ?? FreeBuddyController.mainKey }
 
     // One engine per view instance (main bot)
     @StateObject private var engine = BotEngine()
@@ -21,15 +24,18 @@ struct BotCanvasView: View {
                 let dtRaw = min(0.05, now - engine.lastTime)
                 let dt = dtRaw
                 if freeBuddy {
-                    let m = NSEvent.mouseLocation, c = FreeBuddyController.center
+                    let m = NSEvent.mouseLocation, c = FreeBuddyController.centers[buddyKey] ?? m
                     engine.lookX = tanh((m.x - c.x) / 260)
                     engine.lookY = tanh((m.y - c.y) / 200)
+                    let shown = buddyTaskID.map { id in state.tasks.first { $0.id == id }?.state ?? .idle }
+                        ?? state.mainBuddyState
+                    if engine.state != shown { engine.setState(shown) }
                 } else {
                     engine.lookX = lookX(state: state, size: size)
                     engine.lookY = lookY(state: state, size: size)
                 }
                 engine.particleOverhang = particleOverhang
-                engine.critter = state.critter
+                engine.critter = freeBuddy ? state.critter(for: buddyTaskID) : state.critter(for: state.focusTask?.id)
                 // Widen slot when file is hovering over the mailbox (morph > 0.5)
                 // Open mouth (hover=0.20R) when file dragged over box; close when not
                 if engine.morph > 0.3 {
@@ -40,7 +46,10 @@ struct BotCanvasView: View {
                 }
                 // Integration pills have a fixed brand color → use it as bodyColor.
                 // Claude Code tasks use state-based gradient (working=blue, thinking=purple, etc.).
-                engine.bodyColor = (state.focusTask?.isIntegration == true)
+                // An integration with its own character (#151) keeps its colours; the others are
+                // drawn flat in the pill colour.
+                engine.bodyColor = (!freeBuddy && state.focusTask?.isIntegration == true
+                                    && state.critterAssignments[state.focusTask!.id] == nil)
                     ? cgColorFromHex(state.focusTask!.color)
                     : nil
                 // Bobs to the music (#117) while idle; the engine eases it in and out.
@@ -52,7 +61,7 @@ struct BotCanvasView: View {
             }
         }
         .onChange(of: state.effectiveState) { _, newState in
-            engine.setState(newState)
+            if !freeBuddy { engine.setState(newState) }
             applyFocusLook()
         }
         .onChange(of: state.focus.phase) { _, _ in applyFocusLook() }
@@ -178,7 +187,7 @@ struct MiniBotCanvasView: View {
             Canvas { context, size in
                 let now = timeline.date.timeIntervalSinceReferenceDate
                 let dt = min(0.05, now - engine.lastTime)
-                engine.critter = appState.critter
+                engine.critter = appState.critter(for: task.id)
                 engine.update(dt: dt)
                 engine.draw(context: context, size: size)
             }

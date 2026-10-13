@@ -1527,9 +1527,8 @@ struct DisplaySettingsSection: View {
                         .foregroundColor(.secondary)
                         .fixedSize(horizontal: false, vertical: true)
                     Spacer()
-                    Button("Reset position") {
-                        IslandPlacement.savedOrigin = nil
-                        IslandPlacement.current = .free
+                    Button("Reset positions") {
+                        NotificationCenter.default.post(name: .freeBuddyReset, object: nil)
                     }
                 }
             }

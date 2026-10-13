@@ -313,6 +313,31 @@ final class AppState: ObservableObject {
     @Published var critter: Critter = .fallback {
         didSet { UserDefaults.standard.set(critter.rawValue, forKey: Critter.storageKey) }
     }
+    /// Who handles what (#151): integration task id → character. Missing = the main character.
+    /// In free placement each assigned integration gets its own floating character.
+    @Published var critterAssignments: [String: Critter] = [:] {
+        didSet {
+            UserDefaults.standard.set(critterAssignments.mapValues(\.rawValue), forKey: "critterAssignments")
+        }
+    }
+
+    /// The character in charge of a task: its own if it has one, else the main character.
+    func critter(for taskID: String?) -> Critter {
+        taskID.flatMap { critterAssignments[$0] } ?? critter
+    }
+
+    /// Integrations on screen that have their own character, in pill order.
+    var assignedTaskIDs: [String] {
+        tasks.filter { $0.isIntegration && $0.id != "integration_claude" && critterAssignments[$0.id] != nil }
+            .map(\.id)
+    }
+
+    /// What the main floating character shows: the focused task unless it has its own character
+    /// (then the first task that doesn't).
+    var mainBuddyState: BotState {
+        if let f = focusTask, critterAssignments[f.id] == nil { return effectiveState }
+        return stateOverride ?? tasks.first { critterAssignments[$0.id] == nil }?.state ?? .idle
+    }
     @Published var theme: String = "dark" {
         didSet {
             UserDefaults.standard.set(theme, forKey: "theme")
@@ -663,6 +688,9 @@ final class AppState: ObservableObject {
         if let v = ud.object(forKey: "voiceLanguage")     as? String { voiceLanguage = v }
         if let v = ud.string(forKey: "theme") { theme = v }
         if let v = ud.string(forKey: Critter.storageKey), let c = Critter(rawValue: v) { critter = c }
+        if let d = ud.dictionary(forKey: "critterAssignments") as? [String: String] {
+            critterAssignments = d.compactMapValues { Critter(rawValue: $0) }
+        }
         if let v = ud.object(forKey: "voiceSpeakReplies") as? Bool   { voiceSpeakReplies = v }
         if let v = ud.object(forKey: "pillRotationSeconds") as? Int { pillRotationSeconds = v }
         if let v = ud.stringArray(forKey: "pinnedPills") { pinnedPills = Set(v) }

@@ -43,6 +43,7 @@ final class IslandWindowController: NSWindowController {
     let buddy = FreeBuddyController()
     private var freeMode = IslandPlacement.isFree
     private var placementObserver: NSObjectProtocol?
+    private var buddySubs = Set<AnyCancellable>()
 
     // Notch real dimensions (set on init)
     private var notchW: CGFloat = IslandConst.notchWidth
@@ -448,27 +449,67 @@ final class IslandWindowController: NSWindowController {
     // MARK: - Free placement
 
     private func setupFreePlacement() {
-        buddy.onMovedByUser = { [weak self] in
-            guard let self, self.freeMode, self.state.mode == .expanded else { return }
+        buddy.onMovedByUser = { [weak self] key in
+            guard let self, self.freeMode, self.state.mode == .expanded, key == self.buddy.activeKey else { return }
             self.positionIslandNearBuddy()
         }
-        buddy.onClick = { [weak self] in
-            guard let self else { return }
-            if self.state.mode == .expanded { self.collapse() } else { self.fsm.click() }
-        }
+        buddy.onClick = { [weak self] key in self?.freeBuddyClicked(key) }
         placementObserver = NotificationCenter.default.addObserver(
             forName: .islandPlacementChanged, object: nil, queue: .main
         ) { [weak self] _ in
             MainActor.assumeIsolated { self?.applyPlacement() }
         }
+        NotificationCenter.default.addObserver(forName: .freeBuddyReset, object: nil, queue: .main) { [weak self] _ in
+            MainActor.assumeIsolated { self?.buddy.resetPositions() }
+        }
+        // Integrations come and go, characters get assigned (#151): one floating character each.
+        state.$tasks.combineLatest(state.$critterAssignments)
+            .map { tasks, assigned in
+                tasks.filter { $0.isIntegration && $0.id != "integration_claude" && assigned[$0.id] != nil }.map(\.id)
+            }
+            .removeDuplicates()
+            .receive(on: DispatchQueue.main)
+            .sink { [weak self] _ in
+                guard let self, self.freeMode else { return }
+                self.buddy.sync(keys: self.buddyKeys())
+            }
+            .store(in: &buddySubs)
         applyPlacement()
+    }
+
+    /// The main character first, then one per integration that has its own (#151).
+    private func buddyKeys() -> [String] {
+        [FreeBuddyController.mainKey] + state.assignedTaskIDs
+    }
+
+    /// A click on a floating character opens the island on its own task, sitting on it; a click
+    /// on the one the open island belongs to folds it.
+    private func freeBuddyClicked(_ key: String) {
+        if state.mode == .expanded && buddy.activeKey == key {
+            collapse()
+            return
+        }
+        let switching = state.mode == .expanded && buddy.activeKey != key
+        if switching { buddy.unperch() }
+        buddy.activeKey = key
+        if key == FreeBuddyController.mainKey {
+            if let id = state.tasks.first(where: { state.critterAssignments[$0.id] == nil })?.id { state.setFocus(id) }
+        } else {
+            state.setFocus(key)
+        }
+        if state.mode == .expanded {
+            state.view = .overview
+            positionIslandNearBuddy()
+        } else {
+            fsm.click()
+        }
     }
 
     /// Switches between the notch and the free-floating character.
     private func applyPlacement() {
         freeMode = IslandPlacement.isFree
         state.freePlacement = freeMode
-        buddy.sync()
+        buddy.sync(keys: buddyKeys())
         if freeMode {
             showFreeIsland(state.mode == .expanded)
         } else {
@@ -487,6 +528,7 @@ final class IslandWindowController: NSWindowController {
             panel.alphaValue = 0
             panel.ignoresMouseEvents = true
             buddy.unperch()
+            buddy.activeKey = FreeBuddyController.mainKey   // alerts open on the main character
         }
     }
 
@@ -494,7 +536,7 @@ final class IslandWindowController: NSWindowController {
     /// top edge (in the gap the header leaves in the middle). Near the bottom of the screen the
     /// island goes as low as it fits and the character hops up onto it, back home when it folds.
     private func positionIslandNearBuddy() {
-        guard let panel = window as? IslandPanel, let b = buddy.homeFrame else { return }
+        guard let panel = window as? IslandPanel, let b = buddy.homeFrame(buddy.activeKey) else { return }
         let screen = NSScreen.screens.first { $0.frame.contains(NSPoint(x: b.midX, y: b.midY)) }
             ?? IslandDisplay.resolve()
         let vf = screen.visibleFrame
