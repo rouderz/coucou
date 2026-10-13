@@ -16,6 +16,10 @@ let current: CritterId = DEFAULT_CRITTER;
 export function setCurrentCritter(c: CritterId) {
   current = c;
 }
+/** The character picked in Settings (the launch greeting draws it). */
+export function currentCritter(): CritterId {
+  return current;
+}
 /** Its name, for the interface ("Ask Lumo", "Hey Pip"). */
 export function botName(): string {
   return CRITTER_INFO[current].name;

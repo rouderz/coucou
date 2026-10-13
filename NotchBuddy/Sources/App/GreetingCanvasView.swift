@@ -246,17 +246,15 @@ private func gRR(_ ctx: CGContext, _ x: CGFloat, _ y: CGFloat, _ w: CGFloat, _ h
     ctx.closePath()
 }
 
+/// The picked character's silhouette (Critter.outline), sampled by angle like the island's body.
 private func mochiPath(hw: CGFloat, hh: CGFloat) -> CGPath {
-    let n: CGFloat = 3.2
+    let critter = Critter.stored
     let path = CGMutablePath()
     let steps = 96
     for i in 0...steps {
         let a = CGFloat(i)/CGFloat(steps)*2 * .pi
-        let ca = cos(a), sa = sin(a)
-        let px = hw * (ca < 0 ? -1 : 1) * pow(abs(ca), 2/n)
-        let py = hh * (sa < 0 ? -1 : 1) * pow(abs(sa), 2/n)
-        if i == 0 { path.move(to: CGPoint(x: px, y: py)) }
-        else { path.addLine(to: CGPoint(x: px, y: py)) }
+        let pt = critter.outline(a: a, rx: hw, ry: hh, R: hw/1.14)
+        if i == 0 { path.move(to: pt) } else { path.addLine(to: pt) }
     }
     path.closeSubpath(); return path
 }
@@ -265,8 +263,9 @@ private func mochiPath(hw: CGFloat, hh: CGFloat) -> CGPath {
 private func whiteFill(_ ctx: CGContext, _ path: CGPath,
                         x0: CGFloat, y0: CGFloat, x1: CGFloat, y1: CGFloat) {
     let cs   = CGColorSpaceCreateDeviceRGB()
-    let c0   = CGColor(red: 251/255, green: 251/255, blue: 252/255, alpha: 1)
-    let c1   = CGColor(red: 231/255, green: 233/255, blue: 236/255, alpha: 1)
+    let palette = Critter.stored.palette
+    let c0   = palette.top
+    let c1   = palette.bottom
     guard let g = CGGradient(colorsSpace: cs, colors: [c0,c1] as CFArray, locations: [0,1]) else { return }
     ctx.saveGState()
     ctx.addPath(path); ctx.clip()
@@ -379,12 +378,13 @@ private func drawMochi(_ ctx: CGContext, p: GreetPose) {
     // Eyes (clipped to body)
     ctx.saveGState()
     ctx.addPath(mpath); ctx.clip()
-    ctx.setFillColor(gHex("#16171A"))
-    ctx.setStrokeColor(gHex("#16171A"))
+    let critter = Critter.stored
+    ctx.setFillColor(critter.palette.ink)
+    ctx.setStrokeColor(critter.palette.ink)
     let er = CGFloat(p.hb*0.06)
     let sp = CGFloat(p.hb*0.19)
     let lx = CGFloat(p.lookX)*hw*0.42
-    let ly = CGFloat(p.lookY)*hh*0.28 + hh*0.12 + CGFloat(p.eyeRoll)*hh*1.25
+    let ly = CGFloat(p.lookY)*hh*0.28 + hh*0.12 + CGFloat(p.eyeRoll)*hh*1.25 - critter.faceLift*hh
     for sd: CGFloat in [-1, 1] {
         ctx.saveGState()
         ctx.translateBy(x: sd*sp+lx, y: ly)
@@ -409,6 +409,14 @@ private func drawMochi(_ ctx: CGContext, p: GreetPose) {
         }
         ctx.restoreGState()
     }
+    // A smile under the eyes.
+    ctx.setLineWidth(er*0.8)
+    ctx.setLineCap(.round)
+    ctx.beginPath()
+    ctx.move(to: CGPoint(x: lx - er*1.5, y: ly + er*2.8))
+    ctx.addQuadCurve(to: CGPoint(x: lx + er*1.5, y: ly + er*2.8),
+                     control: CGPoint(x: lx, y: ly + er*(p.eye == .dot ? 4.2 : 4.8)))
+    ctx.strokePath()
     ctx.restoreGState()
 
     // Activity badge (top-left corner)
@@ -493,22 +501,14 @@ private func drawHeader(_ ctx: CGContext, alpha: Double) {
     ctx.restoreGState()
 }
 
-private let miniColors = ["#E86A6A","#3E86E0","#EFAE5A","#8C73F2"]
-
+/// The folded island's status dot (#153), where the greeting lands.
 private func drawMinis(_ ctx: CGContext, alpha: Double) {
     guard alpha > 0.01 else { return }
-    let cx = 320 + GSMALL_W/2 - 27
-    let cy: CGFloat = 16
-    let sp: CGFloat = 6
-    let offsets: [(CGFloat, CGFloat)] = [(-sp,-sp),(sp,-sp),(-sp,sp),(sp,sp)]
-    for (i,(dx,dy)) in offsets.enumerated() {
-        ctx.saveGState()
-        ctx.translateBy(x: cx+dx, y: cy+dy)
-        ctx.scaleBy(x: CGFloat(alpha), y: CGFloat(alpha))
-        ctx.setFillColor(gHex(miniColors[i]))
-        ctx.addPath(mochiPath(hw: 5.3, hh: 4)); ctx.fillPath()
-        ctx.restoreGState()
-    }
+    let r = 3.5 * CGFloat(alpha)
+    let cx = 320 + GSMALL_W/2 - IslandConst.compactEar/2
+    ctx.setFillColor(gHex("#6B7079"))
+    ctx.addEllipse(in: CGRect(x: cx - r, y: 16 - r, width: r*2, height: r*2))
+    ctx.fillPath()
 }
 
 // MARK: - Full draw function
