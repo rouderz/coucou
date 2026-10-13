@@ -216,6 +216,22 @@ async function tick(token) {
   }
 }
 
+// ── Learn mode (temporary) ────────────────────────────────────────────────────
+// Logs the writes the web app itself makes (method, path, JSON body; never the session
+// token) so the send-message call can be copied. Read it in chrome://extensions →
+// "Coucou for WhaTicket" → service worker → Console. Local only: nothing is sent anywhere.
+if (typeof chrome !== "undefined" && chrome.webRequest && chrome.webRequest.onBeforeRequest) {
+  chrome.webRequest.onBeforeRequest.addListener((d) => {
+    if (d.method === "GET" || d.method === "OPTIONS" || d.url.includes("/assign")) return;
+    let body = "";
+    try {
+      const raw = d.requestBody && d.requestBody.raw && d.requestBody.raw[0] && d.requestBody.raw[0].bytes;
+      body = raw ? new TextDecoder().decode(raw) : JSON.stringify((d.requestBody && d.requestBody.formData) || {});
+    } catch {}
+    console.log("[coucou-learn]", d.method, d.url.replace(API, ""), body.slice(0, 1500));
+  }, { urls: ["https://api.whaticket.com/*"] }, ["requestBody"]);
+}
+
 if (typeof chrome !== "undefined" && chrome.runtime && chrome.runtime.onMessage) {
   chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
     // Only our own content script, on whaticket.com.
