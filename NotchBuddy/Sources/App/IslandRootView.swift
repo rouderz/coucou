@@ -453,18 +453,19 @@ struct IslandContentView: View {
     @ObservedObject var state: AppState
 
     var body: some View {
-        VStack(spacing: 0) {
-            IslandHeader(state: state)
-                .frame(height: 34)
-                .opacity(state.view == .confused ? 0 : 1)
-                .animation(.easeInOut(duration: 0.2), value: state.view == .confused)
+        // Design C: the characters run down the left, the header and the views sit beside them.
+        HStack(alignment: .top, spacing: 8) {
+            if state.railShown {
+                CharacterRail(state: state)
+                    .padding(.leading, 10)
+                    .transition(.move(edge: .leading).combined(with: .opacity))
+            }
+            VStack(spacing: 0) {
+                IslandHeader(state: state)
+                    .frame(height: 34)
+                    .opacity(state.view == .confused ? 0 : 1)
+                    .animation(.easeInOut(duration: 0.2), value: state.view == .confused)
 
-            HStack(alignment: .top, spacing: 8) {
-                // Design C: the characters on the left, once integrations have their own.
-                if state.railShown {
-                    CharacterRail(state: state)
-                        .transition(.move(edge: .leading).combined(with: .opacity))
-                }
                 ZStack {
                     ForEach(IslandView.allCases, id: \.self) { v in
                         let active = state.view == v
@@ -486,10 +487,11 @@ struct IslandContentView: View {
                     }
                 }
                 .frame(maxWidth: .infinity, maxHeight: .infinity)
+                .padding(.leading, state.railShown ? 0 : 10)
+                .padding(.trailing, 10)
             }
-            .animation(.spring(response: 0.35, dampingFraction: 0.85), value: state.railShown)
-            .padding(.horizontal, 10)
         }
+        .animation(.spring(response: 0.35, dampingFraction: 0.85), value: state.railShown)
         .padding(.top, 8)
         .padding(.bottom, 10)
         .foregroundColor(Color(hex: "#F5F6F8"))
@@ -508,14 +510,14 @@ struct IslandHeader: View {
             if let id = state.soloTaskID, CharacterRail.views.contains(state.view),
                let task = state.tasks.first(where: { $0.id == id }) {
                 CharacterTabs(state: state, task: task)
-                    .padding(.leading, 14)
+                    .padding(.leading, state.railShown ? 4 : 14)
             } else {
                 HStack(spacing: 6) {
                     TabButton(icon: "house.fill", view: .overview, state: state)
                     ModeSwitch(state: state)
                     TabButton(icon: "plus", view: .upload, state: state)
                 }
-                .padding(.leading, 14)
+                .padding(.leading, state.railShown ? 4 : 14)
             }
 
             Spacer()

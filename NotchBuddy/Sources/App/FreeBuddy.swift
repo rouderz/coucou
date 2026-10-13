@@ -36,6 +36,17 @@ enum IslandPlacement: String, CaseIterable, Sendable {
 
     static var isFree: Bool { current == .free }
 
+    private static let floatAllKey = "floatAllCharacters"
+    /// Every character floats on its own (on by default), or just the main one — the others are
+    /// still in the island's character rail.
+    static var floatAll: Bool {
+        get { UserDefaults.standard.object(forKey: floatAllKey) as? Bool ?? true }
+        set {
+            UserDefaults.standard.set(newValue, forKey: floatAllKey)
+            NotificationCenter.default.post(name: .islandPlacementChanged, object: nil)
+        }
+    }
+
     /// Bottom-left corner of a floating character, in global screen coordinates.
     /// `key` is "main" (Claude Code) or the id of the integration it handles.
     static func savedOrigin(_ key: String) -> NSPoint? {
@@ -100,6 +111,9 @@ final class FreeBuddyController {
     var activeKey: String = FreeBuddyController.mainKey {
         didSet { Self.reactingKey = activeKey }
     }
+    /// Whether this character floats on its own right now.
+    func floats(_ key: String) -> Bool { panels[key] != nil }
+
     /// Only this character reacts to clicks, hovers, emotes and drops; the others carry on
     /// with their own task's state.
     static private(set) var reactingKey: String = FreeBuddyController.mainKey
@@ -330,11 +344,17 @@ final class FreeBuddyMenu: NSObject {
         back.target = self
         let settings = NSMenuItem(title: L("Settings…"), action: #selector(openSettings), keyEquivalent: "")
         settings.target = self
+        let all = NSMenuItem(title: L("Show every character"), action: #selector(toggleAll), keyEquivalent: "")
+        all.target = self
+        all.state = IslandPlacement.floatAll ? .on : .off
         m.addItem(back)
+        m.addItem(all)
         m.addItem(.separator())
         m.addItem(settings)
         return m
     }
+
+    @objc private func toggleAll() { IslandPlacement.floatAll.toggle() }
 
     @objc private func backToNotch() { IslandPlacement.current = .notch }
     @objc private func openSettings() { NotificationCenter.default.post(name: .openFullSettings, object: nil) }

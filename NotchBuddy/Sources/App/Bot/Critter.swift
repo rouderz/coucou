@@ -104,6 +104,17 @@ enum Critter: String, CaseIterable, Identifiable, Sendable {
     /// Colours offered for a character in charge of an integration (#156).
     static let tintChoices = ["#EF5B5B", "#F59E42", "#F5C842", "#5CC46A", "#3DBFB0", "#4F8FF0", "#9B7BF2", "#F07AB8"]
 
+    /// The same character on two integrations (or on one and as the main character): the second
+    /// and later ones get a colour of their own, unless the user picked one. Same order on every
+    /// platform (integration ids sorted), so a character keeps its colour.
+    static func autoTint(for id: String, assigned: [String: Critter], main: Critter) -> String? {
+        guard let c = assigned[id] else { return nil }
+        let before = assigned.keys.sorted().prefix { $0 != id }.filter { assigned[$0] == c }.count
+            + (main == c ? 1 : 0)
+        guard before > 0 else { return nil }
+        return tintChoices[(before * 3 + 2) % tintChoices.count]
+    }
+
     // MARK: - Silhouette
 
     /// Signed power: keeps the sign, bends the magnitude.

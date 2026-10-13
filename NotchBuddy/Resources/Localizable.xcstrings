@@ -8741,6 +8741,46 @@
           }
         }
       }
+    },
+    "Show every character": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Mostrar todos los personajes"
+          }
+        }
+      }
+    },
+    "Floating characters": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Personajes flotantes"
+          }
+        }
+      }
+    },
+    "All of them": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Todos"
+          }
+        }
+      }
+    },
+    "Just %@ (the others in the island)": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Solo %@ (los demás en la isla)"
+          }
+        }
+      }
     }
   }
 }

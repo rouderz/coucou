@@ -462,7 +462,11 @@ final class IslandWindowController: NSWindowController {
         // A character picked in the rail: it's the one that reacts from now on.
         NotificationCenter.default.addObserver(forName: .characterRailPicked, object: nil, queue: .main) { [weak self] note in
             let key = (note.object as? String) ?? FreeBuddyController.mainKey
-            MainActor.assumeIsolated { self?.buddy.activeKey = key }
+            MainActor.assumeIsolated {
+                guard let self else { return }
+                // Only the main one floating: it reacts for all of them.
+                self.buddy.activeKey = self.buddy.floats(key) ? key : FreeBuddyController.mainKey
+            }
         }
         NotificationCenter.default.addObserver(forName: .freeBuddyReset, object: nil, queue: .main) { [weak self] _ in
             MainActor.assumeIsolated { self?.buddy.resetPositions() }
@@ -508,7 +512,8 @@ final class IslandWindowController: NSWindowController {
 
     /// The main character first, then one per integration that has its own (#151).
     private func buddyKeys() -> [String] {
-        [FreeBuddyController.mainKey] + state.assignedTaskIDs
+        // Just the main one floating: the others are in the island's character rail.
+        [FreeBuddyController.mainKey] + (IslandPlacement.floatAll ? state.assignedTaskIDs : [])
     }
 
     /// A click on a floating character opens the island on its own task, sitting on it; a click

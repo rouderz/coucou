@@ -326,9 +326,12 @@ final class AppState: ObservableObject {
         didSet { UserDefaults.standard.set(critterColors, forKey: "critterColors") }
     }
 
-    /// The user's colour for the character in charge of a task, if any.
+    /// The colour of the character in charge of a task: the user's, else one of its own when the
+    /// same character also handles something else, so the two are told apart.
     func critterTint(for taskID: String?) -> CGColor? {
-        taskID.flatMap { critterColors[$0] }.flatMap(cgColorFromHex)
+        guard let id = taskID else { return nil }
+        return (critterColors[id] ?? Critter.autoTint(for: id, assigned: critterAssignments, main: critter))
+            .flatMap(cgColorFromHex)
     }
 
     /// The character in charge of a task: its own if it has one, else the main character.

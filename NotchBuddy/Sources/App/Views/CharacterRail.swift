@@ -16,28 +16,32 @@ struct CharacterRail: View {
 
     /// Where the rail shows: the overview and the chat.
     static let views: Set<IslandView> = [.overview, .empty, .prompt, .searching, .result]
-    static let width: CGFloat = 54
+    static let width: CGFloat = 62
+
+    private var ids: [String?] { [nil] + state.assignedTaskIDs.map { Optional($0) } }
 
     var body: some View {
         ScrollView(.vertical, showsIndicators: false) {
             VStack(spacing: 4) {
-                item(nil)
-                ForEach(state.assignedTaskIDs, id: \.self) { id in item(id) }
+                ForEach(ids, id: \.self) { id in item(id) }
             }
             .padding(.vertical, 4)
         }
         .frame(width: Self.width)
-        .background(RoundedRectangle(cornerRadius: 14).fill(Color.white.opacity(0.045)))
+        .background(RoundedRectangle(cornerRadius: 16).fill(Color.white.opacity(0.045)))
     }
 
     private func item(_ taskID: String?) -> some View {
-        let selected = state.soloTaskID == taskID
         let critter = state.critter(for: taskID)
-        let tint = taskID.flatMap { state.critterTint(for: $0) }
+        let tint = state.critterTint(for: taskID)
         let palette = tint.map { critter.palette(tinted: $0) } ?? critter.palette
         let task = taskID.flatMap { id in state.tasks.first { $0.id == id } }
-        return RailItem(state: state, taskID: taskID, selected: selected, ring: Color(cgColor: palette.top),
-                        help: task.map { "\(critter.displayName) · \($0.name)" } ?? "\(critter.displayName) · Claude Code") {
+        // The same character twice: the label says which integration each one handles.
+        let twice = ids.filter { state.critter(for: $0) == critter }.count > 1
+        let label = twice ? (task?.name ?? "Claude") : critter.displayName
+        return RailItem(state: state, taskID: taskID, selected: state.soloTaskID == taskID,
+                        color: Color(cgColor: palette.top), label: label,
+                        help: "\(critter.displayName) · \(task?.name ?? "Claude Code")") {
             CharacterRail.pick(taskID, state: state)
         }
     }
@@ -58,25 +62,37 @@ private struct RailItem: View {
     @ObservedObject var state: AppState
     let taskID: String?
     let selected: Bool
-    let ring: Color
+    let color: Color
+    let label: String
     let help: String
     let action: () -> Void
     @State private var hovered = false
 
     var body: some View {
         Button(action: action) {
-            RailCharacterView(state: state, taskID: taskID)
-                .frame(width: 46, height: 42)
-                .background(
-                    RoundedRectangle(cornerRadius: 12)
-                        .fill(selected ? Color.white.opacity(0.10) : hovered ? Color.white.opacity(0.05) : .clear)
-                )
-                .overlay(
-                    RoundedRectangle(cornerRadius: 12)
-                        .stroke(selected ? ring.opacity(0.85) : .clear, lineWidth: 1.5)
-                )
-                .overlay(alignment: .topTrailing) { badge }
-                .contentShape(Rectangle())
+            VStack(spacing: 0) {
+                // Room above and below the body for sprouts, steam, tentacles and hands.
+                RailCharacterView(state: state, taskID: taskID)
+                    .frame(width: 44, height: 46)
+                Text(verbatim: label)
+                    .font(.system(size: 9.5, weight: .bold, design: .rounded))
+                    .foregroundColor(selected ? color : Color(hex: "#8E939C"))
+                    .lineLimit(1)
+                    .minimumScaleFactor(0.8)
+                    .frame(width: 52)
+            }
+            .padding(.bottom, 4)
+            .frame(width: 54)
+            .background(
+                RoundedRectangle(cornerRadius: 13)
+                    .fill(selected ? Color.white.opacity(0.10) : hovered ? Color.white.opacity(0.05) : .clear)
+            )
+            .overlay(
+                RoundedRectangle(cornerRadius: 13)
+                    .stroke(selected ? color.opacity(0.9) : .clear, lineWidth: 1.5)
+            )
+            .overlay(alignment: .topTrailing) { badge }
+            .contentShape(Rectangle())
         }
         .buttonStyle(.plain)
         .onHover { hovered = $0 }
@@ -87,20 +103,17 @@ private struct RailItem: View {
     /// Something waiting on that character (an alert badge on its task).
     @ViewBuilder private var badge: some View {
         if let id = taskID, !selected, state.tasks.first(where: { $0.id == id })?.pillBadge != nil {
-            Circle().fill(Color(hex: "#F5A524")).frame(width: 8, height: 8).offset(x: -3, y: 3)
+            Circle().fill(Color(hex: "#F5A524")).frame(width: 8, height: 8).offset(x: -4, y: 4)
         }
     }
 }
 
-/// One character, small, with its own colours and its task's state.
+/// One character, small but whole (face, smile, blush, its extras), in its own colours and with
+/// its task's state.
 private struct RailCharacterView: View {
     @ObservedObject var state: AppState
     let taskID: String?
-    @StateObject private var engine: BotEngine = {
-        let e = BotEngine()
-        e.isMini = true
-        return e
-    }()
+    @StateObject private var engine = BotEngine()
 
     var body: some View {
         TimelineView(AlignedAnimationSchedule(interval: FrameRate.mini, paused: state.mode != .expanded)) { timeline in
@@ -108,12 +121,14 @@ private struct RailCharacterView: View {
                 let now = timeline.date.timeIntervalSinceReferenceDate
                 let dt = min(0.05, now - engine.lastTime)
                 engine.critter = state.critter(for: taskID)
-                engine.userTint = taskID.flatMap { state.critterTint(for: $0) }
+                engine.userTint = state.critterTint(for: taskID)
                 engine.bodyColor = nil
                 let shown = taskID.map { id in state.tasks.first { $0.id == id }?.state ?? .idle } ?? state.mainBuddyState
                 if engine.state != shown { engine.setState(shown) }
                 engine.update(dt: dt)
+                engine.drawHandsBehind(context: context, size: size)
                 engine.draw(context: context, size: size)
+                engine.drawHandsAndExtras(context: context, size: size)
             }
         }
         .allowsHitTesting(false)

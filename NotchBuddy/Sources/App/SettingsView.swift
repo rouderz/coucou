@@ -1512,6 +1512,7 @@ struct DisplaySettingsSection: View {
     @State private var hideInFullscreen = IslandDisplay.hideInFullscreen
     @State private var screens = IslandDisplay.screens
     @State private var placement = IslandPlacement.current
+    @State private var floatAll = IslandPlacement.floatAll
 
     var body: some View {
         VStack(alignment: .leading, spacing: 8) {
@@ -1521,6 +1522,11 @@ struct DisplaySettingsSection: View {
             }
             .onChange(of: placement) { _, v in IslandPlacement.current = v }
             if placement == .free {
+                Picker("Floating characters", selection: $floatAll) {
+                    Text("All of them").tag(true)
+                    Text("Just \(botName()) (the others in the island)").tag(false)
+                }
+                .onChange(of: floatAll) { _, v in IslandPlacement.floatAll = v }
                 HStack {
                     Text("Drag the character anywhere. Click it to open the island next to it, right-click for options.")
                         .font(.system(size: 11))
@@ -1550,6 +1556,7 @@ struct DisplaySettingsSection: View {
         }
         .onReceive(NotificationCenter.default.publisher(for: .islandPlacementChanged)) { _ in
             placement = IslandPlacement.current   // the character's right-click menu can change it too
+            floatAll = IslandPlacement.floatAll
         }
     }
 }
