@@ -437,9 +437,17 @@ class AppState {
    *  integration, full width, without the pills of the others. */
   soloTaskId: string | null = null;
 
+  /** The conversation on screen belongs to this integration's character (its own chat about what
+   *  it handles); null for the main character's Chat / Code. */
+  chatOwner: string | null = null;
+  stashedCharacterChats: Record<string, string> = {};
+  /** What the character's integration shows, sent before the first question of its chat. */
+  characterPreamble: string | null = null;
+
   get otherTasks(): AgentTask[] {
-    // Tasks that float on their own character in free placement don't need a pill.
-    const own = this.settings.placement === "free" ? this.settings.critterAssignments ?? {} : {};
+    // Tasks with their own character live in the character rail (or float on their own in free
+    // placement): they don't need a pill.
+    const own = this.settings.critterAssignments ?? {};
     return this.tasks.filter((t) => t.id !== this.focusId && !own[t.id]);
   }
 

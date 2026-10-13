@@ -16,6 +16,8 @@ import { BotEngine, hexToRGB, type EyeShape } from "../mochi/engine";
 import { progress as focusProgress } from "../core/focus.ts";
 import type { BotEmoteName } from "../core/layout";
 import { Greeting } from "../mochi/greeting";
+import { buildRail, type Rail } from "../views/rail";
+import { leaveCharacterChat, railShown, selectCharacter } from "../core/characters";
 import { setMiniCritter, syncMiniBotStates, tickMiniBots } from "../mochi/minibots";
 import { DEFAULT_CRITTER, assignments, isCritter, setCurrentCritter, type CritterId } from "../mochi/critters";
 import { UploadCanvas } from "../upload/canvas";
@@ -208,6 +210,7 @@ export class Island {
       },
       openSettingsWindow: () => void Bridge.openSettingsWindow(),
       blip: () => Sound.play("blip"),
+      pickCharacter: (id) => void this.pickCharacter(id),
     };
 
     this.wakeStrip = h("div", { id: "wake-strip" });
@@ -222,7 +225,13 @@ export class Island {
     this.views = buildViews(actions, () => this.animateGeometry(false));
     this.viewsEl = h("div", { id: "views" });
     for (const v of this.views.values()) this.viewsEl.append(v.el);
-    this.contentEl = h("div", { id: "content" }, this.header.el, this.viewsEl);
+    // Design C: the characters on the left of the views, once integrations have their own.
+    this.rail = buildRail((id) => {
+      Sound.play("blip");
+      void this.pickCharacter(id);
+    });
+    this.contentEl = h("div", { id: "content" }, this.header.el,
+      h("div", { id: "content-row" }, this.rail.el, this.viewsEl));
 
     // The drop sequence draws the card, the bar and its own Mochi. It sits under
     // the header, which stays visible on top of it exactly as on macOS.
@@ -784,6 +793,7 @@ export class Island {
     this.viewsEl.classList.toggle("hidden-by-upload", uploadActive);
 
     tickMiniBots(dt);
+    if (railShown()) this.rail.tick(dt);
     this.header.tick?.(nowMs);
     this.views.get(State.view)?.tick?.(nowMs);
     if (UploadSeq.isActive) this.stepSequence();
@@ -821,7 +831,9 @@ export class Island {
     // The drop canvas draws its own Mochi; two of them would overlap.
     // Free placement: the floating character sits on top of the island, so the overview
     // doesn't draw it a second time (alerts still do, with their expressions).
-    const botAbove = State.settings.placement === "free" && (State.view === "overview" || State.view === "empty");
+    // With the character rail, the characters are drawn there instead.
+    const botAbove = (State.settings.placement === "free" && (State.view === "overview" || State.view === "empty"))
+      || railShown();
     const visible = p.opacity > 0 && !greetingActive && !this.uploadActive && !botAbove;
     this.botCanvas.style.opacity = visible ? "1" : "0";
 
@@ -956,6 +968,9 @@ export class Island {
     this.contentEl.style.pointerEvents = expanded && !greetingActive ? "auto" : "none";
     this.greetingCanvas.style.display = greetingActive ? "block" : "none";
 
+    const rail = railShown();
+    document.documentElement.classList.toggle("rail-on", rail);
+    if (rail) this.rail.sync(this.engine.state);
     this.header.sync();
     for (const [name, view] of this.views) {
       const on = name === State.view;
@@ -1010,6 +1025,17 @@ export class Island {
 
   /** The floating character the open island belongs to ("main" or an integration id). */
   private activeBuddy = "main";
+  private rail!: Rail;
+
+  /** Character rail (design C): that character's base; in free placement it's also the one the
+   *  island now belongs to. */
+  private async pickCharacter(id: string | null) {
+    if (State.chatOwner && State.chatOwner !== id) await leaveCharacterChat();
+    selectCharacter(id);
+    this.activeBuddy = id ?? "main";
+    this.setView(State.tasks.length ? "overview" : "empty");
+    State.notify();
+  }
 
   /** Free placement: a click on a floating character opens the island on its task, sitting
    *  on it; a click on the one the island belongs to folds it. */
@@ -1020,11 +1046,9 @@ export class Island {
       return;
     }
     this.activeBuddy = key;
-    const own = assignments(State.settings.critterAssignments);
-    const keepFocus = key === "main" && State.focusId != null && !own[State.focusId];
-    const target = key === "main" ? (keepFocus ? State.focusId : State.tasks.find((t) => !own[t.id])?.id) : key;
-    if (target) State.focusId = target;
-    State.soloTaskId = key === "main" ? null : key;
+    const id = key === "main" ? null : key;
+    if (State.chatOwner && State.chatOwner !== id) void leaveCharacterChat().then(() => State.notify());
+    selectCharacter(id);
     if (State.mode === "expanded") this.setView("overview");
     else this.fsm.forceHome();
     State.notify();

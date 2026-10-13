@@ -350,14 +350,14 @@ function drawTentacles(x: CanvasRenderingContext2D, hw: number, hh: number, p: P
       // Swings from hanging down to up and out, and waggles while waving.
       const wag = waving ? Math.sin(p.wave * 2 * Math.PI * 2.5) * 0.45 : 0;
       const base = lerp(Math.PI / 2, -0.7, raise) + wag * raise;
-      let px = lerp(x0, hw * 0.82, raise);
+      let px = lerp(x0, hw * 0.9, raise);
       let py = lerp(y0, y0 - hh * 0.18, raise);
       x.moveTo(px, py);
       for (let k = 1; k <= 11; k++) {
         const f = k / 11;
         const ang = base - f * 0.9 * raise - (waving ? Math.sin(p.wave * 2 * Math.PI * 2.5 - f * 2) * 0.35 * f : 0);
-        px += (Math.cos(ang) * len * 1.15) / 11;
-        py += (Math.sin(ang) * len * 1.15) / 11;
+        px += (Math.cos(ang) * len * 1.5) / 11;
+        py += (Math.sin(ang) * len * 1.5) / 11;
         x.lineTo(px, py);
       }
     } else {

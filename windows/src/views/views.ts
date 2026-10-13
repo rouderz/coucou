@@ -3,6 +3,8 @@
 // identically.
 
 import { showMode } from "../core/codeMode";
+import { RAIL_VIEWS, characterFor, characterName, openCharacterChat } from "../core/characters";
+import { PALETTES, tintedPalette } from "../mochi/critters";
 import { h, svg, clear, dot } from "./dom";
 import { ICONS } from "./icons";
 import { Ticker } from "./ticker";
@@ -42,6 +44,8 @@ export interface ViewActions {
   setAutoClose(seconds: number): void;
   openSettingsWindow(): void;
   blip(): void;
+  /** Character rail (design C): show that character's base (null: the main one). */
+  pickCharacter(taskId: string | null): void;
 }
 
 export interface ViewHost {
@@ -108,6 +112,18 @@ export function buildHeader(actions: ViewActions): ViewHost {
   const tabCode = h("button", { class: "mode-seg", title: `Code  ${MODE_KEYS.code}`, "aria-label": "Code",
     onclick: () => void showMode("code").then(() => go("prompt")) }, svg(ICONS.code, 14, { stroke: 1.8 }));
   const tabDrop = h("button", { class: "tab", title: "Drop", onclick: () => go("upload") }, svg(ICONS.plus, 13));
+  const mainTabs = h("div", { class: "tabs" }, tabHome, h("div", { class: "mode-switch" }, tabChat, tabCode), tabDrop);
+
+  // An integration's own character (design C): its name, its integration, its base and its own
+  // chat about it — only the main character has Chat / Code.
+  const charName = h("span", { class: "char-name" });
+  const charTask = h("span", { class: "char-task" });
+  const charHome = h("button", { class: "mode-seg", title: "Home", "aria-label": "Home",
+    onclick: () => { actions.blip(); actions.pickCharacter(State.soloTaskId); } }, svg(ICONS.house, 13));
+  const charAsk = h("button", { class: "mode-seg", "aria-label": "Ask",
+    onclick: () => { actions.blip(); if (State.soloTaskId) void openCharacterChat(State.soloTaskId); } },
+    svg(ICONS.chats, 14, { stroke: 1.8 }));
+  const charTabs = h("div", { class: "tabs char-tabs" }, charName, charTask, h("div", { class: "mode-switch" }, charHome, charAsk));
 
   const gearBtn = h("button", { title: "Settings", onclick: () => go("settings") }, svg(ICONS.gear, 14));
   // 🌙 Do not disturb: on → click turns it off; off → the choices (island settings).
@@ -162,7 +178,8 @@ export function buildHeader(actions: ViewActions): ViewHost {
   const el = h(
     "div",
     { id: "header" },
-    h("div", { class: "tabs" }, tabHome, h("div", { class: "mode-switch" }, tabChat, tabCode), tabDrop),
+    mainTabs,
+    charTabs,
     h("div", { class: "header-actions" }, updateBtn, focusBtn, inboxBtn, dndBtn, gearBtn, soundBtn),
   );
 
@@ -182,6 +199,22 @@ export function buildHeader(actions: ViewActions): ViewHost {
         ? "Focus: click to pause or resume (right-click for more)"
         : `Focus: start a ${f.config.focusMin}-min block (right-click for more)`;
       const v = State.view;
+      const solo = State.soloTaskId ? State.tasks.find((t) => t.id === State.soloTaskId) : undefined;
+      const charOn = !!solo && RAIL_VIEWS.has(v);
+      mainTabs.style.display = charOn ? "none" : "";
+      charTabs.style.display = charOn ? "" : "none";
+      if (solo && charOn) {
+        const critter = characterFor(solo.id);
+        const tint = State.settings.critterColors?.[solo.id];
+        const top = (tint ? tintedPalette(critter, tint) : PALETTES[critter]).top;
+        charName.textContent = characterName(solo.id);
+        charName.style.color = `rgb(${top.map((c) => Math.round(c * 255)).join(", ")})`;
+        charTask.textContent = solo.name;
+        const inChat = State.chatOwner === solo.id && CHAT_VIEWS.has(v);
+        charHome.classList.toggle("on", !inChat);
+        charAsk.classList.toggle("on", inChat);
+        charAsk.title = `Ask ${characterName(solo.id)}`;
+      }
       tabHome.classList.toggle("on", v === "overview" || v === "empty");
       tabChat.classList.toggle("on", CHAT_VIEWS.has(v) && State.chatMode === "chat");
       tabCode.classList.toggle("on", CHAT_VIEWS.has(v) && State.chatMode === "code");

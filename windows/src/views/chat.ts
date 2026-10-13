@@ -8,6 +8,7 @@ import { attachToChat } from "./integrations";
 import { matchSkills, withSkill } from "../core/skills";
 import { saveCurrent, startNewChat } from "../core/chats";
 import { folderName, folderSuggestions, pickFolder, useFolder } from "../core/codeMode";
+import { characterPlaceholder } from "../core/characters";
 import { Sound } from "../core/sound";
 import { State, type ChatMessage } from "../core/state";
 import type { ViewHost } from "./views";
@@ -398,6 +399,11 @@ export function buildPrompt(
 
     try {
       let sent = query;
+      // An integration character's chat: what it shows goes before the first question.
+      if (first && State.characterPreamble) {
+        sent = `${State.characterPreamble}\n\nQuestion: ${query}`;
+        State.characterPreamble = null;
+      }
       if (skill) {
         const text = await Bridge.skillRead(skill.path);
         sent = withSkill(skill.name, text.path, text.content, query);
@@ -516,6 +522,7 @@ export function buildPrompt(
 
       if (!mic.classList.contains("on")) {
         input.placeholder = State.chatSkill ? "What should it do?"
+          : State.chatOwner && State.chatHistory.length === 0 ? characterPlaceholder() ?? "Continue…"
           : coding() && !State.settings.codeFolder ? "Choose a folder first ↑"
           : coding() && State.chatHistory.length === 0 ? "What should we build? (/ skills)"
           : State.chatHistory.length === 0 ? "Ask me anything… (/ skills, @ Drive)" : "Continue…";

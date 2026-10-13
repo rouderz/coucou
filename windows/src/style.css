@@ -90,6 +90,81 @@ body {
 .free-placement .usage-row { padding-left: 20px; }
 .free-placement .ticker { margin-left: 20px; }
 
+/* ── Character rail (island design C) ─────────────────────────────────────── */
+
+#content-row {
+  flex: 1 1 auto;
+  min-height: 0;
+  display: flex;
+  gap: 8px;
+}
+#content-row > #views { min-width: 0; }
+
+#rail {
+  display: none;
+  flex: 0 0 54px;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 0;
+  border-radius: 14px;
+  background: rgba(255, 255, 255, 0.045);
+  overflow-y: auto;
+  scrollbar-width: none;
+}
+#rail::-webkit-scrollbar { display: none; }
+.rail-on #rail { display: flex; }
+
+.rail-item {
+  flex: 0 0 auto;
+  position: relative;
+  width: 46px;
+  height: 42px;
+  padding: 0;
+  border: 0;
+  border-radius: 12px;
+  background: transparent;
+  display: grid;
+  place-items: center;
+  cursor: default;
+}
+.rail-item canvas { pointer-events: none; }
+.rail-item:hover { background: rgba(255, 255, 255, 0.05); }
+.rail-item.on {
+  background: rgba(255, 255, 255, 0.1);
+  box-shadow: inset 0 0 0 1.5px var(--ring, rgba(255, 255, 255, 0.4));
+}
+.rail-item.news::after {
+  content: "";
+  position: absolute;
+  top: 3px;
+  right: 3px;
+  width: 8px;
+  height: 8px;
+  border-radius: 4px;
+  background: #f5a524;
+}
+
+/* The cards sit beside the rail instead of leaving room for the big character. */
+.rail-on .who,
+.rail-on .int-card,
+.rail-on .session-chips,
+.rail-on .usage-row { padding-left: 16px; }
+.rail-on .ticker { margin-left: 16px; }
+.rail-on .chat-body { padding-left: 12px; }
+
+/* An integration's character: its name and its integration instead of Chat / Code. */
+.char-tabs { align-items: center; gap: 8px; }
+.char-name { font: 600 13px var(--font); }
+.char-task {
+  font: 400 11.5px var(--font);
+  color: var(--dim-2);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 140px;
+}
+
 #island-clip {
   position: absolute;
   inset: 0;

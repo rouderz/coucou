@@ -8,6 +8,7 @@
 import { Bridge } from "./bridge";
 import { openChat, saveCurrent, startNewChat } from "./chats";
 import { State } from "./state";
+import { leaveCharacterChat, selectCharacter } from "./characters";
 
 const MAX_RECENT = 6;
 
@@ -18,6 +19,11 @@ export function folderName(path: string): string {
 
 /** Shows Chat or Code, each with its own conversation. */
 export async function showMode(mode: "chat" | "code") {
+  // Back from an integration character's own chat to the main character's.
+  if (State.chatOwner || State.soloTaskId) {
+    await leaveCharacterChat();
+    selectCharacter(null);
+  }
   if (mode !== State.chatMode) {
     await saveCurrent();
     State.stashedChatIds[State.chatMode] = State.currentChatId;

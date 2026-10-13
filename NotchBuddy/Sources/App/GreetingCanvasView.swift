@@ -332,14 +332,14 @@ private func drawTentacles(_ ctx: CGContext, hw: CGFloat, hh: CGFloat, p: GreetP
             // Swings from hanging down (π/2) to up and out (-0.7), and waggles while waving.
             let wag: CGFloat = waving ? CGFloat(sin(p.wave * 2 * .pi * 2.5)) * 0.45 : 0
             let base = gLerpF(.pi / 2, -0.7, raise) + wag * raise
-            let start = CGPoint(x: gLerpF(x0, hw * 0.82, raise), y: gLerpF(y0, y0 - hh * 0.18, raise))
+            let start = CGPoint(x: gLerpF(x0, hw * 0.9, raise), y: gLerpF(y0, y0 - hh * 0.18, raise))
             ctx.move(to: start)
             var pt = start
             for k in 1...11 {
                 let f = CGFloat(k) / 11
                 // Curls a little toward the tip, like a wave of the hand.
                 let ang = base - f * 0.9 * raise - (waving ? CGFloat(sin(p.wave * 2 * .pi * 2.5 - Double(f) * 2)) * 0.35 * f : 0)
-                pt = CGPoint(x: pt.x + cos(ang) * len * 1.15 / 11, y: pt.y + sin(ang) * len * 1.15 / 11)
+                pt = CGPoint(x: pt.x + cos(ang) * len * 1.5 / 11, y: pt.y + sin(ang) * len * 1.5 / 11)
                 ctx.addLine(to: pt)
             }
         } else {
