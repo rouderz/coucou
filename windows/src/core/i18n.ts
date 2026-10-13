@@ -27,7 +27,7 @@ export function language(): Lang {
 
 const ES: Record<string, string> = {
   // header, tabs, common
-  "Overview": "Resumen", "Ask": "Preguntar", "Drop": "Soltar", "Settings": "Ajustes", "Mute": "Silenciar",
+  "Overview": "Resumen", "Code": "Código", "Ask": "Preguntar", "Drop": "Soltar", "Settings": "Ajustes", "Mute": "Silenciar",
   "Settings…": "Ajustes…", "Back": "Atrás", "Cancel": "Cancelar", "Save": "Guardar", "Remove": "Quitar",
   "Delete": "Borrar", "Dismiss": "Descartar", "Dismiss all": "Descartar todo", "Open": "Abrir", "Refresh": "Actualizar",
   "Retry": "Reintentar", "OK": "OK", "Details": "Detalles", "Download": "Descargar", "Send": "Enviar", "Done": "Hecho",
@@ -485,6 +485,7 @@ const PATTERNS: [RegExp, string][] = [
   [/^Focus: (\d+) min on (.+)\. Do not disturb is on until the end of the block\.$/, "Concentración: $1 min en $2. No molestar está activado hasta el final del bloque."],
   [/^Focus: (\d+) min\. Do not disturb is on until the end of the block\.$/, "Concentración: $1 min. No molestar está activado hasta el final del bloque."],
   // the character's name (Settings → Character)
+  [/^Code  (.+)$/, "Código  $1"],
   [/^(Bao|Pip|Nube|Lumo|Tecla) moves with the music$/, "$1 se mueve con la música"],
   [/^Ask (Bao|Pip|Nube|Lumo|Tecla) why$/, "Preguntar a $1 por qué"],
   [/^GitHub \(your token, or a signed-in gh\) and Linear notifications that need you, behind the 🔔\. (Bao|Pip|Nube|Lumo|Tecla) peeks out when something new arrives\.$/,

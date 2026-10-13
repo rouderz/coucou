@@ -597,6 +597,12 @@ export class Island {
 
     window.addEventListener("keydown", (e) => {
       if (e.key === "Escape" && State.mode === "expanded" && !State.isPinned) this.collapse();
+      // Chat / Code (#149): Ctrl+Alt+← / →.
+      if (e.ctrlKey && e.altKey && !e.shiftKey && !e.metaKey && State.mode === "expanded"
+        && (e.key === "ArrowLeft" || e.key === "ArrowRight")) {
+        e.preventDefault();
+        this.setView(e.key === "ArrowLeft" ? "prompt" : "overview");
+      }
       State.lastActivity = performance.now();
     });
 

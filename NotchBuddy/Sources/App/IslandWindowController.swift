@@ -504,6 +504,18 @@ final class IslandWindowController: NSWindowController {
 
     // MARK: - Keyboard (Escape closes)
 
+    /// ⌥⌘← Chat, ⌥⌘→ Code (#149), while the island is open. True when the key was used.
+    private func handleModeKeys(_ event: NSEvent, fromOtherApp: Bool) -> Bool {
+        let mods = event.modifierFlags.intersection([.command, .option, .control, .shift])
+        guard mods == [.command, .option], event.keyCode == 123 || event.keyCode == 124 else { return false }
+        guard state.mode == .expanded else { return false }
+        // From another app only while the pointer is on the island: ⌥⌘→ switches tabs in browsers.
+        if fromOtherApp && !state.pointerInIsland { return false }
+        if event.keyCode == 123 { ModeSwitch.showChat(state) } else { ModeSwitch.showCode(state) }
+        state.lastActivity = .now
+        return true
+    }
+
     private func startKeyMonitor() {
         keyMonitor = NSEvent.addGlobalMonitorForEvents(matching: .keyDown) { [weak self] event in
             Task { @MainActor in
@@ -513,7 +525,12 @@ final class IslandWindowController: NSWindowController {
                         self.collapse()
                     }
                 }
+                _ = self.handleModeKeys(event, fromOtherApp: true)
             }
+        }
+        NSEvent.addLocalMonitorForEvents(matching: .keyDown) { [weak self] event in
+            guard let self else { return event }
+            return MainActor.assumeIsolated { self.handleModeKeys(event, fromOtherApp: false) ? nil : event }
         }
 
         // Hook server expand requests (alerts only)

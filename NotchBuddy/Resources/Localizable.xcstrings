@@ -1412,6 +1412,16 @@
         }
       }
     },
+    "Code": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Código"
+          }
+        }
+      }
+    },
     "Chat answer": {
       "localizations": {
         "es": {

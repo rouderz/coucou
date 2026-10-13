@@ -92,9 +92,17 @@ function stack(padLeft: number, padRight: number, ...children: Node[]): HTMLElem
 
 // ── Header ────────────────────────────────────────────────────────────────────
 
+/** Views that belong to the Chat side of the Chat / Code switch. */
+export const CHAT_VIEWS = new Set<IslandViewName>(["prompt", "searching", "result"]);
+/** Ctrl+Alt+← / → switch modes while the island has the keyboard (⌥⌘ on the Mac). */
+export const MODE_KEYS = { chat: "Ctrl+Alt+←", code: "Ctrl+Alt+→" };
+
 export function buildHeader(actions: ViewActions): ViewHost {
-  const tabHome = h("button", { class: "tab", title: "Overview", onclick: () => go("overview") }, svg(ICONS.house, 13));
-  const tabChat = h("button", { class: "tab", title: "Ask", onclick: () => go("prompt") }, svg(ICONS.bubble, 13));
+  // Chat / Code switch (#149): the conversation, or the Claude Code sessions.
+  const tabChat = h("button", { class: "mode-seg", title: `Chat  ${MODE_KEYS.chat}`, "aria-label": "Chat", onclick: () => go("prompt") },
+    svg(ICONS.chats, 14, { stroke: 1.8 }));
+  const tabHome = h("button", { class: "mode-seg", title: `Code  ${MODE_KEYS.code}`, "aria-label": "Code", onclick: () => go("overview") },
+    svg(ICONS.code, 14, { stroke: 1.8 }));
   const tabDrop = h("button", { class: "tab", title: "Drop", onclick: () => go("upload") }, svg(ICONS.plus, 13));
 
   const gearBtn = h("button", { title: "Settings", onclick: () => go("settings") }, svg(ICONS.gear, 14));
@@ -150,7 +158,7 @@ export function buildHeader(actions: ViewActions): ViewHost {
   const el = h(
     "div",
     { id: "header" },
-    h("div", { class: "tabs" }, tabHome, tabChat, tabDrop),
+    h("div", { class: "tabs" }, h("div", { class: "mode-switch" }, tabChat, tabHome), tabDrop),
     h("div", { class: "header-actions" }, updateBtn, focusBtn, inboxBtn, dndBtn, gearBtn, soundBtn),
   );
 
@@ -171,7 +179,7 @@ export function buildHeader(actions: ViewActions): ViewHost {
         : `Focus: start a ${f.config.focusMin}-min block (right-click for more)`;
       const v = State.view;
       tabHome.classList.toggle("on", v === "overview" || v === "empty");
-      tabChat.classList.toggle("on", v === "prompt");
+      tabChat.classList.toggle("on", CHAT_VIEWS.has(v));
       tabDrop.classList.toggle("on", v === "upload");
       gearBtn.classList.toggle("on", v === "settings");
       clear(gearBtn);

@@ -482,15 +482,8 @@ struct IslandHeader: View {
     var body: some View {
         HStack(spacing: 0) {
             // Left: tab capsules
-            HStack(spacing: 5) {
-                TabButton(icon: "house.fill", view: .overview, state: state)
-                TabButton(icon: "bubble.left.fill", view: .prompt, state: state, preAction: {
-                    #if !APPSTORE
-                    if state.promptContext == nil {
-                        state.promptContext = WindowContextCapture.captureActive(from: state.lastExternalApp)
-                    }
-                    #endif
-                })
+            HStack(spacing: 6) {
+                ModeSwitch(state: state)
                 TabButton(icon: "plus", view: .upload, state: state)
             }
             .padding(.leading, 14)
@@ -524,6 +517,67 @@ struct IslandHeader: View {
             .padding(.trailing, 16)
         }
         .frame(maxHeight: .infinity)
+    }
+}
+
+// MARK: - Chat / Code switch (#149)
+
+/// Two modes, side by side like a segmented control: Chat (the conversation) and Code (the
+/// Claude Code sessions: tasks, approvals, diffs). ⌥⌘← / ⌥⌘→ switch while the island is open.
+struct ModeSwitch: View {
+    @ObservedObject var state: AppState
+
+    static let chatViews: Set<IslandView> = [.prompt, .searching, .result]
+
+    static func showChat(_ state: AppState) {
+        #if !APPSTORE
+        if state.promptContext == nil {
+            state.promptContext = WindowContextCapture.captureActive(from: state.lastExternalApp)
+        }
+        #endif
+        withAnimation(.spring(response: 0.3, dampingFraction: 0.8)) { state.view = .prompt }
+    }
+
+    static func showCode(_ state: AppState) {
+        withAnimation(.spring(response: 0.3, dampingFraction: 0.8)) { state.view = .overview }
+    }
+
+    private var chatOn: Bool { Self.chatViews.contains(state.view) }
+    private var codeOn: Bool { state.view == .overview || state.view == .empty || state.view == .live }
+
+    var body: some View {
+        HStack(spacing: 2) {
+            ModeSegment(icon: "bubble.left.and.bubble.right", on: chatOn,
+                        label: L("Chat"), keys: "\u{2325}\u{2318}\u{2190}") { Self.showChat(state) }
+            ModeSegment(icon: "chevron.left.forwardslash.chevron.right", on: codeOn,
+                        label: L("Code"), keys: "\u{2325}\u{2318}\u{2192}") { Self.showCode(state) }
+        }
+        .padding(2)
+        .background(Capsule().fill(Color.white.opacity(0.06)))
+    }
+}
+
+private struct ModeSegment: View {
+    let icon: String
+    let on: Bool
+    let label: String
+    let keys: String
+    let action: () -> Void
+    @State private var hovered = false
+
+    var body: some View {
+        Button(action: action) {
+            Image(systemName: icon)
+                .font(.system(size: 12, weight: .medium))
+                .foregroundColor(on ? Color(hex: "#F5F6F8") : (hovered ? Color(hex: "#B0B5BE") : Color(hex: "#8E939C")))
+                .frame(width: 34, height: 22)
+                .background(Capsule().fill(on ? Color(hex: "#2A2D33") : (hovered ? Color.white.opacity(0.06) : .clear)))
+                .overlay(Capsule().stroke(on ? Color.white.opacity(0.12) : .clear, lineWidth: 1))
+        }
+        .buttonStyle(.plain)
+        .onHover { hovered = $0 }
+        .help(Text(verbatim: "\(label)  \(keys)"))
+        .accessibilityLabel(Text(verbatim: label))
     }
 }
 
