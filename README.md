@@ -164,7 +164,7 @@ If Coucou isn't running, the hook exits at once: **Claude Code is never blocked.
 
 | Mac | Windows / Linux | Does |
 |---|---|---|
-| ⌃⌥M | — (use the editor extension's "Ask Mochi about this") | ask about the file in the front editor (with the extension: exact cursor, selection and errors) |
+| ⌃⌥M | — (use the editor extension's "Ask Coucou about this") | ask about the file in the front editor (with the extension: exact cursor, selection and errors) |
 | hold ⌃⌥V | 🎙 in the chat (Windows) | push-to-talk |
 | ⌥⏎ / ⌥⌫ | Alt+Enter / Alt+Backspace (X11 only on Linux) | allow / deny the waiting approval (only while one is waiting) |
 | ⌥⌘← / ⌥⌘→ | Ctrl+Alt+← / → | switch between Chat and Code |

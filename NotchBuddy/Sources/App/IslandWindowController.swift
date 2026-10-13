@@ -469,8 +469,10 @@ final class IslandWindowController: NSWindowController {
                      NSWindow.didDeminiaturizeNotification] {
             nc.addObserver(forName: name, object: nil, queue: .main) { [weak self] note in
                 let gone = note.name == NSWindow.willCloseNotification || note.name == NSWindow.didMiniaturizeNotification
+                // Delivered on the main queue (queue: .main), so the window can be read there.
+                nonisolated(unsafe) let window = note.object as? NSWindow
                 MainActor.assumeIsolated {
-                    guard let win = note.object as? NSWindow, win.identifier == .coucouSettings else { return }
+                    guard let win = window, win.identifier == .coucouSettings else { return }
                     self?.settingsWindowChanged(gone ? nil : win.frame)
                 }
             }
