@@ -97,6 +97,19 @@ pub struct Settings {
     #[serde(default = "yes")]
     pub idle_notch: bool,
 
+    /// The character (src/mochi/critters.ts): "bao", "pip", "nube", "lumo", "tecla" or "mochi".
+    #[serde(default = "default_critter")]
+    pub critter: String,
+    /// "notch" = the island at the top of the screen; "free" = the character floats in its
+    /// own window (buddy.rs) that you drag anywhere, and the island opens next to it.
+    #[serde(default = "default_placement")]
+    pub placement: String,
+    /// Where the free character was left (logical px, top-left of its window); None = default.
+    #[serde(default)]
+    pub buddy_x: Option<f64>,
+    #[serde(default)]
+    pub buddy_y: Option<f64>,
+
     /// Mochi moves with the music (#117). Off by default.
     #[serde(default)]
     pub mochi_dance: bool,
@@ -166,6 +179,14 @@ fn ids_as_text<'de, D: serde::Deserializer<'de>>(d: D) -> Result<Vec<String>, D:
             _ => None,
         })
         .collect())
+}
+
+fn default_critter() -> String {
+    "bao".into()
+}
+
+fn default_placement() -> String {
+    "notch".into()
 }
 
 fn default_theme() -> String {
@@ -250,6 +271,10 @@ impl Default for Settings {
             theme: default_theme(),
             speak_replies: false,
             idle_notch: true,
+            critter: default_critter(),
+            placement: default_placement(),
+            buddy_x: None,
+            buddy_y: None,
             mochi_dance: false,
             whaticket_auto_accept: false,
             whaticket_queues: Vec::new(),

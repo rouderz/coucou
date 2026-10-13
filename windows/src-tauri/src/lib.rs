@@ -26,6 +26,7 @@ mod voice;
 mod whaticket;
 mod aliexpress;
 mod browser;
+mod buddy;
 
 use std::sync::atomic::Ordering;
 use std::sync::{Arc, Mutex};
@@ -82,7 +83,9 @@ fn save_settings(app: AppHandle, shared: State<Shared>, settings: Settings) {
     let (screen_changed, autostart_changed) = {
         let mut current = shared.settings.lock().unwrap();
         // The idle notch changes the hidden window's size too.
-        let screen_changed = current.screen != settings.screen || current.idle_notch != settings.idle_notch;
+        let screen_changed = current.screen != settings.screen
+            || current.idle_notch != settings.idle_notch
+            || current.placement != settings.placement;
         shared.gate.idle_notch.store(settings.idle_notch, Ordering::Relaxed);
         let autostart_changed = current.autostart != settings.autostart;
         *current = settings.clone();
@@ -99,8 +102,10 @@ fn save_settings(app: AppHandle, shared: State<Shared>, settings: Settings) {
         }
     }
     if screen_changed {
+        buddy::sync(&app);
         let collapsed = shared.gate.collapsed.load(Ordering::Relaxed);
         island::apply_geometry(&app, &settings.screen, collapsed);
+        island::set_ignore_cursor(&app, collapsed && settings.placement == "free");
     }
     apply_capture_shortcut(&app, &settings.capture_shortcut);
     // Keep the other window in step (island ⇄ settings window).
@@ -118,8 +123,9 @@ fn set_collapsed(app: AppHandle, shared: State<Shared>, collapsed: bool) {
     shared.gate.idle_notch.store(idle_notch, Ordering::Relaxed);
     shared.gate.collapsed.store(collapsed, Ordering::Relaxed);
     island::apply_geometry(&app, &pref, collapsed);
-    // The wake strip must always take the mouse, and a resize invalidates the flag.
-    island::set_ignore_cursor(&app, false);
+    // The wake strip must always take the mouse (free placement has none: the folded
+    // island is a speck that must never catch a click), and a resize invalidates the flag.
+    island::set_ignore_cursor(&app, collapsed && buddy::is_free(&app));
     shared.gate.forget_ignore_state();
     shared.gate.set_active(!collapsed);
     island::apply_input_region(&app, &shared.gate);
@@ -1128,12 +1134,16 @@ pub fn run() {
             ci_job_log,
             ci_rerun_failed,
             ci_save_log,
+            buddy::buddy_clicked,
+            buddy::buddy_moved,
+            buddy::buddy_menu,
         ])
         .setup(move |app| {
             let handle = app.handle().clone();
             tray::build(&handle)?;
             // Before the island: see create_settings_window.
             create_settings_window(&handle);
+            buddy::create(&handle, BROWSER_ARGS);
 
             if let Some(win) = island::window(&handle) {
                 platform::prepare_island(&win);
@@ -1149,6 +1159,7 @@ pub fn run() {
             }
             gate.idle_notch.store(loaded.idle_notch, Ordering::Relaxed);
             island::spawn_topmost_keeper(handle.clone());
+            buddy::sync(&handle);
 
             log::line(format!("--- Coucou {} started ---", env!("CARGO_PKG_VERSION")));
             hooks::ensure_hook_exe(&handle);

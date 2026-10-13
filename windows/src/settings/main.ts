@@ -9,6 +9,8 @@ import { DEFAULT_SETTINGS, type Settings } from "../core/state";
 import { parseTeams, type TeamInfo } from "../core/capture";
 import { h, clear } from "../views/dom";
 import { THEMES, applyTheme } from "../core/themes.ts";
+import { BotEngine } from "../mochi/engine";
+import { CRITTERS, CRITTER_INFO, DEFAULT_CRITTER, type CritterId } from "../mochi/critters";
 import { dayKey as wtDayKey, duration, range, summary, toCsv as wtToCsv, type Period, type StatEvent } from "../core/whaticketStats.ts";
 import {
   addAdjustment, dayKey, formatDuration, formatHours, groupPeriod, parseStore, recentPeriods, rowsFromStore,
@@ -1560,6 +1562,52 @@ function paintTheme() {
 }
 darkQuery.addEventListener("change", paintTheme);
 
+// ── Character ─────────────────────────────────────────────────────────────────
+
+/** A still drawing of a character at rest (drawn once, no animation loop). */
+function critterPreview(c: CritterId): HTMLCanvasElement {
+  const w = 44, ht = 36;
+  const dpr = Math.min(2, window.devicePixelRatio || 1);
+  const canvas = h("canvas", { class: "critter-preview" }) as HTMLCanvasElement;
+  canvas.width = Math.round(w * dpr);
+  canvas.height = Math.round(ht * dpr);
+  canvas.style.width = `${w}px`;
+  canvas.style.height = `${ht}px`;
+  const ctx = canvas.getContext("2d");
+  if (ctx) {
+    const engine = new BotEngine();
+    engine.critter = c;
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    engine.draw(ctx, w, ht);
+  }
+  return canvas;
+}
+
+function characterSection(): HTMLElement {
+  const grid = h("div", { class: "theme-grid critter-grid" });
+  function draw() {
+    clear(grid);
+    const current = (CRITTERS as readonly string[]).includes(settings.critter) ? settings.critter : DEFAULT_CRITTER;
+    for (const c of CRITTERS) {
+      grid.append(h("button", {
+        class: "theme-choice critter-choice" + (current === c ? " on" : ""),
+        onclick: () => { settings.critter = c; void save(); draw(); },
+      },
+      critterPreview(c),
+      h("span", { class: "critter-text" },
+        h("b", { text: CRITTER_INFO[c].name }),
+        h("small", { text: CRITTER_INFO[c].tagline }),
+      )));
+    }
+  }
+  draw();
+  return h("section", {},
+    h("h2", {}, h("span", { text: "Character" })),
+    grid,
+    h("div", { class: "hint", text: "Mochi is the original Coucou character and isn't covered by the open-source licence: keep it for your own use, pick another one in builds you share." }),
+  );
+}
+
 function appearanceSection(): HTMLElement {
   const grid = h("div", { class: "theme-grid" });
   const choices: [string, string, string[]][] = [
@@ -1640,6 +1688,22 @@ function generalSection(editors: { id: string; name: string }[]): HTMLElement {
     void save();
   });
 
+  // Free placement: the character floats in its own window you drag anywhere (buddy.rs).
+  const placement = h("select", {}) as HTMLSelectElement;
+  placement.append(
+    h("option", { value: "notch", text: "At the top of the screen" }),
+    h("option", { value: "free", text: "Free on the desktop" }),
+  );
+  placement.value = settings.placement === "free" ? "free" : "notch";
+  placement.addEventListener("change", () => {
+    settings.placement = placement.value === "free" ? "free" : "notch";
+    void save();
+  });
+  const resetSpot = h("button", {
+    text: "Reset position",
+    onclick: () => { settings.buddyX = null; settings.buddyY = null; settings.placement = "free"; placement.value = "free"; void save(); },
+  });
+
   return h(
     "section",
     {},
@@ -1657,6 +1721,12 @@ function generalSection(editors: { id: string; name: string }[]): HTMLElement {
     h("div", { class: "row" },
       h("label", { text: "Language" }),
       language,
+    ),
+    h("div", { class: "row" },
+      h("label", { text: "Where it lives" }),
+      placement,
+      resetSpot,
+      h("span", { class: "hint", text: "free: drag the character anywhere, click it to open the island next to it, right-click for options" }),
     ),
     h("div", { class: "row" },
       h("label", { text: "Island lives on" }),
@@ -1724,7 +1794,7 @@ async function main() {
   // Tabs: everything used to be one long page.
   type Tab = "general" | "chat" | "claude" | "integrations" | "alerts";
   const pages: [Tab, string, HTMLElement[]][] = [
-    ["general", "General", [appearanceSection(), generalSection(editors), voiceSection(canListen), updatesSection()]],
+    ["general", "General", [characterSection(), appearanceSection(), generalSection(editors), voiceSection(canListen), updatesSection()]],
     ["chat", "Chat", [apiSection(hasKey, claudeCode, presets, present), skillsSection(skillTargets)]],
     ["claude", "Claude Code", [claudeSection(status), codexSection(codex), timeSection(), focusSection()]],
     ["integrations", "Integrations", [

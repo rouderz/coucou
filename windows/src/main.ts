@@ -109,6 +109,9 @@ async function main() {
     if (!ciWasOn) refreshCI();
   });
 
+  // Free placement: the floating character was clicked.
+  await onEvent<null>("buddy-click", () => island.toggleFromBuddy());
+
   registerHookHandlers(island);
   registerIntegrationHandlers(island);
   registerInboxHandlers(island);

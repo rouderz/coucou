@@ -186,6 +186,14 @@ export interface Settings {
   speakReplies: boolean;
   /** A small notch stays at the top when the island hides (like the Mac's). */
   idleNotch: boolean;
+  /** The character (mochi/critters.ts): "bao", "pip", "nube", "lumo", "tecla" or "mochi". */
+  critter: string;
+  /** "notch": the island at the top of the screen. "free": the character floats in its own
+   *  window you drag anywhere, and opens the island next to it. */
+  placement: "notch" | "free";
+  /** Where the free character was left (logical px, top-left of its window); null = default spot. */
+  buddyX: number | null;
+  buddyY: number | null;
   /** WhaTicket: accept new tickets on their own, from these queues (empty = any), in these hours. */
   whaticketAutoAccept: boolean;
   whaticketQueues: string[];
@@ -259,6 +267,10 @@ export const DEFAULT_SETTINGS: Settings = {
   theme: "dark",
   speakReplies: false,
   idleNotch: true,
+  critter: "bao",
+  placement: "notch",
+  buddyX: null,
+  buddyY: null,
   whaticketAutoAccept: false,
   whaticketQueues: [],
   whaticketHours: "",

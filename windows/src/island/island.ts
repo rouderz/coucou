@@ -2,7 +2,7 @@
 // Mirrors IslandRootView.swift + IslandWindowController.swift.
 
 import { Tracked, Spring, clamp } from "../core/anim";
-import { Bridge, IS_TAURI, onDragDrop } from "../core/bridge";
+import { Bridge, IS_TAURI, onDragDrop, toBuddy } from "../core/bridge";
 import {
   EXPANDED_CORNER, EXPANDED_W, NOTCH_W, PANEL_H, PANEL_W,
   ROUNDED_CORNER, VIEW_LAYOUTS, botGlowColor, botGlowOpacity, botPosition, chatPromptHeight,
@@ -15,7 +15,8 @@ import { BotEngine, hexToRGB, type EyeShape } from "../mochi/engine";
 import { progress as focusProgress } from "../core/focus.ts";
 import type { BotEmoteName } from "../core/layout";
 import { Greeting } from "../mochi/greeting";
-import { createMiniBot, pruneMiniBots, syncMiniBotStates, tickMiniBots } from "../mochi/minibots";
+import { createMiniBot, pruneMiniBots, setMiniCritter, syncMiniBotStates, tickMiniBots } from "../mochi/minibots";
+import { DEFAULT_CRITTER, isCritter } from "../mochi/critters";
 import { UploadCanvas } from "../upload/canvas";
 import { USC, UploadSeq } from "../upload/sequence";
 import { buildHeader, buildViews, type ViewActions, type ViewHost } from "../views/views";
@@ -546,17 +547,22 @@ export class Island {
 
   // ── Window collapse (hidden → tiny wake strip, zero polling) ────────────────
 
+  /** Free placement: the island only exists while open, next to the floating character. */
+  private get folded(): boolean {
+    return State.mode === "hidden" || (State.settings.placement === "free" && State.mode !== "expanded");
+  }
+
   private updateWindowCollapsed() {
     if (this.collapseTimer != null) {
       window.clearTimeout(this.collapseTimer);
       this.collapseTimer = null;
     }
-    if (State.mode === "hidden") {
+    if (this.folded) {
       // Let the island finish retracting, then drop the window to the wake strip:
       // from there the OS delivers no cursor events, so nothing polls at all.
       this.collapseTimer = window.setTimeout(() => {
         this.collapseTimer = null;
-        if (State.mode !== "hidden") return;
+        if (!this.folded) return;
         this.collapsed = true;
         void Bridge.setCollapsed(true);
       }, 420);
@@ -967,6 +973,7 @@ export class Island {
 
     syncMiniBotStates(State.tasks);
     this.engine.setState(State.effectiveState);
+    this.pushBuddyState();
     this.applyFocusLook();
   }
 
@@ -977,14 +984,36 @@ export class Island {
     window.setTimeout(() => this.views.get(view)?.focus?.(), 120);
   }
 
+  /** Free placement: a click on the floating character opens or folds the island. */
+  toggleFromBuddy() {
+    Sound.resume();
+    if (State.mode === "expanded") this.collapse();
+    else this.fsm.forceHome();
+  }
+
+  private lastBuddyState = "";
+  /** Keeps the floating character (buddy window) in the same state as this one. */
+  private pushBuddyState(force = false) {
+    if (State.settings.placement !== "free") return;
+    const s = this.engine.state;
+    if (s === this.lastBuddyState && !force) return;
+    this.lastBuddyState = s;
+    toBuddy(s);
+  }
+
   /** Applies settings coming from Rust at boot. */
   applySettings() {
-    // The notch left on screen when hidden, and a wake strip that covers it.
-    IDLE.notch = State.settings.idleNotch !== false;
+    const critter = isCritter(State.settings.critter) ? State.settings.critter : DEFAULT_CRITTER;
+    this.engine.critter = critter;
+    setMiniCritter(critter);
+    // The notch left on screen when hidden, and a wake strip that covers it (none in free placement).
+    IDLE.notch = State.settings.idleNotch !== false && State.settings.placement !== "free";
     this.wakeStrip.style.height = `${IDLE.notch ? IDLE_NOTCH_H + 2 : 6}px`;
     Sound.setEnabled(State.settings.soundEnabled);
     Sound.setVolume(State.settings.soundVolume);
     this.fsm.homeToPetitDelay = State.settings.autoCloseInterval;
+    this.updateWindowCollapsed();
+    this.pushBuddyState(true);
     State.notify();
   }
 
