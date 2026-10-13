@@ -109,7 +109,8 @@ final class IslandWindowController: NSWindowController {
                 // so IslandContainer sees isActive=true when state.view becomes .upload.
                 UploadSequenceEngine.shared.enterZone(x: iLoc.x, y: iLoc.y)
                 NotificationCenter.default.post(name: .hookExpand, object: IslandView.upload)
-                NotificationCenter.default.post(name: .botMorphTo, object: CGFloat(1))
+                // The character stays itself (no box): it just perks up at the file.
+                NotificationCenter.default.post(name: .triggerEmote, object: BotEmote.surprised)
             }
         }
         dropView.onDragUpdated = { [weak self] loc in
@@ -556,9 +557,19 @@ final class IslandWindowController: NSWindowController {
         guard let panel = window as? IslandPanel else { return }
         if open {
             positionIslandNearBuddy()
-            if !suppressedForFullscreen { panel.alphaValue = 1 }
+            if !suppressedForFullscreen {
+                // Through the animator too, so it wins over a fade-out still running.
+                NSAnimationContext.runAnimationGroup { ctx in
+                    ctx.duration = 0.06
+                    panel.animator().alphaValue = 1
+                }
+            }
         } else {
-            panel.alphaValue = 0
+            // A quick fade instead of vanishing at once.
+            NSAnimationContext.runAnimationGroup { ctx in
+                ctx.duration = 0.14
+                panel.animator().alphaValue = 0
+            }
             panel.ignoresMouseEvents = true
             buddy.unperch()
             buddy.activeKey = FreeBuddyController.mainKey   // alerts open on the main character

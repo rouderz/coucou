@@ -129,6 +129,8 @@ struct USFrame {
     var eye: USEyeShape = .pill
     var lookX: Double = 0; var lookY: Double = 0
     var fileVisible: Bool = true; var suck: Double = 0
+    /// The character holds the file and reads it (0…1 shows it), and where its eyes scan.
+    var held: Double = 0
     var zoneOver:    Bool   = false
     var zoneAlpha:   Double = 1
     var textAlpha:   Double = 1
@@ -317,7 +319,8 @@ final class UploadSequenceEngine {
             morph = usEBack(usSeg(pt, growStart, growEnd))
         }
         morph = max(0, min(morph, 1.08))
-        f.morph = morph
+        // The character keeps its own shape: no box. It catches the file and reads it instead.
+        f.morph = 0
 
         // Position / diameter
         var x = sim.bx.v, y = sim.by.v, d = USC.D_BOX
@@ -356,8 +359,9 @@ final class UploadSequenceEngine {
             sy = usSqueezeY(pt); sx = usSqueezeX(pt)
         }
         if pt >= USC.T_CHEW1 && pt < USC.T_CHEW_END {
-            let k = ((pt-USC.T_CHEW1).truncatingRemainder(dividingBy: 0.14)) / 0.14
-            sy = 1 - 0.05*sin(.pi*k); sx = 1 + 0.03*sin(.pi*k)
+            // Reading: a small nod per line.
+            let k = ((pt-USC.T_CHEW1).truncatingRemainder(dividingBy: 0.28)) / 0.28
+            sy = 1 - 0.025*sin(.pi*k); sx = 1 + 0.012*sin(.pi*k)
         }
         if pt >= USC.T_CHEW_END && pt < USC.T_SHRINK_END {
             let k = usSeg(pt, USC.T_CHEW_END, USC.T_SHRINK_END)
@@ -381,16 +385,27 @@ final class UploadSequenceEngine {
         // Eyes
         var eye: USEyeShape = .pill
         if sim.locked && pt < USC.T_SUCK_END { eye = .cup }
-        if pt >= USC.T_SUCK_END && pt < USC.T_CHEW_END + 0.10 { eye = .content }
         if pt >= progEnd && pt < growEnd + 0.30 { eye = .content }
         f.eye = eye
 
-        let lkx = pt < USC.T_SUCK_END ? cursorX - x : (pt < USC.T_PROG_START ? 0.0 : 40.0)
-        let lky = pt < USC.T_SUCK_END ? (cursorY+10) - y : 0.0
+        var lkx = pt < USC.T_SUCK_END ? cursorX - x : (pt < USC.T_PROG_START ? 0.0 : 40.0)
+        var lky = pt < USC.T_SUCK_END ? (cursorY+10) - y : 0.0
+        // Reading what it caught: eyes down on the page, sweeping line by line.
+        let reading = pt >= USC.T_SUCK_END && pt < USC.T_SHRINK_END
+        if reading {
+            lky = 95
+            lkx = 90 * sin((pt - USC.T_SUCK_END) * 11)
+        }
         f.lookX = max(-1, min(1, lkx/200)); f.lookY = max(-1, min(1, lky/150))
 
         f.fileVisible = pt < USC.T_SUCK_END
         f.suck = usSeg(pt, USC.T_SUCK_START, USC.T_SUCK_END)
+        // Held while reading (gone as it shrinks to the bar), and again at the end, by the buttons.
+        if pt >= USC.T_SUCK_END && pt < USC.T_SHRINK_END {
+            f.held = 1 - usSeg(pt, USC.T_CHEW_END, USC.T_SHRINK_END)
+        } else if pt >= growStart {
+            f.held = usSeg(pt, growStart + 0.15, growEnd)
+        }
 
         // Content alpha values
         f.zoneOver   = sim.entered >= 0 && pt < USC.T_CHEW_END

@@ -2386,3 +2386,41 @@ input[type="range"]::-webkit-slider-thumb {
 }
 .mb-add { background: transparent; border: 1px dashed rgba(255, 255, 255, 0.16); color: #9a9ea6; }
 .mb-folder { font-size: 9px; color: #9a9ea6; }
+.mb-chip.vpn-on { background: #1f3b2a; }
+.rail-on #content { padding-top: 14px; }
+
+/* ── Character bases: WhaTicket chart, GitHub repositories (design C) ───────── */
+.wt-chart { display: flex; align-items: flex-end; gap: 14px; padding: 8px 2px 0; }
+.wt-stats { flex: 0 0 96px; display: flex; flex-direction: column; gap: 6px; }
+.wt-stat { display: flex; align-items: center; gap: 6px; font: 400 10.5px var(--font); color: #8e939c; }
+.wt-stat i { width: 6px; height: 6px; border-radius: 3px; }
+.wt-stat b { margin-left: auto; font: 600 12px var(--font); color: var(--ink); font-variant-numeric: tabular-nums; }
+.wt-plot { flex: 1 1 auto; display: flex; flex-direction: column; gap: 3px; min-width: 0; }
+.wt-bars { display: flex; align-items: flex-end; gap: 5px; height: 58px; }
+.wt-col { position: relative; flex: 1 1 0; height: 58px; border-radius: 3px; background: rgba(255, 255, 255, 0.06); }
+.wt-col i { position: absolute; bottom: 0; border-radius: 3px; height: 0;
+  transition: height 0.55s cubic-bezier(0.34, 1.4, 0.64, 1); }
+.wt-arrived { left: 0; right: 0; background: rgba(37, 211, 102, 0.28); height: 2px; }
+.wt-accepted { left: 50%; width: 6px; margin-left: -3px; background: linear-gradient(#6ee7a0, #25d366); }
+.wt-labels { display: flex; gap: 5px; }
+.wt-labels span { flex: 1 1 0; text-align: center; font: 400 8.5px var(--font); color: #6b7079; }
+.gh-repos { display: flex; flex-direction: column; gap: 3px; padding-top: 6px; padding-right: 12px; }
+.gh-repo { display: flex; align-items: center; gap: 7px; height: 21px; padding: 0 8px; border: 0; border-radius: 7px;
+  background: rgba(255, 255, 255, 0.04); color: #e8e9ec; font: 400 10px var(--font); text-align: left; cursor: default; }
+.gh-repo b { font: 500 11.5px var(--font); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.gh-icon { font-size: 9px; color: #8e939c; width: 12px; }
+.gh-lang, .gh-ago { color: #8e939c; white-space: nowrap; }
+.gh-ago { color: #6b7079; }
+.gh-stars { color: #f5c842; }
+.gh-spacer { flex: 1 1 auto; }
+
+/* Free placement: the bubble pops out from under the character. */
+@keyframes island-pop {
+  from { scale: 0.86; opacity: 0; }
+  60% { opacity: 1; }
+  to { scale: 1; opacity: 1; }
+}
+.free-placement #island.pop {
+  transform-origin: 50% 0;
+  animation: island-pop 0.34s cubic-bezier(0.34, 1.35, 0.64, 1);
+}

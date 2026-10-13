@@ -31,15 +31,37 @@ final class VPNMonitor: ObservableObject {
     var protonInstalled: Bool { Self.protonApps.contains { FileManager.default.fileExists(atPath: $0) } }
 
     func refresh() async {
-        let out = await Self.run(["--nc", "list"])
-        services = Self.parse(out)
+        let out = await Self.run(Self.scutil, ["--nc", "list"])
+        var list = Self.parse(out)
+        // Cloudflare WARP, through its own command line.
+        if let cli = Self.warpCLI {
+            let status = await Self.run(cli, ["status"]).lowercased()
+            if status.contains("connected") {
+                list.removeAll { $0.name.localizedCaseInsensitiveContains("warp") }
+                list.insert(VPNService(id: "warp", name: "Cloudflare WARP",
+                                       status: status.contains("disconnected") ? .disconnected : .connected), at: 0)
+            }
+        }
+        services = list
+    }
+
+    nonisolated private static var warpCLI: String? {
+        ["/usr/local/bin/warp-cli", "/opt/homebrew/bin/warp-cli",
+         "/Applications/Cloudflare WARP.app/Contents/Resources/warp-cli"]
+            .first { FileManager.default.isExecutableFile(atPath: $0) }
     }
 
     /// Turns it on or off. VPNs that only their own app can start (Proton's) open that app.
     func toggle(_ s: VPNService) {
         Task {
+            if s.id == "warp", let cli = Self.warpCLI {
+                _ = await Self.run(cli, [s.status == .disconnected ? "connect" : "disconnect"])
+                try? await Task.sleep(nanoseconds: 1_200_000_000)
+                await refresh()
+                return
+            }
             let verb = s.status == .disconnected ? "start" : "stop"
-            let out = await Self.run(["--nc", verb, s.id])
+            let out = await Self.run(Self.scutil, ["--nc", verb, s.id])
             if verb == "start", out.localizedCaseInsensitiveContains("no service") || out.localizedCaseInsensitiveContains("failed") {
                 openApp()
             }
@@ -73,11 +95,11 @@ final class VPNMonitor: ObservableObject {
         }
     }
 
-    nonisolated private static func run(_ args: [String]) async -> String {
+    nonisolated private static func run(_ program: String, _ args: [String]) async -> String {
         await withCheckedContinuation { cont in
             DispatchQueue.global(qos: .utility).async {
                 let p = Process()
-                p.executableURL = URL(fileURLWithPath: scutil)
+                p.executableURL = URL(fileURLWithPath: program)
                 p.arguments = args
                 let pipe = Pipe()
                 p.standardOutput = pipe
@@ -126,18 +148,28 @@ struct VPNChip: View {
                         Button(L("Open Proton VPN")) { vpn.openApp() }
                     }
                 }
-            } else if vpn.protonInstalled {
-                Button { vpn.openApp() } label: {
+            } else {
+                // No VPN yet: Proton VPN (free plan) or Cloudflare WARP, both free.
+                Menu {
+                    if vpn.protonInstalled {
+                        Button(L("Open Proton VPN")) { vpn.openApp() }
+                    } else {
+                        Button(L("Get Proton VPN — free plan")) { AppLinks.open("https://protonvpn.com/free-vpn") }
+                    }
+                    Button(L("Get Cloudflare WARP — free")) { AppLinks.open("https://one.one.one.one/") }
+                } label: {
                     HStack(spacing: 5) {
                         Image(systemName: "lock.shield").font(.system(size: 10, weight: .semibold))
-                        Text(verbatim: "Proton VPN")
+                        Text(verbatim: vpn.protonInstalled ? "VPN · Proton" : "VPN")
                     }
                     .font(.system(size: 11, weight: .medium))
                     .foregroundColor(Color(hex: "#C5C8CD"))
                     .padding(.horizontal, 9).frame(height: 22)
                     .background(RoundedRectangle(cornerRadius: 8).fill(Color.white.opacity(0.06)))
                 }
-                .buttonStyle(.plain)
+                .menuStyle(.borderlessButton)
+                .menuIndicator(.hidden)
+                .fixedSize()
             }
         }
     }

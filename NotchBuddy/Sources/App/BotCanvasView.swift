@@ -76,10 +76,8 @@ struct BotCanvasView: View {
             if reacts && state.mochiDancing && state.mode != .hidden { engine.headphones() }
         }
         .onChange(of: state.view) { _, newView in
-            // Morph up when upload view is active
-            if state.mode == .expanded && newView == .upload {
-                engine.anim("morph", keys: [TweenKey(target: 1, duration: 550, ease: Ease.inOut)])
-            } else if newView != .upload && newView != .uploading && engine.morph > 0.01 {
+            // The character stays itself on the drop view (no box); undo any morph left over.
+            if newView != .upload && newView != .uploading && engine.morph > 0.01 {
                 // Any other view (not mid-gulp): morph back
                 engine.anim("morph", keys: [TweenKey(target: 0, duration: 550, ease: Ease.inOut)])
             }

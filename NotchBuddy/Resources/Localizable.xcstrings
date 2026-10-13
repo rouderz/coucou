@@ -9171,6 +9171,66 @@
           }
         }
       }
+    },
+    "Get Proton VPN — free plan": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Obtener Proton VPN — plan gratis"
+          }
+        }
+      }
+    },
+    "Get Cloudflare WARP — free": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Obtener Cloudflare WARP — gratis"
+          }
+        }
+      }
+    },
+    "Avg wait": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Espera media"
+          }
+        }
+      }
+    },
+    "%lld:00 · ↓%lld ✓%lld": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%lld:00 · ↓%lld ✓%lld"
+          }
+        }
+      }
+    },
+    "Sign in with the GitHub CLI (gh auth login) or add a token in Settings.": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Inicia sesión con GitHub CLI (gh auth login) o agrega un token en Ajustes."
+          }
+        }
+      }
+    },
+    "Couldn't read the repositories.": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No se pudieron leer los repositorios."
+          }
+        }
+      }
     }
   }
 }

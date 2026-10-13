@@ -67,8 +67,14 @@ struct WhaTicketCardView: View {
                     }
                 }
             }
-            .frame(maxHeight: 76)
+            .frame(maxHeight: appState.railShown ? 50 : 76)
             .padding(.leading, botInset(102)).padding(.trailing, 12).padding(.top, 5)
+
+            // Its own character's base has the room: today, hour by hour.
+            if appState.railShown {
+                WhaTicketChart()
+                    .padding(.leading, botInset(108)).padding(.trailing, 14).padding(.top, 8)
+            }
         }
         .frame(maxWidth: .infinity, alignment: .topLeading).padding(.top, 4)
     }

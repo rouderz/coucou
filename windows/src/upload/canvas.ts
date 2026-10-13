@@ -8,7 +8,7 @@
 import { State } from "../core/state";
 import { PALETTES, currentCritter, outline } from "../mochi/critters";
 import {
-  USC, eIn, eInOut, eOut, lerp, progressAt,
+  USC, eInOut, lerp, progressAt,
   type UploadEyeShape, type UploadFrame,
 } from "./sequence";
 
@@ -172,6 +172,7 @@ export class UploadCanvas {
 
     this.drawMochi(ctx, f);
     if (f.fileVisible) this.drawFile(ctx, f);
+    if (f.held > 0.01) this.drawHeld(ctx, f);
   }
 
   // ── Drop zone text and chips ──────────────────────────────────────────────
@@ -365,9 +366,10 @@ export class UploadCanvas {
     }
 
     // Eyes.
-    const ew = R * 0.25;
-    const eh = R * (0.62 - 0.16 * mc);
-    const ey = R * (0.02 + 0.28 * mc);
+    // The character's own eyes: rounder and higher than the old box's tall pills.
+    const ew = R * 0.2;
+    const eh = R * (0.3 - 0.06 * mc);
+    const ey = R * (-0.06 + 0.28 * mc);
     const sp = R * 0.3;
     const lx = f.lookX * R * (0.34 - 0.08 * mc);
     const ly = f.lookY * R * (0.16 - 0.09 * mc);
@@ -384,10 +386,15 @@ export class UploadCanvas {
 
   // ── The file, and the suction ─────────────────────────────────────────────
 
+  /** Where the character holds the file: in front of it, low, at reading distance. */
+  private heldSpot(f: UploadFrame): { x: number; y: number; scale: number } {
+    const R = f.d / 2 / 1.04;
+    return { x: f.x, y: f.y + f.hop + R * 0.78 * f.sy, scale: (0.5 * f.d) / USC.D_BOX };
+  }
+
   private drawFile(ctx: CanvasRenderingContext2D, f: UploadFrame) {
     const cx = f.cursorX;
     const cy = f.cursorY + 14;
-
     if (f.suck <= 0) {
       ctx.save();
       ctx.globalAlpha = 0.92;
@@ -395,68 +402,66 @@ export class UploadCanvas {
       ctx.restore();
       return;
     }
-
-    const m = f.mouthRect;
-    const W0 = 34;
-    const H0 = 42;
-    const p = eIn(f.suck);
-    const topY = lerp(cy - H0 / 2, m.y - 2, eInOut(f.suck));
-    const hs = lerp(1.08, 0.55, eInOut(f.suck));
-    const Hh = H0 * hs;
-    const sc = lerp(1, 0.55, p);
-    const q = eOut(f.suck);
-    const fCx = lerp(cx, m.x + m.w / 2, eOut(f.suck));
-    const wob = Math.sin(f.suck * Math.PI * 2) * 0.1 * (1 - p);
-    const clipY = m.y + m.h * 0.5;
-
-    // The sheet is drawn as 28 horizontal strips, each narrowed towards the
-    // mouth, so the page appears to funnel in. Everything below the mouth line
-    // is clipped away — that is what makes it look swallowed.
+    // Caught: the file flies into the character's hands with a little arc and a tilt.
+    const h = this.heldSpot(f);
+    const k = eInOut(f.suck);
+    const x = lerp(cx, h.x, k);
+    const y = lerp(cy, h.y, k) - Math.sin(Math.PI * f.suck) * 18;
+    const sc = lerp(1, h.scale, k);
     ctx.save();
-    ctx.beginPath();
-    ctx.rect(0, 0, USC.W, clipY);
-    ctx.clip();
+    ctx.translate(x, y);
+    ctx.rotate(Math.sin(Math.PI * f.suck) * 0.25);
+    drawDoc(ctx, 0, 0, sc, sc);
+    ctx.restore();
+  }
 
-    for (let i = 0; i < 28; i++) {
-      const v0 = i / 28;
-      const wsc = lerp(1, lerp(0.92, (0.22 * m.w) / W0, Math.pow(v0, 1.2)), q) * sc;
-      const yy = topY + v0 * Hh;
-      const hh = Hh / 28 + 0.6;
-
-      ctx.save();
-      ctx.translate(fCx, yy);
-      ctx.rotate(wob);
-      ctx.beginPath();
-      ctx.rect((-W0 * wsc) / 2, 0, W0 * wsc, hh);
-      ctx.clip();
-      ctx.translate(-fCx, -yy);
-      drawDoc(ctx, fCx, topY + Hh / 2, wsc, hs);
-      ctx.restore();
+  /** The file in the character's hands — Lumo holds it with two tentacles, the others with
+   *  their hands — with a gentle sway as it reads. */
+  private drawHeld(ctx: CanvasRenderingContext2D, f: UploadFrame) {
+    const h = this.heldSpot(f);
+    const critter = currentCritter();
+    const pal = PALETTES[critter];
+    const R = f.d / 2 / 1.04;
+    const w = (34 * h.scale) / 2;
+    ctx.save();
+    ctx.globalAlpha = f.held;
+    ctx.translate(h.x, h.y);
+    ctx.rotate(Math.sin(f.t * 5) * 0.04);
+    drawDoc(ctx, 0, 0, h.scale, h.scale);
+    if (critter === "lumo") {
+      ctx.strokeStyle = pal.accent;
+      ctx.lineWidth = R * 0.09;
+      ctx.lineCap = "round";
+      ctx.lineJoin = "round";
+      for (const sd of [-1, 1]) {
+        ctx.beginPath();
+        ctx.moveTo(sd * w * 0.6, -R * 0.35);
+        ctx.quadraticCurveTo(sd * (w + 6), -R * 0.2, sd * (w + 2), 2);
+        ctx.quadraticCurveTo(sd * (w + 4), 8, sd * (w - 3), 7);
+        ctx.stroke();
+      }
+    } else {
+      const r = R * 0.16;
+      for (const sd of [-1, 1]) {
+        const g = ctx.createLinearGradient(0, -r, 0, r * 2);
+        g.addColorStop(0, rgb(pal.top));
+        g.addColorStop(1, rgb(pal.bottom));
+        ctx.beginPath();
+        ctx.arc(sd * w, r * 0.8, r, 0, Math.PI * 2);
+        ctx.fillStyle = g;
+        ctx.fill();
+        ctx.strokeStyle = "rgba(0,0,0,0.12)";
+        ctx.lineWidth = 0.8;
+        ctx.stroke();
+      }
     }
     ctx.restore();
-
-    // Green crumbs pulled in with the file.
-    for (let i = 0; i < 4; i++) {
-      const a = (i / 4) * Math.PI * 2 + 0.6;
-      const k = Math.max(0, Math.min(1, (f.suck - i * 0.08) / 0.7));
-      if (k <= 0 || k >= 1) continue;
-      const sx0 = cx + Math.cos(a) * 24;
-      const sy0 = cy + Math.sin(a) * 24;
-      const ex = m.x + m.w / 2;
-      const ey = m.y + m.h * 0.3;
-      const kk = Math.pow(k, 0.7);
-      const px = lerp(sx0, ex, kk);
-      const py = lerp(sy0, ey, kk) - Math.sin(Math.PI * k) * 6;
-      const rad = 2.2 * (1 - k * 0.5);
-      ctx.beginPath();
-      ctx.arc(px, py, rad, 0, Math.PI * 2);
-      ctx.fillStyle = `rgba(52,212,153,${1 - k})`;
-      ctx.fill();
-    }
   }
 }
 
 // ── Eye shapes ──────────────────────────────────────────────────────────────
+
+const rgb = (c: readonly number[]) => `rgb(${c.map((v) => Math.round(v * 255)).join(",")})`;
 
 /** The picked character's ink. */
 const ink = () => PALETTES[currentCritter()].ink;

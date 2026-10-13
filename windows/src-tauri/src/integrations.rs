@@ -378,24 +378,36 @@ async fn poll_github(app: AppHandle) {
         .header("User-Agent", "Coucou")
         .send()
         .await;
-    let stars: i64 = match repos {
+    let list: Vec<Value> = match repos {
         Ok(r) if r.status().is_success() => r
             .json::<Value>()
             .await
             .ok()
             .and_then(|v| v.as_array().cloned())
-            .map(|list| {
-                list.iter()
-                    .filter_map(|r| r.get("stargazers_count").and_then(Value::as_i64))
-                    .sum()
-            })
-            .unwrap_or(0),
-        _ => 0,
+            .unwrap_or_default(),
+        _ => Vec::new(),
     };
+    let stars: i64 = list.iter().filter_map(|r| r.get("stargazers_count").and_then(Value::as_i64)).sum();
+    // The ones pushed to last, for the GitHub character's base (design C).
+    let recent: Vec<Value> = list
+        .iter()
+        .take(6)
+        .map(|r| {
+            json!({
+                "name": r.get("name"),
+                "fullName": r.get("full_name"),
+                "url": r.get("html_url"),
+                "language": r.get("language"),
+                "stars": r.get("stargazers_count"),
+                "pushedAt": r.get("pushed_at"),
+                "private": r.get("private"),
+            })
+        })
+        .collect();
 
     emit(&app, IntegrationUpdate {
         id: "integration_github",
-        data: json!({ "totalRepos": public + private, "totalStars": stars }),
+        data: json!({ "totalRepos": public + private, "totalStars": stars, "repos": recent }),
         error: None,
         event: None,
     });

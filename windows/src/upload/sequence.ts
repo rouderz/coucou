@@ -141,6 +141,8 @@ export interface UploadFrame {
   lookY: number;
   fileVisible: boolean;
   suck: number;
+  /** The character holds the file and reads it (0…1 shows it). */
+  held: number;
   zoneOver: boolean;
   zoneAlpha: number;
   textAlpha: number;
@@ -176,6 +178,7 @@ function restFrame(): UploadFrame {
     lookY: 0,
     fileVisible: true,
     suck: 0,
+    held: 0,
     zoneOver: false,
     zoneAlpha: 1,
     textAlpha: 1,
@@ -390,7 +393,9 @@ class UploadSequence {
     if (pt < USC.T_CHEW_END) morph = eBack(seg(pt, entered, entered + 0.38));
     else if (pt < growStart) morph = 1 - eOut(seg(pt, USC.T_CHEW_END, USC.T_SHRINK_END));
     else morph = eBack(seg(pt, growStart, growEnd));
-    f.morph = Math.max(0, Math.min(morph, 1.08));
+    // The character keeps its own shape: no box. It catches the file and reads it instead.
+    f.morph = 0;
+    void morph;
 
     // Position and diameter.
     let x = this.bx.v;
@@ -440,9 +445,10 @@ class UploadSequence {
       sx = squeezeX(pt);
     }
     if (pt >= USC.T_CHEW1 && pt < USC.T_CHEW_END) {
-      const k = ((pt - USC.T_CHEW1) % 0.14) / 0.14;
-      sy = 1 - 0.05 * Math.sin(Math.PI * k);
-      sx = 1 + 0.03 * Math.sin(Math.PI * k);
+      // Reading: a small nod per line.
+      const k = ((pt - USC.T_CHEW1) % 0.28) / 0.28;
+      sy = 1 - 0.025 * Math.sin(Math.PI * k);
+      sx = 1 + 0.012 * Math.sin(Math.PI * k);
     }
     if (pt >= USC.T_CHEW_END && pt < USC.T_SHRINK_END) {
       const k = seg(pt, USC.T_CHEW_END, USC.T_SHRINK_END);
@@ -473,17 +479,24 @@ class UploadSequence {
     // Eyes.
     let eye: UploadEyeShape = "pill";
     if (this.locked && pt < USC.T_SUCK_END) eye = "cup";
-    if (pt >= USC.T_SUCK_END && pt < USC.T_CHEW_END + 0.1) eye = "content";
     if (pt >= progEnd && pt < growEnd + 0.3) eye = "content";
     f.eye = eye;
 
-    const lkx = pt < USC.T_SUCK_END ? this.cursorX - x : pt < USC.T_PROG_START ? 0 : 40;
-    const lky = pt < USC.T_SUCK_END ? this.cursorY + 10 - y : 0;
+    let lkx = pt < USC.T_SUCK_END ? this.cursorX - x : pt < USC.T_PROG_START ? 0 : 40;
+    let lky = pt < USC.T_SUCK_END ? this.cursorY + 10 - y : 0;
+    // Reading what it caught: eyes down on the page, sweeping line by line.
+    if (pt >= USC.T_SUCK_END && pt < USC.T_SHRINK_END) {
+      lky = 95;
+      lkx = 90 * Math.sin((pt - USC.T_SUCK_END) * 11);
+    }
     f.lookX = Math.max(-1, Math.min(1, lkx / 200));
     f.lookY = Math.max(-1, Math.min(1, lky / 150));
 
     f.fileVisible = pt < USC.T_SUCK_END;
     f.suck = seg(pt, USC.T_SUCK_START, USC.T_SUCK_END);
+    // Held while reading (gone as it shrinks to the bar), and again at the end, by the buttons.
+    if (pt >= USC.T_SUCK_END && pt < USC.T_SHRINK_END) f.held = 1 - seg(pt, USC.T_CHEW_END, USC.T_SHRINK_END);
+    else if (pt >= growStart) f.held = seg(pt, growStart + 0.15, growEnd);
 
     // Content alphas.
     f.zoneOver = this.entered >= 0 && pt < USC.T_CHEW_END;

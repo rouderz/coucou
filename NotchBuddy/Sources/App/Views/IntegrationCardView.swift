@@ -127,8 +127,15 @@ struct IntegrationCardView: View {
             ResendCardView(emails: appState.resendEmails, total: appState.resendTotal)
                 .transition(.opacity)
         } else if githubHasData {
-            GitHubStatsCardView(stats: appState.githubStats!, connection: appState.githubConnection)
-                .transition(.opacity)
+            VStack(alignment: .leading, spacing: 6) {
+                GitHubStatsCardView(stats: appState.githubStats!, connection: appState.githubConnection)
+                // Its own character's base has the room: the repositories pushed to last.
+                if appState.railShown {
+                    GitHubRepoList()
+                        .padding(.leading, botInset(108)).padding(.trailing, 12)
+                }
+            }
+            .transition(.opacity)
         } else if stripeHasData {
             StripeCardView()
                 .transition(.opacity)

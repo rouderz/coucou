@@ -211,6 +211,9 @@ export const Bridge = {
     callOrThrow<{ text: string }>("code_send", { query, folder, edits }),
   /** The system's folder picker; null when cancelled. */
   pickFolder: (start: string | null) => call<string | null>("pick_folder", { start }),
+  vpnList: () => call<VpnService[]>("vpn_list"),
+  vpnToggle: (id: string, on: boolean) => call<void>("vpn_toggle", { id, on }),
+  vpnOpenProton: () => call<void>("vpn_open_proton"),
   /** Codex / Gemini CLI engines (#108): one turn, the CLI's raw output back (parsed in claude/cliChat.ts). */
   cliChatRun: (engine: "codex" | "gemini", conversation: string, model: string) =>
     callOrThrow<{ exitCode: number | null; stdout: string; stderr: string }>("cli_chat_run", { engine, conversation, model }),
@@ -237,6 +240,15 @@ export interface IntegrationUpdate {
   data: Record<string, unknown>;
   error: string | null;
   event: { success: boolean; label: string; detail: string | null } | null;
+}
+
+/** A VPN the system knows (src-tauri/src/vpn.rs). */
+export interface VpnService {
+  id: string;
+  name: string;
+  connected: boolean;
+  /** False when only its own app can turn it on or off (Proton VPN on Windows). */
+  canToggle: boolean;
 }
 
 export type ChatContext =

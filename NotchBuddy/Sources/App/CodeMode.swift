@@ -82,6 +82,8 @@ enum CodeMode {
         panel.prompt = L("Code here")
         panel.message = L("The folder Claude Code works in")
         if let current = state.codeFolder { panel.directoryURL = URL(fileURLWithPath: current, isDirectory: true) }
+        // Above the island (and the floating characters), not hidden behind them.
+        panel.level = NSWindow.Level(rawValue: Int(CGWindowLevelForKey(.mainMenuWindow)) + 6)
         NSApp.activate(ignoringOtherApps: true)
         guard panel.runModal() == .OK, let url = panel.url else { return }
         switchFolder(url.path, state: state)
@@ -95,6 +97,8 @@ enum CodeMode {
         panel.allowsMultipleSelection = true
         panel.prompt = L("Add")
         panel.message = L("Folders Claude Code keeps at hand")
+        // Above the island (and the floating characters), not hidden behind them.
+        panel.level = NSWindow.Level(rawValue: Int(CGWindowLevelForKey(.mainMenuWindow)) + 6)
         NSApp.activate(ignoringOtherApps: true)
         guard panel.runModal() == .OK, !panel.urls.isEmpty else { return }
         for url in panel.urls where !state.codeFolders.contains(url.path) { state.codeFolders.append(url.path) }

@@ -27,6 +27,7 @@ mod whaticket;
 mod aliexpress;
 mod browser;
 mod buddy;
+mod vpn;
 
 use std::sync::atomic::Ordering;
 use std::sync::{Arc, Mutex};
@@ -284,6 +285,24 @@ async fn code_send(
         (s.model.clone(), s.code_folders.clone())
     };
     claude_code::send_code(&code_chat, &model, query, folder, edits, extra).await
+}
+
+/// VPN chip: the VPNs the system knows, and whether each one is on.
+#[tauri::command]
+async fn vpn_list() -> Vec<vpn::VpnService> {
+    vpn::list().await
+}
+
+/// Turns one on or off (Proton VPN on Windows: opens its app).
+#[tauri::command]
+async fn vpn_toggle(id: String, on: bool) -> Result<(), String> {
+    vpn::toggle(&id, on).await
+}
+
+/// No VPN yet: Proton VPN's app, or its free plan's page.
+#[tauri::command]
+fn vpn_open_proton() {
+    vpn::open_proton();
 }
 
 /// Code mode: the system's folder picker. None when cancelled.
@@ -1078,6 +1097,9 @@ pub fn run() {
         )
         .invoke_handler(tauri::generate_handler![
             boot,
+            vpn_list,
+            vpn_toggle,
+            vpn_open_proton,
             save_settings,
             set_collapsed,
             set_island_rect,

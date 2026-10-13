@@ -328,7 +328,20 @@ export class Island {
       UploadSeq.deactivate();
     }
     this.updateWindowCollapsed();
-    this.animateGeometry(modeOrder(mode) < modeOrder(prev));
+    if (State.settings.placement === "free" && mode === "expanded") {
+      // Free placement: straight to its size, then a soft pop from under the character instead
+      // of growing out of a notch that isn't there.
+      const { w, h, r } = this.targetSize();
+      this.width.jump(w);
+      this.height.jump(h);
+      this.radius.jump(r);
+      this.islandEl.classList.remove("pop");
+      void this.islandEl.offsetWidth;
+      this.islandEl.classList.add("pop");
+      this.ensureRunning();
+    } else {
+      this.animateGeometry(modeOrder(mode) < modeOrder(prev));
+    }
     State.notify();
   }
 
@@ -415,7 +428,8 @@ export class Island {
       case "over": {
         if (State.fileDragOver) return;
         State.fileDragOver = true;
-        this.engine.animateMorph(1);
+        // The character stays itself (no box): it just perks up at the file.
+        this.engine.triggerEmote("surprised");
         // enterZone must run before the island expands, so the sequence is
         // already active by the time the view becomes `upload`.
         UploadSeq.enterZone(State.mouseInIsland.x, State.mouseInIsland.y);

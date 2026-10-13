@@ -414,7 +414,7 @@ function buildOverview(actions: ViewActions): ViewHost {
         const info = State.integrations[task.id];
         const key = [
           task.id, detailOpen, task.state, task.steps.join("|"),
-          task.id === "integration_claude" ? focusCardKey() : "",
+          task.id === "integration_claude" ? focusCardKey() : "", railShown(),
           info?.loaded, info?.error, info?.configured,
           JSON.stringify(info?.data ?? {}),
         ].join("~");

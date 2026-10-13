@@ -11,6 +11,8 @@ import { State, type AgentTask } from "../core/state";
 import { startNewChat } from "../core/chats";
 import { Bridge } from "../core/bridge";
 import { todayLine } from "../core/whaticketStats.ts";
+import { railShown } from "../core/characters";
+import { githubRepos, whaticketChart } from "./railCharts";
 import { CI_ID, ciLogFile, ciRerunFailed, refreshCI, type CIPr } from "../core/ciPoller";
 import { checkState, durationSeconds, formatDuration, parseJobUrl, type CheckRun, type CheckState, type PillState, type PrState } from "../core/ci.ts";
 import { focusCardPanel, focusStartButton } from "./focus";
@@ -243,6 +245,8 @@ function githubCard(): HTMLElement {
       statRow(ICONS.star, "#F5A524", "Total stars", fmt(stars)),
       statRow(ICONS.stack, "#6B7079", "Repositories", String(repos)),
     ),
+    // Its own character's base has the room: the repositories pushed to last.
+    ...(railShown() && Array.isArray(d.repos) ? [githubRepos(d.repos as Record<string, unknown>[])] : []),
   );
 }
 
@@ -428,7 +432,9 @@ function whaticketCard(): HTMLElement {
   const kind = `Waiting ${Number(d.pendingCount ?? 0)} · Mine ${Number(d.mineCount ?? 0)}${d.autoAccept ? " · Auto" : ""}`;
   // "Today · Arrived 23 · Accepted 18 (5 auto)" — the rest is in Settings → WhaTicket → Stats.
   const today = h("div", { class: "int-status", text: todayLine(d.today as Record<string, unknown> | undefined) });
-  return h("div", { class: "int-card" }, header("#25D366", "WhaTicket", kind), today, rows);
+  // Its own character's base has the room: today, hour by hour.
+  return h("div", { class: "int-card" }, header("#25D366", "WhaTicket", kind), today, rows,
+    ...(railShown() ? [whaticketChart()] : []));
 }
 
 // ── AliExpress: packages by tracking number, one invoice per box ──────────────

@@ -4,7 +4,7 @@
 
 import { h, clear, dot, svg } from "./dom";
 import { ICONS } from "./icons";
-import { Bridge } from "../core/bridge";
+import { Bridge, type VpnService } from "../core/bridge";
 import { State } from "../core/state";
 import { assignments } from "../mochi/critters";
 import { focusSession } from "../claude/sessions.ts";
@@ -27,6 +27,24 @@ function dayTime(at: number): string {
   const today = new Date().toDateString() === d.toDateString();
   const hm = d.toTimeString().slice(0, 5);
   return today ? `today ${hm}` : `${d.toLocaleDateString(undefined, { weekday: "short" })} ${hm}`;
+}
+
+// VPN: read only while the base is on screen, at most every 10 s.
+let vpns: VpnService[] = [];
+let vpnAt = 0;
+let vpnBusy = false;
+function refreshVpn(force = false) {
+  if (vpnBusy || (!force && Date.now() - vpnAt < 10_000)) return;
+  vpnBusy = true;
+  void Bridge.vpnList()
+    .then((list) => { vpns = list ?? []; })
+    .catch(() => {})
+    .finally(() => { vpnBusy = false; vpnAt = Date.now(); State.notify(); });
+}
+
+/** The one to show: the one on, else Proton's, else the first. */
+function mainVpn(): VpnService | undefined {
+  return vpns.find((v) => v.connected) ?? vpns.find((v) => /proton/i.test(v.name)) ?? vpns[0];
 }
 
 export function buildMainBase(actions: ViewActions): { el: HTMLElement; sync(): void } {
@@ -61,13 +79,14 @@ export function buildMainBase(actions: ViewActions): { el: HTMLElement; sync(): 
   return {
     el,
     sync() {
+      refreshVpn();
       const own = assignments(State.settings.critterAssignments);
       const others = State.tasks.filter((t) => t.isIntegration && t.id !== "integration_claude" && !own[t.id]);
       const sessions = [...State.sessions].sort((a, b) => b.updatedAt - a.updatedAt).slice(0, 2);
       const next = JSON.stringify([
         sessions.map((s) => [s.id, s.state, s.project, s.steps.at(-1)]), !!State.pendingApproval,
         State.planUsage, State.focus.phase, State.inbox.length, State.settings.inboxEnabled,
-        State.settings.codeFolders, State.settings.codeFolder,
+        State.settings.codeFolders, State.settings.codeFolder, vpns,
         others.map((t) => [t.id, t.color, t.steps[0]]), Math.floor(Date.now() / 60000),
       ]);
       if (next === key) return;
@@ -119,6 +138,19 @@ export function buildMainBase(actions: ViewActions): { el: HTMLElement; sync(): 
       const chips = h("div", { class: "mb-chips" });
       const claude = State.tasks.find((t) => t.id === "integration_claude");
       chips.append(chip("Open in VS Code", () => void Bridge.openInVSCode(claude?.sessionCwd ?? null)));
+      // VPN: green while on; click turns it on or off (Proton on Windows: its app). None yet:
+      // Proton VPN's free plan.
+      const v = mainVpn();
+      const vpnChip = v
+        ? chip(`VPN · ${v.name}`, () => {
+          if (!v.canToggle) { void Bridge.vpnToggle(v.id, !v.connected); return; }
+          void Bridge.vpnToggle(v.id, !v.connected).finally(() => window.setTimeout(() => refreshVpn(true), 1200));
+        }, v.connected ? "#5FD38A" : undefined)
+        : chip("VPN · Proton (free)", () => void Bridge.vpnOpenProton());
+      vpnChip.classList.toggle("vpn-on", !!v?.connected);
+      vpnChip.title = v ? (v.connected ? "Connected — click to disconnect" : "Disconnected — click to connect")
+        : "No VPN yet: Proton VPN's free plan (no logs, no ads, no data cap)";
+      chips.append(vpnChip);
       if (State.focus.phase === "idle") chips.append(chip("Focus", () => Focus.start(), "#E8C27A"));
       if (State.settings.inboxEnabled && State.inbox.length) {
         chips.append(chip(`Inbox · ${State.inbox.length}`, () => actions.setView("inbox")));

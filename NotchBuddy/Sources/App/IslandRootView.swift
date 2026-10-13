@@ -29,6 +29,10 @@ struct IslandContainer: View {
     // topRadius > 0 → convex expanded corners; < 0 → concave ear cutouts
     @State private var islandTopRadius: CGFloat = 0
     @State private var greetNotif: Bool = false
+    /// Free placement: the bubble pops out of the character (scale + fade) instead of growing
+    /// out of a notch that isn't there.
+    @State private var popScale: CGFloat = 1
+    @State private var popOpacity: Double = 1
 
     private let openSpring = Animation.spring(response: 0.5, dampingFraction: 0.72)
     private let closeEase  = Animation.timingCurve(0.45, 0, 0.2, 1, duration: 0.34)
@@ -129,7 +133,29 @@ struct IslandContainer: View {
             .animation(.easeInOut(duration: 0.25), value: state.mode == .compact)
         }
         .frame(width: islandWidth, height: islandHeight, alignment: .topLeading)
+        .scaleEffect(state.freePlacement ? popScale : 1, anchor: .top)
+        .opacity(state.freePlacement ? popOpacity : 1)
         .onChange(of: state.mode) { oldMode, newMode in
+            if state.freePlacement {
+                // Straight to its size, then a soft pop from under the character.
+                let (w, h) = islandSize(mode: newMode, view: state.view,
+                                        progress: state.uploadProgress,
+                                        nw: state.notchWidth, nh: state.notchHeight)
+                let cr = newMode == .expanded ? IslandConst.expandedCorner : IslandConst.roundedCorner
+                var instant = Transaction()
+                instant.disablesAnimations = true
+                withTransaction(instant) {
+                    islandWidth = w
+                    islandHeight = (newMode == .expanded && state.view == .prompt) ? chatPromptHeight : h
+                    cornerRadius = cr
+                    islandTopRadius = newMode == .expanded ? cr : 0
+                    if newMode == .expanded { popScale = 0.86; popOpacity = 0 }
+                }
+                if newMode == .expanded {
+                    withAnimation(.spring(response: 0.34, dampingFraction: 0.74)) { popScale = 1; popOpacity = 1 }
+                }
+                return
+            }
             let shrinking = modeOrder(newMode) < modeOrder(oldMode)
             let anim = shrinking ? closeEase : openSpring
             let (w, h) = islandSize(mode: newMode, view: state.view,
@@ -493,7 +519,8 @@ struct IslandContentView: View {
             }
         }
         .animation(.spring(response: 0.35, dampingFraction: 0.85), value: state.railShown)
-        .padding(.top, 8)
+        // A little more air above the rail and its header.
+        .padding(.top, state.railShown ? 14 : 8)
         .padding(.bottom, 10)
         .foregroundColor(Color(hex: "#F5F6F8"))
     }

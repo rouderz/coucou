@@ -147,11 +147,12 @@ struct UploadCanvasView: View {
             drawChooseView(ctx: &c, f: f)
         }
 
-        // ── Mochi ─────────────────────────────────────────────────
+        // ── The character ─────────────────────────────────────────
         drawMochi(ctx: &c, f: f)
 
-        // ── File / suction ────────────────────────────────────────
+        // ── The file: dragged, caught, then held and read ─────────
         if f.fileVisible { drawFile(ctx: &c, f: f) }
+        if f.held > 0.01 { drawHeld(ctx: &c, f: f) }
     }
 
     // MARK: - Drop zone text + chips
@@ -364,9 +365,10 @@ struct UploadCanvasView: View {
         }
 
         // ── Eyes ───────────────────────────────────────────────────
-        let ew = R * 0.25
-        let eh = R * (0.62 - 0.16*mc)
-        let ey = R * (0.02 + 0.28*mc)
+        // The character's own eyes: rounder and higher than the old box's tall pills.
+        let ew = R * 0.20
+        let eh = R * (0.30 - 0.06*mc)
+        let ey = R * (-0.06 + 0.28*mc)
         let sp = R * 0.30
         let lx = f.lookX * R * (0.34 - 0.08*mc)
         let ly = f.lookY * R * (0.16 - 0.09*mc)
@@ -414,6 +416,12 @@ struct UploadCanvasView: View {
 
     // MARK: - File / suction (drawFile port)
 
+    /// Where the character holds the file: in front of it, low, at reading distance.
+    private func heldSpot(_ f: USFrame) -> (x: Double, y: Double, scale: Double) {
+        let R = f.d / 2 / 1.04
+        return (f.x, f.y + f.hop + R * 0.78 * f.sy, 0.5 * f.d / USC.D_BOX)
+    }
+
     private func drawFile(ctx: inout GraphicsContext, f: USFrame) {
         let cx = f.cursorX, cy = f.cursorY + 14
         if f.suck <= 0 {
@@ -421,55 +429,53 @@ struct UploadCanvasView: View {
             drawDoc(ctx: &fc, cx: cx, cy: cy, wsc:1, hsc:1)
             return
         }
+        // Caught: the file flies into the character's hands with a little arc and a tilt.
+        let h = heldSpot(f)
+        let k = usEInOut(f.suck)
+        let x = usLerp(cx, h.x, k)
+        let y = usLerp(cy, h.y, k) - sin(.pi * f.suck) * 18
+        let s = usLerp(1, h.scale, k)
+        var fc = ctx
+        fc.translateBy(x: x, y: y)
+        fc.rotate(by: .radians(sin(.pi * f.suck) * 0.25))
+        drawDoc(ctx: &fc, cx: 0, cy: 0, wsc: s, hsc: s)
+    }
 
-        let m   = f.mouthRect
-        let W0  = 34.0, H0 = 42.0
-        let p   = usEIn(f.suck)
-        let topY = usLerp(cy - H0/2, m.y - 2, usEInOut(f.suck))
-        let hs  = usLerp(1.08, 0.55, usEInOut(f.suck))
-        let Hh  = H0 * hs
-        let sc  = usLerp(1, 0.55, p)
-        let q   = usEOut(f.suck)
-        let fCx = usLerp(cx, m.x + m.w/2, usEOut(f.suck))
-        let wob = sin(f.suck * .pi * 2) * 0.1 * (1-p)
-        let clipY = m.y + m.h * 0.5
-
-        // Use withCGContext for the complex strip clipping
-        ctx.withCGContext { cg in
-            cg.saveGState()
-            // Outer clip: above mouth
-            cg.clip(to: CGRect(x:0, y:0, width:640, height:clipY))
-
-            for i in 0..<28 {
-                let v0 = Double(i) / 28
-                let wsc = usLerp(1, usLerp(0.92, 0.22*m.w/W0, pow(v0,1.2)), q) * sc
-                let yy  = topY + v0*Hh
-                let hh  = Hh/28 + 0.6
-
-                cg.saveGState()
-                cg.translateBy(x: CGFloat(fCx), y: CGFloat(yy))
-                cg.rotate(by: CGFloat(wob))
-                cg.clip(to: CGRect(x: CGFloat(-W0*wsc/2), y:0, width: CGFloat(W0*wsc), height: CGFloat(hh)))
-                cg.translateBy(x: CGFloat(-fCx), y: CGFloat(-yy))
-                drawDocCG(cg: cg, cx: fCx, cy: topY+Hh/2, wsc: wsc, hsc: hs, fileIcon: fileIcon)
-                cg.restoreGState()
+    /// The file in the character's hands — Lumo holds it with two tentacles, the others with
+    /// their hands — with a gentle sway as it reads.
+    private func drawHeld(ctx: inout GraphicsContext, f: USFrame) {
+        let h = heldSpot(f)
+        let critter = Critter.stored
+        let palette = critter.palette
+        let R = f.d / 2 / 1.04
+        let sway = sin(f.t * 5) * 0.04
+        var c = ctx
+        c.opacity = f.held
+        c.translateBy(x: h.x, y: h.y)
+        c.rotate(by: .radians(sway))
+        drawDoc(ctx: &c, cx: 0, cy: 0, wsc: h.scale, hsc: h.scale)
+        let w = 34 * h.scale / 2
+        if critter == .lumo {
+            // Two tentacles curling round the page's sides.
+            for sd in [-1.0, 1.0] {
+                var t = Path()
+                t.move(to: CGPoint(x: sd * w * 0.6, y: -R * 0.35))
+                t.addQuadCurve(to: CGPoint(x: sd * (w + 2), y: 2),
+                               control: CGPoint(x: sd * (w + 6), y: -R * 0.2))
+                t.addQuadCurve(to: CGPoint(x: sd * (w - 3), y: 7),
+                               control: CGPoint(x: sd * (w + 4), y: 8))
+                c.stroke(t, with: .color(Color(cgColor: palette.accent)),
+                         style: StrokeStyle(lineWidth: R * 0.09, lineCap: .round, lineJoin: .round))
             }
-            cg.restoreGState()
-        }
-
-        // Green particles
-        for i in 0..<4 {
-            let a   = Double(i)/4 * .pi*2 + 0.6
-            let r0  = 24.0
-            let k   = max(0, min(1, (f.suck - Double(i)*0.08) / 0.7))
-            guard k > 0 && k < 1 else { continue }
-            let sx0 = cx + cos(a)*r0, sy0 = cy + sin(a)*r0
-            let ex  = m.x + m.w/2,    ey  = m.y + m.h*0.3
-            let kk  = pow(k, 0.7)
-            let px  = usLerp(sx0,ex,kk), py = usLerp(sy0,ey,kk) - sin(.pi*k)*6
-            let rad = 2.2*(1-k*0.5)
-            var pp = Path(); pp.addEllipse(in: CGRect(x:px-rad, y:py-rad, width:rad*2, height:rad*2))
-            ctx.fill(pp, with: .color(Color(red:0.204,green:0.831,blue:0.600).opacity(1-k)))
+        } else {
+            // Two little hands on the page's edges.
+            let r = R * 0.16
+            for sd in [-1.0, 1.0] {
+                let hand = Path(ellipseIn: CGRect(x: sd * w - r, y: -r * 0.2, width: r * 2, height: r * 2))
+                c.fill(hand, with: .linearGradient(Gradient(colors: [Color(cgColor: palette.top), Color(cgColor: palette.bottom)]),
+                                                   startPoint: CGPoint(x: 0, y: -r), endPoint: CGPoint(x: 0, y: r * 2)))
+                c.stroke(hand, with: .color(Color.black.opacity(0.12)), lineWidth: 0.8)
+            }
         }
     }
 
