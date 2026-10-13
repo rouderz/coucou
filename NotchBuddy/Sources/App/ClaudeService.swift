@@ -147,7 +147,9 @@ final class ClaudeService {
     }
 
     func chat(query: String, context: PromptContext?, state: AppState) async {
-        var engine = state.chatEngine
+        // Code mode (#152) is Claude Code at work in a folder: no other engine stands in.
+        let coding = state.isCoding
+        var engine = coding ? ChatEngine.claudeCode : state.chatEngine
         var tried: Set<ChatEngine> = []
         var switchedFrom: ChatEngine?
         // The conversation before this question, to hand over if another engine has to answer.
@@ -188,7 +190,7 @@ final class ClaudeService {
                 VoiceOutput.shared.stop()
                 let message = provider.describe(error)
                 // Out of quota (or not usable): the next engine that's ready answers, and stays picked.
-                if state.chatFallback, Self.isOutOfQuota(message),
+                if !coding, state.chatFallback, Self.isOutOfQuota(message),
                    let next = await Self.nextEngine(after: tried) {
                     switchedFrom = switchedFrom ?? engine
                     Self.provider(for: next).restore(Array(earlier))

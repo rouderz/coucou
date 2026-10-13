@@ -495,6 +495,7 @@ struct IslandHeader: View {
         HStack(spacing: 0) {
             // Left: tab capsules
             HStack(spacing: 6) {
+                TabButton(icon: "house.fill", view: .overview, state: state)
                 ModeSwitch(state: state)
                 TabButton(icon: "plus", view: .upload, state: state)
             }
@@ -534,28 +535,23 @@ struct IslandHeader: View {
 
 // MARK: - Chat / Code switch (#149)
 
-/// Two modes, side by side like a segmented control: Chat (the conversation) and Code (the
-/// Claude Code sessions: tasks, approvals, diffs). ⌥⌘← / ⌥⌘→ switch while the island is open.
+/// Two modes, side by side like a segmented control: Chat (the conversation about anything)
+/// and Code (Claude Code at work in a folder you pick, CodeMode.swift). The house next to them
+/// is the overview. ⌥⌘← / ⌥⌘→ switch while the island is open.
 struct ModeSwitch: View {
     @ObservedObject var state: AppState
 
     static let chatViews: Set<IslandView> = [.prompt, .searching, .result]
 
-    static func showChat(_ state: AppState) {
-        #if !APPSTORE
-        if state.promptContext == nil {
-            state.promptContext = WindowContextCapture.captureActive(from: state.lastExternalApp)
-        }
-        #endif
-        withAnimation(.spring(response: 0.3, dampingFraction: 0.8)) { state.view = .prompt }
-    }
+    /// Chat: the conversation about anything (#149).
+    static func showChat(_ state: AppState) { CodeMode.show(.chat, state: state) }
 
-    static func showCode(_ state: AppState) {
-        withAnimation(.spring(response: 0.3, dampingFraction: 0.8)) { state.view = .overview }
-    }
+    /// Code: Claude Code at work in a folder you pick (#152).
+    static func showCode(_ state: AppState) { CodeMode.show(.code, state: state) }
 
-    private var chatOn: Bool { Self.chatViews.contains(state.view) }
-    private var codeOn: Bool { state.view == .overview || state.view == .empty || state.view == .live }
+    private var inChat: Bool { Self.chatViews.contains(state.view) }
+    private var chatOn: Bool { inChat && !state.isCoding }
+    private var codeOn: Bool { inChat && state.isCoding }
 
     var body: some View {
         HStack(spacing: 2) {

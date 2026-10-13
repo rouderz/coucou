@@ -31,6 +31,10 @@ struct CodeContext: Equatable, Sendable, Codable {
 
     /// What the model is told about the code context.
     var promptPreamble: String {
+        if isFolder {
+            return "The user is coding in the project `\(projectName)` (your working directory is its root). " +
+                   "Explore it with Read, Grep and Glob as you need before answering.\n\n"
+        }
         var text = """
         The user is working in \(appName) on the file `\(relativePath)` of the project `\(projectName)` \
         (your working directory is the project root). Read that file, and any related files you need, \

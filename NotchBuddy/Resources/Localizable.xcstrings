@@ -8641,6 +8641,76 @@
           }
         }
       }
+    },
+    "Code here": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Programar aquí"
+          }
+        }
+      }
+    },
+    "The folder Claude Code works in": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "La carpeta en la que trabaja Claude Code"
+          }
+        }
+      }
+    },
+    "Choose a folder": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Elegir una carpeta"
+          }
+        }
+      }
+    },
+    "Other folder…": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Otra carpeta…"
+          }
+        }
+      }
+    },
+    "Pick the folder to code in. Claude Code reads it, and changes files or runs commands only when you approve each one in the island.": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Elige la carpeta en la que programar. Claude Code la lee, y solo cambia archivos o ejecuta comandos cuando apruebas cada uno en la isla."
+          }
+        }
+      }
+    },
+    "Edits & commands": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ediciones y comandos"
+          }
+        }
+      }
+    },
+    "What should we build? (/ skills)": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "¿Qué construimos? (/ habilidades)"
+          }
+        }
+      }
     }
   }
 }

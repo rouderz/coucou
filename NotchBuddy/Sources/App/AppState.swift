@@ -647,6 +647,23 @@ final class AppState: ObservableObject {
     // Chat conversation on screen, and its entry in ChatStore once saved
     @Published var chatHistory: [ChatMessage] = []
     @Published var currentChatID: UUID? = nil
+    /// Chat or Code (#152), and the other mode's conversation while this one is on screen.
+    @Published var chatMode: ChatMode = .chat
+    var stashedChatIDs: [ChatMode: UUID] = [:]
+    /// Code mode on screen: no other context took over (a file from the editor, a window, a drop
+    /// make it a chat about that thing).
+    var isCoding: Bool {
+        guard chatMode == .code else { return false }
+        if case .code(let c)? = promptContext { return c.isFolder }
+        return promptContext == nil
+    }
+    /// The folder Claude Code works in (Code mode) and the ones used lately.
+    @Published var codeFolder: String? = UserDefaults.standard.string(forKey: "codeFolder") {
+        didSet { UserDefaults.standard.set(codeFolder, forKey: "codeFolder") }
+    }
+    @Published var recentCodeFolders: [String] = UserDefaults.standard.stringArray(forKey: "recentCodeFolders") ?? [] {
+        didSet { UserDefaults.standard.set(recentCodeFolders, forKey: "recentCodeFolders") }
+    }
 
     // Pending approval request from Claude Code hook
     @Published var pendingApproval: ApprovalInfo? = nil
