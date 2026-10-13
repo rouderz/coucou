@@ -38,7 +38,11 @@ final class WakeWord {
     private var started = false
     private let log = Logger(subsystem: "fr.louisraille.NotchBuddy", category: "voice")
 
-    static let phrases = ["hey mochi", "hey, mochi", "oye mochi", "oye, mochi", "hola mochi", "ey mochi", "hi mochi"]
+    /// "Hey <name>" in the languages people use with it, for the character picked in Settings.
+    static var phrases: [String] {
+        let name = Critter.stored.displayName.lowercased()
+        return ["hey", "hey,", "oye", "oye,", "hola", "ey", "hi"].map { "\($0) \(name)" }
+    }
     /// Only the newest words of a partial result are searched for the wake phrase.
     private static let matchWindow = 80
 

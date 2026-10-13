@@ -5,10 +5,12 @@
 import "./settings.css";
 import { setLanguage, startTranslating } from "../core/i18n.ts";
 import { Bridge, onDragDrop, onEvent, type BrowserStatus, type HookStatus, type SkillInfo, type SkillPreview } from "../core/bridge";
-import { DEFAULT_SETTINGS, type Settings } from "../core/state";
+import { DEFAULT_SETTINGS, INTEGRATION_AGENTS, type Settings } from "../core/state";
 import { parseTeams, type TeamInfo } from "../core/capture";
 import { h, clear } from "../views/dom";
 import { THEMES, applyTheme } from "../core/themes.ts";
+import { BotEngine } from "../mochi/engine";
+import { CRITTERS, CRITTER_INFO, DEFAULT_CRITTER, TINT_CHOICES, botName, isCritter, setCurrentCritter, type CritterId } from "../mochi/critters";
 import { dayKey as wtDayKey, duration, range, summary, toCsv as wtToCsv, type Period, type StatEvent } from "../core/whaticketStats.ts";
 import {
   addAdjustment, dayKey, formatDuration, formatHours, groupPeriod, parseStore, recentPeriods, rowsFromStore,
@@ -23,6 +25,7 @@ let keychainName = "the Windows Credential Manager";
 const root = document.getElementById("settings-root")!;
 
 async function save() {
+  onCritterChange();
   await Bridge.saveSettings(settings);
 }
 
@@ -660,7 +663,7 @@ function inboxSection(): HTMLElement {
   }
   return h("section", {},
     h("h2", {}, statusDot(settings.inboxEnabled), h("span", { text: "Inbox" })),
-    h("div", { class: "hint", text: "GitHub (your token, or a signed-in gh) and Linear notifications that need you, behind the 🔔. Mochi peeks out when something new arrives." }),
+    h("div", { class: "hint", text: `GitHub (your token, or a signed-in gh) and Linear notifications that need you, behind the 🔔. ${botName()} peeks out when something new arrives.` }),
     h("div", { class: "row" }, h("label", { text: "Inbox" }),
       toggle(settings.inboxEnabled, (v) => { settings.inboxEnabled = v; void save(); })),
     h("div", { class: "row" }, h("label", { text: "GitHub" }),
@@ -1471,8 +1474,8 @@ function voiceSection(canListen: boolean): HTMLElement {
     h("div", { class: "row" }, h("label", { text: "Read replies aloud" }),
       toggle(settings.speakReplies, (v) => { settings.speakReplies = v; void save(); })),
     h("div", { class: "hint", text: canListen
-      ? "🎙 in the chat: say your question and Mochi sends it (Windows speech recognition; dictation needs online speech recognition on in Windows Settings → Privacy & security → Speech)."
-      : "Speaking your questions isn't available on Linux: it has no built-in speech recognition. Mochi can still read its replies aloud." }),
+      ? `🎙 in the chat: say your question and ${botName()} sends it (Windows speech recognition; dictation needs online speech recognition on in Windows Settings → Privacy & security → Speech).`
+      : `Speaking your questions isn't available on Linux: it has no built-in speech recognition. ${botName()} can still read its replies aloud.` }),
   );
 }
 
@@ -1560,6 +1563,106 @@ function paintTheme() {
 }
 darkQuery.addEventListener("change", paintTheme);
 
+// ── Character ─────────────────────────────────────────────────────────────────
+
+/** A still drawing of a character at rest (drawn once, no animation loop). */
+function critterPreview(c: CritterId): HTMLCanvasElement {
+  const w = 44, ht = 36;
+  const dpr = Math.min(2, window.devicePixelRatio || 1);
+  const canvas = h("canvas", { class: "critter-preview" }) as HTMLCanvasElement;
+  canvas.width = Math.round(w * dpr);
+  canvas.height = Math.round(ht * dpr);
+  canvas.style.width = `${w}px`;
+  canvas.style.height = `${ht}px`;
+  const ctx = canvas.getContext("2d");
+  if (ctx) {
+    const engine = new BotEngine();
+    engine.critter = c;
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    engine.draw(ctx, w, ht);
+  }
+  return canvas;
+}
+
+function characterSection(): HTMLElement {
+  const grid = h("div", { class: "theme-grid critter-grid" });
+  function draw() {
+    clear(grid);
+    const current = (CRITTERS as readonly string[]).includes(settings.critter) ? settings.critter : DEFAULT_CRITTER;
+    for (const c of CRITTERS) {
+      grid.append(h("button", {
+        class: "theme-choice critter-choice" + (current === c ? " on" : ""),
+        onclick: () => { settings.critter = c; setCurrentCritter(c); void save(); draw(); onCritterChange(); },
+      },
+      critterPreview(c),
+      h("span", { class: "critter-text" },
+        h("b", { text: CRITTER_INFO[c].name }),
+        h("small", { text: CRITTER_INFO[c].tagline }),
+      )));
+    }
+  }
+  draw();
+
+  // Who handles what (#151): every active integration can have its own character.
+  const who = h("div", { class: "critter-who" });
+  function drawWho() {
+    clear(who);
+    const main = isCritter(settings.critter) ? settings.critter : DEFAULT_CRITTER;
+    who.append(h("div", { class: "row" }, h("label", { text: "Claude Code" }),
+      h("span", { class: "hint", text: CRITTER_INFO[main].name })));
+    for (const agent of INTEGRATION_AGENTS) {
+      if (agent.id === "integration_claude" || !settings.activeIntegrations.includes(agent.id)) continue;
+      const pick = h("select", {}) as HTMLSelectElement;
+      pick.append(h("option", { value: "", text: `Same as ${CRITTER_INFO[main].name}` }));
+      for (const c of CRITTERS) pick.append(h("option", { value: c, text: CRITTER_INFO[c].name }));
+      pick.value = settings.critterAssignments?.[agent.id] ?? "";
+      pick.addEventListener("change", () => {
+        const next = { ...(settings.critterAssignments ?? {}) };
+        if (pick.value) next[agent.id] = pick.value; else delete next[agent.id];
+        settings.critterAssignments = next;
+        void save();
+      });
+      const row = h("div", { class: "row" }, h("label", { text: agent.name }), pick);
+      // Its own colour (#156): two of the same character can tell apart what they handle.
+      if (settings.critterAssignments?.[agent.id]) {
+        const dots = h("span", { class: "tint-dots" });
+        const current = settings.critterColors?.[agent.id] ?? null;
+        for (const c of [null, ...TINT_CHOICES]) {
+          dots.append(h("button", {
+            class: "tint-dot" + (c === current ? " on" : "") + (c ? "" : " none"),
+            style: c ? `background:${c}` : "",
+            title: c ?? "Its own colours",
+            "aria-label": c ?? "Its own colours",
+            onclick: () => {
+              const next = { ...(settings.critterColors ?? {}) };
+              if (c) next[agent.id] = c; else delete next[agent.id];
+              settings.critterColors = next;
+              void save();
+              drawWho();
+            },
+          }));
+        }
+        row.append(dots);
+      }
+      who.append(row);
+    }
+  }
+  drawWho();
+  onCritterChange = drawWho;
+
+  return h("section", {},
+    h("h2", {}, h("span", { text: "Character" })),
+    grid,
+    h("div", { class: "hint", text: "The interface calls it by its name, like \u201CAsk Lumo\u201D." }),
+    h("h3", { text: "Who handles what" }),
+    who,
+    h("div", { class: "hint", text: "An integration with its own character shows it in its pill and, in free placement, floats on its own: click it to open just that integration." }),
+  );
+}
+
+/** Redraws "Who handles what" when the main character or the integrations change. */
+let onCritterChange: () => void = () => {};
+
 function appearanceSection(): HTMLElement {
   const grid = h("div", { class: "theme-grid" });
   const choices: [string, string, string[]][] = [
@@ -1640,6 +1743,22 @@ function generalSection(editors: { id: string; name: string }[]): HTMLElement {
     void save();
   });
 
+  // Free placement: the character floats in its own window you drag anywhere (buddy.rs).
+  const placement = h("select", {}) as HTMLSelectElement;
+  placement.append(
+    h("option", { value: "notch", text: "At the top of the screen" }),
+    h("option", { value: "free", text: "Free on the desktop" }),
+  );
+  placement.value = settings.placement === "free" ? "free" : "notch";
+  placement.addEventListener("change", () => {
+    settings.placement = placement.value === "free" ? "free" : "notch";
+    void save();
+  });
+  const resetSpot = h("button", {
+    text: "Reset position",
+    onclick: () => { settings.buddyX = null; settings.buddyY = null; settings.placement = "free"; placement.value = "free"; void save(); },
+  });
+
   return h(
     "section",
     {},
@@ -1659,6 +1778,12 @@ function generalSection(editors: { id: string; name: string }[]): HTMLElement {
       language,
     ),
     h("div", { class: "row" },
+      h("label", { text: "Where it lives" }),
+      placement,
+      resetSpot,
+      h("span", { class: "hint", text: "free: drag the character anywhere, click it to open the island next to it, right-click for options" }),
+    ),
+    h("div", { class: "row" },
       h("label", { text: "Island lives on" }),
       screen,
     ),
@@ -1668,7 +1793,7 @@ function generalSection(editors: { id: string; name: string }[]): HTMLElement {
       h("span", { class: "hint", text: "a small notch stays at the top when the island hides" }),
     ),
     h("div", { class: "row" },
-      h("label", { text: "Mochi moves with the music" }),
+      h("label", { text: `${botName()} moves with the music` }),
       toggle(settings.mochiDance === true, (v) => { settings.mochiDance = v; void save(); }),
       h("span", { class: "hint", text: "bobs along while music plays; off in Do not disturb and with reduced motion. Music detection isn't available on this system yet" }),
     ),
@@ -1689,6 +1814,7 @@ async function main() {
   const boot = await Bridge.boot();
   if (boot) {
     settings = { ...settings, ...boot.settings };
+    setCurrentCritter(isCritter(settings.critter) ? settings.critter : DEFAULT_CRITTER);
     version = boot.version;
     if (boot.platform === "linux") keychainName = "your keyring (Secret Service)";
   }
@@ -1724,7 +1850,7 @@ async function main() {
   // Tabs: everything used to be one long page.
   type Tab = "general" | "chat" | "claude" | "integrations" | "alerts";
   const pages: [Tab, string, HTMLElement[]][] = [
-    ["general", "General", [appearanceSection(), generalSection(editors), voiceSection(canListen), updatesSection()]],
+    ["general", "General", [characterSection(), appearanceSection(), generalSection(editors), voiceSection(canListen), updatesSection()]],
     ["chat", "Chat", [apiSection(hasKey, claudeCode, presets, present), skillsSection(skillTargets)]],
     ["claude", "Claude Code", [claudeSection(status), codexSection(codex), timeSection(), focusSection()]],
     ["integrations", "Integrations", [
@@ -1766,6 +1892,7 @@ async function main() {
 
   void onEvent<Settings>("settings-changed", (s) => {
     settings = { ...settings, ...s };
+    setCurrentCritter(isCritter(settings.critter) ? settings.critter : DEFAULT_CRITTER);
   });
 }
 

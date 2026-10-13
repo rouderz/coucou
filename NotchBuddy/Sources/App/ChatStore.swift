@@ -77,6 +77,9 @@ final class ChatStore: ObservableObject {
         state.currentChatID = chat.id
         state.chatHistory = chat.messages.map { ChatMessage(role: $0.user ? .user : .assistant, content: $0.text) }
         state.promptContext = chat.code.map { PromptContext.code($0) }
+        // A chat about a whole folder belongs to Code mode (#152).
+        state.chatMode = chat.code?.isFolder == true ? .code : .chat
+        if state.chatMode == .code { state.chatAllowEdits = true }
         AnthropicAPIChat.shared.restore(chat.messages)
         OpenAICompatibleChat.shared.restore(chat.messages)
         AgentCLIChat.codex.restore(chat.messages)

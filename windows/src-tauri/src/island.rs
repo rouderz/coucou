@@ -170,8 +170,26 @@ pub fn apply_geometry(app: &AppHandle, pref: &str, collapsed: bool) {
     let (lw, lh) = if collapsed { (STRIP_W, strip_h) } else { (PANEL_W, PANEL_H) };
     let pw = (lw * scale).round().max(1.0) as u32;
     let ph = (lh * scale).round().max(1.0) as u32;
-    let x = mp.x + (ms.width as i32 - pw as i32) / 2;
-    let y = mp.y;
+    let mut x = mp.x + (ms.width as i32 - pw as i32) / 2;
+    let mut y = mp.y;
+
+    // Free placement (buddy.rs): folded, the island is a 1 px speck parked under the
+    // character that never takes the mouse; open, the panel sits next to the character.
+    let mut perch_at: Option<i32> = None;
+    if crate::buddy::is_free(app) && platform::positions_itself() {
+        if collapsed {
+            crate::buddy::unperch(app);
+            if let Some((bx, by, _, _)) = crate::buddy::frame(app) {
+                let _ = win.set_size(PhysicalSize::new(1, 1));
+                let _ = win.set_position(PhysicalPosition::new(bx, by));
+                return;
+            }
+        } else if let Some(p) = crate::buddy::island_position(app, pw, ph) {
+            x = p.x;
+            y = p.y;
+            perch_at = Some(p.y);
+        }
+    }
 
     let _ = win.set_size(PhysicalSize::new(pw, ph));
     // On Wayland the compositor owns placement: the layer-shell anchor keeps the
@@ -182,6 +200,10 @@ pub fn apply_geometry(app: &AppHandle, pref: &str, collapsed: bool) {
         let _ = win.set_size(PhysicalSize::new(pw, ph));
     }
     let _ = win.set_always_on_top(true);
+    // Free placement: the character sits on the open island's top edge, in front of it.
+    if let Some(top) = perch_at {
+        crate::buddy::perch(app, top);
+    }
 }
 
 /// Position, size and scale of the monitor the island lives on. Any change here
@@ -329,5 +351,9 @@ pub fn spawn_topmost_keeper(app: AppHandle) {
         std::thread::sleep(Duration::from_secs(2));
         let Some(win) = window(&app) else { continue };
         platform::keep_on_top(&win);
+        // The character sitting on the open island stays in front of it.
+        if let Some(buddy) = crate::buddy::perched_window(&app) {
+            platform::keep_on_top(&buddy);
+        }
     });
 }

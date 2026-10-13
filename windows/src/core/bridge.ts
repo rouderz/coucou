@@ -3,7 +3,7 @@
 // `npm run dev` alone.
 
 import { invoke } from "@tauri-apps/api/core";
-import { listen } from "@tauri-apps/api/event";
+import { emit, listen } from "@tauri-apps/api/event";
 import { getCurrentWebview } from "@tauri-apps/api/webview";
 import type { Settings } from "./state";
 import type { StatEvent } from "./whaticketStats.ts";
@@ -206,6 +206,11 @@ export const Bridge = {
   chatSend: (query: string, context: ChatContext | null) =>
     callOrThrow<{ text: string }>("chat_send", { query, context }),
   chatReset: () => call<void>("chat_reset"),
+  /** Code mode (#152): one turn of Claude Code in the folder; edits and commands wait for the island. */
+  codeSend: (query: string, folder: string, edits: boolean) =>
+    callOrThrow<{ text: string }>("code_send", { query, folder, edits }),
+  /** The system's folder picker; null when cancelled. */
+  pickFolder: (start: string | null) => call<string | null>("pick_folder", { start }),
   /** Codex / Gemini CLI engines (#108): one turn, the CLI's raw output back (parsed in claude/cliChat.ts). */
   cliChatRun: (engine: "codex" | "gemini", conversation: string, model: string) =>
     callOrThrow<{ exitCode: number | null; stdout: string; stderr: string }>("cli_chat_run", { engine, conversation, model }),
@@ -332,6 +337,12 @@ export async function onDragDrop(handler: (e: DragDropPayload) => void) {
   return getCurrentWebview().onDragDropEvent((event) => {
     handler(event.payload as DragDropPayload);
   });
+}
+
+/** Tells the free-floating characters what to show: key ("main" or integration id) → state. */
+export function toBuddies(states: Record<string, string>) {
+  if (!IS_TAURI) return;
+  void emit("buddy-state", states).catch(() => {});
 }
 
 export async function onEvent<T>(name: string, handler: (payload: T) => void) {

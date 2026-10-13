@@ -882,32 +882,32 @@
         }
       }
     },
-    "Ask Mochi": {
+    "Ask %@": {
       "localizations": {
         "es": {
           "stringUnit": {
             "state": "translated",
-            "value": "Preguntar a Mochi"
+            "value": "Preguntar a %@"
           }
         }
       }
     },
-    "Ask Mochi about the file you're editing": {
+    "Ask %@ about the file you're editing": {
       "localizations": {
         "es": {
           "stringUnit": {
             "state": "translated",
-            "value": "Preguntar a Mochi por el archivo que editas"
+            "value": "Preguntar a %@ por el archivo que editas"
           }
         }
       }
     },
-    "Ask Mochi why": {
+    "Ask %@ why": {
       "localizations": {
         "es": {
           "stringUnit": {
             "state": "translated",
-            "value": "Preguntar a Mochi por qué"
+            "value": "Preguntar a %@ por qué"
           }
         }
       }
@@ -1412,6 +1412,16 @@
         }
       }
     },
+    "Code": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Código"
+          }
+        }
+      }
+    },
     "Chat answer": {
       "localizations": {
         "es": {
@@ -1482,12 +1492,12 @@
         }
       }
     },
-    "Checked every minute. New items make Mochi peek out (only a badge in Do not disturb); the 🔔 in the island lists them. Opening or dismissing one marks it read on GitHub / Linear.": {
+    "Checked every minute. New items make %@ peek out (only a badge in Do not disturb); the 🔔 in the island lists them. Opening or dismissing one marks it read on GitHub / Linear.": {
       "localizations": {
         "es": {
           "stringUnit": {
             "state": "translated",
-            "value": "Se revisa cada minuto. Lo nuevo hace que Mochi se asome (solo una marca en No molestar); la 🔔 de la isla lo lista. Abrir o descartar algo lo marca como leído en GitHub / Linear."
+            "value": "Se revisa cada minuto. Lo nuevo hace que %@ se asome (solo una marca en No molestar); la 🔔 de la isla lo lista. Abrir o descartar algo lo marca como leído en GitHub / Linear."
           }
         }
       }
@@ -2182,12 +2192,12 @@
         }
       }
     },
-    "Conversations with Mochi are kept here so you can pick them up later.": {
+    "Conversations with %@ are kept here so you can pick them up later.": {
       "localizations": {
         "es": {
           "stringUnit": {
             "state": "translated",
-            "value": "Las conversaciones con Mochi se guardan aquí para retomarlas más tarde."
+            "value": "Las conversaciones con %@ se guardan aquí para retomarlas más tarde."
           }
         }
       }
@@ -3462,12 +3472,12 @@
         }
       }
     },
-    "Hey Mochi: start by voice, without the shortcut": {
+    "Hey %@: start by voice, without the shortcut": {
       "localizations": {
         "es": {
           "stringUnit": {
             "state": "translated",
-            "value": "Oye Mochi: empezar con la voz, sin el atajo"
+            "value": "Oye %@: empezar con la voz, sin el atajo"
           }
         }
       }
@@ -4002,12 +4012,12 @@
         }
       }
     },
-    "Listening for “Hey Mochi” (or “Oye Mochi”) on this Mac only. macOS shows the orange microphone dot while it listens.": {
+    "Listening for “Hey %@” (or “Oye %@”) on this Mac only. macOS shows the orange microphone dot while it listens.": {
       "localizations": {
         "es": {
           "stringUnit": {
             "state": "translated",
-            "value": "Escuchando “Oye Mochi” (o “Hey Mochi”) solo en este Mac. macOS muestra el punto naranja del micrófono mientras escucha."
+            "value": "Escuchando “Oye %@” (o “Hey %@”) solo en este Mac. macOS muestra el punto naranja del micrófono mientras escucha."
           }
         }
       }
@@ -4392,72 +4402,72 @@
         }
       }
     },
-    "Mochi can change files in this project. You approve every change in the island.": {
+    "%@ can change files in this project. You approve every change in the island.": {
       "localizations": {
         "es": {
           "stringUnit": {
             "state": "translated",
-            "value": "Mochi puede cambiar archivos de este proyecto. Apruebas cada cambio en la isla."
+            "value": "%@ puede cambiar archivos de este proyecto. Apruebas cada cambio en la isla."
           }
         }
       }
     },
-    "Mochi can only read this project. Click to let it propose edits.": {
+    "%@ can only read this project. Click to let it propose edits.": {
       "localizations": {
         "es": {
           "stringUnit": {
             "state": "translated",
-            "value": "Mochi solo puede leer este proyecto. Haz clic para que pueda proponer cambios."
+            "value": "%@ solo puede leer este proyecto. Haz clic para que pueda proponer cambios."
           }
         }
       }
     },
-    "Mochi can read and search that project but never edits it.": {
+    "%@ can read and search that project but never edits it.": {
       "localizations": {
         "es": {
           "stringUnit": {
             "state": "translated",
-            "value": "Mochi puede leer y buscar en ese proyecto, pero nunca lo edita."
+            "value": "%@ puede leer y buscar en ese proyecto, pero nunca lo edita."
           }
         }
       }
     },
-    "Mochi moves with the music": {
+    "%@ moves with the music": {
       "localizations": {
         "es": {
           "stringUnit": {
             "state": "translated",
-            "value": "Mochi se mueve con la música"
+            "value": "%@ se mueve con la música"
           }
         }
       }
     },
-    "Mochi says it out loud": {
+    "%@ says it out loud": {
       "localizations": {
         "es": {
           "stringUnit": {
             "state": "translated",
-            "value": "Mochi lo dice en voz alta"
+            "value": "%@ lo dice en voz alta"
           }
         }
       }
     },
-    "Mochi tells me when someone needs me": {
+    "%@ tells me when someone needs me": {
       "localizations": {
         "es": {
           "stringUnit": {
             "state": "translated",
-            "value": "Mochi me avisa cuando alguien me necesita"
+            "value": "%@ me avisa cuando alguien me necesita"
           }
         }
       }
     },
-    "Mochi's chat goes to %@ with your key. Files and the code you're on are sent as text; edits and web search stay with the Claude engines.": {
+    "%@'s chat goes to %@ with your key. Files and the code you're on are sent as text; edits and web search stay with the Claude engines.": {
       "localizations": {
         "es": {
           "stringUnit": {
             "state": "translated",
-            "value": "El chat de Mochi va a %@ con tu clave. Los archivos y el código se envían como texto; la edición y la búsqueda web siguen siendo de los motores de Claude."
+            "value": "El chat de %1$@ va a %2$@ con tu clave. Los archivos y el código se envían como texto; la edición y la búsqueda web siguen siendo de los motores de Claude."
           }
         }
       }
@@ -5752,12 +5762,12 @@
         }
       }
     },
-    "Push-to-talk: hold to talk to Mochi": {
+    "Push-to-talk: hold to talk to %@": {
       "localizations": {
         "es": {
           "stringUnit": {
             "state": "translated",
-            "value": "Pulsar para hablar: mantén pulsado para hablar con Mochi"
+            "value": "Pulsar para hablar: mantén pulsado para hablar con %@"
           }
         }
       }
@@ -5842,12 +5852,12 @@
         }
       }
     },
-    "Read Mochi's answers aloud": {
+    "Read %@'s answers aloud": {
       "localizations": {
         "es": {
           "stringUnit": {
             "state": "translated",
-            "value": "Leer en voz alta las respuestas de Mochi"
+            "value": "Leer en voz alta las respuestas de %@"
           }
         }
       }
@@ -6522,12 +6532,12 @@
         }
       }
     },
-    "Speech is transcribed on this Mac when it supports it. Mochi only listens while you hold the shortcut.": {
+    "Speech is transcribed on this Mac when it supports it. %@ only listens while you hold the shortcut.": {
       "localizations": {
         "es": {
           "stringUnit": {
             "state": "translated",
-            "value": "La voz se transcribe en este Mac cuando lo admite. Mochi solo escucha mientras mantienes pulsado el atajo."
+            "value": "La voz se transcribe en este Mac cuando lo admite. %@ solo escucha mientras mantienes pulsado el atajo."
           }
         }
       }
@@ -6662,12 +6672,12 @@
         }
       }
     },
-    "Talk to Mochi (or hold the push-to-talk shortcut)": {
+    "Talk to %@ (or hold the push-to-talk shortcut)": {
       "localizations": {
         "es": {
           "stringUnit": {
             "state": "translated",
-            "value": "Habla con Mochi (o mantén pulsado el atajo para hablar)"
+            "value": "Habla con %@ (o mantén pulsado el atajo para hablar)"
           }
         }
       }
@@ -7132,12 +7142,12 @@
         }
       }
     },
-    "Turn off Hey Mochi during focus blocks": {
+    "Turn off Hey %@ during focus blocks": {
       "localizations": {
         "es": {
           "stringUnit": {
             "state": "translated",
-            "value": "Apagar Oye Mochi durante los bloques de concentración"
+            "value": "Apagar Oye %@ durante los bloques de concentración"
           }
         }
       }
@@ -7482,12 +7492,12 @@
         }
       }
     },
-    "While Music or Spotify plays, Mochi bobs along and puts on headphones when the song changes. Off in Do not disturb and with Reduce Motion.": {
+    "While Music or Spotify plays, %@ bobs along and puts on headphones when the song changes. Off in Do not disturb and with Reduce Motion.": {
       "localizations": {
         "es": {
           "stringUnit": {
             "state": "translated",
-            "value": "Mientras suena Música o Spotify, Mochi se balancea al ritmo y se pone los auriculares cuando cambia la canción. Se desactiva en No molestar y con Reducir movimiento."
+            "value": "Mientras suena Música o Spotify, %@ se balancea al ritmo y se pone los auriculares cuando cambia la canción. Se desactiva en No molestar y con Reducir movimiento."
           }
         }
       }
@@ -8458,6 +8468,246 @@
           "stringUnit": {
             "state": "translated",
             "value": "❌ Error al escribir: %@"
+          }
+        }
+      }
+    },
+    "Character": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Personaje"
+          }
+        }
+      }
+    },
+    "Who handles what": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Quién se encarga de qué"
+          }
+        }
+      }
+    },
+    "An integration with its own character shows it in its pill and, in free placement, floats on its own: click it to open just that integration.": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Una integración con personaje propio lo muestra en su píldora y, en modo libre, flota por su cuenta: haz clic en él para abrir solo esa integración."
+          }
+        }
+      }
+    },
+    "Same as %@": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Igual que %@"
+          }
+        }
+      }
+    },
+    "Reset positions": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Restablecer posiciones"
+          }
+        }
+      }
+    },
+    "Where it lives": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Dónde vive"
+          }
+        }
+      }
+    },
+    "In the notch": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "En el notch"
+          }
+        }
+      }
+    },
+    "Free on the desktop": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Libre en el escritorio"
+          }
+        }
+      }
+    },
+    "Drag the character anywhere. Click it to open the island next to it, right-click for options.": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Arrastra el personaje a donde quieras. Haz clic para abrir la isla junto a él y clic derecho para ver opciones."
+          }
+        }
+      }
+    },
+    "The interface calls it by its name: “Ask %@”, “Hey %@”.": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "La interfaz lo llama por su nombre: “Pregúntale a %@”, “Oye %@”."
+          }
+        }
+      }
+    },
+    "A steamed bun that steams while it works": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Un panecillo al vapor que echa vapor mientras trabaja"
+          }
+        }
+      }
+    },
+    "A bean with a sprout that tells how things go": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Un frijol con un brote que cuenta cómo va todo"
+          }
+        }
+      }
+    },
+    "A little cloud: rain on errors, sun when done": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Una nubecita: llueve si hay errores, sale el sol al terminar"
+          }
+        }
+      }
+    },
+    "A glowing jellyfish that wiggles while it works": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Una medusa que brilla y se agita mientras trabaja"
+          }
+        }
+      }
+    },
+    "A keycap that presses itself while it types": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Una tecla que se pulsa sola mientras escribe"
+          }
+        }
+      }
+    },
+    "Back to the notch": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Volver al notch"
+          }
+        }
+      }
+    },
+    "Its own colours": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sus propios colores"
+          }
+        }
+      }
+    },
+    "Code here": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Programar aquí"
+          }
+        }
+      }
+    },
+    "The folder Claude Code works in": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "La carpeta en la que trabaja Claude Code"
+          }
+        }
+      }
+    },
+    "Choose a folder": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Elegir una carpeta"
+          }
+        }
+      }
+    },
+    "Other folder…": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Otra carpeta…"
+          }
+        }
+      }
+    },
+    "Edits & commands": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ediciones y comandos"
+          }
+        }
+      }
+    },
+    "What should we build? (/ skills)": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "¿Qué construimos? (/ habilidades)"
+          }
+        }
+      }
+    },
+    "Choose a folder first ↑": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Primero elige una carpeta ↑"
           }
         }
       }

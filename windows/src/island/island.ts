@@ -1,10 +1,11 @@
 // The island: DOM shell, sizing animation, Mochi placement, mouse handling.
 // Mirrors IslandRootView.swift + IslandWindowController.swift.
 
+import { showMode } from "../core/codeMode";
 import { Tracked, Spring, clamp } from "../core/anim";
-import { Bridge, IS_TAURI, onDragDrop } from "../core/bridge";
+import { Bridge, IS_TAURI, onDragDrop, toBuddies } from "../core/bridge";
 import {
-  EXPANDED_CORNER, EXPANDED_W, NOTCH_W, PANEL_H, PANEL_W,
+  COMPACT_EAR, EXPANDED_CORNER, EXPANDED_W, NOTCH_W, PANEL_H, PANEL_W,
   ROUNDED_CORNER, VIEW_LAYOUTS, botGlowColor, botGlowOpacity, botPosition, chatPromptHeight,
   IDLE, IDLE_NOTCH_H, islandSize,
   type IslandMode, type IslandViewName,
@@ -15,7 +16,8 @@ import { BotEngine, hexToRGB, type EyeShape } from "../mochi/engine";
 import { progress as focusProgress } from "../core/focus.ts";
 import type { BotEmoteName } from "../core/layout";
 import { Greeting } from "../mochi/greeting";
-import { createMiniBot, pruneMiniBots, syncMiniBotStates, tickMiniBots } from "../mochi/minibots";
+import { setMiniCritter, syncMiniBotStates, tickMiniBots } from "../mochi/minibots";
+import { DEFAULT_CRITTER, assignments, isCritter, setCurrentCritter, type CritterId } from "../mochi/critters";
 import { UploadCanvas } from "../upload/canvas";
 import { USC, UploadSeq } from "../upload/sequence";
 import { buildHeader, buildViews, type ViewActions, type ViewHost } from "../views/views";
@@ -35,6 +37,12 @@ const UPLOAD_VIEWS: ReadonlySet<IslandViewName> = new Set(["upload", "uploading"
 const PRE_PROGRESS = USC.T_PROG_START - USC.T_DROP;
 
 const modeOrder = (m: IslandMode) => (m === "hidden" ? 0 : m === "compact" ? 1 : 2);
+
+/** The folded island's status dot (#153), by state. */
+const COMPACT_COLORS: Record<string, string> = {
+  working: "#3B9EFF", thinking: "#A78BFA", searching: "#6366F1", approval: "#F5A524", question: "#F5A524",
+  error: "#F4505E", finished: "#34D399", ratelimit: "#F59E0B",
+};
 
 export class Island {
   readonly fsm = new IslandStateMachine();
@@ -520,12 +528,14 @@ export class Island {
     const r = this.radius.value;
     this.islandEl.style.width = `${w}px`;
     this.islandEl.style.height = `${hh}px`;
-    this.islandEl.style.borderRadius = `0 0 ${r}px ${r}px`;
+    // Free placement: a bubble under the floating character, rounded all round.
+    const top = State.settings.placement === "free" && State.mode === "expanded" ? r : 0;
+    this.islandEl.style.borderRadius = `${top}px ${top}px ${r}px ${r}px`;
     this.islandEl.style.transform = `translateX(-50%)`;
     // These follow the island as it resizes, so they belong here rather than in
     // the state-driven DOM sync.
-    this.miniGrid.style.left = `${w - 40 - 14.5}px`;
-    this.miniGrid.style.top = `${hh / 2 - 14.5}px`;
+    this.miniGrid.style.left = `${w - COMPACT_EAR / 2 - 17}px`;
+    this.miniGrid.style.top = `${hh / 2 - 8}px`;
     this.greetingCanvas.style.left = `${(w - EXPANDED_W) / 2}px`;
     this.uploadCanvas.el.style.left = `${(w - EXPANDED_W) / 2}px`;
 
@@ -546,18 +556,25 @@ export class Island {
 
   // ── Window collapse (hidden → tiny wake strip, zero polling) ────────────────
 
+  /** Free placement: the island only exists while open, next to the floating character. */
+  private get folded(): boolean {
+    return State.mode === "hidden" || (State.settings.placement === "free" && State.mode !== "expanded");
+  }
+
   private updateWindowCollapsed() {
     if (this.collapseTimer != null) {
       window.clearTimeout(this.collapseTimer);
       this.collapseTimer = null;
     }
-    if (State.mode === "hidden") {
+    if (this.folded) {
       // Let the island finish retracting, then drop the window to the wake strip:
       // from there the OS delivers no cursor events, so nothing polls at all.
       this.collapseTimer = window.setTimeout(() => {
         this.collapseTimer = null;
-        if (State.mode !== "hidden") return;
+        if (!this.folded) return;
         this.collapsed = true;
+        this.activeBuddy = "main";   // the next alert opens on the main character
+        State.soloTaskId = null;
         void Bridge.setCollapsed(true);
       }, 420);
     } else if (this.collapsed) {
@@ -591,6 +608,12 @@ export class Island {
 
     window.addEventListener("keydown", (e) => {
       if (e.key === "Escape" && State.mode === "expanded" && !State.isPinned) this.collapse();
+      // Chat / Code (#149): Ctrl+Alt+← / →.
+      if (e.ctrlKey && e.altKey && !e.shiftKey && !e.metaKey && State.mode === "expanded"
+        && (e.key === "ArrowLeft" || e.key === "ArrowRight")) {
+        e.preventDefault();
+        void showMode(e.key === "ArrowLeft" ? "chat" : "code").then(() => this.setView("prompt"));
+      }
       State.lastActivity = performance.now();
     });
 
@@ -796,7 +819,10 @@ export class Island {
 
     const greetingActive = State.mode === "expanded" && State.view === "greeting";
     // The drop canvas draws its own Mochi; two of them would overlap.
-    const visible = p.opacity > 0 && !greetingActive && !this.uploadActive;
+    // Free placement: the floating character sits on top of the island, so the overview
+    // doesn't draw it a second time (alerts still do, with their expressions).
+    const botAbove = State.settings.placement === "free" && (State.view === "overview" || State.view === "empty");
+    const visible = p.opacity > 0 && !greetingActive && !this.uploadActive && !botAbove;
     this.botCanvas.style.opacity = visible ? "1" : "0";
 
     if (State.mode === "expanded" && State.view !== "uploading" && !greetingActive && !this.uploadActive) {
@@ -949,24 +975,29 @@ export class Island {
       }
     }
 
-    // Compact mini grid
+    // Folded island, right ear (#153): a dot in the colour of what's going on (breathing while
+    // something works) and how many other tasks are busy or need you.
     const showGrid = State.mode === "compact";
     this.miniGrid.style.opacity = showGrid ? "1" : "0";
     if (showGrid) {
-      const others = State.visiblePills;
-      const key = others.map((t) => t.id).join("|");
+      const s = State.effectiveState;
+      const others = State.tasks.filter((t) => t.id !== State.focusId
+        && (t.pillBadge || (t.state !== "idle" && t.state !== "sleeping"))).length;
+      const key = `${s}|${others}`;
       if (this.miniGrid.dataset.key !== key) {
         this.miniGrid.dataset.key = key;
-        this.miniGrid.replaceChildren();
-        for (const t of others) {
-          this.miniGrid.append(createMiniBot(t, 13));
-        }
-        pruneMiniBots();
+        const dot = h("span", { class: "cs-dot" });
+        dot.style.setProperty("--c", COMPACT_COLORS[s] ?? "#6B7079");
+        dot.classList.toggle("busy", s === "working" || s === "thinking" || s === "searching");
+        this.miniGrid.replaceChildren(dot, ...(others > 0 ? [h("span", { class: "cs-count", text: String(Math.min(others, 9)) })] : []));
       }
     }
 
     syncMiniBotStates(State.tasks);
     this.engine.setState(State.effectiveState);
+    this.engine.critter = this.focusCritter(this.mainCritter);
+    this.engine.userTint = this.focusTint();
+    this.pushBuddyState();
     this.applyFocusLook();
   }
 
@@ -977,14 +1008,76 @@ export class Island {
     window.setTimeout(() => this.views.get(view)?.focus?.(), 120);
   }
 
+  /** The floating character the open island belongs to ("main" or an integration id). */
+  private activeBuddy = "main";
+
+  /** Free placement: a click on a floating character opens the island on its task, sitting
+   *  on it; a click on the one the island belongs to folds it. */
+  toggleFromBuddy(key: string) {
+    Sound.resume();
+    if (State.mode === "expanded" && this.activeBuddy === key) {
+      this.collapse();
+      return;
+    }
+    this.activeBuddy = key;
+    const own = assignments(State.settings.critterAssignments);
+    const keepFocus = key === "main" && State.focusId != null && !own[State.focusId];
+    const target = key === "main" ? (keepFocus ? State.focusId : State.tasks.find((t) => !own[t.id])?.id) : key;
+    if (target) State.focusId = target;
+    State.soloTaskId = key === "main" ? null : key;
+    if (State.mode === "expanded") this.setView("overview");
+    else this.fsm.forceHome();
+    State.notify();
+  }
+
+  private mainCritter: CritterId = DEFAULT_CRITTER;
+  private lastBuddyStates = "";
+  /** Keeps the floating characters in step: the main one shows the focused task unless that
+   *  one has its own character, the others show their integration (#151). */
+  private pushBuddyState(force = false) {
+    if (State.settings.placement !== "free") return;
+    const own = assignments(State.settings.critterAssignments);
+    const focus = State.focusTask;
+    const states: Record<string, string> = {
+      main: focus && !own[focus.id] ? this.engine.state : State.tasks.find((t) => !own[t.id])?.state ?? "idle",
+    };
+    for (const t of State.tasks) if (own[t.id]) states[t.id] = t.state;
+    const json = JSON.stringify(states);
+    if (json === this.lastBuddyStates && !force) return;
+    this.lastBuddyStates = json;
+    toBuddies(states);
+  }
+
+  /** The user's colour for the focused task's own character (#156), if any. */
+  private focusTint(): string | null {
+    const id = State.focusTask?.id;
+    if (!id || !assignments(State.settings.critterAssignments)[id]) return null;
+    return State.settings.critterColors?.[id] ?? null;
+  }
+
+  /** The character in charge of the focused task (its own, or the main one). */
+  private focusCritter(main: CritterId): CritterId {
+    const id = State.focusTask?.id;
+    return (id && assignments(State.settings.critterAssignments)[id]) || main;
+  }
+
   /** Applies settings coming from Rust at boot. */
   applySettings() {
-    // The notch left on screen when hidden, and a wake strip that covers it.
-    IDLE.notch = State.settings.idleNotch !== false;
+    const critter = isCritter(State.settings.critter) ? State.settings.critter : DEFAULT_CRITTER;
+    this.mainCritter = critter;
+    this.engine.critter = this.focusCritter(critter);
+    this.engine.userTint = this.focusTint();
+    setCurrentCritter(critter);
+    setMiniCritter(critter, assignments(State.settings.critterAssignments), State.settings.critterColors ?? {});
+    // The notch left on screen when hidden, and a wake strip that covers it (none in free placement).
+    IDLE.notch = State.settings.idleNotch !== false && State.settings.placement !== "free";
+    document.documentElement.classList.toggle("free-placement", State.settings.placement === "free");
     this.wakeStrip.style.height = `${IDLE.notch ? IDLE_NOTCH_H + 2 : 6}px`;
     Sound.setEnabled(State.settings.soundEnabled);
     Sound.setVolume(State.settings.soundVolume);
     this.fsm.homeToPetitDelay = State.settings.autoCloseInterval;
+    this.updateWindowCollapsed();
+    this.pushBuddyState(true);
     State.notify();
   }
 

@@ -30,14 +30,14 @@ private enum GT {
 private let GC0     = CGPoint(x: 320, y: 90)   // Mochi center
 private let GHB:    CGFloat = 58                // body height at full size
 private let GASP:   CGFloat = 1.34             // body width/height ratio
-private let GEAR_X: CGFloat = 40               // ear x from small island left edge (matches BotPlacement compact x=40)
+private let GEAR_X: CGFloat = IslandConst.compactEar / 2  // ear x from small island left edge (matches BotPlacement compact)
 private let GEAR_Y: CGFloat = 16               // ear y
 private let GEAR_HB:CGFloat = 17               // ear body height
 private let GCARD   = CGRect(x: 10, y: 36, width: 620, height: 104)
 private let GCARD_R:CGFloat = 20
 
-// Small island = compact mode size (matches our actual nw+160)
-private var GSMALL_W: CGFloat { IslandConst.notchWidth + 160 }
+// Small island = compact mode size (notch + two ears, #153)
+private var GSMALL_W: CGFloat { IslandConst.notchWidth + IslandConst.compactEar * 2 }
 private let GSMALL_H: CGFloat = IslandConst.notchHeight
 
 // MARK: - Easing (mirrors E = {...})

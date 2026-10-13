@@ -35,13 +35,13 @@ struct WhaTicketCardView: View {
                 Text(verbatim: subtitle).font(.system(size: 11)).foregroundColor(Color(hex: "#8E939C"))
                     .lineLimit(1).truncationMode(.tail)
             }
-            .padding(.top, 6).padding(.leading, 108).padding(.trailing, 62)  // room for ↻ and ↗
+            .padding(.top, 6).padding(.leading, botInset(108)).padding(.trailing, 62)  // room for ↻ and ↗
 
             Text(verbatim: todayLine)
                 .font(.system(size: 10.5)).foregroundColor(Color(hex: "#8E939C"))
                 .lineLimit(1)
                 .help(L("Tickets that arrived and that were accepted today (Settings → WhaTicket → Stats)"))
-                .padding(.top, 2).padding(.leading, 108).padding(.trailing, 12)
+                .padding(.top, 2).padding(.leading, botInset(108)).padding(.trailing, 12)
 
             // An error only matters while nothing fresh arrives (stale); otherwise the queue is right.
             if let error = appState.whaticketError, stale {
@@ -68,7 +68,7 @@ struct WhaTicketCardView: View {
                 }
             }
             .frame(maxHeight: 76)
-            .padding(.leading, 102).padding(.trailing, 12).padding(.top, 5)
+            .padding(.leading, botInset(102)).padding(.trailing, 12).padding(.top, 5)
         }
         .frame(maxWidth: .infinity, alignment: .topLeading).padding(.top, 4)
     }

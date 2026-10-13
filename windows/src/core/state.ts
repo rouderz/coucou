@@ -44,6 +44,8 @@ export interface ApprovalInfo {
   agent: string;
   /** The change an edit would make, shown as a diff in the review card. */
   preview: EditPreview | null;
+  /** Asked by Coucou's own chat (Code mode, #152): no session card, back to the chat after. */
+  fromChat?: boolean;
 }
 
 /** Plan usage from Claude Code's status line (the macOS bars). */
@@ -186,6 +188,23 @@ export interface Settings {
   speakReplies: boolean;
   /** A small notch stays at the top when the island hides (like the Mac's). */
   idleNotch: boolean;
+  /** The character (mochi/critters.ts): "bao", "pip", "nube", "lumo", "tecla" or "mochi". */
+  critter: string;
+  /** "notch": the island at the top of the screen. "free": the character floats in its own
+   *  window you drag anywhere, and opens the island next to it. */
+  placement: "notch" | "free";
+  /** Where the free character was left (logical px, top-left of its window); null = default spot. */
+  buddyX: number | null;
+  buddyY: number | null;
+  /** Who handles what (#151): integration id → character. Missing = the main character. */
+  critterAssignments: Record<string, string>;
+  /** A colour per integration for its character (#156): id → "#RRGGBB". */
+  critterColors: Record<string, string>;
+  /** Where each integration's own floating character was left (logical px, top-left). */
+  buddySpots: Record<string, [number, number]>;
+  /** Code mode (#152): the folder Claude Code works in, and the ones used lately. */
+  codeFolder: string | null;
+  recentCodeFolders: string[];
   /** WhaTicket: accept new tickets on their own, from these queues (empty = any), in these hours. */
   whaticketAutoAccept: boolean;
   whaticketQueues: string[];
@@ -259,6 +278,15 @@ export const DEFAULT_SETTINGS: Settings = {
   theme: "dark",
   speakReplies: false,
   idleNotch: true,
+  critter: "bao",
+  placement: "notch",
+  buddyX: null,
+  buddyY: null,
+  critterAssignments: {},
+  critterColors: {},
+  codeFolder: null,
+  recentCodeFolders: [],
+  buddySpots: {},
   whaticketAutoAccept: false,
   whaticketQueues: [],
   whaticketHours: "",
@@ -319,6 +347,11 @@ class AppState {
   /** Saved chats, newest first, and the one on screen. */
   chats: SavedChat[] = [];
   currentChatId: string | null = null;
+  /** Chat or Code (#152), and the other mode's conversation while this one is on screen. */
+  chatMode: "chat" | "code" = "chat";
+  stashedChatIds: { chat?: string | null; code?: string | null } = {};
+  /** Code mode: Claude Code may change files and run commands (each one approved in the island). */
+  codeEdits = true;
   /** The editor's latest context (VS Code / Cursor extension), and the one attached to the chat. */
   editorContext: (CodeContext & { at: number }) | null = null;
   codeContext: CodeContext | null = null;
@@ -400,8 +433,14 @@ class AppState {
     this.notify();
   }
 
+  /** Free placement, the island opened from an integration's own character (#155): just that
+   *  integration, full width, without the pills of the others. */
+  soloTaskId: string | null = null;
+
   get otherTasks(): AgentTask[] {
-    return this.tasks.filter((t) => t.id !== this.focusId);
+    // Tasks that float on their own character in free placement don't need a pill.
+    const own = this.settings.placement === "free" ? this.settings.critterAssignments ?? {} : {};
+    return this.tasks.filter((t) => t.id !== this.focusId && !own[t.id]);
   }
 
   /** The pills shown next to the focused one: up to 4, rotating through the rest (#111). */

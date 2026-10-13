@@ -122,16 +122,24 @@ final class ClaudeCodeChat {
         // and then every change goes through Coucou's approval (PermissionRequest hook → island).
         // Running commands never.
         let canEdit = projectDir != nil && AppState.shared.chatAllowEdits
+        // Code mode (#152): a whole folder, and commands too — each one approved in the island.
+        var coding = false
+        if case .code(let c)? = context, c.isFolder { coding = true }
+        let canRun = canEdit && coding
         let tools = projectDir == nil ? "WebSearch,WebFetch,Read"
+                  : canRun ? "WebSearch,WebFetch,Read,Grep,Glob,Edit,MultiEdit,Write,Bash"
                   : canEdit ? "WebSearch,WebFetch,Read,Grep,Glob,Edit,MultiEdit,Write"
                   : "WebSearch,WebFetch,Read,Grep,Glob"
         let allowed = projectDir == nil ? "WebSearch,WebFetch" : "WebSearch,WebFetch,Read,Grep,Glob"
-        let disallowed = canEdit ? "NotebookEdit,Bash" : "Edit,MultiEdit,Write,NotebookEdit,Bash"
+        let disallowed = canRun ? "NotebookEdit" : canEdit ? "NotebookEdit,Bash" : "Edit,MultiEdit,Write,NotebookEdit,Bash"
         var prompt = ""
         if sessionID == nil, let context {
             prompt = contextPreamble(context, in: dir)
         }
-        if canEdit {
+        if canRun {
+            prompt += "[You may change files in the project with Edit / Write and run commands with Bash. " +
+                      "The user approves every change and every command before it happens.]\n\n"
+        } else if canEdit {
             prompt += "[Edits are allowed in this conversation: you may change files in the project with " +
                       "Edit / Write. The user approves every change before it's written. You still can't run commands.]\n\n"
         }

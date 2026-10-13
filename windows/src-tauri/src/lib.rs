@@ -26,6 +26,7 @@ mod voice;
 mod whaticket;
 mod aliexpress;
 mod browser;
+mod buddy;
 
 use std::sync::atomic::Ordering;
 use std::sync::{Arc, Mutex};
@@ -82,7 +83,11 @@ fn save_settings(app: AppHandle, shared: State<Shared>, settings: Settings) {
     let (screen_changed, autostart_changed) = {
         let mut current = shared.settings.lock().unwrap();
         // The idle notch changes the hidden window's size too.
-        let screen_changed = current.screen != settings.screen || current.idle_notch != settings.idle_notch;
+        let screen_changed = current.screen != settings.screen
+            || current.idle_notch != settings.idle_notch
+            || current.placement != settings.placement
+            || current.critter_assignments != settings.critter_assignments
+            || current.active_integrations != settings.active_integrations;
         shared.gate.idle_notch.store(settings.idle_notch, Ordering::Relaxed);
         let autostart_changed = current.autostart != settings.autostart;
         *current = settings.clone();
@@ -99,8 +104,10 @@ fn save_settings(app: AppHandle, shared: State<Shared>, settings: Settings) {
         }
     }
     if screen_changed {
+        buddy::sync(&app);
         let collapsed = shared.gate.collapsed.load(Ordering::Relaxed);
         island::apply_geometry(&app, &settings.screen, collapsed);
+        island::set_ignore_cursor(&app, collapsed && settings.placement == "free");
     }
     apply_capture_shortcut(&app, &settings.capture_shortcut);
     // Keep the other window in step (island ⇄ settings window).
@@ -118,8 +125,9 @@ fn set_collapsed(app: AppHandle, shared: State<Shared>, collapsed: bool) {
     shared.gate.idle_notch.store(idle_notch, Ordering::Relaxed);
     shared.gate.collapsed.store(collapsed, Ordering::Relaxed);
     island::apply_geometry(&app, &pref, collapsed);
-    // The wake strip must always take the mouse, and a resize invalidates the flag.
-    island::set_ignore_cursor(&app, false);
+    // The wake strip must always take the mouse (free placement has none: the folded
+    // island is a speck that must never catch a click), and a resize invalidates the flag.
+    island::set_ignore_cursor(&app, collapsed && buddy::is_free(&app));
     shared.gate.forget_ignore_state();
     shared.gate.set_active(!collapsed);
     island::apply_input_region(&app, &shared.gate);
@@ -258,6 +266,28 @@ async fn chat_send(
         }
         _ => claude::send(&chat, &s.model, query, context).await,
     }
+}
+
+/// Code mode (#152): one turn of Claude Code at work in the folder the user picked.
+#[tauri::command]
+async fn code_send(
+    shared: State<'_, Shared>,
+    code_chat: State<'_, ClaudeCodeChat>,
+    query: String,
+    folder: String,
+    edits: bool,
+) -> Result<ChatReply, String> {
+    let model = shared.settings.lock().unwrap().model.clone();
+    claude_code::send_code(&code_chat, &model, query, folder, edits).await
+}
+
+/// Code mode: the system's folder picker. None when cancelled.
+#[tauri::command]
+async fn pick_folder(start: Option<String>) -> Option<String> {
+    tauri::async_runtime::spawn_blocking(move || platform::pick_folder(start.as_deref()))
+        .await
+        .ok()
+        .flatten()
 }
 
 /// Codex / Gemini CLI engines (#108): one turn. The page sends the conversation as text and
@@ -965,11 +995,18 @@ fn create_settings_window(app: &AppHandle) {
         Ok(win) => {
             // Closing it must only hide it, or it could never be reopened.
             let hidden = win.clone();
-            win.on_window_event(move |event| {
-                if let tauri::WindowEvent::CloseRequested { api, .. } = event {
+            let handle = app.clone();
+            win.on_window_event(move |event| match event {
+                tauri::WindowEvent::CloseRequested { api, .. } => {
                     api.prevent_close();
                     let _ = hidden.hide();
+                    buddy::leave_settings(&handle);
                 }
+                // Free placement: the character sits on Settings while it's open (#154).
+                tauri::WindowEvent::Moved(_) | tauri::WindowEvent::Resized(_) | tauri::WindowEvent::Focused(true) => {
+                    buddy::sit_on_settings(&handle);
+                }
+                _ => {}
             });
         }
         Err(err) => log::line(format!("settings window failed: {err}")),
@@ -984,6 +1021,7 @@ pub fn show_settings_window(app: &AppHandle) {
     let _ = win.unminimize();
     let _ = win.show();
     let _ = win.set_focus();
+    buddy::sit_on_settings(app);
 }
 
 #[tauri::command]
@@ -1128,12 +1166,19 @@ pub fn run() {
             ci_job_log,
             ci_rerun_failed,
             ci_save_log,
+            buddy::buddy_clicked,
+            code_send,
+            pick_folder,
+            buddy::buddy_key,
+            buddy::buddy_moved,
+            buddy::buddy_menu,
         ])
         .setup(move |app| {
             let handle = app.handle().clone();
             tray::build(&handle)?;
             // Before the island: see create_settings_window.
             create_settings_window(&handle);
+            buddy::create(&handle, BROWSER_ARGS, loaded.placement == "free");
 
             if let Some(win) = island::window(&handle) {
                 platform::prepare_island(&win);
@@ -1149,6 +1194,7 @@ pub fn run() {
             }
             gate.idle_notch.store(loaded.idle_notch, Ordering::Relaxed);
             island::spawn_topmost_keeper(handle.clone());
+            buddy::sync(&handle);
 
             log::line(format!("--- Coucou {} started ---", env!("CARGO_PKG_VERSION")));
             hooks::ensure_hook_exe(&handle);

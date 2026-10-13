@@ -3,6 +3,18 @@
 
 import { BotEngine, hexToRGB } from "./engine";
 import type { AgentTask } from "../core/state";
+import { DEFAULT_CRITTER, type CritterId } from "./critters";
+
+let critter: CritterId = DEFAULT_CRITTER;
+let assigned: Record<string, CritterId> = {};
+let colors: Record<string, string> = {};
+/** The characters picked in Settings: each mini bot takes the silhouette of the character in
+ *  charge of its integration (#151), or the main one, in its pill colour. */
+export function setMiniCritter(c: CritterId, byTask: Record<string, CritterId> = {}, tints: Record<string, string> = {}) {
+  critter = c;
+  assigned = byTask;
+  colors = tints;
+}
 
 interface MiniBot {
   canvas: HTMLCanvasElement;
@@ -68,7 +80,7 @@ export function syncMiniBotStates(tasks: AgentTask[]) {
     const task = tasks.find((t) => t.id === mb.taskId);
     if (!task) continue;
     mb.engine.setState(task.state);
-    mb.engine.bodyColor = hexToRGB(task.color);
+    mb.engine.bodyColor = hexToRGB(colors[task.id] && assigned[task.id] ? colors[task.id] : task.color);
   }
 }
 
@@ -77,6 +89,10 @@ export function tickMiniBots(dt: number) {
   for (const mb of live.values()) {
     const ctx = mb.canvas.getContext("2d");
     if (!ctx) continue;
+    mb.engine.critter = assigned[mb.taskId] ?? critter;
+    // Its own colour (#156) when its character has one, else the pill colour.
+    const tint = assigned[mb.taskId] ? colors[mb.taskId] : undefined;
+    if (tint) mb.engine.bodyColor = hexToRGB(tint);
     mb.engine.update(dt);
     ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
     ctx.clearRect(0, 0, mb.cssSize, mb.cssSize);

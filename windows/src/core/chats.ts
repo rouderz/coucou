@@ -12,6 +12,8 @@ export interface SavedChat {
   messages: { user: boolean; text: string }[];
   sessionId?: string | null;
   workDir?: string | null;
+  /** Code mode (#152): the folder Claude Code worked in. */
+  folder?: string | null;
 }
 
 let loaded = false;
@@ -41,6 +43,7 @@ export async function saveCurrent() {
   const chat: SavedChat = {
     id, title: chatTitle(messages), updatedAt: Date.now(), messages,
     sessionId: info.sessionId, workDir: info.workDir,
+    folder: State.chatMode === "code" ? State.settings.codeFolder ?? null : null,
   };
   State.chats = [chat, ...State.chats.filter((c) => c.id !== id)].slice(0, 50);
   await Bridge.chatsSave(State.chats);
@@ -64,6 +67,9 @@ export function openChat(chat: SavedChat) {
     id: nextId++, role: m.user ? "user" : "assistant", content: m.text,
   }));
   void Bridge.chatRestore(chat.messages, chat.sessionId ?? null, chat.workDir ?? null);
+  // A chat about a folder belongs to Code mode (#152).
+  State.chatMode = chat.folder ? "code" : "chat";
+  if (chat.folder) State.settings.codeFolder = chat.folder;
   State.notify();
 }
 

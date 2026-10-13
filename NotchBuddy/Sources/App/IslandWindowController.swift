@@ -39,6 +39,12 @@ final class IslandWindowController: NSWindowController {
     private var highlightPanel: NSPanel? = nil
     private var highlightWindowPid: pid_t = 0
 
+    // Free placement (FreeBuddy.swift): the character floats on its own and opens the island next to it.
+    let buddy = FreeBuddyController()
+    private var freeMode = IslandPlacement.isFree
+    private var placementObserver: NSObjectProtocol?
+    private var buddySubs = Set<AnyCancellable>()
+
     // Notch real dimensions (set on init)
     private var notchW: CGFloat = IslandConst.notchWidth
     private var notchH: CGFloat = IslandConst.notchHeight
@@ -135,6 +141,7 @@ final class IslandWindowController: NSWindowController {
         wireFSM()
         observeDisplays()
         applyScreenSize(screen)
+        setupFreePlacement()
 
         // Make panel key whenever the prompt/chat view becomes active
         // (nonactivatingPanel never auto-becomes key, but TextField needs it)
@@ -175,6 +182,13 @@ final class IslandWindowController: NSWindowController {
     /// Re-reads the monitor choice and moves the panel there, resizing the notch to that screen.
     func moveToChosenDisplay() {
         guard let panel = window as? IslandPanel else { return }
+        if freeMode {
+            // Free placement: the island follows the character, not the chosen monitor.
+            buddy.revalidate()
+            if state.mode == .expanded { positionIslandNearBuddy() }
+            updateFullscreenSuppression()
+            return
+        }
         let screen = IslandDisplay.resolve()
         let sf = screen.frame
         let target = NSRect(x: sf.midX - panel.frame.width / 2, y: sf.maxY - panel.frame.height,
@@ -202,7 +216,7 @@ final class IslandWindowController: NSWindowController {
         guard covered != suppressedForFullscreen else { return }
         suppressedForFullscreen = covered
         guard let panel = window as? IslandPanel else { return }
-        panel.alphaValue = covered ? 0 : 1
+        panel.alphaValue = covered || (freeMode && state.mode != .expanded) ? 0 : 1
         if covered { panel.ignoresMouseEvents = true; if state.mode == .expanded { collapse() } }
     }
 
@@ -294,7 +308,9 @@ final class IslandWindowController: NSWindowController {
 
         // Island rect in panel coords
         let islandRect = panel.currentIslandFrame(nw: notchW, nh: notchH)
-        let inIsland   = islandRect.insetBy(dx: -6, dy: -6).contains(local)
+        // Free placement: the folded island is invisible, so hovering the top of the screen does nothing.
+        let inIsland   = (freeMode && state.mode != .expanded) ? false
+            : islandRect.insetBy(dx: -6, dy: -6).contains(local)
 
         // Toggle click-through
         let shouldAcceptMouse = inIsland || inAttachDrag || attachDragStart != nil
@@ -405,6 +421,7 @@ final class IslandWindowController: NSWindowController {
         let anim: Animation = shrinking
             ? .timingCurve(0.45, 0, 0.2, 1, duration: 0.34)
             : .spring(response: 0.5, dampingFraction: 0.72)
+        if freeMode { showFreeIsland(mode == .expanded) }
         withAnimation(anim) { state.mode = mode }
         if mode == .expanded { SoundEngine.shared.play("open") }
         if prev == .expanded { SoundEngine.shared.play("close"); state.isPinned = false }
@@ -429,7 +446,157 @@ final class IslandWindowController: NSWindowController {
         window?.resignKey()
     }
 
+    // MARK: - Free placement
+
+    private func setupFreePlacement() {
+        buddy.onMovedByUser = { [weak self] key in
+            guard let self, self.freeMode, self.state.mode == .expanded, key == self.buddy.activeKey else { return }
+            self.positionIslandNearBuddy()
+        }
+        buddy.onClick = { [weak self] key in self?.freeBuddyClicked(key) }
+        placementObserver = NotificationCenter.default.addObserver(
+            forName: .islandPlacementChanged, object: nil, queue: .main
+        ) { [weak self] _ in
+            MainActor.assumeIsolated { self?.applyPlacement() }
+        }
+        NotificationCenter.default.addObserver(forName: .freeBuddyReset, object: nil, queue: .main) { [weak self] _ in
+            MainActor.assumeIsolated { self?.buddy.resetPositions() }
+        }
+        // Settings open (#154): the main character sits on its title bar while the island is folded.
+        let nc = NotificationCenter.default
+        for name in [NSWindow.didBecomeKeyNotification, NSWindow.didMoveNotification, NSWindow.didResizeNotification,
+                     NSWindow.willCloseNotification, NSWindow.didMiniaturizeNotification,
+                     NSWindow.didDeminiaturizeNotification] {
+            nc.addObserver(forName: name, object: nil, queue: .main) { [weak self] note in
+                let gone = note.name == NSWindow.willCloseNotification || note.name == NSWindow.didMiniaturizeNotification
+                MainActor.assumeIsolated {
+                    guard let win = note.object as? NSWindow, win.identifier == .coucouSettings else { return }
+                    self?.settingsWindowChanged(gone ? nil : win.frame)
+                }
+            }
+        }
+        // Integrations come and go, characters get assigned (#151): one floating character each.
+        state.$tasks.combineLatest(state.$critterAssignments)
+            .map { tasks, assigned in
+                tasks.filter { $0.isIntegration && $0.id != "integration_claude" && assigned[$0.id] != nil }.map(\.id)
+            }
+            .removeDuplicates()
+            .receive(on: DispatchQueue.main)
+            .sink { [weak self] _ in
+                guard let self, self.freeMode else { return }
+                self.buddy.sync(keys: self.buddyKeys())
+            }
+            .store(in: &buddySubs)
+        applyPlacement()
+    }
+
+    /// Where the Settings window is, while it's open (#154).
+    private var settingsFrame: NSRect?
+
+    private func settingsWindowChanged(_ frame: NSRect?) {
+        settingsFrame = frame
+        guard freeMode, state.mode != .expanded else { return }
+        if let frame { buddy.sit(onWindow: frame) } else { buddy.unperch() }
+    }
+
+    /// The main character first, then one per integration that has its own (#151).
+    private func buddyKeys() -> [String] {
+        [FreeBuddyController.mainKey] + state.assignedTaskIDs
+    }
+
+    /// A click on a floating character opens the island on its own task, sitting on it; a click
+    /// on the one the open island belongs to folds it.
+    private func freeBuddyClicked(_ key: String) {
+        if state.mode == .expanded && buddy.activeKey == key {
+            collapse()
+            return
+        }
+        let switching = state.mode == .expanded && buddy.activeKey != key
+        if switching { buddy.unperch() }
+        buddy.activeKey = key
+        if key == FreeBuddyController.mainKey {
+            state.soloTaskID = nil
+            if let f = state.focusId, state.critterAssignments[f] == nil {
+                // already on one of the main character's tasks
+            } else if let id = state.tasks.first(where: { state.critterAssignments[$0.id] == nil })?.id {
+                state.setFocus(id)
+            }
+        } else {
+            state.soloTaskID = key
+            state.setFocus(key)
+        }
+        if state.mode == .expanded {
+            state.view = .overview
+            positionIslandNearBuddy()
+        } else {
+            fsm.click()
+        }
+    }
+
+    /// Switches between the notch and the free-floating character.
+    private func applyPlacement() {
+        freeMode = IslandPlacement.isFree
+        state.freePlacement = freeMode
+        buddy.sync(keys: buddyKeys())
+        if freeMode {
+            showFreeIsland(state.mode == .expanded)
+        } else {
+            moveToChosenDisplay()
+            if !suppressedForFullscreen { islandPanel.alphaValue = 1 }
+        }
+    }
+
+    /// Free placement: the island only shows while open, right next to the character.
+    private func showFreeIsland(_ open: Bool) {
+        guard let panel = window as? IslandPanel else { return }
+        if open {
+            positionIslandNearBuddy()
+            if !suppressedForFullscreen { panel.alphaValue = 1 }
+        } else {
+            panel.alphaValue = 0
+            panel.ignoresMouseEvents = true
+            buddy.unperch()
+            buddy.activeKey = FreeBuddyController.mainKey   // alerts open on the main character
+            state.soloTaskID = nil
+            // Back on the Settings window if it's still open (#154).
+            if let f = settingsFrame { buddy.sit(onWindow: f) }
+        }
+    }
+
+    /// Puts the island right under the character, centred on it, and seats the character on its
+    /// top edge (in the gap the header leaves in the middle). Near the bottom of the screen the
+    /// island goes as low as it fits and the character hops up onto it, back home when it folds.
+    private func positionIslandNearBuddy() {
+        guard let panel = window as? IslandPanel, let b = buddy.homeFrame(buddy.activeKey) else { return }
+        let screen = NSScreen.screens.first { $0.frame.contains(NSPoint(x: b.midX, y: b.midY)) }
+            ?? IslandDisplay.resolve()
+        let vf = screen.visibleFrame
+        let pw = panel.frame.width, ph = panel.frame.height
+        // The island is drawn centred at the top of the panel, narrower than the panel.
+        let side = max(0, (pw - IslandConst.expandedWidth) / 2)
+        let x = min(max(b.midX - pw / 2, vf.minX - side), vf.maxX - pw + side)
+        let islandH = max(160, islandSize(mode: .expanded, view: state.view, nw: notchW, nh: notchH).1)
+        var top = b.minY + FreeBuddyController.seat
+        if top - islandH < vf.minY + 8 { top = min(vf.maxY - 40, vf.minY + 8 + islandH) }
+        let target = NSRect(x: x, y: top - ph, width: pw, height: ph)
+        if panel.frame != target { panel.setFrame(target, display: true) }
+        buddy.perch(bottomY: top - FreeBuddyController.seat)
+        applyScreenSize(screen)
+    }
+
     // MARK: - Keyboard (Escape closes)
+
+    /// ⌥⌘← Chat, ⌥⌘→ Code (#149), while the island is open. True when the key was used.
+    private func handleModeKeys(_ event: NSEvent, fromOtherApp: Bool) -> Bool {
+        let mods = event.modifierFlags.intersection([.command, .option, .control, .shift])
+        guard mods == [.command, .option], event.keyCode == 123 || event.keyCode == 124 else { return false }
+        guard state.mode == .expanded else { return false }
+        // From another app only while the pointer is on the island: ⌥⌘→ switches tabs in browsers.
+        if fromOtherApp && !state.pointerInIsland { return false }
+        if event.keyCode == 123 { ModeSwitch.showChat(state) } else { ModeSwitch.showCode(state) }
+        state.lastActivity = .now
+        return true
+    }
 
     private func startKeyMonitor() {
         keyMonitor = NSEvent.addGlobalMonitorForEvents(matching: .keyDown) { [weak self] event in
@@ -440,7 +607,13 @@ final class IslandWindowController: NSWindowController {
                         self.collapse()
                     }
                 }
+                _ = self.handleModeKeys(event, fromOtherApp: true)
             }
+        }
+        NSEvent.addLocalMonitorForEvents(matching: .keyDown) { [weak self] event in
+            guard let self else { return event }
+            let used = MainActor.assumeIsolated { self.handleModeKeys(event, fromOtherApp: false) }
+            return used ? nil : event
         }
 
         // Hook server expand requests (alerts only)
@@ -1112,7 +1285,7 @@ func islandSize(mode: IslandMode, view: IslandView,
                 nh: CGFloat = IslandConst.notchHeight) -> (CGFloat, CGFloat) {
     switch mode {
     case .hidden:   return (nw, nh)
-    case .compact:  return (nw + 160, nh)
+    case .compact:  return (nw + IslandConst.compactEar * 2, nh)
     case .expanded:
         let layout = IslandConst.viewLayouts[view]!
         return (IslandConst.expandedWidth, layout.height)

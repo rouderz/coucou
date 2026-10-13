@@ -6,6 +6,7 @@
 
 import { h, svg, clear, dot } from "./dom";
 import { ICONS } from "./icons";
+import { botName } from "../mochi/critters";
 import { State, type AgentTask } from "../core/state";
 import { startNewChat } from "../core/chats";
 import { Bridge } from "../core/bridge";
@@ -594,7 +595,7 @@ function ciRunRows(pr: CIPr, run: CheckRun): HTMLElement[] {
     const url = run.htmlUrl;
     acts.append(ciAction("Open log", "Open log", () => void Bridge.openUrl(url)));
   }
-  acts.append(ciAction("Ask Mochi why", "Ask Mochi why", async () => attachToChat(await ciLogFile(pr, run), true)));
+  acts.append(ciAction(`Ask ${botName()} why`, `Ask ${botName()} why`, async () => attachToChat(await ciLogFile(pr, run), true)));
   const job = parseJobUrl(run.htmlUrl);
   if (job) {
     const label = ciRerunning.has(job.runId) ? "Re-running…" : "Re-run";

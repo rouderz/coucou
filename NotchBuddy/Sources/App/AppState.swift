@@ -306,6 +306,48 @@ final class AppState: ObservableObject {
         }
     }
     /// Theme: "dark" (the original look), "light", "system" or a palette id (Theme.swift).
+    /// Free placement (FreeBuddy.swift): the island opens as a bubble under the floating character.
+    @Published var freePlacement: Bool = IslandPlacement.isFree
+
+    /// The character drawn in the island (Settings → General → Character).
+    @Published var critter: Critter = .fallback {
+        didSet { UserDefaults.standard.set(critter.rawValue, forKey: Critter.storageKey) }
+    }
+    /// Who handles what (#151): integration task id → character. Missing = the main character.
+    /// In free placement each assigned integration gets its own floating character.
+    @Published var critterAssignments: [String: Critter] = [:] {
+        didSet {
+            UserDefaults.standard.set(critterAssignments.mapValues(\.rawValue), forKey: "critterAssignments")
+        }
+    }
+
+    /// A colour per integration for its character (#156): task id → hex. Missing = its own colours.
+    @Published var critterColors: [String: String] = [:] {
+        didSet { UserDefaults.standard.set(critterColors, forKey: "critterColors") }
+    }
+
+    /// The user's colour for the character in charge of a task, if any.
+    func critterTint(for taskID: String?) -> CGColor? {
+        taskID.flatMap { critterColors[$0] }.flatMap(cgColorFromHex)
+    }
+
+    /// The character in charge of a task: its own if it has one, else the main character.
+    func critter(for taskID: String?) -> Critter {
+        taskID.flatMap { critterAssignments[$0] } ?? critter
+    }
+
+    /// Integrations on screen that have their own character, in pill order.
+    var assignedTaskIDs: [String] {
+        tasks.filter { $0.isIntegration && $0.id != "integration_claude" && critterAssignments[$0.id] != nil }
+            .map(\.id)
+    }
+
+    /// What the main floating character shows: the focused task unless it has its own character
+    /// (then the first task that doesn't).
+    var mainBuddyState: BotState {
+        if let f = focusTask, critterAssignments[f.id] == nil { return effectiveState }
+        return stateOverride ?? tasks.first { critterAssignments[$0.id] == nil }?.state ?? .idle
+    }
     @Published var theme: String = "dark" {
         didSet {
             UserDefaults.standard.set(theme, forKey: "theme")
@@ -414,8 +456,17 @@ final class AppState: ObservableObject {
     }
 
     /// The pills the island shows next to the focused one: up to 4, rotating through the rest.
+    /// Free placement, the island opened from an integration's own character (#155): it shows
+    /// just that integration, full width, without the pills of the others.
+    @Published var soloTaskID: String? = nil
+
+    /// Tasks that float on their own character in free placement don't need a pill.
+    private var pillTasks: [AgentTask] {
+        freePlacement ? tasks.filter { critterAssignments[$0.id] == nil } : tasks
+    }
+
     var visiblePills: [AgentTask] {
-        let others = tasks.filter { $0.id != focusId }
+        let others = pillTasks.filter { $0.id != focusId }
         let news = Set(others.filter { $0.pillBadge != nil }.map(\.id))
         let ids = PillRotation.visible(ids: others.map(\.id), pinned: pinnedPills, news: news, offset: pillRotationOffset)
         return others.filter { ids.contains($0.id) }
@@ -424,11 +475,11 @@ final class AppState: ObservableObject {
     /// Active pills that aren't in the island right now (the "+N" strip).
     var overflowPills: [AgentTask] {
         let shown = Set(visiblePills.map(\.id))
-        return tasks.filter { $0.id != focusId && !shown.contains($0.id) }
+        return pillTasks.filter { $0.id != focusId && !shown.contains($0.id) }
     }
 
     /// How many active pills don't fit in the island right now.
-    var hiddenPillCount: Int { max(0, tasks.filter { $0.id != focusId }.count - PillRotation.slots) }
+    var hiddenPillCount: Int { max(0, pillTasks.filter { $0.id != focusId }.count - PillRotation.slots) }
 
     /// The rotation timer exists only while the island is showing and there is something to rotate: 0 % CPU otherwise.
     func updatePillRotation() {
@@ -596,6 +647,23 @@ final class AppState: ObservableObject {
     // Chat conversation on screen, and its entry in ChatStore once saved
     @Published var chatHistory: [ChatMessage] = []
     @Published var currentChatID: UUID? = nil
+    /// Chat or Code (#152), and the other mode's conversation while this one is on screen.
+    @Published var chatMode: ChatMode = .chat
+    var stashedChatIDs: [ChatMode: UUID] = [:]
+    /// Code mode on screen: no other context took over (a file from the editor, a window, a drop
+    /// make it a chat about that thing).
+    var isCoding: Bool {
+        guard chatMode == .code else { return false }
+        if case .code(let c)? = promptContext { return c.isFolder }
+        return promptContext == nil
+    }
+    /// The folder Claude Code works in (Code mode) and the ones used lately.
+    @Published var codeFolder: String? = UserDefaults.standard.string(forKey: "codeFolder") {
+        didSet { UserDefaults.standard.set(codeFolder, forKey: "codeFolder") }
+    }
+    @Published var recentCodeFolders: [String] = UserDefaults.standard.stringArray(forKey: "recentCodeFolders") ?? [] {
+        didSet { UserDefaults.standard.set(recentCodeFolders, forKey: "recentCodeFolders") }
+    }
 
     // Pending approval request from Claude Code hook
     @Published var pendingApproval: ApprovalInfo? = nil
@@ -655,6 +723,11 @@ final class AppState: ObservableObject {
         if let v = ud.object(forKey: "voiceHotkeyCode")   as? Int    { voiceHotkeyCode = UInt16(v) }
         if let v = ud.object(forKey: "voiceLanguage")     as? String { voiceLanguage = v }
         if let v = ud.string(forKey: "theme") { theme = v }
+        if let v = ud.string(forKey: Critter.storageKey), let c = Critter(rawValue: v) { critter = c }
+        if let d = ud.dictionary(forKey: "critterColors") as? [String: String] { critterColors = d }
+        if let d = ud.dictionary(forKey: "critterAssignments") as? [String: String] {
+            critterAssignments = d.compactMapValues { Critter(rawValue: $0) }
+        }
         if let v = ud.object(forKey: "voiceSpeakReplies") as? Bool   { voiceSpeakReplies = v }
         if let v = ud.object(forKey: "pillRotationSeconds") as? Int { pillRotationSeconds = v }
         if let v = ud.stringArray(forKey: "pinnedPills") { pinnedPills = Set(v) }

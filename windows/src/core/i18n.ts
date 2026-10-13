@@ -26,8 +26,34 @@ export function language(): Lang {
 }
 
 const ES: Record<string, string> = {
+  // characters (#147–#151)
+  "Choose a folder": "Elegir una carpeta",
+  "📁 Choose a folder": "📁 Elegir una carpeta",
+  "Choose a folder first ↑": "Primero elige una carpeta ↑",
+  "Other folder…": "Otra carpeta…",
+  "Pick the folder to code in. Claude Code reads it, and changes files or runs commands only when you approve each one in the island.": "Elige la carpeta en la que programar. Claude Code la lee, y solo cambia archivos o ejecuta comandos cuando apruebas cada uno en la isla.",
+  "✎ Edits & commands": "✎ Ediciones y comandos",
+  "Read-only": "Solo lectura",
+  "What should we build? (/ skills)": "¿Qué construimos? (/ habilidades)",
+  "The folder Claude Code works in": "La carpeta en la que trabaja Claude Code",
+  "Claude Code can change files and run commands here. You approve each one in the island.": "Claude Code puede cambiar archivos y ejecutar comandos aquí. Apruebas cada uno en la isla.",
+  "Claude Code can only read this folder. Click to let it change files and run commands.": "Claude Code solo puede leer esta carpeta. Haz clic para que pueda cambiar archivos y ejecutar comandos.",
+  "Character": "Personaje",
+  "Who handles what": "Quién se encarga de qué",
+  "Its own colours": "Sus propios colores",
+  "An integration with its own character shows it in its pill and, in free placement, floats on its own: click it to open just that integration.": "Una integración con personaje propio lo muestra en su píldora y, en modo libre, flota por su cuenta: haz clic en él para abrir solo esa integración.",
+  "Where it lives": "Dónde vive",
+  "At the top of the screen": "Arriba de la pantalla",
+  "Free on the desktop": "Libre en el escritorio",
+  "Reset position": "Restablecer posición",
+  "free: drag the character anywhere, click it to open the island next to it, right-click for options": "libre: arrastra el personaje a donde quieras, haz clic para abrir la isla junto a él y clic derecho para ver opciones",
+  "A steamed bun that steams while it works": "Un panecillo al vapor que echa vapor mientras trabaja",
+  "A bean with a sprout that tells how things go": "Un frijol con un brote que cuenta cómo va todo",
+  "A little cloud: rain on errors, sun when done": "Una nubecita: llueve si hay errores, sale el sol al terminar",
+  "A glowing jellyfish that wiggles while it works": "Una medusa que brilla y se agita mientras trabaja",
+  "A keycap that presses itself while it types": "Una tecla que se pulsa sola mientras escribe",
   // header, tabs, common
-  "Overview": "Resumen", "Ask": "Preguntar", "Drop": "Soltar", "Settings": "Ajustes", "Mute": "Silenciar",
+  "Overview": "Resumen", "Code": "Código", "Ask": "Preguntar", "Drop": "Soltar", "Settings": "Ajustes", "Mute": "Silenciar",
   "Settings…": "Ajustes…", "Back": "Atrás", "Cancel": "Cancelar", "Save": "Guardar", "Remove": "Quitar",
   "Delete": "Borrar", "Dismiss": "Descartar", "Dismiss all": "Descartar todo", "Open": "Abrir", "Refresh": "Actualizar",
   "Retry": "Reintentar", "OK": "OK", "Details": "Detalles", "Download": "Descargar", "Send": "Enviar", "Done": "Hecho",
@@ -132,8 +158,6 @@ const ES: Record<string, string> = {
   "no keyboard or mouse for 2 min (Windows)": "sin teclado ni ratón durante 2 min (Windows)",
   "An approval still waiting after 20 seconds goes to your phone through ntfy (free app, no account). Subscribe to the topic in the app; it carries the project and the command, so keep it private.":
     "Una aprobación que sigue esperando tras 20 segundos llega a tu móvil por ntfy (app gratuita, sin cuenta). Suscríbete al tema en la app; lleva el proyecto y el comando, así que mantenlo en privado.",
-  "GitHub (your token, or a signed-in gh) and Linear notifications that need you, behind the 🔔. Mochi peeks out when something new arrives.":
-    "Las notificaciones de GitHub (tu token, o gh con sesión) y de Linear que te necesitan, detrás de la 🔔. Mochi se asoma cuando llega algo nuevo.",
   "Review requests": "Solicitudes de revisión", "Mentions": "Menciones", "Assignments": "Asignaciones", "Comments": "Comentarios",
   "Other updates": "Otras novedades", "Check daily": "Comprobar cada día", "Check now": "Comprobar ahora",
   "Island lives on": "La isla vive en", "Main display": "Pantalla principal", "Display under the cursor": "Pantalla bajo el cursor",
@@ -141,7 +165,6 @@ const ES: Record<string, string> = {
   "File manager (no editor found)": "Explorador de archivos (no hay editor)", "Language": "Idioma", "Same as the system": "Igual que el sistema",
   "Rotate the rest": "Rotar las demás", "Every 10 s": "Cada 10 s", "Every 30 s": "Cada 30 s", "Every minute": "Cada minuto",
   "Pin (always visible)": "Fijar (siempre visible)", "Unpin": "Dejar de fijar", "Hide": "Ocultar",
-  "Mochi moves with the music": "Mochi se mueve con la música",
   "bobs along while music plays; off in Do not disturb and with reduced motion. Music detection isn't available on this system yet":
     "se balancea mientras suena música; se desactiva en No molestar y con movimiento reducido. La detección de música aún no está disponible en este sistema",
   "Idle notch": "Notch en reposo", "a small notch stays at the top when the island hides": "una pequeña notch queda arriba cuando la isla se esconde",
@@ -234,10 +257,6 @@ const ES: Record<string, string> = {
   "You're already up to date.": "Ya estás al día.",
   "Speak your question": "Di tu pregunta", "Listening…": "Escuchando…",
   "I didn't catch that. Try again.": "No te he entendido. Inténtalo de nuevo.",
-  "🎙 in the chat: say your question and Mochi sends it (Windows speech recognition; dictation needs online speech recognition on in Windows Settings → Privacy & security → Speech).":
-    "🎙 en el chat: di tu pregunta y Mochi la envía (reconocimiento de voz de Windows; el dictado necesita el reconocimiento de voz en línea activado en Configuración → Privacidad y seguridad → Voz).",
-  "Speaking your questions isn't available on Linux: it has no built-in speech recognition. Mochi can still read its replies aloud.":
-    "Hablarle a Mochi no está disponible en Linux: no trae reconocimiento de voz. Mochi sí puede leer sus respuestas en voz alta.",
   "Speech recognition isn't available on Linux.": "El reconocimiento de voz no está disponible en Linux.",
   "No telemetry. Network requests only go to the services you configure yourself.":
     "Sin telemetría. Las peticiones de red solo van a los servicios que tú configuras.",
@@ -319,7 +338,7 @@ const ES: Record<string, string> = {
   "CI failed": "CI falló", "All checks passed": "Todas las comprobaciones pasaron",
   "No open pull requests.": "No hay pull requests abiertos.", "Your open PRs": "Tus PRs abiertos",
   "No checks on this commit": "No hay comprobaciones en este commit",
-  "Open log": "Abrir log", "Ask Mochi why": "Preguntar a Mochi por qué", "Re-run": "Relanzar",
+  "Open log": "Abrir log", "Re-run": "Relanzar",
   "Re-running…": "Relanzando…", "Re-run failed jobs": "Relanzar los jobs fallidos",
   "queued": "en cola", "skipped": "omitido", "cancelled": "cancelado", "neutral": "neutral",
   "Not connected to GitHub · sign in with gh or add a token in Settings":
@@ -491,6 +510,18 @@ const PATTERNS: [RegExp, string][] = [
   [/^A focus block is already running \((.+) left\)\.$/, "Ya hay un bloque de concentración en marcha (quedan $1)."],
   [/^Focus: (\d+) min on (.+)\. Do not disturb is on until the end of the block\.$/, "Concentración: $1 min en $2. No molestar está activado hasta el final del bloque."],
   [/^Focus: (\d+) min\. Do not disturb is on until the end of the block\.$/, "Concentración: $1 min. No molestar está activado hasta el final del bloque."],
+  // the character's name (Settings → Character)
+  [/^Code  (.+)$/, "Código  $1"],
+  [/^Same as (Bao|Pip|Nube|Lumo|Tecla)$/, "Igual que $1"],
+  [/^(Bao|Pip|Nube|Lumo|Tecla) moves with the music$/, "$1 se mueve con la música"],
+  [/^Ask (Bao|Pip|Nube|Lumo|Tecla) why$/, "Preguntar a $1 por qué"],
+  [/^GitHub \(your token, or a signed-in gh\) and Linear notifications that need you, behind the 🔔\. (Bao|Pip|Nube|Lumo|Tecla) peeks out when something new arrives\.$/,
+    "Las notificaciones de GitHub (tu token, o gh con sesión) y de Linear que te necesitan, detrás de la 🔔. $1 se asoma cuando llega algo nuevo."],
+  [/^🎙 in the chat: say your question and (Bao|Pip|Nube|Lumo|Tecla) sends it \(Windows speech recognition; dictation needs online speech recognition on in Windows Settings → Privacy & security → Speech\)\.$/,
+    "🎙 en el chat: di tu pregunta y $1 la envía (reconocimiento de voz de Windows; el dictado necesita el reconocimiento de voz en línea activado en Configuración → Privacidad y seguridad → Voz)."],
+  [/^Speaking your questions isn't available on Linux: it has no built-in speech recognition\. (Bao|Pip|Nube|Lumo|Tecla) can still read its replies aloud\.$/,
+    "Hablarle a $1 no está disponible en Linux: no trae reconocimiento de voz. $1 sí puede leer sus respuestas en voz alta."],
+  [/^The interface calls it by its name, like “Ask Lumo”\.$/, "La interfaz lo llama por su nombre, como «Preguntar a Lumo»."],
 ];
 
 const RAW = ".chat-log, .code, .diff, .inbox-open .title, .path, .tl-time, [data-raw]";

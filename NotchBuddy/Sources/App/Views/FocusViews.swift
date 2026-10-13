@@ -245,7 +245,7 @@ struct FocusSettingsSection: View {
             Stepper(value: minutes(\.blocksBeforeLong), in: 1...12) {
                 Text(L("Long break after \(state.focusConfig.blocksBeforeLong) blocks"))
             }
-            Toggle("Turn off Hey Mochi during focus blocks", isOn: $state.focusMutesWakeWord)
+            Toggle("Turn off Hey \(botName()) during focus blocks", isOn: $state.focusMutesWakeWord)
             Toggle("Shortcut ⌃⌥F: start, pause or resume a block", isOn: $state.focusHotkeyEnabled)
             Text("Do not disturb is on during each block and goes back to how it was at the end; approvals still reach the island, quietly. Start a block from the ⏱ in the island, the Claude Code card, the shortcut, or the chat: “focus 50 min on SHO-475”.")
                 .font(.system(size: 11))

@@ -11,6 +11,11 @@ import SwiftUI
 final class BotEngine: ObservableObject {
     var isMini: Bool = false
     var bodyColor: CGColor? = nil    // override for mini bots
+    var critter: Critter = .fallback  // the character the user picked (Critter.swift)
+    /// A colour of the user's for this character (#156); nil = the character's own colours.
+    var userTint: CGColor? = nil
+    /// The colours drawn: the character's, or tinted with the user's colour.
+    var palette: Critter.Palette { userTint.map { critter.palette(tinted: $0) } ?? critter.palette }
 
     // Animation state (mirrors prototype 's' object)
     var yaw:    CGFloat = 0
