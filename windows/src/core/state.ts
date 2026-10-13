@@ -202,6 +202,9 @@ export interface Settings {
   critterColors: Record<string, string>;
   /** Where each integration's own floating character was left (logical px, top-left). */
   buddySpots: Record<string, [number, number]>;
+  /** Free placement: every character floats on its own, or just the main one (the others stay
+   *  in the island's character rail). */
+  floatAll?: boolean;
   /** Code mode (#152): the folder Claude Code works in, and the ones used lately. */
   codeFolder: string | null;
   recentCodeFolders: string[];
@@ -287,6 +290,7 @@ export const DEFAULT_SETTINGS: Settings = {
   codeFolder: null,
   recentCodeFolders: [],
   buddySpots: {},
+  floatAll: true,
   whaticketAutoAccept: false,
   whaticketQueues: [],
   whaticketHours: "",

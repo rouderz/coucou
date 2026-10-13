@@ -153,7 +153,11 @@ pub fn sync(app: &AppHandle) {
     let extras: Vec<String> = settings
         .active_integrations
         .iter()
-        .filter(|id| id.as_str() != "integration_claude" && settings.critter_assignments.contains_key(id.as_str()))
+        .filter(|id| {
+            settings.float_all
+                && id.as_str() != "integration_claude"
+                && settings.critter_assignments.contains_key(id.as_str())
+        })
         .take(MAX_EXTRAS)
         .cloned()
         .collect();
@@ -454,9 +458,11 @@ pub fn buddy_moved(app: AppHandle, window: tauri::Window, shared: tauri::State<c
 pub fn buddy_menu(app: AppHandle, window: tauri::Window) {
     let built = (|| -> tauri::Result<Menu<tauri::Wry>> {
         let back = MenuItem::with_id(&app, "buddy-back", "Back to the top of the screen", true, None::<&str>)?;
+        let all_on = app.state::<crate::Shared>().settings.lock().unwrap().float_all;
+        let all = tauri::menu::CheckMenuItem::with_id(&app, "buddy-all", "Show every character", true, all_on, None::<&str>)?;
         let settings = MenuItem::with_id(&app, "buddy-settings", "Settings…", true, None::<&str>)?;
         let sep = PredefinedMenuItem::separator(&app)?;
-        Menu::with_items(&app, &[&back, &sep, &settings])
+        Menu::with_items(&app, &[&back, &all, &sep, &settings])
     })();
     match built {
         Ok(menu) => {
@@ -487,6 +493,20 @@ pub fn on_menu_event(app: &AppHandle, id: &str) -> bool {
                 .collapsed
                 .load(std::sync::atomic::Ordering::Relaxed);
             crate::island::apply_geometry(app, &settings.screen, collapsed);
+            let _ = app.emit("settings-changed", settings);
+            true
+        }
+        "buddy-all" => {
+            let settings = {
+                let shared = app.state::<crate::Shared>();
+                let mut s = shared.settings.lock().unwrap();
+                s.float_all = !s.float_all;
+                s.clone()
+            };
+            if let Err(err) = crate::settings::save(&settings) {
+                eprintln!("[coucou] could not save settings: {err}");
+            }
+            sync(app);
             let _ = app.emit("settings-changed", settings);
             true
         }

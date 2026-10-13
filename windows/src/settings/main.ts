@@ -1656,7 +1656,7 @@ function characterSection(): HTMLElement {
     h("div", { class: "hint", text: "The interface calls it by its name, like \u201CAsk Lumo\u201D." }),
     h("h3", { text: "Who handles what" }),
     who,
-    h("div", { class: "hint", text: "An integration with its own character shows it in its pill and, in free placement, floats on its own: click it to open just that integration." }),
+    h("div", { class: "hint", text: "An integration with its own character gets its place in the island's character rail, with its own chat about it; in free placement it also floats on its own." }),
   );
 }
 
@@ -1754,6 +1754,16 @@ function generalSection(editors: { id: string; name: string }[]): HTMLElement {
     settings.placement = placement.value === "free" ? "free" : "notch";
     void save();
   });
+  const floatAll = h("select", {}) as HTMLSelectElement;
+  floatAll.append(
+    h("option", { value: "all", text: "All of them" }),
+    h("option", { value: "main", text: `Just ${botName()} (the others in the island)` }),
+  );
+  floatAll.value = settings.floatAll === false ? "main" : "all";
+  floatAll.addEventListener("change", () => {
+    settings.floatAll = floatAll.value === "all";
+    void save();
+  });
   const resetSpot = h("button", {
     text: "Reset position",
     onclick: () => { settings.buddyX = null; settings.buddyY = null; settings.placement = "free"; placement.value = "free"; void save(); },
@@ -1782,6 +1792,10 @@ function generalSection(editors: { id: string; name: string }[]): HTMLElement {
       placement,
       resetSpot,
       h("span", { class: "hint", text: "free: drag the character anywhere, click it to open the island next to it, right-click for options" }),
+    ),
+    h("div", { class: "row" },
+      h("label", { text: "Floating characters" }),
+      floatAll,
     ),
     h("div", { class: "row" },
       h("label", { text: "Island lives on" }),

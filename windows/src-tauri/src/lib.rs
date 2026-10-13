@@ -86,6 +86,7 @@ fn save_settings(app: AppHandle, shared: State<Shared>, settings: Settings) {
         let screen_changed = current.screen != settings.screen
             || current.idle_notch != settings.idle_notch
             || current.placement != settings.placement
+            || current.float_all != settings.float_all
             || current.critter_assignments != settings.critter_assignments
             || current.active_integrations != settings.active_integrations;
         shared.gate.idle_notch.store(settings.idle_notch, Ordering::Relaxed);

@@ -123,6 +123,10 @@ pub struct Settings {
     /// Where each integration's own floating character was left (logical px, top-left).
     #[serde(default)]
     pub buddy_spots: HashMap<String, [f64; 2]>,
+    /// Free placement: every character floats on its own, or just the main one (the others
+    /// stay in the island's character rail).
+    #[serde(default = "yes")]
+    pub float_all: bool,
 
     /// Mochi moves with the music (#117). Off by default.
     #[serde(default)]
@@ -294,6 +298,7 @@ impl Default for Settings {
             code_folder: None,
             recent_code_folders: Vec::new(),
             buddy_spots: HashMap::new(),
+            float_all: true,
             mochi_dance: false,
             whaticket_auto_accept: false,
             whaticket_queues: Vec::new(),

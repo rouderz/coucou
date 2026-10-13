@@ -158,6 +158,23 @@ export interface CritterCtx {
 /** Colours offered for a character in charge of an integration (#156). */
 export const TINT_CHOICES = ["#EF5B5B", "#F59E42", "#F5C842", "#5CC46A", "#3DBFB0", "#4F8FF0", "#9B7BF2", "#F07AB8"];
 
+/** The colour of the character in charge of an integration: the user's, else one of its own when
+ *  the same character also handles something else (or is the main one), so the two are told
+ *  apart. Same order as Critter.autoTint on macOS (integration ids sorted). */
+export function tintFor(
+  id: string,
+  assigned: Record<string, CritterId>,
+  colors: Record<string, string> | undefined,
+  main: CritterId,
+): string | null {
+  const c = assigned[id];
+  if (!c) return null;
+  if (colors?.[id]) return colors[id];
+  const ids = Object.keys(assigned).sort();
+  const before = ids.slice(0, ids.indexOf(id)).filter((k) => assigned[k] === c).length + (main === c ? 1 : 0);
+  return before > 0 ? TINT_CHOICES[(before * 3 + 2) % TINT_CHOICES.length] : null;
+}
+
 /** The palette in a colour of the user's (#156): two of the same character can tell apart which
  *  integration they handle. Keeps the eyes, blush and the extras' own colours. Port of Critter.swift. */
 export function tintedPalette(c: CritterId, tint: string): CritterPalette {

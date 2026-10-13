@@ -17,9 +17,9 @@ import { progress as focusProgress } from "../core/focus.ts";
 import type { BotEmoteName } from "../core/layout";
 import { Greeting } from "../mochi/greeting";
 import { buildRail, type Rail } from "../views/rail";
-import { leaveCharacterChat, railShown, selectCharacter } from "../core/characters";
+import { characterTint, leaveCharacterChat, railShown, selectCharacter } from "../core/characters";
 import { setMiniCritter, syncMiniBotStates, tickMiniBots } from "../mochi/minibots";
-import { DEFAULT_CRITTER, assignments, isCritter, setCurrentCritter, type CritterId } from "../mochi/critters";
+import { DEFAULT_CRITTER, assignments, isCritter, setCurrentCritter, tintFor, type CritterId } from "../mochi/critters";
 import { UploadCanvas } from "../upload/canvas";
 import { USC, UploadSeq } from "../upload/sequence";
 import { buildHeader, buildViews, type ViewActions, type ViewHost } from "../views/views";
@@ -230,8 +230,9 @@ export class Island {
       Sound.play("blip");
       void this.pickCharacter(id);
     });
-    this.contentEl = h("div", { id: "content" }, this.header.el,
-      h("div", { id: "content-row" }, this.rail.el, this.viewsEl));
+    // Design C: the characters run down the left, the header and the views sit beside them.
+    this.contentEl = h("div", { id: "content" }, this.rail.el,
+      h("div", { id: "content-col" }, this.header.el, this.viewsEl));
 
     // The drop sequence draws the card, the bar and its own Mochi. It sits under
     // the header, which stays visible on top of it exactly as on macOS.
@@ -1076,7 +1077,7 @@ export class Island {
   private focusTint(): string | null {
     const id = State.focusTask?.id;
     if (!id || !assignments(State.settings.critterAssignments)[id]) return null;
-    return State.settings.critterColors?.[id] ?? null;
+    return characterTint(id);
   }
 
   /** The character in charge of the focused task (its own, or the main one). */
@@ -1092,7 +1093,13 @@ export class Island {
     this.engine.critter = this.focusCritter(critter);
     this.engine.userTint = this.focusTint();
     setCurrentCritter(critter);
-    setMiniCritter(critter, assignments(State.settings.critterAssignments), State.settings.critterColors ?? {});
+    const own = assignments(State.settings.critterAssignments);
+    const tints: Record<string, string> = {};
+    for (const id of Object.keys(own)) {
+      const t = tintFor(id, own, State.settings.critterColors, critter);
+      if (t) tints[id] = t;
+    }
+    setMiniCritter(critter, own, tints);
     // The notch left on screen when hidden, and a wake strip that covers it (none in free placement).
     IDLE.notch = State.settings.idleNotch !== false && State.settings.placement !== "free";
     document.documentElement.classList.toggle("free-placement", State.settings.placement === "free");

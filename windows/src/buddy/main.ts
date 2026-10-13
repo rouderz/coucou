@@ -6,7 +6,7 @@ import { invoke } from "@tauri-apps/api/core";
 import { listen } from "@tauri-apps/api/event";
 import { getCurrentWindow } from "@tauri-apps/api/window";
 import { BotEngine } from "../mochi/engine";
-import { DEFAULT_CRITTER, assignments, isCritter } from "../mochi/critters";
+import { DEFAULT_CRITTER, assignments, isCritter, tintFor } from "../mochi/critters";
 import type { BotStateName } from "../core/layout";
 import type { Settings } from "../core/state";
 
@@ -34,7 +34,7 @@ function applySettings(s: Partial<Settings> | null | undefined) {
   const main = isCritter(settings.critter) ? settings.critter : DEFAULT_CRITTER;
   const own = key === "main" ? undefined : assignments(settings.critterAssignments)[key];
   engine.critter = own ?? main;
-  engine.userTint = own ? settings.critterColors?.[key] ?? null : null;
+  engine.userTint = own ? tintFor(key, assignments(settings.critterAssignments), settings.critterColors, main) : null;
 }
 
 // ── Frame loop (~30 fps: breathing, blinking, extras) ─────────────────────────

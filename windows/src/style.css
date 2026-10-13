@@ -92,22 +92,22 @@ body {
 
 /* ── Character rail (island design C) ─────────────────────────────────────── */
 
-#content-row {
+#content-col {
   flex: 1 1 auto;
+  min-width: 0;
   min-height: 0;
   display: flex;
-  gap: 8px;
+  flex-direction: column;
 }
-#content-row > #views { min-width: 0; }
 
 #rail {
   display: none;
-  flex: 0 0 54px;
+  flex: 0 0 62px;
   flex-direction: column;
   align-items: center;
   gap: 4px;
   padding: 4px 0;
-  border-radius: 14px;
+  border-radius: 16px;
   background: rgba(255, 255, 255, 0.045);
   overflow-y: auto;
   scrollbar-width: none;
@@ -118,17 +118,26 @@ body {
 .rail-item {
   flex: 0 0 auto;
   position: relative;
-  width: 46px;
-  height: 42px;
-  padding: 0;
+  width: 54px;
+  padding: 0 0 4px;
   border: 0;
-  border-radius: 12px;
+  border-radius: 13px;
   background: transparent;
-  display: grid;
-  place-items: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
   cursor: default;
 }
 .rail-item canvas { pointer-events: none; }
+.rail-name {
+  max-width: 52px;
+  font: 700 9.5px var(--font);
+  color: var(--dim-2);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.rail-item.on .rail-name { color: var(--ring, var(--ink)); }
 .rail-item:hover { background: rgba(255, 255, 255, 0.05); }
 .rail-item.on {
   background: rgba(255, 255, 255, 0.1);
@@ -137,8 +146,8 @@ body {
 .rail-item.news::after {
   content: "";
   position: absolute;
-  top: 3px;
-  right: 3px;
+  top: 4px;
+  right: 4px;
   width: 8px;
   height: 8px;
   border-radius: 4px;
@@ -152,6 +161,9 @@ body {
 .rail-on .usage-row { padding-left: 16px; }
 .rail-on .ticker { margin-left: 16px; }
 .rail-on .chat-body { padding-left: 12px; }
+
+.rail-on #header { margin-left: 0; }
+.rail-on .tabs { padding-left: 4px; }
 
 /* An integration's character: its name and its integration instead of Chat / Code. */
 .char-tabs { align-items: center; gap: 8px; }
@@ -292,7 +304,7 @@ body {
   inset: 0;
   padding: 8px 10px 10px;
   display: flex;
-  flex-direction: column;
+  gap: 8px;
   transition: opacity 0.2s ease-in-out;
 }
 

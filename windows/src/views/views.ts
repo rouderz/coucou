@@ -3,7 +3,7 @@
 // identically.
 
 import { showMode } from "../core/codeMode";
-import { RAIL_VIEWS, characterFor, characterName, openCharacterChat } from "../core/characters";
+import { RAIL_VIEWS, characterFor, characterName, characterTint, openCharacterChat } from "../core/characters";
 import { PALETTES, tintedPalette } from "../mochi/critters";
 import { h, svg, clear, dot } from "./dom";
 import { ICONS } from "./icons";
@@ -205,7 +205,7 @@ export function buildHeader(actions: ViewActions): ViewHost {
       charTabs.style.display = charOn ? "" : "none";
       if (solo && charOn) {
         const critter = characterFor(solo.id);
-        const tint = State.settings.critterColors?.[solo.id];
+        const tint = characterTint(solo.id);
         const top = (tint ? tintedPalette(critter, tint) : PALETTES[critter]).top;
         charName.textContent = characterName(solo.id);
         charName.style.color = `rgb(${top.map((c) => Math.round(c * 255)).join(", ")})`;

@@ -5,7 +5,7 @@
 // base; an integration's character also has its own chat about what it handles, kept apart from
 // the main character's conversations.
 
-import { CRITTER_INFO, assignments, currentCritter, type CritterId } from "../mochi/critters";
+import { CRITTER_INFO, assignments, currentCritter, tintFor, type CritterId } from "../mochi/critters";
 import { openChat, saveCurrent, startNewChat } from "./chats";
 import type { IslandViewName } from "./layout";
 import { State } from "./state";
@@ -26,6 +26,12 @@ export function railShown(): boolean {
 /** The character in charge of a task: its own, or the main one. */
 export function characterFor(taskId: string | null): CritterId {
   return (taskId && assignments(State.settings.critterAssignments)[taskId]) || currentCritter();
+}
+
+/** That character's colour (the user's, or its own when the same character is used twice). */
+export function characterTint(taskId: string | null): string | null {
+  if (!taskId) return null;
+  return tintFor(taskId, assignments(State.settings.critterAssignments), State.settings.critterColors, currentCritter());
 }
 
 /** "Pip" for the character in charge of this task. */
