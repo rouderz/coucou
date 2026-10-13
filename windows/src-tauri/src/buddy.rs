@@ -323,6 +323,56 @@ pub fn unperch(app: &AppHandle) {
             let _ = win.set_position(PhysicalPosition::new(x, y));
         }
     }
+    // Back on the Settings window if it's still open (#154).
+    let handle = app.clone();
+    let _ = app.run_on_main_thread(move || sit_on_settings(&handle));
+}
+
+/// The Settings window is open (#154): the main character sits on its top edge, near the right
+/// end, and moves with it — unless it is busy on the open island.
+pub fn sit_on_settings(app: &AppHandle) {
+    if !is_free(app) || !platform::positions_itself() {
+        return;
+    }
+    let shared = app.state::<crate::Shared>();
+    if !shared.gate.collapsed.load(std::sync::atomic::Ordering::Relaxed) {
+        return;
+    }
+    let (Some(settings), Some(win)) = (app.get_webview_window("settings"), window(app)) else { return };
+    if !settings.is_visible().unwrap_or(false) || settings.is_minimized().unwrap_or(false) {
+        return;
+    }
+    let (Ok(sp), Ok(ss), Ok(bp), Ok(bs), Ok(scale)) =
+        (settings.outer_position(), settings.outer_size(), win.outer_position(), win.outer_size(), win.scale_factor())
+    else { return };
+    let busy = with(|b| {
+        if b.perched_from.as_ref().map(|(l, _, _)| l != LABEL).unwrap_or(false) {
+            return true;
+        }
+        if b.perched_from.is_none() {
+            b.perched_from = Some((LABEL.to_string(), bp.x, bp.y));
+        }
+        false
+    });
+    if busy {
+        return;
+    }
+    let right = sp.x + ss.width as i32 - bs.width as i32 - (90.0 * scale) as i32;
+    let x = right.max(sp.x + (8.0 * scale) as i32);
+    let y = sp.y + (SEAT * scale) as i32 - bs.height as i32;
+    let _ = win.set_position(PhysicalPosition::new(x, y));
+    let _ = win.set_always_on_top(true);
+}
+
+/// The Settings window closed: the main character goes back to its own spot.
+pub fn leave_settings(app: &AppHandle) {
+    let from = with(|b| match &b.perched_from {
+        Some((l, _, _)) if l == LABEL => b.perched_from.take(),
+        _ => None,
+    });
+    if let (Some((_, x, y)), Some(win)) = (from, window(app)) {
+        let _ = win.set_position(PhysicalPosition::new(x, y));
+    }
 }
 
 /// The window sitting on the open island, if any.

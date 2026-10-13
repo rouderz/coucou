@@ -462,6 +462,17 @@ final class IslandWindowController: NSWindowController {
         NotificationCenter.default.addObserver(forName: .freeBuddyReset, object: nil, queue: .main) { [weak self] _ in
             MainActor.assumeIsolated { self?.buddy.resetPositions() }
         }
+        // Settings open (#154): the main character sits on its title bar while the island is folded.
+        let nc = NotificationCenter.default
+        for name in [NSWindow.didBecomeKeyNotification, NSWindow.didMoveNotification, NSWindow.didResizeNotification,
+                     NSWindow.willCloseNotification, NSWindow.didMiniaturizeNotification,
+                     NSWindow.didDeminiaturizeNotification] {
+            nc.addObserver(forName: name, object: nil, queue: .main) { [weak self] note in
+                guard let win = note.object as? NSWindow, win.identifier == .coucouSettings else { return }
+                let gone = note.name == NSWindow.willCloseNotification || note.name == NSWindow.didMiniaturizeNotification
+                MainActor.assumeIsolated { self?.settingsWindowChanged(gone ? nil : win.frame) }
+            }
+        }
         // Integrations come and go, characters get assigned (#151): one floating character each.
         state.$tasks.combineLatest(state.$critterAssignments)
             .map { tasks, assigned in
@@ -475,6 +486,15 @@ final class IslandWindowController: NSWindowController {
             }
             .store(in: &buddySubs)
         applyPlacement()
+    }
+
+    /// Where the Settings window is, while it's open (#154).
+    private var settingsFrame: NSRect?
+
+    private func settingsWindowChanged(_ frame: NSRect?) {
+        settingsFrame = frame
+        guard freeMode, state.mode != .expanded else { return }
+        if let frame { buddy.sit(onWindow: frame) } else { buddy.unperch() }
     }
 
     /// The main character first, then one per integration that has its own (#151).
@@ -536,6 +556,8 @@ final class IslandWindowController: NSWindowController {
             buddy.unperch()
             buddy.activeKey = FreeBuddyController.mainKey   // alerts open on the main character
             state.soloTaskID = nil
+            // Back on the Settings window if it's still open (#154).
+            if let f = settingsFrame { buddy.sit(onWindow: f) }
         }
     }
 

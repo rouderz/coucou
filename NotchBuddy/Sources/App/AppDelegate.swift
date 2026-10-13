@@ -63,6 +63,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
                            styleMask: [.titled, .closable, .miniaturizable, .resizable],
                            backing: .buffered, defer: false)
         win.title = "Settings — Coucou"
+        win.identifier = .coucouSettings   // the free character sits on it (#154)
         win.contentView = NSHostingView(rootView: SettingsView())
         win.contentMinSize = NSSize(width: 480, height: 360)
         win.isReleasedWhenClosed = false

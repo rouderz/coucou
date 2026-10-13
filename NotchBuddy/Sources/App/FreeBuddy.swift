@@ -9,6 +9,11 @@ import SwiftUI
 // go back to the notch. The island itself stays invisible while it isn't open, so nothing peeks
 // from the top of the screen in this mode. The position is remembered across launches.
 
+extension NSUserInterfaceItemIdentifier {
+    /// The Settings window: in free placement the main character sits on its title bar (#154).
+    static let coucouSettings = NSUserInterfaceItemIdentifier("coucou.settings")
+}
+
 extension Notification.Name {
     static let islandPlacementChanged = Notification.Name("notchBuddy.islandPlacementChanged")
     static let freeBuddyReset = Notification.Name("notchBuddy.freeBuddyReset")
@@ -114,6 +119,18 @@ final class FreeBuddyController {
         if perchedFrom == nil { perchedFrom = (key, panel.frame.origin) }
         panel.setFrameOrigin(NSPoint(x: panel.frame.minX, y: bottomY))
         Self.centers[key] = NSPoint(x: panel.frame.midX, y: panel.frame.midY)
+    }
+
+    /// The Settings window is open (#154): the main character sits on its title bar, near the
+    /// right end, and moves with it.
+    func sit(onWindow frame: NSRect) {
+        guard let panel = panels[Self.mainKey] else { return }
+        if let p = perchedFrom, p.key != Self.mainKey { return }   // busy on the open island
+        if perchedFrom == nil { perchedFrom = (Self.mainKey, panel.frame.origin) }
+        let x = min(frame.maxX - Self.size.width - 90, max(frame.minX + 8, frame.midX))
+        panel.setFrameOrigin(NSPoint(x: x, y: frame.maxY - Self.seat))
+        panel.orderFrontRegardless()
+        Self.centers[Self.mainKey] = NSPoint(x: panel.frame.midX, y: panel.frame.midY)
     }
 
     /// The island folded: everyone back to their own spot, behind other floating panels again.
