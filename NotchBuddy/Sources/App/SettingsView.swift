@@ -494,6 +494,9 @@ struct SettingsView: View {
 
                 // MARK: Son
                 if tab == .general {
+                    GroupBox("Character") {
+                        CritterPicker(state: state)
+                    }
                     GroupBox("Appearance") {
                         ThemePicker(state: state)
                     }
@@ -1508,14 +1511,34 @@ struct DisplaySettingsSection: View {
     @State private var choice = IslandDisplay.choice
     @State private var hideInFullscreen = IslandDisplay.hideInFullscreen
     @State private var screens = IslandDisplay.screens
+    @State private var placement = IslandPlacement.current
 
     var body: some View {
         VStack(alignment: .leading, spacing: 8) {
+            Picker("Where it lives", selection: $placement) {
+                Text("In the notch").tag(IslandPlacement.notch)
+                Text("Free on the desktop").tag(IslandPlacement.free)
+            }
+            .onChange(of: placement) { _, v in IslandPlacement.current = v }
+            if placement == .free {
+                HStack {
+                    Text("Drag the character anywhere. Click it to open the island next to it, right-click for options.")
+                        .font(.system(size: 11))
+                        .foregroundColor(.secondary)
+                        .fixedSize(horizontal: false, vertical: true)
+                    Spacer()
+                    Button("Reset position") {
+                        IslandPlacement.savedOrigin = nil
+                        IslandPlacement.current = .free
+                    }
+                }
+            }
             Picker("Monitor", selection: $choice) {
                 Text("Automatic (notch, else main)").tag(IslandDisplay.auto)
                 ForEach(screens, id: \.id) { Text($0.name).tag($0.id) }
             }
             .onChange(of: choice) { _, v in IslandDisplay.choice = v }
+            .disabled(placement == .free)   // free: the island opens next to the character
             Toggle("Hide while a full-screen app is open on that monitor", isOn: $hideInFullscreen)
                 .onChange(of: hideInFullscreen) { _, v in IslandDisplay.hideInFullscreen = v }
             Text("Applies to monitors without a notch. The island never takes clicks outside its own pill.")
@@ -1525,6 +1548,9 @@ struct DisplaySettingsSection: View {
         }
         .onReceive(NotificationCenter.default.publisher(for: NSApplication.didChangeScreenParametersNotification)) { _ in
             screens = IslandDisplay.screens
+        }
+        .onReceive(NotificationCenter.default.publisher(for: .islandPlacementChanged)) { _ in
+            placement = IslandPlacement.current   // the character's right-click menu can change it too
         }
     }
 }

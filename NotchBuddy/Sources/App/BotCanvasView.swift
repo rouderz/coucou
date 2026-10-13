@@ -1,3 +1,4 @@
+import AppKit
 import SwiftUI
 
 /// SwiftUI wrapper: TimelineView drives a Canvas that calls BotEngine.draw().
@@ -5,20 +6,30 @@ import SwiftUI
 struct BotCanvasView: View {
     @ObservedObject var state: AppState
     var particleOverhang: CGFloat = 0
+    /// Drawn in the free-floating window (Settings → Display → Free): keeps animating while
+    /// the island is hidden and looks at the pointer from where that window is.
+    var freeBuddy: Bool = false
 
     // One engine per view instance (main bot)
     @StateObject private var engine = BotEngine()
 
     var body: some View {
-        TimelineView(AlignedAnimationSchedule(interval: FrameRate.mochi(for: state),
-                                              paused: state.mode == .hidden)) { timeline in
+        TimelineView(AlignedAnimationSchedule(interval: freeBuddy ? FrameRate.calm : FrameRate.mochi(for: state),
+                                              paused: !freeBuddy && state.mode == .hidden)) { timeline in
             Canvas { context, size in
                 let now = timeline.date.timeIntervalSinceReferenceDate
                 let dtRaw = min(0.05, now - engine.lastTime)
                 let dt = dtRaw
-                engine.lookX = lookX(state: state, size: size)
-                engine.lookY = lookY(state: state, size: size)
+                if freeBuddy {
+                    let m = NSEvent.mouseLocation, c = FreeBuddyController.center
+                    engine.lookX = tanh((m.x - c.x) / 260)
+                    engine.lookY = tanh((m.y - c.y) / 200)
+                } else {
+                    engine.lookX = lookX(state: state, size: size)
+                    engine.lookY = lookY(state: state, size: size)
+                }
                 engine.particleOverhang = particleOverhang
+                engine.critter = state.critter
                 // Widen slot when file is hovering over the mailbox (morph > 0.5)
                 // Open mouth (hover=0.20R) when file dragged over box; close when not
                 if engine.morph > 0.3 {
@@ -167,6 +178,7 @@ struct MiniBotCanvasView: View {
             Canvas { context, size in
                 let now = timeline.date.timeIntervalSinceReferenceDate
                 let dt = min(0.05, now - engine.lastTime)
+                engine.critter = appState.critter
                 engine.update(dt: dt)
                 engine.draw(context: context, size: size)
             }

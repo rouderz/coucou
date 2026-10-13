@@ -24,13 +24,18 @@ extension BotEngine {
         if bodyTilt != 0 { ctx.rotate(by: .radians(bodyTilt)) }
         ctx.scaleBy(x: sx * dancePose.sx, y: sy * dancePose.sy)
         // Blush and eyes clip `ctx` to the body; the headphones (#117) reach outside it.
+        critterPress(ctx: &ctx, R: R)
         let unclipped = ctx
 
-        // Body path (superellipse for Mochi, morph to rect for upload)
+        // Body path (the character's silhouette, morph to rect for upload)
         let bodyPath = mochiPath(rx: rx, ry: ry, morph: morph, R: R)
+
+        // Character extras behind the body (sprout, tentacles, steam, sun, rain)
+        drawCritterBack(ctx: unclipped, R: R, rx: rx, ry: ry)
 
         // Body fill
         drawBody(ctx: &ctx, path: bodyPath, R: R, rx: rx, ry: ry)
+        drawCritterSurface(ctx: unclipped, path: bodyPath, R: R, rx: rx, ry: ry)
 
         // Blush — always shows a floor proportional to tint (prototype behaviour)
         let blushVal = max(blush, tint * 0.5) * (1 - morph)
@@ -104,7 +109,7 @@ extension BotEngine {
         var ctx = context
         ctx.opacity = Double(shown)
         ctx.translateBy(x: 0, y: -(1 - shown) * R * 0.25)
-        let ink = Color(cgColor: MochiConst.ink)
+        let ink = Color(cgColor: critter.palette.ink)
         let pad = Color(hex: "#A78BFA")
 
         var band = Path()
@@ -217,8 +222,8 @@ extension BotEngine {
                     endPoint: CGPoint(x: -hew * 0.8, y: heh * 0.9)
                 ))
             } else {
-                let c0 = cgColorToTuple(MochiConst.baseTop)
-                let c1 = cgColorToTuple(MochiConst.baseBottom)
+                let c0 = cgColorToTuple(critter.palette.top)
+                let c1 = cgColorToTuple(critter.palette.bottom)
                 handCtx.fill(handPath, with: .linearGradient(
                     Gradient(colors: [colorFromTuple(c0), colorFromTuple(c1)]),
                     startPoint: CGPoint(x: hew * 0.7, y: -heh * 0.85),
@@ -253,7 +258,6 @@ extension BotEngine {
 
     func mochiPath(rx: CGFloat, ry: CGFloat, morph: CGFloat, R: CGFloat) -> Path {
         let n = 72
-        let expN: CGFloat = 2.0 / 2.7
         // Target mailbox dims (spec: 1.0R wide, 0.94R tall, 0.42R corner radius)
         let tw = R * 1.0
         let th = R * 0.94
@@ -262,8 +266,9 @@ extension BotEngine {
         for i in 0...n {
             let a = CGFloat(i) / CGFloat(n) * .pi * 2
             let ca = cos(a), sa = sin(a)
-            let px0 = rx * (ca >= 0 ? pow(ca, expN) : -pow(-ca, expN))
-            let py0 = ry * (sa >= 0 ? pow(sa, expN) : -pow(-sa, expN))
+            let p0 = critter.outline(a: a, rx: rx, ry: ry, R: R)
+            let px0 = p0.x
+            let py0 = p0.y
             let px: CGFloat
             let py: CGFloat
             if morph < 0.005 {
@@ -327,13 +332,15 @@ extension BotEngine {
             ctx.fill(path, with: .color(Color(cgColor: bc)))
         } else {
             // Main bot: linear gradient body
-            let c0 = cgColorToTuple(MochiConst.baseTop)
-            let c1 = cgColorToTuple(MochiConst.baseBottom)
+            let pal = critter.palette
+            let c0 = cgColorToTuple(pal.top)
+            let c1 = cgColorToTuple(pal.bottom)
             ctx.fill(path, with: .linearGradient(
                 Gradient(colors: [colorFromTuple(c0), colorFromTuple(c1)]),
                 startPoint: CGPoint(x: rx*0.7, y: -ry*0.85),
                 endPoint: CGPoint(x: -rx*0.8, y: ry*0.9)
             ))
+            drawCritterSurfaceBase(ctx: ctx, path: path, R: R, rx: rx, ry: ry)
             // State tint — fades out as morph increases (mailbox has no tint)
             let effectiveTint = tint * (1 - morph)
             if effectiveTint > 0.01 {
@@ -374,10 +381,11 @@ extension BotEngine {
         let yOffset = sin(yaw) * rx * 0.8
         for sd in [-1.0, 1.0] {
             let bx = CGFloat(sd) * rx * 0.55 + yOffset
-            let by = ry * 0.2
+            let by = ry * (0.2 - critter.faceLift)
             var ellipse = Path()
             ellipse.addEllipse(in: CGRect(x: bx - R*0.17, y: by - R*0.1, width: R*0.34, height: R*0.2))
-            ctx.fill(ellipse, with: .color(Color(red: 1, green: 0.471, blue: 0.588, opacity: Double(0.5 * blush))))
+            let bc = critter.palette.blush
+            ctx.fill(ellipse, with: .color(Color(red: Double(bc.0), green: Double(bc.1), blue: Double(bc.2), opacity: Double(0.5 * blush))))
         }
     }
 
@@ -400,7 +408,7 @@ extension BotEngine {
             guard cos(eyeYaw) * cp > 0.04 else { continue }  // behind head
 
             let ex = sin(eyeYaw) * cp * rx
-            let ey = -sin(eyePitch) * ry + (morph > 0 ? ry * 0.14 * morph : 0)
+            let ey = -sin(eyePitch) * ry + (morph > 0 ? ry * 0.14 * morph : 0) - critter.faceLift * ry * (1 - morph)
 
             let fx = lerp(max(0.18, cos(eyeYaw)), 1, morph * 0.7)
             let fy = lerp(max(0.18, cp),          1, morph * 0.7)
@@ -417,7 +425,7 @@ extension BotEngine {
     }
 
     func drawEyeShape(ctx: inout GraphicsContext, shape: EyeShape, w: CGFloat, h: CGFloat, open: CGFloat, sd: CGFloat, R: CGFloat) {
-        let ink = isMini ? Color(cgColor: MochiConst.miniInk) : Color(cgColor: MochiConst.ink)
+        let ink = isMini ? Color(cgColor: MochiConst.miniInk) : Color(cgColor: critter.palette.ink)
         let now = CGFloat(CACurrentMediaTime())
 
         switch shape {

@@ -39,6 +39,11 @@ final class IslandWindowController: NSWindowController {
     private var highlightPanel: NSPanel? = nil
     private var highlightWindowPid: pid_t = 0
 
+    // Free placement (FreeBuddy.swift): the character floats on its own and opens the island next to it.
+    let buddy = FreeBuddyController()
+    private var freeMode = IslandPlacement.isFree
+    private var placementObserver: NSObjectProtocol?
+
     // Notch real dimensions (set on init)
     private var notchW: CGFloat = IslandConst.notchWidth
     private var notchH: CGFloat = IslandConst.notchHeight
@@ -135,6 +140,7 @@ final class IslandWindowController: NSWindowController {
         wireFSM()
         observeDisplays()
         applyScreenSize(screen)
+        setupFreePlacement()
 
         // Make panel key whenever the prompt/chat view becomes active
         // (nonactivatingPanel never auto-becomes key, but TextField needs it)
@@ -175,6 +181,13 @@ final class IslandWindowController: NSWindowController {
     /// Re-reads the monitor choice and moves the panel there, resizing the notch to that screen.
     func moveToChosenDisplay() {
         guard let panel = window as? IslandPanel else { return }
+        if freeMode {
+            // Free placement: the island follows the character, not the chosen monitor.
+            buddy.revalidate()
+            if state.mode == .expanded { positionIslandNearBuddy() }
+            updateFullscreenSuppression()
+            return
+        }
         let screen = IslandDisplay.resolve()
         let sf = screen.frame
         let target = NSRect(x: sf.midX - panel.frame.width / 2, y: sf.maxY - panel.frame.height,
@@ -202,7 +215,7 @@ final class IslandWindowController: NSWindowController {
         guard covered != suppressedForFullscreen else { return }
         suppressedForFullscreen = covered
         guard let panel = window as? IslandPanel else { return }
-        panel.alphaValue = covered ? 0 : 1
+        panel.alphaValue = covered || (freeMode && state.mode != .expanded) ? 0 : 1
         if covered { panel.ignoresMouseEvents = true; if state.mode == .expanded { collapse() } }
     }
 
@@ -294,7 +307,9 @@ final class IslandWindowController: NSWindowController {
 
         // Island rect in panel coords
         let islandRect = panel.currentIslandFrame(nw: notchW, nh: notchH)
-        let inIsland   = islandRect.insetBy(dx: -6, dy: -6).contains(local)
+        // Free placement: the folded island is invisible, so hovering the top of the screen does nothing.
+        let inIsland   = (freeMode && state.mode != .expanded) ? false
+            : islandRect.insetBy(dx: -6, dy: -6).contains(local)
 
         // Toggle click-through
         let shouldAcceptMouse = inIsland || inAttachDrag || attachDragStart != nil
@@ -405,6 +420,7 @@ final class IslandWindowController: NSWindowController {
         let anim: Animation = shrinking
             ? .timingCurve(0.45, 0, 0.2, 1, duration: 0.34)
             : .spring(response: 0.5, dampingFraction: 0.72)
+        if freeMode { showFreeIsland(mode == .expanded) }
         withAnimation(anim) { state.mode = mode }
         if mode == .expanded { SoundEngine.shared.play("open") }
         if prev == .expanded { SoundEngine.shared.play("close"); state.isPinned = false }
@@ -427,6 +443,63 @@ final class IslandWindowController: NSWindowController {
         fsm.collapse()
         setMode(.compact)
         window?.resignKey()
+    }
+
+    // MARK: - Free placement
+
+    private func setupFreePlacement() {
+        buddy.onClick = { [weak self] in
+            guard let self else { return }
+            if self.state.mode == .expanded { self.collapse() } else { self.fsm.click() }
+        }
+        placementObserver = NotificationCenter.default.addObserver(
+            forName: .islandPlacementChanged, object: nil, queue: .main
+        ) { [weak self] _ in
+            MainActor.assumeIsolated { self?.applyPlacement() }
+        }
+        applyPlacement()
+    }
+
+    /// Switches between the notch and the free-floating character.
+    private func applyPlacement() {
+        freeMode = IslandPlacement.isFree
+        buddy.sync()
+        if freeMode {
+            showFreeIsland(state.mode == .expanded)
+        } else {
+            moveToChosenDisplay()
+            if !suppressedForFullscreen { islandPanel.alphaValue = 1 }
+        }
+    }
+
+    /// Free placement: the island only shows while open, right next to the character.
+    private func showFreeIsland(_ open: Bool) {
+        guard let panel = window as? IslandPanel else { return }
+        if open {
+            positionIslandNearBuddy()
+            if !suppressedForFullscreen { panel.alphaValue = 1 }
+        } else {
+            panel.alphaValue = 0
+            panel.ignoresMouseEvents = true
+        }
+    }
+
+    /// Puts the island under the character (or above it when it sits low on the screen),
+    /// centred on it and kept on the screen it is on.
+    private func positionIslandNearBuddy() {
+        guard let panel = window as? IslandPanel, let b = buddy.frame else { return }
+        let screen = NSScreen.screens.first { $0.frame.contains(NSPoint(x: b.midX, y: b.midY)) }
+            ?? IslandDisplay.resolve()
+        let vf = screen.visibleFrame
+        let pw = panel.frame.width, ph = panel.frame.height
+        // The island is drawn centred at the top of the panel, narrower than the panel.
+        let side = max(0, (pw - IslandConst.expandedWidth) / 2)
+        let x = min(max(b.midX - pw / 2, vf.minX - side), vf.maxX - pw + side)
+        var top = b.minY + 6
+        if top - ph < vf.minY { top = min(vf.maxY, b.maxY + ph - 6) }
+        let target = NSRect(x: x, y: top - ph, width: pw, height: ph)
+        if panel.frame != target { panel.setFrame(target, display: true) }
+        applyScreenSize(screen)
     }
 
     // MARK: - Keyboard (Escape closes)

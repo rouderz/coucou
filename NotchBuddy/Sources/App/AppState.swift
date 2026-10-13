@@ -306,6 +306,10 @@ final class AppState: ObservableObject {
         }
     }
     /// Theme: "dark" (the original look), "light", "system" or a palette id (Theme.swift).
+    /// The character drawn in the island (Settings → General → Character).
+    @Published var critter: Critter = .fallback {
+        didSet { UserDefaults.standard.set(critter.rawValue, forKey: Critter.storageKey) }
+    }
     @Published var theme: String = "dark" {
         didSet {
             UserDefaults.standard.set(theme, forKey: "theme")
@@ -655,6 +659,7 @@ final class AppState: ObservableObject {
         if let v = ud.object(forKey: "voiceHotkeyCode")   as? Int    { voiceHotkeyCode = UInt16(v) }
         if let v = ud.object(forKey: "voiceLanguage")     as? String { voiceLanguage = v }
         if let v = ud.string(forKey: "theme") { theme = v }
+        if let v = ud.string(forKey: Critter.storageKey), let c = Critter(rawValue: v) { critter = c }
         if let v = ud.object(forKey: "voiceSpeakReplies") as? Bool   { voiceSpeakReplies = v }
         if let v = ud.object(forKey: "pillRotationSeconds") as? Int { pillRotationSeconds = v }
         if let v = ud.stringArray(forKey: "pinnedPills") { pinnedPills = Set(v) }
