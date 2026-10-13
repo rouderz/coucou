@@ -119,8 +119,8 @@ struct IslandContainer: View {
 
             Group {
                 if state.mode == .compact {
-                    CompactMiniGrid(state: state)
-                        .position(x: islandWidth - 40, y: islandHeight / 2)
+                    CompactStatus(state: state)
+                        .position(x: islandWidth - IslandConst.compactEar / 2, y: islandHeight / 2)
                         .transition(.opacity)
                 }
             }
@@ -367,7 +367,7 @@ struct BotPlacement: View {
 func botPosition(mode: IslandMode, view: IslandView, islandW: CGFloat, islandH: CGFloat, uploadProgress: Double) -> (CGFloat, CGFloat, CGFloat, Double) {
     switch mode {
     case .hidden:   return (46, 16, 6, 0)
-    case .compact:  return (40, 16, 20, 1)
+    case .compact:  return (IslandConst.compactEar / 2, 16, 18, 1)
     case .expanded:
         let layout = IslandConst.viewLayouts[view]!
         let diameter = layout.botDiameter
@@ -624,6 +624,65 @@ struct TabButton: View {
         }
         .buttonStyle(.plain)
         .onHover { isHovered = $0 }
+    }
+}
+
+// MARK: - Folded island, right ear (#153)
+
+/// A dot in the colour of what's going on (soft glow, breathing while something works) and how
+/// many other tasks are busy or need you. Replaces the 2×2 grid of mini bots.
+struct CompactStatus: View {
+    @ObservedObject var state: AppState
+    @State private var breathe = false
+
+    private var color: Color {
+        switch state.effectiveState {
+        case .working:   return Color(hex: "#3B9EFF")
+        case .thinking:  return Color(hex: "#A78BFA")
+        case .searching: return Color(hex: "#6366F1")
+        case .approval, .question: return Color(hex: "#F5A524")
+        case .error:     return Color(hex: "#F4505E")
+        case .finished:  return Color(hex: "#34D399")
+        case .ratelimit: return Color(hex: "#F59E0B")
+        default:         return Color(hex: "#6B7079")
+        }
+    }
+
+    private var busy: Bool { [.working, .thinking, .searching].contains(state.effectiveState) }
+
+    private func setBreathing(_ on: Bool) {
+        if on {
+            withAnimation(.easeInOut(duration: 1.1).repeatForever(autoreverses: true)) { breathe = true }
+        } else {
+            var t = Transaction(); t.disablesAnimations = true
+            withTransaction(t) { breathe = false }
+        }
+    }
+
+    /// Other tasks that are working or waiting on you.
+    private var others: Int {
+        state.tasks.filter { $0.id != state.focusId && ($0.pillBadge != nil || ![.idle, .sleeping].contains($0.state)) }.count
+    }
+
+    var body: some View {
+        HStack(spacing: 4) {
+            Circle()
+                .fill(color)
+                .frame(width: 7, height: 7)
+                .shadow(color: color.opacity(0.8), radius: busy && breathe ? 5 : 2)
+                .scaleEffect(busy && breathe ? 1.15 : 1)
+            if others > 0 {
+                Text(verbatim: "\(min(others, 9))")
+                    .font(.system(size: 10, weight: .semibold, design: .rounded))
+                    .foregroundColor(Color(hex: "#B0B5BE"))
+                    .monospacedDigit()
+            }
+        }
+        .frame(width: IslandConst.compactEar - 8, height: 16)
+        // Breathes only while something works, so a quiet island costs nothing.
+        .onAppear { setBreathing(busy) }
+        .onChange(of: busy) { _, b in setBreathing(b) }
+        .animation(.easeInOut(duration: 0.3), value: state.effectiveState)
     }
 }
 

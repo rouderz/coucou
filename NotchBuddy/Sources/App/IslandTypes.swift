@@ -93,6 +93,8 @@ enum IslandConst {
     static let notchWidth: CGFloat  = 184
     static let notchHeight: CGFloat = 32
     static let expandedWidth: CGFloat = 640
+    /// Width of each ear of the folded island, beside the notch (#153).
+    static let compactEar: CGFloat = 46
     static let earRadius: CGFloat   = 14
     static let roundedCorner: CGFloat = 14    // hidden/peek/compact
     static let expandedCorner: CGFloat = 22

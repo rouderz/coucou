@@ -4,7 +4,7 @@
 import { Tracked, Spring, clamp } from "../core/anim";
 import { Bridge, IS_TAURI, onDragDrop, toBuddies } from "../core/bridge";
 import {
-  EXPANDED_CORNER, EXPANDED_W, NOTCH_W, PANEL_H, PANEL_W,
+  COMPACT_EAR, EXPANDED_CORNER, EXPANDED_W, NOTCH_W, PANEL_H, PANEL_W,
   ROUNDED_CORNER, VIEW_LAYOUTS, botGlowColor, botGlowOpacity, botPosition, chatPromptHeight,
   IDLE, IDLE_NOTCH_H, islandSize,
   type IslandMode, type IslandViewName,
@@ -15,7 +15,7 @@ import { BotEngine, hexToRGB, type EyeShape } from "../mochi/engine";
 import { progress as focusProgress } from "../core/focus.ts";
 import type { BotEmoteName } from "../core/layout";
 import { Greeting } from "../mochi/greeting";
-import { createMiniBot, pruneMiniBots, setMiniCritter, syncMiniBotStates, tickMiniBots } from "../mochi/minibots";
+import { setMiniCritter, syncMiniBotStates, tickMiniBots } from "../mochi/minibots";
 import { DEFAULT_CRITTER, assignments, isCritter, setCurrentCritter, type CritterId } from "../mochi/critters";
 import { UploadCanvas } from "../upload/canvas";
 import { USC, UploadSeq } from "../upload/sequence";
@@ -36,6 +36,12 @@ const UPLOAD_VIEWS: ReadonlySet<IslandViewName> = new Set(["upload", "uploading"
 const PRE_PROGRESS = USC.T_PROG_START - USC.T_DROP;
 
 const modeOrder = (m: IslandMode) => (m === "hidden" ? 0 : m === "compact" ? 1 : 2);
+
+/** The folded island's status dot (#153), by state. */
+const COMPACT_COLORS: Record<string, string> = {
+  working: "#3B9EFF", thinking: "#A78BFA", searching: "#6366F1", approval: "#F5A524", question: "#F5A524",
+  error: "#F4505E", finished: "#34D399", ratelimit: "#F59E0B",
+};
 
 export class Island {
   readonly fsm = new IslandStateMachine();
@@ -527,8 +533,8 @@ export class Island {
     this.islandEl.style.transform = `translateX(-50%)`;
     // These follow the island as it resizes, so they belong here rather than in
     // the state-driven DOM sync.
-    this.miniGrid.style.left = `${w - 40 - 14.5}px`;
-    this.miniGrid.style.top = `${hh / 2 - 14.5}px`;
+    this.miniGrid.style.left = `${w - COMPACT_EAR / 2 - 17}px`;
+    this.miniGrid.style.top = `${hh / 2 - 8}px`;
     this.greetingCanvas.style.left = `${(w - EXPANDED_W) / 2}px`;
     this.uploadCanvas.el.style.left = `${(w - EXPANDED_W) / 2}px`;
 
@@ -968,19 +974,21 @@ export class Island {
       }
     }
 
-    // Compact mini grid
+    // Folded island, right ear (#153): a dot in the colour of what's going on (breathing while
+    // something works) and how many other tasks are busy or need you.
     const showGrid = State.mode === "compact";
     this.miniGrid.style.opacity = showGrid ? "1" : "0";
     if (showGrid) {
-      const others = State.visiblePills;
-      const key = others.map((t) => t.id).join("|");
+      const s = State.effectiveState;
+      const others = State.tasks.filter((t) => t.id !== State.focusId
+        && (t.pillBadge || (t.state !== "idle" && t.state !== "sleeping"))).length;
+      const key = `${s}|${others}`;
       if (this.miniGrid.dataset.key !== key) {
         this.miniGrid.dataset.key = key;
-        this.miniGrid.replaceChildren();
-        for (const t of others) {
-          this.miniGrid.append(createMiniBot(t, 13));
-        }
-        pruneMiniBots();
+        const dot = h("span", { class: "cs-dot" });
+        dot.style.setProperty("--c", COMPACT_COLORS[s] ?? "#6B7079");
+        dot.classList.toggle("busy", s === "working" || s === "thinking" || s === "searching");
+        this.miniGrid.replaceChildren(dot, ...(others > 0 ? [h("span", { class: "cs-count", text: String(Math.min(others, 9)) })] : []));
       }
     }
 

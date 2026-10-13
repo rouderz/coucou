@@ -170,15 +170,29 @@ body {
 /* Compact 2×2 mini grid, to the right of the notch. */
 #mini-grid {
   position: absolute;
-  width: 29px;
-  height: 29px;
-  display: grid;
-  grid-template-columns: 13px 13px;
-  grid-auto-rows: 13px;
-  gap: 3px;
+  width: 34px;
+  height: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
   pointer-events: none;
   transition: opacity 0.25s ease-in-out;
 }
+
+/* Folded island, right ear (#153) */
+.cs-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--c);
+  box-shadow: 0 0 3px var(--c);
+}
+.cs-dot.busy { animation: cs-breathe 2.2s ease-in-out infinite; }
+@keyframes cs-breathe {
+  50% { transform: scale(1.15); box-shadow: 0 0 7px var(--c); }
+}
+.cs-count { font: 600 10px var(--font); color: var(--ink-3, #b0b5be); font-variant-numeric: tabular-nums; }
 
 /* A mini Mochi: the slot is the body, the canvas is larger and overflows it so
    hands, badges and particles are not cut off. */
