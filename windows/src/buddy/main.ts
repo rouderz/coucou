@@ -32,7 +32,9 @@ let settings: Partial<Settings> = {};
 function applySettings(s: Partial<Settings> | null | undefined) {
   if (s) settings = s;
   const main = isCritter(settings.critter) ? settings.critter : DEFAULT_CRITTER;
-  engine.critter = key === "main" ? main : assignments(settings.critterAssignments)[key] ?? main;
+  const own = key === "main" ? undefined : assignments(settings.critterAssignments)[key];
+  engine.critter = own ?? main;
+  engine.userTint = own ? settings.critterColors?.[key] ?? null : null;
 }
 
 // ── Frame loop (~30 fps: breathing, blinking, extras) ─────────────────────────

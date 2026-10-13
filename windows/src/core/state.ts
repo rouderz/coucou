@@ -196,6 +196,8 @@ export interface Settings {
   buddyY: number | null;
   /** Who handles what (#151): integration id → character. Missing = the main character. */
   critterAssignments: Record<string, string>;
+  /** A colour per integration for its character (#156): id → "#RRGGBB". */
+  critterColors: Record<string, string>;
   /** Where each integration's own floating character was left (logical px, top-left). */
   buddySpots: Record<string, [number, number]>;
   /** WhaTicket: accept new tickets on their own, from these queues (empty = any), in these hours. */
@@ -276,6 +278,7 @@ export const DEFAULT_SETTINGS: Settings = {
   buddyX: null,
   buddyY: null,
   critterAssignments: {},
+  critterColors: {},
   buddySpots: {},
   whaticketAutoAccept: false,
   whaticketQueues: [],

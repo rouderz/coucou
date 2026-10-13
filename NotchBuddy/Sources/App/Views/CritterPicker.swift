@@ -37,14 +37,21 @@ struct CritterPicker: View {
                 Text(verbatim: state.critter.displayName).font(.system(size: 12)).foregroundColor(.secondary)
             }
             ForEach(state.tasks.filter { $0.isIntegration && $0.id != "integration_claude" }) { task in
-                Picker(selection: Binding(
-                    get: { state.critterAssignments[task.id]?.rawValue ?? "" },
-                    set: { v in state.critterAssignments[task.id] = Critter(rawValue: v) }
-                )) {
-                    Text("Same as \(state.critter.displayName)").tag("")
-                    ForEach(Critter.allCases) { c in Text(verbatim: c.displayName).tag(c.rawValue) }
-                } label: {
-                    Text(verbatim: task.name).font(.system(size: 12))
+                HStack(spacing: 10) {
+                    Picker(selection: Binding(
+                        get: { state.critterAssignments[task.id]?.rawValue ?? "" },
+                        set: { v in state.critterAssignments[task.id] = Critter(rawValue: v) }
+                    )) {
+                        Text("Same as \(state.critter.displayName)").tag("")
+                        ForEach(Critter.allCases) { c in Text(verbatim: c.displayName).tag(c.rawValue) }
+                    } label: {
+                        Text(verbatim: task.name).font(.system(size: 12))
+                    }
+                    if state.critterAssignments[task.id] != nil {
+                        TintSwatches(selected: state.critterColors[task.id]) { hex in
+                            state.critterColors[task.id] = hex
+                        }
+                    }
                 }
             }
         }
@@ -84,5 +91,38 @@ struct CritterPreview: View {
             engine.drawHandsBehind(context: context, size: size)
             engine.draw(context: context, size: size)
         }
+    }
+}
+
+/// A row of colour dots for a character in charge of an integration (#156). The first one,
+/// outlined, keeps the character's own colours.
+struct TintSwatches: View {
+    let selected: String?
+    let pick: (String?) -> Void
+
+    var body: some View {
+        HStack(spacing: 5) {
+            dot(nil)
+            ForEach(Critter.tintChoices, id: \.self) { dot($0) }
+        }
+    }
+
+    private func dot(_ hex: String?) -> some View {
+        let on = selected == hex
+        return Button { pick(hex) } label: {
+            ZStack {
+                if let hex {
+                    Circle().fill(Color(cgColor: .from(hex)))
+                } else {
+                    Circle().stroke(Color.secondary, lineWidth: 1)
+                    Rectangle().fill(Color.secondary).frame(width: 1, height: 12).rotationEffect(.degrees(45))
+                }
+            }
+            .frame(width: 14, height: 14)
+            .padding(2)
+            .overlay(Circle().stroke(on ? Color.accentColor : .clear, lineWidth: 1.5))
+        }
+        .buttonStyle(.plain)
+        .help(hex == nil ? Text("Its own colours") : Text(verbatim: hex!))
     }
 }

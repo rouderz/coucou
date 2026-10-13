@@ -986,6 +986,7 @@ export class Island {
     syncMiniBotStates(State.tasks);
     this.engine.setState(State.effectiveState);
     this.engine.critter = this.focusCritter(this.mainCritter);
+    this.engine.userTint = this.focusTint();
     this.pushBuddyState();
     this.applyFocusLook();
   }
@@ -1035,6 +1036,13 @@ export class Island {
     toBuddies(states);
   }
 
+  /** The user's colour for the focused task's own character (#156), if any. */
+  private focusTint(): string | null {
+    const id = State.focusTask?.id;
+    if (!id || !assignments(State.settings.critterAssignments)[id]) return null;
+    return State.settings.critterColors?.[id] ?? null;
+  }
+
   /** The character in charge of the focused task (its own, or the main one). */
   private focusCritter(main: CritterId): CritterId {
     const id = State.focusTask?.id;
@@ -1046,8 +1054,9 @@ export class Island {
     const critter = isCritter(State.settings.critter) ? State.settings.critter : DEFAULT_CRITTER;
     this.mainCritter = critter;
     this.engine.critter = this.focusCritter(critter);
+    this.engine.userTint = this.focusTint();
     setCurrentCritter(critter);
-    setMiniCritter(critter, assignments(State.settings.critterAssignments));
+    setMiniCritter(critter, assignments(State.settings.critterAssignments), State.settings.critterColors ?? {});
     // The notch left on screen when hidden, and a wake strip that covers it (none in free placement).
     IDLE.notch = State.settings.idleNotch !== false && State.settings.placement !== "free";
     document.documentElement.classList.toggle("free-placement", State.settings.placement === "free");

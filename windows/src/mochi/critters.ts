@@ -147,6 +147,30 @@ export interface CritterCtx {
   state: string;
   morph: number;
   isMini: boolean;
+  /** The colours drawn (the character's, or tinted with the user's colour, #156). */
+  palette: CritterPalette;
+}
+
+/** Colours offered for a character in charge of an integration (#156). */
+export const TINT_CHOICES = ["#EF5B5B", "#F59E42", "#F5C842", "#5CC46A", "#3DBFB0", "#4F8FF0", "#9B7BF2", "#F07AB8"];
+
+/** The palette in a colour of the user's (#156): two of the same character can tell apart which
+ *  integration they handle. Keeps the eyes, blush and the extras' own colours. Port of Critter.swift. */
+export function tintedPalette(c: CritterId, tint: string): CritterPalette {
+  const base = PALETTES[c];
+  const rgb = hex(tint);
+  const mix = (to: number, a: number): RGB => [rgb[0] + (to - rgb[0]) * a, rgb[1] + (to - rgb[1]) * a, rgb[2] + (to - rgb[2]) * a];
+  const css = (v: RGB) => `rgb(${Math.round(v[0] * 255)},${Math.round(v[1] * 255)},${Math.round(v[2] * 255)})`;
+  switch (c) {
+    case "tecla":
+      return { ...base, top: rgb, bottom: mix(0, 0.22), accent: css(mix(1, 0.55)), accent2: css(mix(1, 0.38)) };
+    case "bao":
+      return { ...base, top: mix(1, 0.5), bottom: rgb, accent: css(mix(0, 0.18)) };
+    case "lumo":
+      return { ...base, top: mix(1, 0.45), bottom: rgb, accent: css(mix(0, 0.1)) };
+    default:
+      return { ...base, top: mix(1, 0.5), bottom: rgb };
+  }
 }
 
 const busy = (s: string) => s === "working" || s === "thinking" || s === "searching";
@@ -169,7 +193,7 @@ export function critterPress(x: CanvasRenderingContext2D, k: CritterCtx, R: numb
 export function drawCritterBack(x: CanvasRenderingContext2D, k: CritterCtx, R: number, rx: number, ry: number) {
   const alpha = Math.max(0, 1 - k.morph * 2);
   if (k.isMini || alpha <= 0.01) return;
-  const pal = PALETTES[k.critter];
+  const pal = k.palette;
   const now = t();
   x.save();
   x.globalAlpha *= alpha;
@@ -262,7 +286,7 @@ export function drawCritterBack(x: CanvasRenderingContext2D, k: CritterCtx, R: n
 /** Drawn right after the body gradient, under the state tint (Tecla's key top). */
 export function drawCritterSurfaceBase(x: CanvasRenderingContext2D, k: CritterCtx, body: Path2D, R: number, rx: number, ry: number) {
   if (k.critter !== "tecla") return;
-  const pal = PALETTES.tecla;
+  const pal = k.palette;
   x.save();
   x.clip(body);
   x.globalAlpha *= 1 - k.morph;
@@ -287,7 +311,7 @@ export function drawCritterSurfaceBase(x: CanvasRenderingContext2D, k: CritterCt
 export function drawCritterSurface(x: CanvasRenderingContext2D, k: CritterCtx, body: Path2D, R: number, rx: number, ry: number) {
   const alpha = Math.max(0, 1 - k.morph * 2);
   if (k.isMini || alpha <= 0.01) return;
-  const pal = PALETTES[k.critter];
+  const pal = k.palette;
   x.save();
   x.clip(body);
   x.globalAlpha *= alpha;

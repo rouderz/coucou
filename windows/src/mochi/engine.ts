@@ -10,7 +10,7 @@ import { Sound } from "../core/sound";
 import type { BotEmoteName, BotStateName } from "../core/layout";
 import {
   DEFAULT_CRITTER, PALETTES, critterPress, drawCritterBack, drawCritterSurface, drawCritterSurfaceBase,
-  drawEyeExtras, drawFaceMouth, eyeAspect, faceLift, outline, type CritterCtx, type CritterId,
+  drawEyeExtras, drawFaceMouth, eyeAspect, faceLift, outline, tintedPalette, type CritterCtx, type CritterId, type CritterPalette,
 } from "./critters";
 
 // ── Types ─────────────────────────────────────────────────────────────────────
@@ -172,6 +172,8 @@ export class BotEngine {
   bodyColor: RGB | null = null;
   /** The character the user picked (critters.ts). */
   critter: CritterId = DEFAULT_CRITTER;
+  /** A colour of the user's for this character (#156, "#RRGGBB"); null = its own colours. */
+  userTint: string | null = null;
 
   // Animated state (BotEngine `s`)
   yaw = 0; pitch = 0; roll = 0; tilt = 0; open = 1;
@@ -700,7 +702,7 @@ export class BotEngine {
       x.save();
       x.clip(body);
       const yOffset = Math.sin(this.yaw) * rx * 0.8;
-      const bc = PALETTES[this.critter].blush;
+      const bc = this.palette.blush;
       x.fillStyle = `rgba(${bc[0]},${bc[1]},${bc[2]},${0.5 * blushVal})`;
       for (const sd of [-1, 1]) {
         x.beginPath();
@@ -723,7 +725,12 @@ export class BotEngine {
   }
 
   private critterCtx(): CritterCtx {
-    return { critter: this.critter, state: this.state, morph: this.morph, isMini: this.isMini };
+    return { critter: this.critter, state: this.state, morph: this.morph, isMini: this.isMini, palette: this.palette };
+  }
+
+  /** The colours drawn: the character's, or tinted with the user's colour (#156). */
+  get palette(): CritterPalette {
+    return this.userTint ? tintedPalette(this.critter, this.userTint) : PALETTES[this.critter];
   }
 
   private bodyPath(rx: number, ry: number, R: number): Path2D {
@@ -761,7 +768,7 @@ export class BotEngine {
       x.fill(body);
       return;
     }
-    const pal = PALETTES[this.critter];
+    const pal = this.palette;
     const g = x.createLinearGradient(rx * 0.7, -ry * 0.85, -rx * 0.8, ry * 0.9);
     g.addColorStop(0, rgba(pal.top));
     g.addColorStop(1, rgba(pal.bottom));
@@ -801,7 +808,7 @@ export class BotEngine {
 
     x.save();
     x.clip(body);
-    const ink = this.isMini ? MINI_INK : PALETTES[this.critter].ink;
+    const ink = this.isMini ? MINI_INK : this.palette.ink;
     x.fillStyle = ink;
     x.strokeStyle = ink;
 
@@ -1042,8 +1049,8 @@ export class BotEngine {
         g.addColorStop(0, rgba(mix3(this.bodyColor, [1, 1, 1], 0.35)));
         g.addColorStop(1, rgba(this.bodyColor));
       } else {
-        g.addColorStop(0, rgba(PALETTES[this.critter].top));
-        g.addColorStop(1, rgba(PALETTES[this.critter].bottom));
+        g.addColorStop(0, rgba(this.palette.top));
+        g.addColorStop(1, rgba(this.palette.bottom));
       }
       x.beginPath();
       x.ellipse(0, 0, hew, heh, 0, 0, Math.PI * 2);
@@ -1067,7 +1074,7 @@ export class BotEngine {
     x.globalAlpha *= shown;
     x.translate(0, -(1 - shown) * R * 0.25);
 
-    x.strokeStyle = PALETTES[this.critter].ink;
+    x.strokeStyle = this.palette.ink;
     x.lineWidth = R * 0.1;
     x.lineCap = "round";
     x.beginPath();
@@ -1080,7 +1087,7 @@ export class BotEngine {
       const cupY = ry * 0.02;
       const cupW = R * 0.28 * p;
       const cupH = R * 0.5 * p;
-      x.fillStyle = PALETTES[this.critter].ink;
+      x.fillStyle = this.palette.ink;
       roundRectPath(x, cupX - cupW / 2, cupY - cupH / 2, cupW, cupH, cupW * 0.45);
       x.fill();
       const padW = cupW * 0.42;

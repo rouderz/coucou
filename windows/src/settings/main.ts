@@ -10,7 +10,7 @@ import { parseTeams, type TeamInfo } from "../core/capture";
 import { h, clear } from "../views/dom";
 import { THEMES, applyTheme } from "../core/themes.ts";
 import { BotEngine } from "../mochi/engine";
-import { CRITTERS, CRITTER_INFO, DEFAULT_CRITTER, botName, isCritter, setCurrentCritter, type CritterId } from "../mochi/critters";
+import { CRITTERS, CRITTER_INFO, DEFAULT_CRITTER, TINT_CHOICES, botName, isCritter, setCurrentCritter, type CritterId } from "../mochi/critters";
 import { dayKey as wtDayKey, duration, range, summary, toCsv as wtToCsv, type Period, type StatEvent } from "../core/whaticketStats.ts";
 import {
   addAdjustment, dayKey, formatDuration, formatHours, groupPeriod, parseStore, recentPeriods, rowsFromStore,
@@ -1622,7 +1622,29 @@ function characterSection(): HTMLElement {
         settings.critterAssignments = next;
         void save();
       });
-      who.append(h("div", { class: "row" }, h("label", { text: agent.name }), pick));
+      const row = h("div", { class: "row" }, h("label", { text: agent.name }), pick);
+      // Its own colour (#156): two of the same character can tell apart what they handle.
+      if (settings.critterAssignments?.[agent.id]) {
+        const dots = h("span", { class: "tint-dots" });
+        const current = settings.critterColors?.[agent.id] ?? null;
+        for (const c of [null, ...TINT_CHOICES]) {
+          dots.append(h("button", {
+            class: "tint-dot" + (c === current ? " on" : "") + (c ? "" : " none"),
+            style: c ? `background:${c}` : "",
+            title: c ?? "Its own colours",
+            "aria-label": c ?? "Its own colours",
+            onclick: () => {
+              const next = { ...(settings.critterColors ?? {}) };
+              if (c) next[agent.id] = c; else delete next[agent.id];
+              settings.critterColors = next;
+              void save();
+              drawWho();
+            },
+          }));
+        }
+        row.append(dots);
+      }
+      who.append(row);
     }
   }
   drawWho();

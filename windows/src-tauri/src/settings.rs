@@ -112,6 +112,9 @@ pub struct Settings {
     /// Who handles what (#151): integration id → character. Missing = the main character.
     #[serde(default)]
     pub critter_assignments: HashMap<String, String>,
+    /// A colour per integration for its character (#156): id → "#RRGGBB".
+    #[serde(default)]
+    pub critter_colors: HashMap<String, String>,
     /// Where each integration's own floating character was left (logical px, top-left).
     #[serde(default)]
     pub buddy_spots: HashMap<String, [f64; 2]>,
@@ -282,6 +285,7 @@ impl Default for Settings {
             buddy_x: None,
             buddy_y: None,
             critter_assignments: HashMap::new(),
+            critter_colors: HashMap::new(),
             buddy_spots: HashMap::new(),
             mochi_dance: false,
             whaticket_auto_accept: false,

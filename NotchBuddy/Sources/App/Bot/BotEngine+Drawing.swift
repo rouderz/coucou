@@ -109,7 +109,7 @@ extension BotEngine {
         var ctx = context
         ctx.opacity = Double(shown)
         ctx.translateBy(x: 0, y: -(1 - shown) * R * 0.25)
-        let ink = Color(cgColor: critter.palette.ink)
+        let ink = Color(cgColor: palette.ink)
         let pad = Color(hex: "#A78BFA")
 
         var band = Path()
@@ -222,8 +222,8 @@ extension BotEngine {
                     endPoint: CGPoint(x: -hew * 0.8, y: heh * 0.9)
                 ))
             } else {
-                let c0 = cgColorToTuple(critter.palette.top)
-                let c1 = cgColorToTuple(critter.palette.bottom)
+                let c0 = cgColorToTuple(palette.top)
+                let c1 = cgColorToTuple(palette.bottom)
                 handCtx.fill(handPath, with: .linearGradient(
                     Gradient(colors: [colorFromTuple(c0), colorFromTuple(c1)]),
                     startPoint: CGPoint(x: hew * 0.7, y: -heh * 0.85),
@@ -332,7 +332,7 @@ extension BotEngine {
             ctx.fill(path, with: .color(Color(cgColor: bc)))
         } else {
             // Main bot: linear gradient body
-            let pal = critter.palette
+            let pal = palette
             let c0 = cgColorToTuple(pal.top)
             let c1 = cgColorToTuple(pal.bottom)
             ctx.fill(path, with: .linearGradient(
@@ -384,7 +384,7 @@ extension BotEngine {
             let by = ry * (0.2 - critter.faceLift)
             var ellipse = Path()
             ellipse.addEllipse(in: CGRect(x: bx - R*0.17, y: by - R*0.1, width: R*0.34, height: R*0.2))
-            let bc = critter.palette.blush
+            let bc = palette.blush
             ctx.fill(ellipse, with: .color(Color(red: Double(bc.0), green: Double(bc.1), blue: Double(bc.2), opacity: Double(0.5 * blush))))
         }
     }
@@ -433,7 +433,7 @@ extension BotEngine {
     }
 
     func drawEyeShape(ctx: inout GraphicsContext, shape: EyeShape, w: CGFloat, h: CGFloat, open: CGFloat, sd: CGFloat, R: CGFloat) {
-        let ink = isMini ? Color(cgColor: MochiConst.miniInk) : Color(cgColor: critter.palette.ink)
+        let ink = isMini ? Color(cgColor: MochiConst.miniInk) : Color(cgColor: palette.ink)
         let now = CGFloat(CACurrentMediaTime())
 
         switch shape {

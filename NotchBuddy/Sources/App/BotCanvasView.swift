@@ -35,7 +35,9 @@ struct BotCanvasView: View {
                     engine.lookY = lookY(state: state, size: size)
                 }
                 engine.particleOverhang = particleOverhang
-                engine.critter = freeBuddy ? state.critter(for: buddyTaskID) : state.critter(for: state.focusTask?.id)
+                let shownTask = freeBuddy ? buddyTaskID : state.focusTask?.id
+                engine.critter = state.critter(for: shownTask)
+                engine.userTint = state.critterAssignments[shownTask ?? ""] != nil ? state.critterTint(for: shownTask) : nil
                 // Widen slot when file is hovering over the mailbox (morph > 0.5)
                 // Open mouth (hover=0.20R) when file dragged over box; close when not
                 if engine.morph > 0.3 {
@@ -188,6 +190,8 @@ struct MiniBotCanvasView: View {
                 let now = timeline.date.timeIntervalSinceReferenceDate
                 let dt = min(0.05, now - engine.lastTime)
                 engine.critter = appState.critter(for: task.id)
+                // Its own colour (#156) when its character has one, else the pill colour.
+                engine.bodyColor = appState.critterTint(for: task.id) ?? cgColorFromHex(task.color)
                 engine.update(dt: dt)
                 engine.draw(context: context, size: size)
             }

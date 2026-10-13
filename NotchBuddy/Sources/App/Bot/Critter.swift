@@ -75,6 +75,35 @@ enum Critter: String, CaseIterable, Identifiable, Sendable {
         }
     }
 
+    /// The palette in a colour of the user's (#156): two of the same character can tell
+    /// apart which integration they handle. Keeps the eyes, blush and the extras' own colours.
+    func palette(tinted c: CGColor) -> Palette {
+        let base = palette
+        let rgb = cgColorToTuple(c)
+        func mix(_ t: (CGFloat, CGFloat, CGFloat), _ amount: CGFloat) -> CGColor {
+            let m = mix3(rgb, t, amount)
+            return CGColor(red: m.0, green: m.1, blue: m.2, alpha: 1)
+        }
+        let white: (CGFloat, CGFloat, CGFloat) = (1, 1, 1), black: (CGFloat, CGFloat, CGFloat) = (0, 0, 0)
+        switch self {
+        case .tecla:
+            return Palette(top: c, bottom: mix(black, 0.22), ink: base.ink, blush: base.blush,
+                           accent: mix(white, 0.55), accent2: mix(white, 0.38))
+        case .bao:
+            return Palette(top: mix(white, 0.5), bottom: c, ink: base.ink, blush: base.blush,
+                           accent: mix(black, 0.18), accent2: base.accent2)
+        case .lumo:
+            return Palette(top: mix(white, 0.45), bottom: c, ink: base.ink, blush: base.blush,
+                           accent: mix(black, 0.1), accent2: base.accent2)
+        case .pip, .nube:
+            return Palette(top: mix(white, 0.5), bottom: c, ink: base.ink, blush: base.blush,
+                           accent: base.accent, accent2: base.accent2)
+        }
+    }
+
+    /// Colours offered for a character in charge of an integration (#156).
+    static let tintChoices = ["#EF5B5B", "#F59E42", "#F5C842", "#5CC46A", "#3DBFB0", "#4F8FF0", "#9B7BF2", "#F07AB8"]
+
     // MARK: - Silhouette
 
     /// Signed power: keeps the sign, bends the magnitude.
@@ -216,7 +245,7 @@ extension BotEngine {
         guard !isMini, extrasAlpha > 0.01 else { return }
         var c = ctx
         c.opacity = extrasAlpha
-        let pal = critter.palette
+        let pal = palette
         let t = critterTime
         switch critter {
         case .tecla:
@@ -300,7 +329,7 @@ extension BotEngine {
         var c = ctx
         c.clip(to: path)
         c.opacity = Double(1 - morph)
-        let pal = critter.palette
+        let pal = palette
         let face = CGRect(x: -rx * 0.82, y: -ry * 0.88, width: rx * 1.64, height: ry * 1.36)
         c.fill(Path(roundedRect: face, cornerRadius: R * 0.28),
                with: .linearGradient(Gradient(colors: [Color(cgColor: pal.accent), Color(cgColor: pal.accent2)]),
@@ -313,7 +342,7 @@ extension BotEngine {
         var c = ctx
         c.clip(to: path)
         c.opacity = extrasAlpha
-        let pal = critter.palette
+        let pal = palette
         switch critter {
         case .bao:
             let top = critter.headTop(rx: rx, ry: ry, R: R)
@@ -344,7 +373,7 @@ extension BotEngine {
     // MARK: Pip's sprout
 
     private func drawSprout(ctx: GraphicsContext, R: CGFloat, rx: CGFloat, ry: CGFloat, t: CGFloat) {
-        let pal = critter.palette
+        let pal = palette
         let base = critter.headTop(rx: rx, ry: ry, R: R) + R * 0.05
         let bloom = state == .finished
         let anchor = CGPoint(x: 0, y: base - R * 0.36)
@@ -438,7 +467,7 @@ extension BotEngine {
         c.translateBy(x: mx, y: my)
         c.scaleBy(x: max(0.3, cos(yaw)), y: max(0.3, cp))
         c.opacity = Double(max(0, 1 - morph / 0.3))
-        let ink = Color(cgColor: critter.palette.ink)
+        let ink = Color(cgColor: palette.ink)
         let w = R * 0.1
         let line = StrokeStyle(lineWidth: R * 0.05, lineCap: .round, lineJoin: .round)
 
@@ -503,7 +532,7 @@ extension BotEngine {
         var brow = Path()
         brow.move(to: CGPoint(x: -sd * w * 0.62, y: innerY))
         brow.addLine(to: CGPoint(x: sd * w * 0.62, y: outerY))
-        ctx.stroke(brow, with: .color(Color(cgColor: critter.palette.ink)),
+        ctx.stroke(brow, with: .color(Color(cgColor: palette.ink)),
                    style: StrokeStyle(lineWidth: w * 0.3, lineCap: .round))
     }
 }

@@ -29,6 +29,7 @@ const ES: Record<string, string> = {
   // characters (#147–#151)
   "Character": "Personaje",
   "Who handles what": "Quién se encarga de qué",
+  "Its own colours": "Sus propios colores",
   "An integration with its own character shows it in its pill and, in free placement, floats on its own: click it to open just that integration.": "Una integración con personaje propio lo muestra en su píldora y, en modo libre, flota por su cuenta: haz clic en él para abrir solo esa integración.",
   "Where it lives": "Dónde vive",
   "At the top of the screen": "Arriba de la pantalla",

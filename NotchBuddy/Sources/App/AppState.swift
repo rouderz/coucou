@@ -321,6 +321,16 @@ final class AppState: ObservableObject {
         }
     }
 
+    /// A colour per integration for its character (#156): task id → hex. Missing = its own colours.
+    @Published var critterColors: [String: String] = [:] {
+        didSet { UserDefaults.standard.set(critterColors, forKey: "critterColors") }
+    }
+
+    /// The user's colour for the character in charge of a task, if any.
+    func critterTint(for taskID: String?) -> CGColor? {
+        taskID.flatMap { critterColors[$0] }.flatMap(cgColorFromHex)
+    }
+
     /// The character in charge of a task: its own if it has one, else the main character.
     func critter(for taskID: String?) -> Critter {
         taskID.flatMap { critterAssignments[$0] } ?? critter
@@ -688,6 +698,7 @@ final class AppState: ObservableObject {
         if let v = ud.object(forKey: "voiceLanguage")     as? String { voiceLanguage = v }
         if let v = ud.string(forKey: "theme") { theme = v }
         if let v = ud.string(forKey: Critter.storageKey), let c = Critter(rawValue: v) { critter = c }
+        if let d = ud.dictionary(forKey: "critterColors") as? [String: String] { critterColors = d }
         if let d = ud.dictionary(forKey: "critterAssignments") as? [String: String] {
             critterAssignments = d.compactMapValues { Critter(rawValue: $0) }
         }
