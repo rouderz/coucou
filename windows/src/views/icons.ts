@@ -12,6 +12,8 @@ export const ICONS = {
   chats: "M4 5h10a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2H9l-4 3v-3H4a2 2 0 0 1-2-2V7a2 2 0 0 1 2-2z M19 9h1a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-1v2.5L16 18h-3",
   // chevron.left.forwardslash.chevron.right (Code mode, stroked)
   code: "M8 7l-5 5 5 5 M16 7l5 5-5 5 M14 4l-4 16",
+  // folder (folders kept at hand)
+  folder: "M3 6.5A1.5 1.5 0 0 1 4.5 5h4.6l2 2h8.4A1.5 1.5 0 0 1 21 8.5v9A1.5 1.5 0 0 1 19.5 19h-15A1.5 1.5 0 0 1 3 17.5v-11z",
   // envelope (an integration character's mail tab)
   envelope: "M3 6h18v12H3z M3 7l9 6 9-6",
   // house.fill

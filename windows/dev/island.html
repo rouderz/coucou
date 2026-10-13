@@ -1,5 +1,5 @@
 <!doctype html><html><head><link rel="stylesheet" href="/src/style.css">
-<style>body{margin:0;background:#2a2d33;width:1400px;height:300px} #island{left:20px!important;transform:none!important;top:20px!important;width:640px;height:224px;border-radius:22px} #island2{left:700px!important}</style></head>
+<style>body{margin:0;background:#2a2d33;width:1400px;height:300px} #island{left:20px!important;transform:none!important;top:20px!important;width:640px;height:236px;border-radius:22px} #island2{left:700px!important}</style></head>
 <body>
 <script type="module">
 import { State } from "/src/core/state.ts";
@@ -23,6 +23,7 @@ State.sessions = [
 State.pendingApproval = { id: "x" };
 State.planUsage = { fiveHour: { percent: 100, resetsAt: Date.now() + 32 * 60000 }, sevenDay: { percent: 32, resetsAt: Date.now() + 4 * 86400000 }, context: null, model: null };
 State.settings.critterAssignments = { integration_gmail: "pip", integration_whaticket: "bao" };
+State.settings.codeFolders = ["/home/me/code/coucou", "/home/me/code/shopit"]; State.settings.codeFolder = "/home/me/code/coucou";
 State.focusId = "integration_claude";
 const noop = () => {};
 const actions = new Proxy({}, { get: () => noop });
@@ -34,7 +35,7 @@ function mount(left, solo, view) {
   const views = buildViews(actions, noop);
   const viewsEl = h("div", { id: "views" });
   for (const v of views.values()) viewsEl.append(v.el);
-  const rail = buildRail(noop, { inbox: noop, dnd: noop, sound: noop, settings: noop });
+  const rail = buildRail(noop, { settings: noop });
   const content = h("div", { id: "content" }, rail.el, h("div", { id: "content-col" }, header.el, viewsEl));
   const island = h("div", { id: "island" }, h("div", { id: "island-clip" }, content));
   island.style.left = left + "px";

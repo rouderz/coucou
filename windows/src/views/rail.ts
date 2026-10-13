@@ -4,7 +4,6 @@
 
 import { h, clear, svg } from "./dom";
 import { ICONS } from "./icons";
-import { dndActive } from "../core/dnd.ts";
 import { BotEngine } from "../mochi/engine";
 import { PALETTES, tintedPalette } from "../mochi/critters";
 import { State } from "../core/state";
@@ -33,25 +32,16 @@ export interface Rail {
 const css = (c: readonly [number, number, number]) =>
   `rgb(${Math.round(c[0] * 255)}, ${Math.round(c[1] * 255)}, ${Math.round(c[2] * 255)})`;
 
-/** The island's quick controls, under the characters (the gear at the bottom, as in the design). */
+/** The gear at the bottom of the rail opens the settings window. */
 export interface RailTools {
-  inbox(): void;
-  dnd(): void;
-  sound(): void;
   settings(): void;
 }
 
 export function buildRail(pick: (taskId: string | null) => void, tools: RailTools): Rail {
   const list = h("div", { class: "rail-list" });
-  const inboxBtn = h("button", { class: "rail-tool", title: "Inbox", "aria-label": "Inbox", onclick: () => tools.inbox() },
-    svg(ICONS.bell, 12));
-  const dndBtn = h("button", { class: "rail-tool", title: "Do not disturb", "aria-label": "Do not disturb", onclick: () => tools.dnd() },
-    svg(ICONS.moon, 12));
-  const soundBtn = h("button", { class: "rail-tool", title: "Mute", "aria-label": "Mute", onclick: () => tools.sound() });
-  const gearBtn = h("button", { class: "rail-tool", title: "Settings", "aria-label": "Settings", onclick: () => tools.settings() },
-    svg(ICONS.gear, 13));
-  const el = h("div", { id: "rail" }, list,
-    h("div", { class: "rail-tools" }, inboxBtn, dndBtn, soundBtn, gearBtn));
+  const gearBtn = h("button", { class: "rail-gear", title: "Settings", "aria-label": "Settings", onclick: () => tools.settings() },
+    svg(ICONS.gear, 14));
+  const el = h("div", { id: "rail" }, list, gearBtn);
   let items: Item[] = [];
   let ids = "";
 
@@ -80,11 +70,6 @@ export function buildRail(pick: (taskId: string | null) => void, tools: RailTool
         clear(list);
         for (const it of items) list.append(it.button);
       }
-      inboxBtn.style.display = State.settings.inboxEnabled ? "" : "none";
-      inboxBtn.classList.toggle("on", State.inbox.length > 0);
-      dndBtn.classList.toggle("on", dndActive(State.settings.dndUntil));
-      clear(soundBtn);
-      soundBtn.append(svg(State.settings.soundEnabled ? ICONS.speakerOn : ICONS.speakerOff, 12));
       for (const it of items) {
         const task = it.taskId ? State.tasks.find((t) => t.id === it.taskId) : null;
         const critter = characterFor(it.taskId);

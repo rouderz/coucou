@@ -279,8 +279,11 @@ async fn code_send(
     folder: String,
     edits: bool,
 ) -> Result<ChatReply, String> {
-    let model = shared.settings.lock().unwrap().model.clone();
-    claude_code::send_code(&code_chat, &model, query, folder, edits).await
+    let (model, extra) = {
+        let s = shared.settings.lock().unwrap();
+        (s.model.clone(), s.code_folders.clone())
+    };
+    claude_code::send_code(&code_chat, &model, query, folder, edits, extra).await
 }
 
 /// Code mode: the system's folder picker. None when cancelled.

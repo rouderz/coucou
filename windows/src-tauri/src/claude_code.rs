@@ -272,6 +272,7 @@ pub async fn send_code(
     query: String,
     folder: String,
     edits: bool,
+    at_hand: Vec<String>,
 ) -> Result<ChatReply, String> {
     let program = locate().ok_or_else(|| NOT_INSTALLED.to_string())?;
     let dir = PathBuf::from(&folder);
@@ -295,7 +296,16 @@ pub async fn send_code(
         );
     }
     prompt.push_str(&query);
-    let args = code_arguments(model, session.as_deref(), edits);
+    let mut args = code_arguments(model, session.as_deref(), edits);
+    // The other folders kept at hand can be read too.
+    let extra: Vec<String> = at_hand
+        .into_iter()
+        .filter(|f| *f != folder && std::path::Path::new(f).is_dir())
+        .collect();
+    if !extra.is_empty() {
+        args.push("--add-dir".into());
+        args.extend(extra);
+    }
     run_turn(chat, &program, args, &dir, prompt).await
 }
 

@@ -2,13 +2,15 @@
 // The Claude Code sessions as rows, the plan usage, then chips for the editor, Focus, the inbox
 // and every integration without a character of its own.
 
-import { h, clear, dot } from "./dom";
+import { h, clear, dot, svg } from "./dom";
+import { ICONS } from "./icons";
 import { Bridge } from "../core/bridge";
 import { State } from "../core/state";
 import { assignments } from "../mochi/critters";
 import { focusSession } from "../claude/sessions.ts";
 import { Focus } from "../island/focus";
 import type { ViewActions } from "./views";
+import { addFolder, folderName, removeFolder, showMode, workIn } from "../core/codeMode";
 
 const STATE_COLORS: Record<string, string> = {
   working: "#4C8DFF", searching: "#4C8DFF", thinking: "#A78BFA", approval: "#F5A524", question: "#F5A524",
@@ -65,6 +67,7 @@ export function buildMainBase(actions: ViewActions): { el: HTMLElement; sync(): 
       const next = JSON.stringify([
         sessions.map((s) => [s.id, s.state, s.project, s.steps.at(-1)]), !!State.pendingApproval,
         State.planUsage, State.focus.phase, State.inbox.length, State.settings.inboxEnabled,
+        State.settings.codeFolders, State.settings.codeFolder,
         others.map((t) => [t.id, t.color, t.steps[0]]), Math.floor(Date.now() / 60000),
       ]);
       if (next === key) return;
@@ -72,7 +75,11 @@ export function buildMainBase(actions: ViewActions): { el: HTMLElement; sync(): 
       clear(el);
 
       if (!sessions.length) {
-        el.append(row("#6B7079", "Claude Code", "No session right now — start one in your terminal", null, () => {}));
+        // No terminal needed: Code mode is Claude Code at work right here.
+        const folder = State.settings.codeFolder;
+        el.append(row("#6B7079", "Claude Code",
+          folder ? `Ready in ${folderName(folder)}` : "Pick a folder and it starts working", "Start",
+          () => void showMode("code").then(() => actions.setView("prompt"))));
       }
       for (const s of sessions) {
         const waiting = s.state === "approval" && !!State.pendingApproval;
@@ -91,6 +98,23 @@ export function buildMainBase(actions: ViewActions): { el: HTMLElement; sync(): 
         usage.append(h("div", { class: "mb-hint", text: "Hooks installed · usage shows after your next Claude message" }));
       }
       el.append(usage);
+
+      // The folders kept at hand: one click and Claude Code works there.
+      const folders = h("div", { class: "mb-chips" });
+      for (const f of State.settings.codeFolders ?? []) {
+        const c = chip(folderName(f), () => void workIn(f).then(() => actions.setView("prompt")),
+          f === State.settings.codeFolder ? "#F5F6F8" : undefined);
+        c.prepend(svg(ICONS.folder, 10));
+        c.title = f;
+        c.addEventListener("contextmenu", (e) => { e.preventDefault(); removeFolder(f); });
+        folders.append(c);
+      }
+      const add = chip((State.settings.codeFolders ?? []).length ? "+ Folder" : "+ Add a folder",
+        () => void addFolder().then(() => actions.setView("prompt")));
+      add.classList.add("mb-add");
+      add.title = "Folders Claude Code keeps at hand (right-click a folder to remove it)";
+      folders.append(add);
+      el.append(folders);
 
       const chips = h("div", { class: "mb-chips" });
       const claude = State.tasks.find((t) => t.id === "integration_claude");

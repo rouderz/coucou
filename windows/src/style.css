@@ -121,25 +121,21 @@ body {
   scrollbar-width: none;
 }
 .rail-list::-webkit-scrollbar { display: none; }
-.rail-tools {
+.rail-gear {
   flex: 0 0 auto;
-  display: grid;
-  grid-template-columns: repeat(4, 13px);
-  gap: 2px;
-  padding: 6px 0 2px;
-}
-.rail-tool {
-  width: 13px;
-  height: 20px;
+  width: 34px;
+  height: 28px;
+  margin: 2px 0 2px;
   padding: 0;
   border: 0;
+  border-radius: 8px;
   background: transparent;
   color: var(--dim-2);
   display: grid;
   place-items: center;
   cursor: default;
 }
-.rail-tool:hover, .rail-tool.on { color: var(--ink); }
+.rail-gear:hover { color: var(--ink); background: rgba(255, 255, 255, 0.06); }
 .rail-on #rail { display: flex; }
 
 .rail-item {
@@ -236,6 +232,21 @@ body {
 }
 .rh-tab:hover { color: #c5c8cd; }
 .rh-tab.on { background: #34363d; color: var(--ink); }
+.rh-icon {
+  width: 28px;
+  height: 24px;
+  padding: 0;
+  border: 0;
+  border-radius: 8px;
+  background: transparent;
+  color: #9a9ea6;
+  display: grid;
+  place-items: center;
+  cursor: default;
+}
+.rh-icon:hover { color: #f5f6f8; }
+.rh-icon.on { background: #34363d; color: var(--ink); }
+.rh-icon.lit { color: #a78bfa; }
 
 /* An integration's character: its name and its integration instead of Chat / Code. */
 .char-tabs { align-items: center; gap: 8px; }
@@ -2373,3 +2384,5 @@ input[type="range"]::-webkit-slider-thumb {
   white-space: nowrap;
   cursor: default;
 }
+.mb-add { background: transparent; border: 1px dashed rgba(255, 255, 255, 0.16); color: #9a9ea6; }
+.mb-folder { font-size: 9px; color: #9a9ea6; }

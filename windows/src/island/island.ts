@@ -16,7 +16,6 @@ import { BotEngine, hexToRGB, type EyeShape } from "../mochi/engine";
 import { progress as focusProgress } from "../core/focus.ts";
 import type { BotEmoteName } from "../core/layout";
 import { Greeting } from "../mochi/greeting";
-import { dndActive } from "../core/dnd.ts";
 import { buildRail, type Rail } from "../views/rail";
 import { RAIL_HEIGHT, characterTint, leaveCharacterChat, railShown, selectCharacter } from "../core/characters";
 import { setMiniCritter, syncMiniBotStates, tickMiniBots } from "../mochi/minibots";
@@ -231,10 +230,7 @@ export class Island {
       Sound.play("blip");
       void this.pickCharacter(id);
     }, {
-      inbox: () => this.setView("inbox"),
-      dnd: () => (dndActive(State.settings.dndUntil) ? actions.setDnd(null) : this.setView("settings")),
-      sound: () => actions.toggleSound(),
-      settings: () => this.setView("settings"),
+      settings: () => actions.openSettingsWindow(),
     });
     // Design C: the characters run down the left, the header and the views sit beside them.
     this.contentEl = h("div", { id: "content" }, this.rail.el,

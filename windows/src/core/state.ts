@@ -210,6 +210,8 @@ export interface Settings {
   /** Code mode (#152): the folder Claude Code works in, and the ones used lately. */
   codeFolder: string | null;
   recentCodeFolders: string[];
+  /** The folders kept at hand on the main character's base (Claude Code can read them all). */
+  codeFolders?: string[];
   /** WhaTicket: accept new tickets on their own, from these queues (empty = any), in these hours. */
   whaticketAutoAccept: boolean;
   whaticketQueues: string[];
@@ -291,6 +293,7 @@ export const DEFAULT_SETTINGS: Settings = {
   critterColors: {},
   codeFolder: null,
   recentCodeFolders: [],
+  codeFolders: [],
   buddySpots: {},
   floatAll: true,
   groundedCharacters: [],

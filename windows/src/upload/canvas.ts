@@ -6,6 +6,7 @@
 // exactly as on macOS, because this canvas draws its own.
 
 import { State } from "../core/state";
+import { PALETTES, currentCritter, outline } from "../mochi/critters";
 import {
   USC, eIn, eInOut, eOut, lerp, progressAt,
   type UploadEyeShape, type UploadFrame,
@@ -31,8 +32,12 @@ function bodyPath(ctx: CanvasRenderingContext2D, m: number, R: number): { rx: nu
     const a = (i / 96) * Math.PI * 2;
     const ca = Math.cos(a);
     const sa = Math.sin(a);
-    const px = rx * Math.sign(ca) * Math.pow(Math.abs(ca), 2 / n);
-    const py = ry * Math.sign(sa) * Math.pow(Math.abs(sa), 2 / n);
+    const bx = rx * Math.sign(ca) * Math.pow(Math.abs(ca), 2 / n);
+    const by = ry * Math.sign(sa) * Math.pow(Math.abs(sa), 2 / n);
+    // At rest it's the picked character's silhouette; it morphs into the box.
+    const own = outline(currentCritter(), a, rx, ry, R);
+    const px = own.x + (bx - own.x) * mc;
+    const py = own.y + (by - own.y) * mc;
     if (i === 0) ctx.moveTo(px, py);
     else ctx.lineTo(px, py);
   }
@@ -303,8 +308,10 @@ export class UploadCanvas {
 
     // Body.
     const bg = ctx.createLinearGradient(rx * 0.7, -ry * 0.9, -rx * 0.8, ry * 0.9);
-    bg.addColorStop(0, "#EDEDEF");
-    bg.addColorStop(1, "#C4C5CA");
+    const pal = PALETTES[currentCritter()];
+    const rgb = (c: readonly number[]) => `rgb(${c.map((v) => Math.round(v * 255)).join(",")})`;
+    bg.addColorStop(0, rgb(pal.top));
+    bg.addColorStop(1, rgb(pal.bottom));
     ctx.fillStyle = bg;
     ctx.fill();
 
@@ -451,12 +458,13 @@ export class UploadCanvas {
 
 // ── Eye shapes ──────────────────────────────────────────────────────────────
 
-const INK = "#0E0F12";
+/** The picked character's ink. */
+const ink = () => PALETTES[currentCritter()].ink;
 
 function drawEye(ctx: CanvasRenderingContext2D, shape: UploadEyeShape, w: number, h: number) {
   switch (shape) {
     case "pill":
-      ctx.fillStyle = INK;
+      ctx.fillStyle = ink();
       rr(ctx, -w / 2, -h / 2, w, h, w / 2);
       ctx.fill();
       break;
@@ -470,7 +478,7 @@ function drawEye(ctx: CanvasRenderingContext2D, shape: UploadEyeShape, w: number
       ctx.lineTo(w / 2, hh / 2 - w / 2);
       ctx.arc(0, hh / 2 - w / 2, w / 2, 0, Math.PI, false);
       ctx.closePath();
-      ctx.fillStyle = INK;
+      ctx.fillStyle = ink();
       ctx.fill();
       break;
     }
@@ -478,7 +486,7 @@ function drawEye(ctx: CanvasRenderingContext2D, shape: UploadEyeShape, w: number
     case "content":
       ctx.beginPath();
       ctx.arc(0, -h * 0.12, w * 0.85, Math.PI * 0.15, Math.PI * 0.85, false);
-      ctx.strokeStyle = INK;
+      ctx.strokeStyle = ink();
       ctx.lineWidth = w * 0.5;
       ctx.lineCap = "round";
       ctx.stroke();

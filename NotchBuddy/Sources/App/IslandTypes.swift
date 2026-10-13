@@ -94,7 +94,7 @@ enum IslandConst {
     static let notchHeight: CGFloat = 32
     static let expandedWidth: CGFloat = 640
     /// The open island's height with the character rail (design C).
-    static let railHeight: CGFloat = 224
+    static let railHeight: CGFloat = 236
     /// Width of each ear of the folded island, beside the notch (#153).
     static let compactEar: CGFloat = 46
     static let earRadius: CGFloat   = 14

@@ -120,6 +120,9 @@ pub struct Settings {
     pub code_folder: Option<String>,
     #[serde(default)]
     pub recent_code_folders: Vec<String>,
+    /// The folders kept at hand on the main character's base (Claude Code can read them all).
+    #[serde(default)]
+    pub code_folders: Vec<String>,
     /// Where each integration's own floating character was left (logical px, top-left).
     #[serde(default)]
     pub buddy_spots: HashMap<String, [f64; 2]>,
@@ -300,6 +303,7 @@ impl Default for Settings {
             critter_colors: HashMap::new(),
             code_folder: None,
             recent_code_folders: Vec::new(),
+            code_folders: Vec::new(),
             buddy_spots: HashMap::new(),
             float_all: true,
             grounded_characters: Vec::new(),

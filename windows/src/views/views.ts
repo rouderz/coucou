@@ -131,13 +131,30 @@ export function buildHeader(actions: ViewActions): ViewHost {
   const rhName = h("span", { class: "rh-name" });
   const rhSub = h("span", { class: "rh-sub" });
   const rhSeg = h("div", { class: "rh-seg" });
-  const railHead = h("div", { class: "rail-head" }, rhName, rhSub, h("span", { class: "rh-spacer" }), rhSeg);
+  // Drop a file, the inbox, Do not disturb and sound, in a capsule matching the tabs.
+  const rhDrop = h("button", { class: "rh-icon", title: "Drop a file", "aria-label": "Drop a file", onclick: () => go("upload") },
+    svg(ICONS.plus, 12));
+  const rhInbox = h("button", { class: "rh-icon", title: "Inbox", "aria-label": "Inbox", onclick: () => go("inbox") },
+    svg(ICONS.bell, 12));
+  const rhDnd = h("button", {
+    class: "rh-icon", title: "Do not disturb", "aria-label": "Do not disturb",
+    onclick: () => (dndActive(State.settings.dndUntil) ? actions.setDnd(null) : go("settings")),
+  }, svg(ICONS.moon, 12));
+  const rhSound = h("button", { class: "rh-icon", title: "Mute", "aria-label": "Mute", onclick: () => actions.toggleSound() });
+  const rhIcons = h("div", { class: "rh-seg rh-icons" }, rhDrop, rhInbox, rhDnd, rhSound);
+  const railHead = h("div", { class: "rail-head" }, rhName, rhSub, h("span", { class: "rh-spacer" }), rhSeg, rhIcons);
   let rhKey = "";
   function labelled(icon: string, label: string, on: boolean, run: () => void): HTMLElement {
     return h("button", { class: on ? "rh-tab on" : "rh-tab", "aria-label": label, onclick: () => { actions.blip(); run(); } },
       svg(icon, 12, { stroke: 1.8 }), h("span", { text: label }));
   }
   function syncRailHead(v: IslandViewName) {
+    rhDrop.classList.toggle("on", v === "upload");
+    rhInbox.style.display = State.settings.inboxEnabled ? "" : "none";
+    rhInbox.classList.toggle("lit", State.inbox.length > 0);
+    rhDnd.classList.toggle("lit", dndActive(State.settings.dndUntil));
+    clear(rhSound);
+    rhSound.append(svg(State.settings.soundEnabled ? ICONS.speakerOn : ICONS.speakerOff, 12));
     const solo = State.soloTaskId ? State.tasks.find((t) => t.id === State.soloTaskId) : undefined;
     const critter = characterFor(solo?.id ?? null);
     const tint = characterTint(solo?.id ?? null);

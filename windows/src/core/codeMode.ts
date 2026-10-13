@@ -48,6 +48,8 @@ export async function useFolder(folder: string) {
     startNewChat();
   }
   State.settings.codeFolder = folder;
+  const atHand = State.settings.codeFolders ?? [];
+  if (!atHand.includes(folder)) State.settings.codeFolders = [...atHand, folder];
   State.settings.recentCodeFolders = [folder, ...(State.settings.recentCodeFolders ?? []).filter((f) => f !== folder)]
     .slice(0, MAX_RECENT);
   State.codeEdits = true;
@@ -59,6 +61,25 @@ export async function useFolder(folder: string) {
 export async function pickFolder() {
   const folder = await Bridge.pickFolder(State.settings.codeFolder ?? null);
   if (folder) await useFolder(folder);
+}
+
+/** Code mode, working in that folder (the folder chips on the main character's base). */
+export async function workIn(folder: string) {
+  await showMode("code");
+  await useFolder(folder);
+}
+
+/** Adds a folder to the ones kept at hand, and works in it. */
+export async function addFolder() {
+  const folder = await Bridge.pickFolder(State.settings.codeFolder ?? null);
+  if (folder) await workIn(folder);
+}
+
+/** Drops a folder from the ones kept at hand. */
+export function removeFolder(folder: string) {
+  State.settings.codeFolders = (State.settings.codeFolders ?? []).filter((f) => f !== folder);
+  void Bridge.saveSettings(State.settings);
+  State.notify();
 }
 
 /** Folders worth offering: the recent ones, then the folders of live Claude Code sessions. */
