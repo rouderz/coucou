@@ -19,7 +19,7 @@ struct AliExpressCardView: View {
                 Text(verbatim: subtitle).font(.system(size: 11)).foregroundColor(Color(hex: "#8E939C"))
                     .lineLimit(1).truncationMode(.tail)
             }
-            .padding(.top, 6).padding(.leading, 108).padding(.trailing, 62)
+            .padding(.top, 6).padding(.leading, botInset(108)).padding(.trailing, 62)
 
             HStack(spacing: 8) {
                 small(appState.aliSyncing ? L("Reading…") : L("Refresh")) { AliExpressBridge.shared.sync() }
@@ -37,7 +37,7 @@ struct AliExpressCardView: View {
                     .help(L("Show in Finder"))
                 }
             }
-            .padding(.top, 3).padding(.leading, 108).padding(.trailing, 12)
+            .padding(.top, 3).padding(.leading, botInset(108)).padding(.trailing, 12)
 
             if appState.aliPackages.isEmpty {
                 NotionHint(dot: "#F5A524", text: L("Open your AliExpress orders in Chrome or Edge once: Coucou reads them from there."))
@@ -51,7 +51,7 @@ struct AliExpressCardView: View {
                 }
             }
             .frame(maxHeight: 72)
-            .padding(.leading, 102).padding(.trailing, 12).padding(.top, 4)
+            .padding(.leading, botInset(102)).padding(.trailing, 12).padding(.top, 4)
         }
         .frame(maxWidth: .infinity, alignment: .topLeading).padding(.top, 4)
     }

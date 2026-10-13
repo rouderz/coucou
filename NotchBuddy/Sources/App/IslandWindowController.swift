@@ -448,6 +448,10 @@ final class IslandWindowController: NSWindowController {
     // MARK: - Free placement
 
     private func setupFreePlacement() {
+        buddy.onMovedByUser = { [weak self] in
+            guard let self, self.freeMode, self.state.mode == .expanded else { return }
+            self.positionIslandNearBuddy()
+        }
         buddy.onClick = { [weak self] in
             guard let self else { return }
             if self.state.mode == .expanded { self.collapse() } else { self.fsm.click() }
@@ -463,6 +467,7 @@ final class IslandWindowController: NSWindowController {
     /// Switches between the notch and the free-floating character.
     private func applyPlacement() {
         freeMode = IslandPlacement.isFree
+        state.freePlacement = freeMode
         buddy.sync()
         if freeMode {
             showFreeIsland(state.mode == .expanded)
@@ -481,13 +486,15 @@ final class IslandWindowController: NSWindowController {
         } else {
             panel.alphaValue = 0
             panel.ignoresMouseEvents = true
+            buddy.unperch()
         }
     }
 
-    /// Puts the island under the character (or above it when it sits low on the screen),
-    /// centred on it and kept on the screen it is on.
+    /// Puts the island right under the character, centred on it, and seats the character on its
+    /// top edge (in the gap the header leaves in the middle). Near the bottom of the screen the
+    /// island goes as low as it fits and the character hops up onto it, back home when it folds.
     private func positionIslandNearBuddy() {
-        guard let panel = window as? IslandPanel, let b = buddy.frame else { return }
+        guard let panel = window as? IslandPanel, let b = buddy.homeFrame else { return }
         let screen = NSScreen.screens.first { $0.frame.contains(NSPoint(x: b.midX, y: b.midY)) }
             ?? IslandDisplay.resolve()
         let vf = screen.visibleFrame
@@ -495,10 +502,12 @@ final class IslandWindowController: NSWindowController {
         // The island is drawn centred at the top of the panel, narrower than the panel.
         let side = max(0, (pw - IslandConst.expandedWidth) / 2)
         let x = min(max(b.midX - pw / 2, vf.minX - side), vf.maxX - pw + side)
-        var top = b.minY + 6
-        if top - ph < vf.minY { top = min(vf.maxY, b.maxY + ph - 6) }
+        let islandH = max(160, islandSize(mode: .expanded, view: state.view, nw: notchW, nh: notchH).1)
+        var top = b.minY + FreeBuddyController.seat
+        if top - islandH < vf.minY + 8 { top = min(vf.maxY - 40, vf.minY + 8 + islandH) }
         let target = NSRect(x: x, y: top - ph, width: pw, height: ph)
         if panel.frame != target { panel.setFrame(target, display: true) }
+        buddy.perch(bottomY: top - FreeBuddyController.seat)
         applyScreenSize(screen)
     }
 

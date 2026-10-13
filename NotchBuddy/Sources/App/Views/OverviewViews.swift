@@ -46,13 +46,13 @@ struct OverviewView: View {
                                 }
                             }
                             .padding(.top, 6)
-                            .padding(.leading, 108)
+                            .padding(.leading, botInset(108))
                             .padding(.trailing, 36)
 
                             TickerView(task: agent)
                                 .frame(height: 44)
                                 .padding(.top, 6)
-                                .padding(.leading, 108)
+                                .padding(.leading, botInset(108))
                                 .padding(.trailing, 12)
                         }
                         .frame(maxWidth: .infinity, alignment: .topLeading)
@@ -177,7 +177,7 @@ struct EmptyStateView: View {
                     state.view = .prompt
                 }
             }
-            .padding(.leading, 118)
+            .padding(.leading, botInset(118))
             .padding(.trailing, 18)
         }
     }

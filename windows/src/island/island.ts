@@ -521,7 +521,9 @@ export class Island {
     const r = this.radius.value;
     this.islandEl.style.width = `${w}px`;
     this.islandEl.style.height = `${hh}px`;
-    this.islandEl.style.borderRadius = `0 0 ${r}px ${r}px`;
+    // Free placement: a bubble under the floating character, rounded all round.
+    const top = State.settings.placement === "free" && State.mode === "expanded" ? r : 0;
+    this.islandEl.style.borderRadius = `${top}px ${top}px ${r}px ${r}px`;
     this.islandEl.style.transform = `translateX(-50%)`;
     // These follow the island as it resizes, so they belong here rather than in
     // the state-driven DOM sync.
@@ -808,7 +810,10 @@ export class Island {
 
     const greetingActive = State.mode === "expanded" && State.view === "greeting";
     // The drop canvas draws its own Mochi; two of them would overlap.
-    const visible = p.opacity > 0 && !greetingActive && !this.uploadActive;
+    // Free placement: the floating character sits on top of the island, so the overview
+    // doesn't draw it a second time (alerts still do, with their expressions).
+    const botAbove = State.settings.placement === "free" && (State.view === "overview" || State.view === "empty");
+    const visible = p.opacity > 0 && !greetingActive && !this.uploadActive && !botAbove;
     this.botCanvas.style.opacity = visible ? "1" : "0";
 
     if (State.mode === "expanded" && State.view !== "uploading" && !greetingActive && !this.uploadActive) {
@@ -1015,6 +1020,7 @@ export class Island {
     setMiniCritter(critter);
     // The notch left on screen when hidden, and a wake strip that covers it (none in free placement).
     IDLE.notch = State.settings.idleNotch !== false && State.settings.placement !== "free";
+    document.documentElement.classList.toggle("free-placement", State.settings.placement === "free");
     this.wakeStrip.style.height = `${IDLE.notch ? IDLE_NOTCH_H + 2 : 6}px`;
     Sound.setEnabled(State.settings.soundEnabled);
     Sound.setVolume(State.settings.soundVolume);

@@ -306,6 +306,9 @@ final class AppState: ObservableObject {
         }
     }
     /// Theme: "dark" (the original look), "light", "system" or a palette id (Theme.swift).
+    /// Free placement (FreeBuddy.swift): the island opens as a bubble under the floating character.
+    @Published var freePlacement: Bool = IslandPlacement.isFree
+
     /// The character drawn in the island (Settings → General → Character).
     @Published var critter: Critter = .fallback {
         didSet { UserDefaults.standard.set(critter.rawValue, forKey: Critter.storageKey) }

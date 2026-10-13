@@ -21,7 +21,7 @@ struct VercelDeploymentListView: View {
                     .foregroundColor(Color(hex: "#8E939C"))
             }
             .padding(.top, 6)
-            .padding(.leading, 108)
+            .padding(.leading, botInset(108))
             .padding(.trailing, 36)
 
             // Deployment rows
@@ -74,7 +74,7 @@ struct VercelDeploymentListView: View {
                 }
             }
             .padding(.top, 5)
-            .padding(.leading, 108)
+            .padding(.leading, botInset(108))
             .padding(.trailing, 12)
         }
         .frame(maxWidth: .infinity, alignment: .topLeading)
@@ -150,7 +150,7 @@ struct VercelDetailView: View {
             }
         }
         .padding(.top, 8)
-        .padding(.leading, 108)
+        .padding(.leading, botInset(108))
         .padding(.trailing, 12)
         .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
         .contentShape(Rectangle())
@@ -196,7 +196,7 @@ struct ResendCardView: View {
                 }
             }
             .padding(.top, 6)
-            .padding(.leading, 108)
+            .padding(.leading, botInset(108))
             .padding(.trailing, 36)
 
             // Email rows — first is highlighted, rest plain (same structure as Vercel list)
@@ -244,7 +244,7 @@ struct ResendCardView: View {
                 }
             }
             .padding(.top, 5)
-            .padding(.leading, 108)
+            .padding(.leading, botInset(108))
             .padding(.trailing, 12)
         }
         .frame(maxWidth: .infinity, alignment: .topLeading)
@@ -271,7 +271,7 @@ struct GitHubStatsCardView: View {
                     .foregroundColor(Color(hex: "#8E939C"))
             }
             .padding(.top, 6)
-            .padding(.leading, 108)
+            .padding(.leading, botInset(108))
             .padding(.trailing, 36)
 
             // Stats rows
@@ -282,7 +282,7 @@ struct GitHubStatsCardView: View {
                         label: "Repositories", value: "\(stats.totalRepos)")
             }
             .padding(.top, 8)
-            .padding(.leading, 108)
+            .padding(.leading, botInset(108))
             .padding(.trailing, 12)
 
             // How it's connected
@@ -293,7 +293,7 @@ struct GitHubStatsCardView: View {
                     .foregroundColor(Color(hex: "#6B7079"))
             }
             .padding(.top, 6)
-            .padding(.leading, 108)
+            .padding(.leading, botInset(108))
         }
         .frame(maxWidth: .infinity, alignment: .topLeading)
         .padding(.top, 4)
@@ -355,7 +355,7 @@ struct StripeCardView: View {
                     .foregroundColor(Color(hex: "#8E939C"))
             }
             .padding(.top, 6)
-            .padding(.leading, 108)
+            .padding(.leading, botInset(108))
             .padding(.trailing, 36)
 
             // Balance
@@ -381,7 +381,7 @@ struct StripeCardView: View {
                 }
             }
             .padding(.trailing, 16)
-            .padding(.leading, 108)
+            .padding(.leading, botInset(108))
             .padding(.top, 4)
 
             // Payment rows (animated list)
@@ -396,7 +396,7 @@ struct StripeCardView: View {
             }
             .animation(.spring(response: 0.38, dampingFraction: 0.82),
                         value: appState.stripePayments.map(\.id))
-            .padding(.leading, 108)
+            .padding(.leading, botInset(108))
             .padding(.trailing, 12)
             .padding(.top, 4)
         }
@@ -548,7 +548,7 @@ struct CalcomCalendarView: View {
                 Text("Cal.com").font(.system(size: 12, weight: .semibold)).foregroundColor(Color(hex: "#F5F6F8"))
                 Text("Schedule").font(.system(size: 11)).foregroundColor(Color(hex: "#8E939C"))
             }
-            .padding(.top, 6).padding(.leading, 108).padding(.trailing, 36)
+            .padding(.top, 6).padding(.leading, botInset(108)).padding(.trailing, 36)
 
             HStack(spacing: 0) {
                 Button { goBack() } label: {
@@ -562,7 +562,7 @@ struct CalcomCalendarView: View {
                         .foregroundColor(Color(hex: "#6B7079")).frame(width: 18, height: 16)
                 }.buttonStyle(.plain)
             }
-            .padding(.leading, 108).padding(.trailing, 12).padding(.top, 2)
+            .padding(.leading, botInset(108)).padding(.trailing, 12).padding(.top, 2)
 
             VStack(spacing: 1) {
                 ForEach(visibleWeeks.indices, id: \.self) { i in
@@ -570,7 +570,7 @@ struct CalcomCalendarView: View {
                                   isToday: cal.isDateInToday, onSelect: onSelect)
                 }
             }
-            .padding(.leading, 108).padding(.trailing, 12).padding(.top, 2)
+            .padding(.leading, botInset(108)).padding(.trailing, 12).padding(.top, 2)
         }
         .frame(maxWidth: .infinity, alignment: .topLeading).padding(.top, 4)
         .transition(.opacity)
@@ -635,7 +635,7 @@ struct CalcomDayView: View {
                 Button(action: onBack) {
                     Image(systemName: "chevron.left").font(.system(size: 9, weight: .semibold))
                         .foregroundColor(Color(hex: "#6B7079")).frame(width: 22, height: 22).contentShape(Rectangle())
-                }.buttonStyle(.plain).padding(.leading, 108)
+                }.buttonStyle(.plain).padding(.leading, botInset(108))
                 Text(dayLabel).font(.system(size: 11, weight: .semibold)).foregroundColor(Color(hex: "#C5C8CD"))
                 Spacer()
             }
@@ -643,7 +643,7 @@ struct CalcomDayView: View {
 
             if bookings.isEmpty {
                 Text("No calls scheduled").font(.system(size: 11)).foregroundColor(Color(hex: "#6B7079"))
-                    .padding(.leading, 116).padding(.top, 8)
+                    .padding(.leading, botInset(116)).padding(.top, 8)
             } else {
                 VStack(alignment: .leading, spacing: 3) {
                     ForEach(bookings) { b in
@@ -665,7 +665,7 @@ struct CalcomDayView: View {
                         }.buttonStyle(.plain)
                     }
                 }
-                .padding(.leading, 108).padding(.trailing, 12).padding(.top, 5)
+                .padding(.leading, botInset(108)).padding(.trailing, 12).padding(.top, 5)
             }
         }
         .frame(maxWidth: .infinity, alignment: .topLeading).padding(.top, 4)
@@ -686,7 +686,7 @@ struct CalcomBookingDetailView: View {
                 Button(action: onBack) {
                     Image(systemName: "chevron.left").font(.system(size: 9, weight: .semibold))
                         .foregroundColor(Color(hex: "#6B7079")).frame(width: 22, height: 22).contentShape(Rectangle())
-                }.buttonStyle(.plain).padding(.leading, 108)
+                }.buttonStyle(.plain).padding(.leading, botInset(108))
                 Text(booking.timeLabel)
                     .font(.system(size: 10, weight: .medium, design: .monospaced))
                     .foregroundColor(Color(hex: "#C9956A"))
@@ -707,7 +707,7 @@ struct CalcomBookingDetailView: View {
                     CalcomDetailRow(icon: "note.text", text: notes, size: 10, lines: 2)
                 }
             }
-            .padding(.leading, 114).padding(.trailing, 12).padding(.top, 5)
+            .padding(.leading, botInset(114)).padding(.trailing, 12).padding(.top, 5)
         }
         .frame(maxWidth: .infinity, alignment: .topLeading).padding(.top, 4)
         .transition(.opacity)
@@ -741,7 +741,7 @@ struct NotionCardView: View {
                 Text(appState.notionPages.count > 3 ? "Recent · \(appState.notionPages.count)" : "Recent")
                     .font(.system(size: 11)).foregroundColor(Color(hex: "#8E939C"))
             }
-            .padding(.top, 6).padding(.leading, 108).padding(.trailing, 36)
+            .padding(.top, 6).padding(.leading, botInset(108)).padding(.trailing, 36)
 
             if let error = appState.notionError {
                 NotionHint(dot: "#F4505E", text: error)
@@ -780,7 +780,7 @@ struct NotionCardView: View {
             }
             }
             .frame(maxHeight: 76)
-            .padding(.leading, 102).padding(.trailing, 12).padding(.top, 5)
+            .padding(.leading, botInset(102)).padding(.trailing, 12).padding(.top, 5)
         }
         .frame(maxWidth: .infinity, alignment: .topLeading).padding(.top, 4)
         .transition(.opacity)
@@ -848,7 +848,7 @@ struct N8nDetailView: View {
             }
         }
         .padding(.top, 8)
-        .padding(.leading, 108)
+        .padding(.leading, botInset(108))
         .padding(.trailing, 12)
         .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
         .contentShape(Rectangle())   // prevent taps falling through transparent areas
@@ -889,7 +889,7 @@ struct LinearCardView: View {
                 .buttonStyle(.plain)
                 .help("New Linear issue")
             }
-            .padding(.top, 6).padding(.leading, 108).padding(.trailing, 62)  // room for ↻ and ↗
+            .padding(.top, 6).padding(.leading, botInset(108)).padding(.trailing, 62)  // room for ↻ and ↗
 
             if let error = appState.linearError {
                 NotionHint(dot: "#F4505E", text: error)
@@ -905,7 +905,7 @@ struct LinearCardView: View {
                 }
             }
             .frame(maxHeight: 76)
-            .padding(.leading, 102).padding(.trailing, 12).padding(.top, 5)
+            .padding(.leading, botInset(102)).padding(.trailing, 12).padding(.top, 5)
         }
         .frame(maxWidth: .infinity, alignment: .topLeading).padding(.top, 4)
     }

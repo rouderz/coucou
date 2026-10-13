@@ -78,6 +78,18 @@ body {
   will-change: width, height, transform;
 }
 
+/* Free placement: the open island is a bubble under the floating character (#150). */
+.free-placement #island {
+  background: var(--island, #1a1b1f);
+  box-shadow: 0 14px 40px rgba(0, 0, 0, 0.45), inset 0 0 0 1px rgba(255, 255, 255, 0.09);
+}
+/* The character sits on top instead of in the card: its room goes back to the text. */
+.free-placement .who,
+.free-placement .int-card,
+.free-placement .session-chips,
+.free-placement .usage-row { padding-left: 20px; }
+.free-placement .ticker { margin-left: 20px; }
+
 #island-clip {
   position: absolute;
   inset: 0;

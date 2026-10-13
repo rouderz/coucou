@@ -10,6 +10,8 @@
 // Wayland: the compositor places windows, so the character goes where the compositor puts
 // it (you can still drag it) and the island keeps opening at the top of the screen.
 
+use std::sync::Mutex;
+
 use tauri::menu::{Menu, MenuItem, PredefinedMenuItem};
 use tauri::{AppHandle, Emitter, Manager, PhysicalPosition, WebviewUrl, WebviewWindow, WebviewWindowBuilder};
 
@@ -120,7 +122,17 @@ fn saved_or_default(app: &AppHandle) -> (f64, f64) {
     }
 }
 
-/// The character's rectangle in physical pixels: (x, y, w, h).
+/// Where the window was before it hopped onto the open island (physical px).
+static PERCHED_FROM: Mutex<Option<(i32, i32)>> = Mutex::new(None);
+
+/// How far above the window's bottom edge the character's feet are (logical px): the
+/// island's top edge goes there, so the character looks like it sits on it.
+pub const SEAT: f64 = 30.0;
+/// Room kept for the open island when the character sits low on the screen (logical px).
+const ISLAND_ROOM: f64 = 250.0;
+
+/// The character's rectangle in physical pixels: (x, y, w, h) — where the user left it,
+/// even while it sits on the open island.
 pub fn frame(app: &AppHandle) -> Option<(i32, i32, u32, u32)> {
     let win = window(app)?;
     if !win.is_visible().unwrap_or(false) {
@@ -128,12 +140,14 @@ pub fn frame(app: &AppHandle) -> Option<(i32, i32, u32, u32)> {
     }
     let p = win.outer_position().ok()?;
     let s = win.outer_size().ok()?;
-    Some((p.x, p.y, s.width, s.height))
+    let (x, y) = PERCHED_FROM.lock().unwrap().unwrap_or((p.x, p.y));
+    Some((x, y, s.width, s.height))
 }
 
-/// Where the island's window goes in free placement: centred on the character, just
-/// below it, or above it when it sits low on its monitor. Physical pixels.
-pub fn island_position(app: &AppHandle, panel_w: u32, panel_h: u32) -> Option<PhysicalPosition<i32>> {
+/// Where the island's window goes in free placement: centred on the character, its top
+/// edge where the character's feet are. Low on the screen, the island goes as low as it
+/// fits and the character hops onto it (see perch). Physical pixels.
+pub fn island_position(app: &AppHandle, panel_w: u32, _panel_h: u32) -> Option<PhysicalPosition<i32>> {
     let (bx, by, bw, bh) = frame(app)?;
     let (cx, cy) = (bx + bw as i32 / 2, by + bh as i32 / 2);
     let monitors = app.available_monitors().ok()?;
@@ -144,12 +158,48 @@ pub fn island_position(app: &AppHandle, panel_w: u32, panel_h: u32) -> Option<Ph
     })?;
     let (mx, my) = (m.position().x, m.position().y);
     let (mw, mh) = (m.size().width as i32, m.size().height as i32);
-    let gap = (6.0 * m.scale_factor()) as i32;
+    let scale = m.scale_factor();
+    let seat = (SEAT * scale) as i32;
+    let room = (ISLAND_ROOM * scale) as i32;
 
     let x = (cx - panel_w as i32 / 2).clamp(mx, (mx + mw - panel_w as i32).max(mx));
-    let below = by + bh as i32 - gap;
-    let y = if below + panel_h as i32 <= my + mh { below } else { (by + gap - panel_h as i32).max(my) };
-    Some(PhysicalPosition::new(x, y))
+    let mut top = by + bh as i32 - seat;
+    if top + room > my + mh {
+        top = (my + mh - room).max(my + bh as i32);
+    }
+    Some(PhysicalPosition::new(x, top))
+}
+
+/// The island opened with its top edge at `island_top`: the character sits on it, in front.
+pub fn perch(app: &AppHandle, island_top: i32) {
+    let Some(win) = window(app) else { return };
+    let (Ok(p), Ok(s), Ok(scale)) = (win.outer_position(), win.outer_size(), win.scale_factor()) else { return };
+    let y = island_top + (SEAT * scale) as i32 - s.height as i32;
+    {
+        let mut from = PERCHED_FROM.lock().unwrap();
+        if from.is_none() {
+            *from = Some((p.x, p.y));
+        }
+    }
+    if p.y != y {
+        let _ = win.set_position(PhysicalPosition::new(p.x, y));
+    }
+    // Last in the always-on-top band, so it stays in front of the island.
+    let _ = win.set_always_on_top(true);
+    platform::keep_on_top(&win);
+}
+
+/// The island folded: back to where the user left it.
+pub fn unperch(app: &AppHandle) {
+    let Some(win) = window(app) else { return };
+    if let Some((x, y)) = PERCHED_FROM.lock().unwrap().take() {
+        let _ = win.set_position(PhysicalPosition::new(x, y));
+    }
+}
+
+/// True while the character sits on the open island.
+pub fn is_perched() -> bool {
+    PERCHED_FROM.lock().unwrap().is_some()
 }
 
 // ── Commands ──────────────────────────────────────────────────────────────────
@@ -164,6 +214,8 @@ pub fn buddy_clicked(app: AppHandle) {
 /// island is open, move it along.
 #[tauri::command]
 pub fn buddy_moved(app: AppHandle, shared: tauri::State<crate::Shared>, x: f64, y: f64) {
+    // A drop while sitting on the island is a new home: don't hop back to the old one.
+    PERCHED_FROM.lock().unwrap().take();
     let settings = {
         let mut s = shared.settings.lock().unwrap();
         s.buddy_x = Some(x);

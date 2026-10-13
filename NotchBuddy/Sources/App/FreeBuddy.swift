@@ -42,6 +42,12 @@ enum IslandPlacement: String, CaseIterable, Sendable {
     }
 }
 
+/// Cards leave room on their left for the character; in free placement it sits on top of the
+/// island instead, so the room goes back to the text.
+@MainActor func botInset(_ notch: CGFloat) -> CGFloat {
+    AppState.shared.freePlacement ? notch - 88 : notch
+}
+
 // MARK: - Controller
 
 @MainActor
@@ -57,8 +63,46 @@ final class FreeBuddyController {
     /// Click (no drag) on the character.
     var onClick: (() -> Void)?
 
+    /// Dropped somewhere new by the user (the open island follows it).
+    var onMovedByUser: (() -> Void)?
+
     var frame: NSRect? { panel?.frame }
     var isShown: Bool { panel != nil }
+
+    /// How far above the window's bottom edge the character's feet are: the island's top edge
+    /// goes there, so it looks like the character sits on it.
+    static let seat: CGFloat = 30
+
+    /// Where the window was before it hopped onto the open island, to go back when it folds.
+    private var perchedFrom: NSPoint?
+
+    /// Where the user left it, even while it sits on the open island.
+    var homeFrame: NSRect? {
+        guard let panel else { return nil }
+        if let o = perchedFrom { return NSRect(origin: o, size: panel.frame.size) }
+        return panel.frame
+    }
+
+    /// The island opened: hop down (or up) so the feet sit on its top edge, in front of it.
+    func perch(bottomY: CGFloat) {
+        guard let panel else { return }
+        panel.level = NSWindow.Level(rawValue: Int(CGWindowLevelForKey(.mainMenuWindow)) + 4)
+        guard abs(panel.frame.minY - bottomY) > 0.5 else { return }
+        if perchedFrom == nil { perchedFrom = panel.frame.origin }
+        panel.setFrameOrigin(NSPoint(x: panel.frame.minX, y: bottomY))
+        Self.center = NSPoint(x: panel.frame.midX, y: panel.frame.midY)
+    }
+
+    /// The island folded: back to its own spot, behind other floating panels again.
+    func unperch() {
+        guard let panel else { return }
+        panel.level = .floating
+        if let o = perchedFrom {
+            panel.setFrameOrigin(o)
+            perchedFrom = nil
+            Self.center = NSPoint(x: panel.frame.midX, y: panel.frame.midY)
+        }
+    }
 
     /// Shows or removes the window to match the setting. Removing it frees the canvas (0 % CPU).
     func sync() {
@@ -130,6 +174,8 @@ final class FreeBuddyController {
             panel.setFrameOrigin(o)
             Self.center = NSPoint(x: panel.frame.midX, y: panel.frame.midY)
             IslandPlacement.savedOrigin = o
+            self.perchedFrom = nil
+            self.onMovedByUser?()
         }
         drag.menu = menuTarget.makeMenu()
 

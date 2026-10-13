@@ -26,7 +26,7 @@ struct CICardView: View {
                     .font(.system(size: 11)).foregroundColor(Color(hex: "#8E939C"))
                     .lineLimit(1)
             }
-            .padding(.top, 6).padding(.leading, 108).padding(.trailing, 36)
+            .padding(.top, 6).padding(.leading, botInset(108)).padding(.trailing, 36)
 
             if let error = appState.ciError {
                 NotionHint(dot: "#F4505E", text: error)
@@ -45,7 +45,7 @@ struct CICardView: View {
                 }
             }
             .frame(maxHeight: 76)
-            .padding(.leading, 102).padding(.trailing, 12).padding(.top, 5)
+            .padding(.leading, botInset(102)).padding(.trailing, 12).padding(.top, 5)
         }
         .frame(maxWidth: .infinity, alignment: .topLeading).padding(.top, 4)
     }

@@ -59,8 +59,17 @@ struct IslandContainer: View {
             IslandShape(width: islandWidth, height: islandHeight,
                         cornerRadius: cornerRadius, topRadius: islandTopRadius)
                 // Collapsed it stays black, so it still reads as the hardware notch.
-                .fill(Theme.current.id == Theme.dark.id || state.mode != .expanded
+                // Free placement: a bubble under the character, card-coloured, outlined and lifted.
+                .fill(state.freePlacement
+                      ? Color(hex: Theme.current.id == Theme.dark.id ? "#1A1B1F" : Theme.current.bg)
+                      : Theme.current.id == Theme.dark.id || state.mode != .expanded
                       ? Color.black : Color(hex: Theme.current.bg))
+                .overlay(
+                    IslandShape(width: islandWidth, height: islandHeight,
+                                cornerRadius: cornerRadius, topRadius: islandTopRadius)
+                        .stroke(Color.white.opacity(state.freePlacement ? 0.09 : 0), lineWidth: 1)
+                )
+                .shadow(color: .black.opacity(state.freePlacement ? 0.45 : 0), radius: 22, y: 12)
                 .animation(.easeInOut(duration: 0.25), value: state.mode)
 
             // Content
@@ -99,8 +108,11 @@ struct IslandContainer: View {
             // Single BotPlacement — always alive in the view tree so spring animations
             // fire from the current position (e.g. choose at 60,101) when canvas deactivates.
             // Hidden during upload canvas or greeting (both draw their own Mochi).
+            // Free placement: the floating character sits on top of the island, so the cards
+            // don't draw it a second time (alerts still do, with their expressions).
+            let botAbove = state.freePlacement && (state.view == .overview || state.view == .empty)
             BotPlacement(state: state, islandW: islandWidth, islandH: islandHeight)
-                .opacity(uploadActive || greetingActive ? 0 : 1)
+                .opacity(uploadActive || greetingActive || botAbove ? 0 : 1)
                 .animation(.easeInOut(duration: 0.25), value: uploadActive || greetingActive)
 
             CountdownBar(state: state, islandW: islandWidth)
@@ -122,7 +134,7 @@ struct IslandContainer: View {
                                     progress: state.uploadProgress,
                                     nw: state.notchWidth, nh: state.notchHeight)
             let cr  = newMode == .expanded ? IslandConst.expandedCorner : IslandConst.roundedCorner
-            let tr: CGFloat = 0
+            let tr: CGFloat = state.freePlacement && newMode == .expanded ? cr : 0
             withAnimation(anim) {
                 islandWidth      = w
                 islandHeight     = (newMode == .expanded && state.view == .prompt) ? chatPromptHeight : h
@@ -156,7 +168,7 @@ struct IslandContainer: View {
             islandWidth      = w
             islandHeight     = state.view == .prompt ? chatPromptHeight : h
             cornerRadius     = state.mode == .expanded ? IslandConst.expandedCorner : IslandConst.roundedCorner
-            islandTopRadius  = 0
+            islandTopRadius  = state.freePlacement && state.mode == .expanded ? cornerRadius : 0
         }
         .onReceive(NotificationCenter.default.publisher(for: .botGreet)) { _ in
             greetNotif.toggle()
