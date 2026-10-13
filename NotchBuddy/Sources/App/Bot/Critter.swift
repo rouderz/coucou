@@ -100,7 +100,10 @@ enum Critter: String, CaseIterable, Identifiable, Sendable {
             // Bean: an ellipse with a soft dent on top, lowered to leave room for the sprout.
             let x = rx * 0.96 * spow(ca, 0.85)
             var y = ry * 0.86 * spow(sa, 0.85)
-            if sa < 0 { y += ry * 0.14 * exp(-pow(ca / 0.35, 2)) * (-sa) }
+            if sa < 0 {
+                let dent: CGFloat = exp(-pow(ca / 0.35, 2))
+                y += ry * 0.14 * dent * (-sa)
+            }
             return CGPoint(x: x, y: y + ry * 0.12)
 
         case .nube:
@@ -118,9 +121,14 @@ enum Critter: String, CaseIterable, Identifiable, Sendable {
         case .lumo:
             // Dome with a scalloped hem.
             let x = rx * 0.96 * spow(ca, 0.9)
-            let y = sa < 0
-                ? ry * 1.12 * spow(sa, 0.85)
-                : ry * (0.30 * pow(sa, 0.5) + 0.12 * abs(sin(2 * .pi * ca)) * sa)
+            let y: CGFloat
+            if sa < 0 {
+                y = ry * 1.12 * spow(sa, 0.85)
+            } else {
+                let hem: CGFloat = 0.30 * pow(sa, 0.5)
+                let scallop: CGFloat = 0.12 * abs(sin(2 * CGFloat.pi * ca)) * sa
+                y = ry * (hem + scallop)
+            }
             return CGPoint(x: x, y: y + ry * 0.2)
 
         case .tecla:

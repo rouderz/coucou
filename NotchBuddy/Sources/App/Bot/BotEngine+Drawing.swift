@@ -408,7 +408,8 @@ extension BotEngine {
             guard cos(eyeYaw) * cp > 0.04 else { continue }  // behind head
 
             let ex = sin(eyeYaw) * cp * rx
-            let ey = -sin(eyePitch) * ry + (morph > 0 ? ry * 0.14 * morph : 0) - critter.faceLift * ry * (1 - morph)
+            let lift: CGFloat = critter.faceLift * ry * (1 - morph)
+            let ey = -sin(eyePitch) * ry + (morph > 0 ? ry * 0.14 * morph : 0) - lift
 
             let fx = lerp(max(0.18, cos(eyeYaw)), 1, morph * 0.7)
             let fy = lerp(max(0.18, cp),          1, morph * 0.7)
