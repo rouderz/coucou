@@ -567,6 +567,7 @@ export class Island {
         if (!this.folded) return;
         this.collapsed = true;
         this.activeBuddy = "main";   // the next alert opens on the main character
+        State.soloTaskId = null;
         void Bridge.setCollapsed(true);
       }, 420);
     } else if (this.collapsed) {
@@ -1011,8 +1012,10 @@ export class Island {
     }
     this.activeBuddy = key;
     const own = assignments(State.settings.critterAssignments);
-    const target = key === "main" ? State.tasks.find((t) => !own[t.id])?.id : key;
+    const keepFocus = key === "main" && State.focusId != null && !own[State.focusId];
+    const target = key === "main" ? (keepFocus ? State.focusId : State.tasks.find((t) => !own[t.id])?.id) : key;
     if (target) State.focusId = target;
+    State.soloTaskId = key === "main" ? null : key;
     if (State.mode === "expanded") this.setView("overview");
     else this.fsm.forceHome();
     State.notify();

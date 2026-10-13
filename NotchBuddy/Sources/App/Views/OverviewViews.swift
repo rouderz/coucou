@@ -9,6 +9,8 @@ struct OverviewView: View {
     @State private var showingN8nDetail = false
 
     var agent: AgentTask? { state.focusTask }
+    /// Opened from an integration's own floating character: just that one, full width.
+    private var solo: Bool { state.soloTaskID != nil && state.soloTaskID == state.focusId }
 
     var body: some View {
         HStack(spacing: 10) {
@@ -94,11 +96,14 @@ struct OverviewView: View {
                     .frame(maxWidth: .infinity, alignment: .trailing)
                 }
             }
-            .frame(width: 322)
+            .frame(width: solo ? nil : 322)
+            .frame(maxWidth: solo ? .infinity : nil)
 
-            // Right card: agent pills
-            CardBackground(wash: nil) {
-                AgentPillsView(state: state)
+            // Right card: agent pills (not when the island belongs to one integration, #155)
+            if !solo {
+                CardBackground(wash: nil) {
+                    AgentPillsView(state: state)
+                }
             }
         }
         .onChange(of: state.focusId) { _, _ in showingN8nDetail = false }

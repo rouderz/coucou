@@ -493,8 +493,14 @@ final class IslandWindowController: NSWindowController {
         if switching { buddy.unperch() }
         buddy.activeKey = key
         if key == FreeBuddyController.mainKey {
-            if let id = state.tasks.first(where: { state.critterAssignments[$0.id] == nil })?.id { state.setFocus(id) }
+            state.soloTaskID = nil
+            if let f = state.focusId, state.critterAssignments[f] == nil {
+                // already on one of the main character's tasks
+            } else if let id = state.tasks.first(where: { state.critterAssignments[$0.id] == nil })?.id {
+                state.setFocus(id)
+            }
         } else {
+            state.soloTaskID = key
             state.setFocus(key)
         }
         if state.mode == .expanded {
@@ -529,6 +535,7 @@ final class IslandWindowController: NSWindowController {
             panel.ignoresMouseEvents = true
             buddy.unperch()
             buddy.activeKey = FreeBuddyController.mainKey   // alerts open on the main character
+            state.soloTaskID = nil
         }
     }
 

@@ -262,6 +262,7 @@ function buildOverview(actions: ViewActions): ViewHost {
       syncFocusTimes(leftBody);
     },
     sync() {
+      el.classList.toggle("solo", State.soloTaskId != null && State.soloTaskId === State.focusId);
       const task = State.focusTask;
       if (task?.id !== lastFocus) {
         lastFocus = task?.id ?? null;

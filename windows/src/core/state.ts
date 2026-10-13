@@ -421,8 +421,14 @@ class AppState {
     this.notify();
   }
 
+  /** Free placement, the island opened from an integration's own character (#155): just that
+   *  integration, full width, without the pills of the others. */
+  soloTaskId: string | null = null;
+
   get otherTasks(): AgentTask[] {
-    return this.tasks.filter((t) => t.id !== this.focusId);
+    // Tasks that float on their own character in free placement don't need a pill.
+    const own = this.settings.placement === "free" ? this.settings.critterAssignments ?? {} : {};
+    return this.tasks.filter((t) => t.id !== this.focusId && !own[t.id]);
   }
 
   /** The pills shown next to the focused one: up to 4, rotating through the rest (#111). */

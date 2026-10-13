@@ -456,8 +456,17 @@ final class AppState: ObservableObject {
     }
 
     /// The pills the island shows next to the focused one: up to 4, rotating through the rest.
+    /// Free placement, the island opened from an integration's own character (#155): it shows
+    /// just that integration, full width, without the pills of the others.
+    @Published var soloTaskID: String? = nil
+
+    /// Tasks that float on their own character in free placement don't need a pill.
+    private var pillTasks: [AgentTask] {
+        freePlacement ? tasks.filter { critterAssignments[$0.id] == nil } : tasks
+    }
+
     var visiblePills: [AgentTask] {
-        let others = tasks.filter { $0.id != focusId }
+        let others = pillTasks.filter { $0.id != focusId }
         let news = Set(others.filter { $0.pillBadge != nil }.map(\.id))
         let ids = PillRotation.visible(ids: others.map(\.id), pinned: pinnedPills, news: news, offset: pillRotationOffset)
         return others.filter { ids.contains($0.id) }
@@ -466,11 +475,11 @@ final class AppState: ObservableObject {
     /// Active pills that aren't in the island right now (the "+N" strip).
     var overflowPills: [AgentTask] {
         let shown = Set(visiblePills.map(\.id))
-        return tasks.filter { $0.id != focusId && !shown.contains($0.id) }
+        return pillTasks.filter { $0.id != focusId && !shown.contains($0.id) }
     }
 
     /// How many active pills don't fit in the island right now.
-    var hiddenPillCount: Int { max(0, tasks.filter { $0.id != focusId }.count - PillRotation.slots) }
+    var hiddenPillCount: Int { max(0, pillTasks.filter { $0.id != focusId }.count - PillRotation.slots) }
 
     /// The rotation timer exists only while the island is showing and there is something to rotate: 0 % CPU otherwise.
     func updatePillRotation() {
