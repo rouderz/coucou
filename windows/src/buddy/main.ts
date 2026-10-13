@@ -61,7 +61,17 @@ canvas.addEventListener("mousemove", (e) => {
   engine.lookX = Math.tanh((e.offsetX - W / 2) / 60);
   engine.lookY = -Math.tanh((e.offsetY - H / 2) / 50);
 });
-canvas.addEventListener("mouseleave", () => { engine.lookX = 0; engine.lookY = 0; });
+canvas.addEventListener("mouseleave", () => { engine.lookX = 0; engine.lookY = 0; hoverSince = 0; });
+
+// Resting the pointer on it for two seconds: hearts, for this character only.
+let hoverSince = 0;
+canvas.addEventListener("mouseenter", () => { hoverSince = performance.now(); });
+setInterval(() => {
+  if (hoverSince && !down && performance.now() - hoverSince > 2000) {
+    hoverSince = 0;
+    engine.triggerEmote("love");
+  }
+}, 250);
 
 // ── Click vs drag ─────────────────────────────────────────────────────────────
 
@@ -89,7 +99,10 @@ window.addEventListener("mouseup", (e) => {
   down = null;
   dragging = false;
   canvas.classList.remove("dragging");
-  if (wasClick && IS_TAURI) void invoke("buddy_clicked").catch(() => {});
+  if (!wasClick) return;
+  // Only this character reacts: each one is its own window with its own engine.
+  engine.blink();
+  if (IS_TAURI) void invoke("buddy_clicked").catch(() => {});
 });
 
 canvas.addEventListener("contextmenu", (e) => {

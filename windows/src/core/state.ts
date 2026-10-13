@@ -278,7 +278,7 @@ export const DEFAULT_SETTINGS: Settings = {
   theme: "dark",
   speakReplies: false,
   idleNotch: true,
-  critter: "bao",
+  critter: "lumo",
   placement: "notch",
   buddyX: null,
   buddyY: null,

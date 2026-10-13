@@ -12,6 +12,9 @@ struct BotCanvasView: View {
     /// Free placement, a character in charge of an integration (#151): shows that task's state.
     var buddyTaskID: String? = nil
     private var buddyKey: String { buddyTaskID ?? FreeBuddyController.mainKey }
+    /// Free placement: emotes, clicks and drops go to the character they're about (the one
+    /// clicked, whose island is open) — clicking Pip makes only Pip react.
+    private var reacts: Bool { !freeBuddy || FreeBuddyController.reactingKey == buddyKey }
 
     // One engine per view instance (main bot)
     @StateObject private var engine = BotEngine()
@@ -70,7 +73,7 @@ struct BotCanvasView: View {
         .onChange(of: state.focus.paused) { _, _ in applyFocusLook() }
         .onChange(of: state.musicTrackChanges) { _, _ in
             // New song (#117): headphones, only when Mochi is dancing and can be seen.
-            if state.mochiDancing && state.mode != .hidden { engine.headphones() }
+            if reacts && state.mochiDancing && state.mode != .hidden { engine.headphones() }
         }
         .onChange(of: state.view) { _, newView in
             // Morph up when upload view is active
@@ -90,32 +93,32 @@ struct BotCanvasView: View {
             }
         }
         .onReceive(NotificationCenter.default.publisher(for: .triggerEmote)) { notif in
-            if let emote = notif.object as? BotEmote {
+            if reacts, let emote = notif.object as? BotEmote {
                 engine.triggerEmote(emote)
             }
         }
         .onReceive(NotificationCenter.default.publisher(for: .triggerSlap)) { _ in
-            engine.slap()
+            if reacts { engine.slap() }
         }
         .onReceive(NotificationCenter.default.publisher(for: .botBlink)) { _ in
-            engine.blink()
+            if reacts { engine.blink() }
         }
         .onReceive(NotificationCenter.default.publisher(for: .botSetTgEs)) { notif in
-            if let v = notif.object as? CGFloat {
+            if reacts, let v = notif.object as? CGFloat {
                 engine.tgEs = v
             }
         }
         .onReceive(NotificationCenter.default.publisher(for: .botGulp)) { _ in
-            engine.gulp()
+            if reacts { engine.gulp() }
         }
         .onReceive(NotificationCenter.default.publisher(for: .botMorphTo)) { notif in
-            if let target = notif.object as? CGFloat {
+            if reacts, let target = notif.object as? CGFloat {
                 let dur: CGFloat = target > 0.5 ? 550 : 650
                 engine.anim("morph", keys: [TweenKey(target: target, duration: dur, ease: Ease.inOut)])
             }
         }
         .onReceive(NotificationCenter.default.publisher(for: .botGreet)) { _ in
-            engine.greet()
+            if reacts { engine.greet() }
         }
         .onAppear {
             engine.setState(state.effectiveState, force: true)

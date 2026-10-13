@@ -196,7 +196,7 @@ fn ids_as_text<'de, D: serde::Deserializer<'de>>(d: D) -> Result<Vec<String>, D:
 }
 
 fn default_critter() -> String {
-    "bao".into()
+    "lumo".into()
 }
 
 fn default_placement() -> String {

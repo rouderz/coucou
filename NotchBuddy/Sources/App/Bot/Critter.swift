@@ -14,12 +14,12 @@ import SwiftUI
 @MainActor func botName() -> String { AppState.shared.critter.displayName }
 
 enum Critter: String, CaseIterable, Identifiable, Sendable {
-    case bao, pip, nube, lumo, tecla
+    case lumo, bao, pip, nube, tecla
 
     var id: String { rawValue }
 
     static let storageKey = "critter"
-    static let fallback: Critter = .bao
+    static let fallback: Critter = .lumo
 
     /// The saved choice, readable off the main actor (the wake word listens there).
     static var stored: Critter {

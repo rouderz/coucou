@@ -226,7 +226,7 @@ npx tauri build         # .deb, .rpm and .AppImage in target/release/bundle/
   OpenRouter, Ollama, LM Studio or any OpenAI-compatible server; the interface
   is in English or Spanish; the character can read its replies aloud, and on Windows
   you can speak your question (🎙). The VS Code / Cursor extension works here
-  too ("Ask Coucou about this"). Not here: "Hey <character>" (no on-device keyword
+  too ("Ask Lumo about this"). Not here: "Hey <character>" (no on-device keyword
   detection) and speaking questions on Linux (no built-in speech recognition).
 - The chat runs on an Anthropic API key or on your own Claude Code (Settings →
   Chat → Engine), signed in with your Claude plan; GitHub works with a token or

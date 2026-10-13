@@ -8,8 +8,8 @@
 
 export type CritterId = "bao" | "pip" | "nube" | "lumo" | "tecla";
 
-export const CRITTERS: readonly CritterId[] = ["bao", "pip", "nube", "lumo", "tecla"];
-export const DEFAULT_CRITTER: CritterId = "bao";
+export const CRITTERS: readonly CritterId[] = ["lumo", "bao", "pip", "nube", "tecla"];
+export const DEFAULT_CRITTER: CritterId = "lumo";
 
 let current: CritterId = DEFAULT_CRITTER;
 /** The character picked in Settings (the island and the settings window keep it current). */

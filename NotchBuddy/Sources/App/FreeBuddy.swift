@@ -94,7 +94,12 @@ final class FreeBuddyController {
     var onMovedByUser: ((String) -> Void)?
 
     /// The character the open island belongs to (the last one clicked or alerted).
-    var activeKey: String = FreeBuddyController.mainKey
+    var activeKey: String = FreeBuddyController.mainKey {
+        didSet { Self.reactingKey = activeKey }
+    }
+    /// Only this character reacts to clicks, hovers, emotes and drops; the others carry on
+    /// with their own task's state.
+    static private(set) var reactingKey: String = FreeBuddyController.mainKey
 
     /// Where a window was before it hopped onto the open island, to go back when it folds.
     private var perchedFrom: (key: String, origin: NSPoint)?

@@ -1,4 +1,4 @@
-# Coucou: Ask about your code (VS Code · Cursor · Windsurf · VSCodium)
+# Lumo: Ask about your code (VS Code · Cursor · Windsurf · VSCodium)
 
 Gives [Coucou](https://github.com/rouderz/coucou) the exact context of what you're editing, so
 questions like *"why is this red?"* get real answers:
@@ -13,7 +13,7 @@ on Linux `$XDG_RUNTIME_DIR/coucou.sock`. If Coucou isn't running, it does nothin
 
 ## Use
 
-- **Ask** in the status bar, or right-click → **Ask Coucou about this**: Coucou opens its chat
+- **Lumo** in the status bar, or right-click → **Ask Lumo about this**: Coucou opens its chat
   with the file, cursor, selection and problems attached.
 - On macOS, Coucou's global **⌃⌥M** (and dropping your character on the window) use this same context while
   the extension is active, instead of guessing the file from the window title.
@@ -39,5 +39,5 @@ Copy-Item -Recurse "$HOME\code\coucou\extensions\vscode" "$HOME\.vscode\extensio
 
 Or package it: `npx @vscode/vsce package`, then *Extensions → … → Install from VSIX*.
 
-On Windows and Linux, **Ask Coucou about this** opens the island's chat with the code attached, and
+On Windows and Linux, **Ask Lumo about this** opens the island's chat with the code attached, and
 the chat offers to attach the file you were last in (`+ app.ts:42`).

@@ -1,7 +1,7 @@
 {
   "name": "coucou-context",
-  "displayName": "Coucou: Ask about your code",
-  "description": "Tells Coucou (your character at the top of the screen on macOS, Windows and Linux) which file you're in, the cursor, the selection and the editor's problems, so it answers with exact context.",
+  "displayName": "Lumo: Ask about your code",
+  "description": "Tells Lumo (the character at the top of the screen on macOS, Windows and Linux) which file you're in, the cursor, the selection and the editor's problems, so it answers with exact context.",
   "version": "0.1.0",
   "publisher": "rouderz",
   "license": "MIT",
@@ -23,8 +23,8 @@
     "commands": [
       {
         "command": "coucou.ask",
-        "title": "Ask Coucou about this",
-        "category": "Coucou",
+        "title": "Ask Lumo about this",
+        "category": "Lumo",
         "icon": "$(comment-discussion)"
       }
     ],
@@ -37,7 +37,7 @@
       ]
     },
     "configuration": {
-      "title": "Coucou",
+      "title": "Lumo",
       "properties": {
         "coucou.shareContext": {
           "type": "boolean",
@@ -47,7 +47,7 @@
         "coucou.showStatusBar": {
           "type": "boolean",
           "default": true,
-          "description": "Show the \"Ask\" button in the status bar."
+          "description": "Show the \"Lumo\" button in the status bar."
         }
       }
     }
