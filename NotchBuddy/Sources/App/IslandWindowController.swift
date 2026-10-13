@@ -581,7 +581,8 @@ final class IslandWindowController: NSWindowController {
         }
         NSEvent.addLocalMonitorForEvents(matching: .keyDown) { [weak self] event in
             guard let self else { return event }
-            return MainActor.assumeIsolated { self.handleModeKeys(event, fromOtherApp: false) ? nil : event }
+            let used = MainActor.assumeIsolated { self.handleModeKeys(event, fromOtherApp: false) }
+            return used ? nil : event
         }
 
         // Hook server expand requests (alerts only)

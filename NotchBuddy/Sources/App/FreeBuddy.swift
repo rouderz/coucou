@@ -70,7 +70,7 @@ enum IslandPlacement: String, CaseIterable, Sendable {
 @MainActor
 final class FreeBuddyController {
     static let size = NSSize(width: 104, height: 112)
-    static let mainKey = "main"
+    nonisolated static let mainKey = "main"
 
     /// How far above the window's bottom edge the character's feet are: the island's top edge
     /// goes there, so it looks like the character sits on it.
