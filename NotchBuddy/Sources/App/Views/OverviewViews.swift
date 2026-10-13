@@ -10,9 +10,21 @@ struct OverviewView: View {
 
     var agent: AgentTask? { state.focusTask }
     /// Opened from an integration's own floating character: just that one, full width.
-    private var solo: Bool { state.soloTaskID != nil && state.soloTaskID == state.focusId }
+    /// With the character rail (design C) the overview shows one thing, full width: the main
+    /// character's base, or the integration picked.
+    private var solo: Bool {
+        state.railShown || (state.soloTaskID != nil && state.soloTaskID == state.focusId)
+    }
 
     var body: some View {
+        if state.railShown && state.soloTaskID == nil && MainBaseView.showsClaude(state) {
+            MainBaseView(state: state)
+        } else {
+            cards
+        }
+    }
+
+    private var cards: some View {
         HStack(spacing: 10) {
             // Left card: title row + ticker below + ↗ button overlay
             ZStack(alignment: .topLeading) {

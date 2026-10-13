@@ -472,7 +472,12 @@ final class AppState: ObservableObject {
     /// The character rail at the island's left (CharacterRail.swift): shown on the overview and in
     /// the chat once at least one integration has its own character.
     var railShown: Bool {
-        mode == .expanded && CharacterRail.views.contains(view) && !assignedTaskIDs.isEmpty
+        mode == .expanded && railWanted(for: view)
+    }
+
+    /// The rail belongs on this view (whatever the island is doing right now).
+    func railWanted(for view: IslandView) -> Bool {
+        CharacterRail.views.contains(view) && !assignedTaskIDs.isEmpty
     }
 
     /// Picks whose island this is: the main character (nil) or the integration with its own
@@ -483,6 +488,11 @@ final class AppState: ObservableObject {
             setFocus(taskID)
         } else {
             soloTaskID = nil
+            // With the rail, the main character's base is Claude Code.
+            if !assignedTaskIDs.isEmpty, let claude = tasks.first(where: { $0.id == "integration_claude" }) {
+                setFocus(claude.id)
+                return
+            }
             if let f = focusId, critterAssignments[f] == nil { return }
             if let id = tasks.first(where: { critterAssignments[$0.id] == nil })?.id { setFocus(id) }
         }

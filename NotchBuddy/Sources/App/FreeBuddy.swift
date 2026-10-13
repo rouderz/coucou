@@ -36,6 +36,18 @@ enum IslandPlacement: String, CaseIterable, Sendable {
 
     static var isFree: Bool { current == .free }
 
+    private static let groundedKey = "groundedCharacters"
+    /// Characters kept off the desktop one by one (Settings → Characters): they stay in the rail.
+    static func floats(_ taskID: String) -> Bool {
+        !(UserDefaults.standard.stringArray(forKey: groundedKey) ?? []).contains(taskID)
+    }
+    static func setFloats(_ taskID: String, _ on: Bool) {
+        var grounded = Set(UserDefaults.standard.stringArray(forKey: groundedKey) ?? [])
+        if on { grounded.remove(taskID) } else { grounded.insert(taskID) }
+        UserDefaults.standard.set(Array(grounded).sorted(), forKey: groundedKey)
+        NotificationCenter.default.post(name: .islandPlacementChanged, object: nil)
+    }
+
     private static let floatAllKey = "floatAllCharacters"
     /// Every character floats on its own (on by default), or just the main one — the others are
     /// still in the island's character rail.

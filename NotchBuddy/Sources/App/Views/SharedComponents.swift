@@ -295,10 +295,13 @@ struct IconButtonStyle: ButtonStyle {
 }
 
 struct SendButtonStyle: ButtonStyle {
+    /// An integration character's chat sends in that character's colour.
+    var fill: Color = Color(hex: "#F5F6F8")
+
     func makeBody(configuration: Configuration) -> some View {
         configuration.label
             .frame(width: 28, height: 28)
-            .background(Color(hex: "#F5F6F8"))
+            .background(fill)
             .clipShape(Circle())
             .scaleEffect(configuration.isPressed ? 0.94 : 1)
     }

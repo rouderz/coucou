@@ -8781,6 +8781,286 @@
           }
         }
       }
+    },
+    "Characters": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Personajes"
+          }
+        }
+      }
+    },
+    "Main character": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Personaje principal"
+          }
+        }
+      }
+    },
+    "It handles Claude Code — Chat and Code — and every integration without a character of its own. The interface calls it by its name: “Ask %@”, “Hey %@”.": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Se encarga de Claude Code —Chat y Code— y de cada integración sin personaje propio. La interfaz lo llama por su nombre: “Pregúntale a %@”, “Oye %@”."
+          }
+        }
+      }
+    },
+    "Your team": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tu equipo"
+          }
+        }
+      }
+    },
+    "Give an integration its own character: it gets its own place in the island's rail, its own base and its own chat about what it handles. The same character can work for several integrations; each one is separate, in a colour of its own.": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Dale a una integración su propio personaje: tendrá su lugar en el riel de la isla, su propia base y su propio chat sobre lo que lleva. El mismo personaje puede trabajar para varias integraciones; cada uno va por separado, con su propio color."
+          }
+        }
+      }
+    },
+    "Turn on an integration (Integrations tab) to give it a character.": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Activa una integración (pestaña Integraciones) para darle un personaje."
+          }
+        }
+      }
+    },
+    "On the desktop": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "En el escritorio"
+          }
+        }
+      }
+    },
+    "Where they live": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Dónde viven"
+          }
+        }
+      }
+    },
+    "Drag a character anywhere. Click it to open the island next to it, right-click for options.": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Arrastra un personaje a donde quieras. Haz clic para abrir la isla a su lado y clic derecho para ver opciones."
+          }
+        }
+      }
+    },
+    "its own character": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "su propio personaje"
+          }
+        }
+      }
+    },
+    "Handled by %@": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Lo lleva %@"
+          }
+        }
+      }
+    },
+    "Own character": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Personaje propio"
+          }
+        }
+      }
+    },
+    "Colour": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Color"
+          }
+        }
+      }
+    },
+    "automatic, to tell it apart": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "automático, para distinguirlo"
+          }
+        }
+      }
+    },
+    "Floats on the desktop": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Flota en el escritorio"
+          }
+        }
+      }
+    },
+    "Which characters float: Settings → Characters.": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Qué personajes flotan: Ajustes → Personajes."
+          }
+        }
+      }
+    },
+    "Mail": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Correos"
+          }
+        }
+      }
+    },
+    "Tickets": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tickets"
+          }
+        }
+      }
+    },
+    "Orders": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Pedidos"
+          }
+        }
+      }
+    },
+    "PRs": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "PRs"
+          }
+        }
+      }
+    },
+    "Issues": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Issues"
+          }
+        }
+      }
+    },
+    "Calendar": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Calendario"
+          }
+        }
+      }
+    },
+    "No session right now — start one in your terminal": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ninguna sesión ahora — inicia una en tu terminal"
+          }
+        }
+      }
+    },
+    "Inbox · %lld": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Bandeja · %lld"
+          }
+        }
+      }
+    },
+    "Mute": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Silenciar"
+          }
+        }
+      }
+    },
+    "Sound on": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Activar sonido"
+          }
+        }
+      }
+    },
+    "Settings": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ajustes"
+          }
+        }
+      }
+    },
+    "Approve": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Aprobar"
+          }
+        }
+      }
     }
   }
 }

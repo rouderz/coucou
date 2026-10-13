@@ -12,6 +12,14 @@ struct PromptView: View {
     @ObservedObject private var skillsStore = SkillsStore.shared
     @State private var pickIndex = 0
 
+    /// The send button takes the colour of the character whose chat this is.
+    private var sendColor: Color {
+        guard let owner = state.chatOwner else { return Color(hex: "#F5F6F8") }
+        let critter = state.critter(for: owner)
+        let palette = state.critterTint(for: owner).map { critter.palette(tinted: $0) } ?? critter.palette
+        return Color(cgColor: palette.top)
+    }
+
     private var placeholder: String {
         if state.chatSkill != nil { return L("What should it do?") }
         if let owner = state.chatOwner, let task = state.tasks.first(where: { $0.id == owner }) {
@@ -240,7 +248,7 @@ struct PromptView: View {
                             .font(.system(size: 11, weight: .semibold))
                             .foregroundColor(Color(hex: "#0B0C0E"))
                     }
-                    .buttonStyle(SendButtonStyle())
+                    .buttonStyle(SendButtonStyle(fill: sendColor))
                     .disabled(text.isEmpty)
                 }
                 .padding(.horizontal, 10).padding(.vertical, 6)

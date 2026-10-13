@@ -473,6 +473,7 @@ struct IslandContentView: View {
                         // chat (prompt) is always flexible; mail is flexible only when active so
                         // it doesn't push the ZStack taller when inactive.
                         let isTall = v == .prompt || (v == .mail && active) || (v == .live && active)
+                            || (v == .overview && state.railShown)
                         let anim: Animation = active
                             ? .spring(response: 0.4, dampingFraction: 0.8).delay(0.16)
                             : .easeIn(duration: 0.16)
@@ -504,21 +505,23 @@ struct IslandHeader: View {
     @ObservedObject var state: AppState
 
     var body: some View {
+        if state.railShown {
+            RailHeader(state: state)
+                .frame(maxHeight: .infinity)
+        } else {
+            classic
+        }
+    }
+
+    private var classic: some View {
         HStack(spacing: 0) {
-            // Left: tab capsules. Only the main character has Chat and Code; an integration's
-            // character has its base and its own chat (CharacterRail.swift).
-            if let id = state.soloTaskID, CharacterRail.views.contains(state.view),
-               let task = state.tasks.first(where: { $0.id == id }) {
-                CharacterTabs(state: state, task: task)
-                    .padding(.leading, state.railShown ? 4 : 14)
-            } else {
-                HStack(spacing: 6) {
-                    TabButton(icon: "house.fill", view: .overview, state: state)
-                    ModeSwitch(state: state)
-                    TabButton(icon: "plus", view: .upload, state: state)
-                }
-                .padding(.leading, state.railShown ? 4 : 14)
+            // Left: tab capsules
+            HStack(spacing: 6) {
+                TabButton(icon: "house.fill", view: .overview, state: state)
+                ModeSwitch(state: state)
+                TabButton(icon: "plus", view: .upload, state: state)
             }
+            .padding(.leading, 14)
 
             Spacer()
 

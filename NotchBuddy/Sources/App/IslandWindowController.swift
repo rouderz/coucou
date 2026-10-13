@@ -513,7 +513,8 @@ final class IslandWindowController: NSWindowController {
     /// The main character first, then one per integration that has its own (#151).
     private func buddyKeys() -> [String] {
         // Just the main one floating: the others are in the island's character rail.
-        [FreeBuddyController.mainKey] + (IslandPlacement.floatAll ? state.assignedTaskIDs : [])
+        [FreeBuddyController.mainKey]
+            + (IslandPlacement.floatAll ? state.assignedTaskIDs.filter { IslandPlacement.floats($0) } : [])
     }
 
     /// A click on a floating character opens the island on its own task, sitting on it; a click
@@ -1283,7 +1284,7 @@ extension Notification.Name {
 
 // MARK: - islandSize (takes real notch dimensions)
 
-func islandSize(mode: IslandMode, view: IslandView,
+@MainActor func islandSize(mode: IslandMode, view: IslandView,
                 progress: Double = 0,
                 nw: CGFloat = IslandConst.notchWidth,
                 nh: CGFloat = IslandConst.notchHeight) -> (CGFloat, CGFloat) {
@@ -1292,6 +1293,10 @@ func islandSize(mode: IslandMode, view: IslandView,
     case .compact:  return (nw + IslandConst.compactEar * 2, nh)
     case .expanded:
         let layout = IslandConst.viewLayouts[view]!
+        // Design C: the character rail and the main character's base need a little more room.
+        if view != .prompt && AppState.shared.railWanted(for: view) {
+            return (IslandConst.expandedWidth, max(layout.height, IslandConst.railHeight))
+        }
         return (IslandConst.expandedWidth, layout.height)
     }
 }

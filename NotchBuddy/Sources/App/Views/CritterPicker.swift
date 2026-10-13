@@ -83,11 +83,13 @@ struct CritterPicker: View {
 /// A still drawing of a character at rest, for pickers. Draws once: no timeline, no CPU.
 struct CritterPreview: View {
     let critter: Critter
+    var tint: CGColor? = nil
     @StateObject private var engine = BotEngine()
 
     var body: some View {
         Canvas { context, size in
             engine.critter = critter
+            engine.userTint = tint
             engine.drawHandsBehind(context: context, size: size)
             engine.draw(context: context, size: size)
         }

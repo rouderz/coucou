@@ -21,13 +21,43 @@ struct CharacterRail: View {
     private var ids: [String?] { [nil] + state.assignedTaskIDs.map { Optional($0) } }
 
     var body: some View {
-        ScrollView(.vertical, showsIndicators: false) {
-            VStack(spacing: 4) {
-                ForEach(ids, id: \.self) { id in item(id) }
+        VStack(spacing: 0) {
+            ScrollView(.vertical, showsIndicators: false) {
+                VStack(spacing: 4) {
+                    ForEach(ids, id: \.self) { id in item(id) }
+                }
+                .padding(.vertical, 4)
             }
-            .padding(.vertical, 4)
+            // The island's quick controls, under the characters (the gear at the bottom, as in
+            // the design).
+            VStack(spacing: 8) {
+                HStack(spacing: 12) {
+                    InboxButton()
+                    DoNotDisturbButton()
+                }
+                HStack(spacing: 12) {
+                    Button { state.soundEnabled.toggle() } label: {
+                        Image(systemName: state.soundEnabled ? "speaker.wave.2" : "speaker.slash")
+                            .font(.system(size: 12))
+                            .foregroundColor(Color(hex: "#8E939C"))
+                    }
+                    .buttonStyle(.plain)
+                    .help(state.soundEnabled ? L("Mute") : L("Sound on"))
+                    Button {
+                        withAnimation(.spring(response: 0.3, dampingFraction: 0.8)) { state.view = .settings }
+                    } label: {
+                        Image(systemName: "gearshape")
+                            .font(.system(size: 13))
+                            .foregroundColor(Color(hex: "#8E939C"))
+                    }
+                    .buttonStyle(.plain)
+                    .help(L("Settings"))
+                }
+            }
+            .padding(.vertical, 8)
         }
         .frame(width: Self.width)
+        .frame(maxHeight: .infinity)
         .background(RoundedRectangle(cornerRadius: 16).fill(Color.white.opacity(0.045)))
     }
 
@@ -135,54 +165,100 @@ private struct RailCharacterView: View {
     }
 }
 
-// MARK: - An integration character's tabs
+// MARK: - The header beside the rail
 
-/// In place of Home · Chat / Code · +: the character's name, its integration, and two tabs —
-/// its base (the integration's card) and its own chat about it.
-struct CharacterTabs: View {
+/// Design C's header: the character's name and what it handles, then its tabs — Home · Chat ·
+/// Code for the main character, its base and its own chat for an integration's character.
+struct RailHeader: View {
     @ObservedObject var state: AppState
-    let task: AgentTask
 
-    private var critter: Critter { state.critter(for: task.id) }
+    private var task: AgentTask? { state.soloTaskID.flatMap { id in state.tasks.first { $0.id == id } } }
+
+    private var critter: Critter { state.critter(for: task?.id) }
     private var nameColor: Color {
-        let tint = state.critterTint(for: task.id)
+        let tint = state.critterTint(for: task?.id)
         return Color(cgColor: (tint.map { critter.palette(tinted: $0) } ?? critter.palette).top)
     }
-    private var inChat: Bool { state.chatOwner == task.id && ModeSwitch.chatViews.contains(state.view) }
+    private var subtitle: String {
+        guard let task else { return "Claude Code" }
+        return task.steps.first.map { "\(task.name) · \($0)" } ?? task.name
+    }
+    private var inChat: Bool { ModeSwitch.chatViews.contains(state.view) }
 
     var body: some View {
         HStack(spacing: 8) {
             Text(verbatim: critter.displayName)
-                .font(.system(size: 13, weight: .semibold, design: .rounded))
+                .font(.system(size: 15, weight: .bold, design: .rounded))
                 .foregroundColor(nameColor)
-            Text(verbatim: task.name)
+            Text(verbatim: subtitle)
                 .font(.system(size: 11.5))
                 .foregroundColor(Color(hex: "#8E939C"))
                 .lineLimit(1)
+                .truncationMode(.tail)
+            Spacer(minLength: 6)
             HStack(spacing: 2) {
-                segment(icon: "house.fill", on: !inChat, label: L("Home")) {
-                    CharacterRail.pick(task.id, state: state)
-                }
-                segment(icon: "bubble.left.and.bubble.right", on: inChat, label: L("Ask \(critter.displayName)")) {
-                    CharacterChat.open(task.id, state: state)
+                if let task {
+                    let base = Self.base(for: task)
+                    LabeledSegment(icon: base.icon, label: base.label, on: !inChat) {
+                        CharacterRail.pick(task.id, state: state)
+                    }
+                    LabeledSegment(icon: "bubble.left", label: L("Ask"), on: inChat && state.chatOwner == task.id) {
+                        CharacterChat.open(task.id, state: state)
+                    }
+                } else {
+                    LabeledSegment(icon: "house", label: L("Home"),
+                                   on: state.view == .overview || state.view == .empty) {
+                        CharacterRail.pick(nil, state: state)
+                    }
+                    LabeledSegment(icon: "bubble.left", label: L("Chat"), on: inChat && !state.isCoding) {
+                        ModeSwitch.showChat(state)
+                    }
+                    LabeledSegment(icon: "chevron.left.forwardslash.chevron.right", label: L("Code"),
+                                   on: inChat && state.isCoding) {
+                        ModeSwitch.showCode(state)
+                    }
                 }
             }
-            .padding(2)
-            .background(Capsule().fill(Color.white.opacity(0.06)))
+            .padding(3)
+            .background(RoundedRectangle(cornerRadius: 11).fill(Color.white.opacity(0.06)))
         }
+        .padding(.trailing, 10)
     }
 
-    private func segment(icon: String, on: Bool, label: String, action: @escaping () -> Void) -> some View {
+    /// What an integration's base tab is called: its mail, its tickets, its orders…
+    static func base(for task: AgentTask) -> (icon: String, label: String) {
+        switch task.id {
+        case "integration_gmail", "integration_resend": return ("envelope", L("Mail"))
+        case "integration_whaticket": return ("ticket", L("Tickets"))
+        case "integration_aliexpress": return ("shippingbox", L("Orders"))
+        case "integration_github": return ("arrow.triangle.pull", L("PRs"))
+        case "integration_linear": return ("checklist", L("Issues"))
+        case "integration_calcom": return ("calendar", L("Calendar"))
+        default: return ("house", L("Home"))
+        }
+    }
+}
+
+private struct LabeledSegment: View {
+    let icon: String
+    let label: String
+    let on: Bool
+    let action: () -> Void
+    @State private var hovered = false
+
+    var body: some View {
         Button(action: action) {
-            Image(systemName: icon)
-                .font(.system(size: 12, weight: .medium))
-                .foregroundColor(on ? Color(hex: "#F5F6F8") : Color(hex: "#8E939C"))
-                .frame(width: 34, height: 22)
-                .background(Capsule().fill(on ? Color(hex: "#2A2D33") : .clear))
-                .overlay(Capsule().stroke(on ? Color.white.opacity(0.12) : .clear, lineWidth: 1))
+            HStack(spacing: 5) {
+                Image(systemName: icon).font(.system(size: 11, weight: .medium))
+                Text(verbatim: label).font(.system(size: 12, weight: .semibold))
+            }
+            .foregroundColor(on ? Color(hex: "#F5F6F8") : hovered ? Color(hex: "#C5C8CD") : Color(hex: "#9A9EA6"))
+            .padding(.horizontal, 10)
+            .frame(height: 24)
+            .background(RoundedRectangle(cornerRadius: 8).fill(on ? Color(hex: "#34363D") : .clear))
         }
         .buttonStyle(.plain)
-        .help(Text(verbatim: label))
+        .onHover { hovered = $0 }
         .accessibilityLabel(Text(verbatim: label))
     }
 }
