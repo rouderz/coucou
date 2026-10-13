@@ -330,7 +330,51 @@ function drawHandR(x: CanvasRenderingContext2D, hw: number, hh: number, p: Pose)
   x.restore();
 }
 
-function drawMochi(x: CanvasRenderingContext2D, p: Pose) {
+/** Lumo's four tentacles under its hem; the right one rises and waves hello (the greeting's
+ *  "hand"), the others sway. */
+function drawTentacles(x: CanvasRenderingContext2D, hw: number, hh: number, p: Pose, t: number) {
+  const R = hw / 1.14;
+  const y0 = outline("lumo", Math.PI / 2, hw, hh, R).y - R * 0.04;
+  const raise = p.handR;
+  const waving = p.wave >= 0;
+  const len = R * 0.55;
+  x.save();
+  x.strokeStyle = PALETTES.lumo.accent;
+  x.lineWidth = R * 0.07;
+  x.lineCap = "round";
+  x.lineJoin = "round";
+  for (let i = 0; i < 4; i++) {
+    const x0 = ((i - 1.5) / 1.5) * hw * 0.5;
+    x.beginPath();
+    if (i === 3 && raise > 0.01) {
+      // Swings from hanging down to up and out, and waggles while waving.
+      const wag = waving ? Math.sin(p.wave * 2 * Math.PI * 2.5) * 0.45 : 0;
+      const base = lerp(Math.PI / 2, -0.7, raise) + wag * raise;
+      let px = lerp(x0, hw * 0.82, raise);
+      let py = lerp(y0, y0 - hh * 0.18, raise);
+      x.moveTo(px, py);
+      for (let k = 1; k <= 11; k++) {
+        const f = k / 11;
+        const ang = base - f * 0.9 * raise - (waving ? Math.sin(p.wave * 2 * Math.PI * 2.5 - f * 2) * 0.35 * f : 0);
+        px += (Math.cos(ang) * len * 1.15) / 11;
+        py += (Math.sin(ang) * len * 1.15) / 11;
+        x.lineTo(px, py);
+      }
+    } else {
+      for (let k = 0; k <= 11; k++) {
+        const f = k / 11;
+        const px = x0 + Math.sin(k * 0.7 + t * 2.5 + i) * R * 0.05 * f;
+        const py = y0 + f * len;
+        if (k === 0) x.moveTo(px, py);
+        else x.lineTo(px, py);
+      }
+    }
+    x.stroke();
+  }
+  x.restore();
+}
+
+function drawMochi(x: CanvasRenderingContext2D, p: Pose, t: number) {
   const hh = p.hb / 2;
   const hw = hh * ASP;
   if (hh <= 0.4) return;
@@ -357,8 +401,13 @@ function drawMochi(x: CanvasRenderingContext2D, p: Pose) {
   x.rotate(p.tilt);
   x.scale(p.sx, p.sy);
 
-  drawHandL(x, hw, hh, p);
-  drawHandR(x, hw, hh, p);
+  // Lumo has no hands: it waves a tentacle instead.
+  if (currentCritter() === "lumo") {
+    drawTentacles(x, hw, hh, p, t);
+  } else {
+    drawHandL(x, hw, hh, p);
+    drawHandR(x, hw, hh, p);
+  }
 
   const body = mochiPath(hw, hh);
   whiteFill(x, body, hw * 0.6, -hh, -hw * 0.6, hh);
@@ -566,6 +615,6 @@ export class Greeting {
     }
 
     drawMinis(x, p.minis);
-    drawMochi(x, p);
+    drawMochi(x, p, t);
   }
 }

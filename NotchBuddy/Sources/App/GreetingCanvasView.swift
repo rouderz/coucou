@@ -312,7 +312,50 @@ private func drawHandR(_ ctx: CGContext, hw: CGFloat, hh: CGFloat, p: GreetPose)
     ctx.restoreGState()
 }
 
-private func drawMochi(_ ctx: CGContext, p: GreetPose) {
+/// Lumo's four tentacles under its hem; the right one rises and waves hello (the greeting's
+/// "hand"), the others sway.
+private func drawTentacles(_ ctx: CGContext, hw: CGFloat, hh: CGFloat, p: GreetPose, t: Double) {
+    let critter = Critter.stored
+    let R = hw / 1.14
+    let y0 = critter.bottom(rx: hw, ry: hh, R: R) - R * 0.04
+    let raise = CGFloat(p.handR)
+    let waving = p.wave >= 0
+    ctx.saveGState()
+    ctx.setStrokeColor(critter.palette.accent)
+    ctx.setLineWidth(R * 0.07)
+    ctx.setLineCap(.round); ctx.setLineJoin(.round)
+    for i in 0..<4 {
+        let x0 = (CGFloat(i) - 1.5) / 1.5 * hw * 0.5
+        let len = R * 0.55
+        ctx.beginPath()
+        if i == 3 && raise > 0.01 {
+            // Swings from hanging down (π/2) to up and out (-0.7), and waggles while waving.
+            let wag: CGFloat = waving ? CGFloat(sin(p.wave * 2 * .pi * 2.5)) * 0.45 : 0
+            let base = gLerpF(.pi / 2, -0.7, raise) + wag * raise
+            let start = CGPoint(x: gLerpF(x0, hw * 0.82, raise), y: gLerpF(y0, y0 - hh * 0.18, raise))
+            ctx.move(to: start)
+            var pt = start
+            for k in 1...11 {
+                let f = CGFloat(k) / 11
+                // Curls a little toward the tip, like a wave of the hand.
+                let ang = base - f * 0.9 * raise - (waving ? CGFloat(sin(p.wave * 2 * .pi * 2.5 - Double(f) * 2)) * 0.35 * f : 0)
+                pt = CGPoint(x: pt.x + cos(ang) * len * 1.15 / 11, y: pt.y + sin(ang) * len * 1.15 / 11)
+                ctx.addLine(to: pt)
+            }
+        } else {
+            for k in 0...11 {
+                let f = CGFloat(k) / 11
+                let pt = CGPoint(x: x0 + CGFloat(sin(Double(k) * 0.7 + t * 2.5 + Double(i))) * R * 0.05 * f,
+                                 y: y0 + f * len)
+                if k == 0 { ctx.move(to: pt) } else { ctx.addLine(to: pt) }
+            }
+        }
+        ctx.strokePath()
+    }
+    ctx.restoreGState()
+}
+
+private func drawMochi(_ ctx: CGContext, p: GreetPose, t: Double) {
     let hh = CGFloat(p.hb/2), hw = hh*GASP; guard hh > 0.4 else { return }
 
     // Halo (golden → blue) — soft diffuse aura, two-pass for smoothness
@@ -354,9 +397,13 @@ private func drawMochi(_ ctx: CGContext, p: GreetPose) {
     ctx.rotate(by: CGFloat(p.tilt))
     ctx.scaleBy(x: CGFloat(p.sx), y: CGFloat(p.sy))
 
-    // Hands behind body
-    drawHandL(ctx, hw: hw, hh: hh, p: p)
-    drawHandR(ctx, hw: hw, hh: hh, p: p)
+    // Hands behind body — Lumo has no hands: it waves a tentacle instead.
+    if Critter.stored == .lumo {
+        drawTentacles(ctx, hw: hw, hh: hh, p: p, t: t)
+    } else {
+        drawHandL(ctx, hw: hw, hh: hh, p: p)
+        drawHandR(ctx, hw: hw, hh: hh, p: p)
+    }
 
     // Body
     let mpath = mochiPath(hw: hw, hh: hh)
@@ -539,7 +586,7 @@ private func drawGreeting(_ ctx: CGContext, size: CGSize, t: Double, tc: Double)
 
     // drawHeader: no icons during greeting
     drawMinis(ctx, alpha: p.minis)
-    drawMochi(ctx, p: p)
+    drawMochi(ctx, p: p, t: t)
 }
 
 // MARK: - SwiftUI View
