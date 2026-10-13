@@ -5,13 +5,14 @@
 # Coucou — rouderz fork
 
 **A notch companion for Claude Code power users.** Watch every session, approve from the notch
-(or your phone), see the diff Claude is about to write, and ask Mochi about the file you're in —
+(or your phone), see the diff Claude is about to write, and chat or code with your own little character —
 using your Claude Code subscription, no API key needed. On macOS, Windows and Linux.
 
 ![macOS 15+](https://img.shields.io/badge/macOS-15%2B-black?logo=apple)
 ![Windows 10/11](https://img.shields.io/badge/Windows-10%2F11-0078D4?logo=windows)
 ![Linux](https://img.shields.io/badge/Linux-X11%20%7C%20Wayland-FCC624?logo=linux&logoColor=black)
 ![License: MIT](https://img.shields.io/badge/code-MIT-green)
+![Characters: CC BY 4.0](https://img.shields.io/badge/characters-CC%20BY%204.0-lightgrey)
 [![macOS build](https://github.com/rouderz/coucou/actions/workflows/build.yml/badge.svg)](https://github.com/rouderz/coucou/actions/workflows/build.yml)
 [![Windows and Linux build](https://github.com/rouderz/coucou/actions/workflows/desktop.yml/badge.svg)](https://github.com/rouderz/coucou/actions/workflows/desktop.yml)
 
@@ -19,9 +20,10 @@ using your Claude Code subscription, no API key needed. On macOS, Windows and Li
 
 </div>
 
-> Fork of [Louis-CFM/coucou](https://github.com/Louis-CFM/coucou) by Louis Raillé. The name,
-> the Mochi character, the icon and the sounds are his and are not covered by the MIT license —
-> see [License](#license). This fork is for personal use until it has its own branding.
+> Fork of [Louis-CFM/coucou](https://github.com/Louis-CFM/coucou) by Louis Raillé. Mochi is gone:
+> this fork has its own characters (Bao, Pip, Nube, Lumo and Tecla, under CC BY 4.0). The name, the
+> icon and the sounds are still Louis Raillé's and are not covered by the MIT license — see
+> [License](#license). This fork is for personal use until it has its own name and icon.
 
 ---
 
@@ -48,12 +50,20 @@ has the details for Windows and Linux.
 - **Phone alerts** — approvals that wait while you're away go to your phone through [ntfy](https://ntfy.sh).
 - **Plan usage** — 5-hour and weekly limits like claude.ai, plus the context window of the running session.
 
-**Mochi, your assistant**
+**Your character**
+- **Five original characters** — Bao 🥟, Pip 🌱, Nube ☁️, Lumo 🪼 and Tecla ⌨️, each with its own shape, colours, face and expressions. Pick one in Settings → Character; the UI, the launch greeting and the wake word ("Hey Pip") use its name.
+- **One character per task** — give Gmail, WhaTicket, AliExpress or any integration its own character, and a colour to tell two of the same apart. Clicking a character opens only its task.
+- **Notch or free** — keep the character in the notch, or let it float anywhere on the screen: drag it, and the island opens as a bubble under it. It sits on top of the Settings window while that's open. Right-click for its menu (back to the notch, reset positions).
+- **Smaller folded notch** — a status dot and a count instead of the grid.
+
+**Chat and Code**
+- **Two modes, one switch** — the segmented *Chat / Code* control in the island header (⌥⌘← / ⌥⌘→ on Mac, Ctrl+Alt+← / → on Windows and Linux). Each mode keeps its own conversation.
+- **Code** — Claude Code working in a folder you pick (recent folders and the folders of live sessions are offered). It reads and searches the project; with *Edits on* it changes files and runs commands, each one approved in the island.
 - **Chat with your Claude Code subscription** (no API key), or an Anthropic API key with streaming and clear errors. Model picker: Opus 5.5 by default.
   On Windows and Linux the chat can also use OpenAI, Gemini, OpenRouter, Ollama, LM Studio or any OpenAI-compatible server.
-- **Ask about the file you're editing** (⌃⌥M) — reads the project, never edits unless you turn on "Edits on"; every change is approved in the island.
+- **Ask about the file you're editing** (⌃⌥M) in Chat — reads the project, never edits unless you turn on "Edits on"; every change is approved in the island.
 - **Editor extension** for VS Code, Cursor, Windsurf and VSCodium — exact file, cursor, selection and errors. See [`extensions/vscode`](extensions/vscode).
-- **Push-to-talk** (hold ⌃⌥V) — speak, Mochi answers and reads it aloud. On-device transcription when the Mac supports it.
+- **Push-to-talk** (hold ⌃⌥V) — speak, your character answers and reads it aloud. On-device transcription when the Mac supports it.
   Windows: the 🎙 in the chat. Linux: replies read aloud only (no built-in speech recognition).
 - **Chat history** — the last 50 conversations, resumable.
 - **Skills** — Settings → Skills lists every Claude Code / Codex skill on the computer (personal, per project, from plugins), turns them off without deleting, and installs new ones from a folder, a zip or a GitHub link after showing what's inside. `/` in the chat picks one.
@@ -62,7 +72,7 @@ has the details for Windows and Linux.
 **Work apps**
 - **WhaTicket** — the WhatsApp ticket queue and your tickets in the island, Accept in one click, and optional auto-accept (by queue and hours). It works through a small Chrome / Edge extension ([`extensions/whaticket`](extensions/whaticket)) that uses the whaticket.com session you already have open — no token, no admin access. Set it up from Settings → WhaTicket. Stats there count the tickets that arrived and the ones you accepted (by click, auto-accept or elsewhere), with waits, per hour, day and queue, and CSV export — kept locally for a year, ticket ids and queues only.
 - **AliExpress** — your orders grouped by the box they ship in (same tracking number), with one PDF invoice per box and a CSV of every product for Excel or Google Sheets, saved to Downloads/Coucou/AliExpress. Its own small Chrome / Edge extension, Coucou for AliExpress ([`extensions/aliexpress`](extensions/aliexpress)), reads your own order pages with the session you already have open; Coucou never calls AliExpress. Set it up from Settings → AliExpress. The invoice is your own document: it cites the AliExpress order numbers and says it isn't issued by AliExpress. Buyer details for the invoice live in the Keychain / credential store (Settings → AliExpress).
-- **Gmail** — what matches your search (unread in the inbox by default); "Ask" hands a mail to Mochi. Read-only, with your own Google Cloud OAuth client.
+- **Gmail** — what matches your search (unread in the inbox by default); "Ask" hands a mail to the chat. Read-only, with your own Google Cloud OAuth client.
 
 **Everyday**
 - **Do not disturb** — 🌙 in the island, or automatically during calendar events (calendar: macOS only).
@@ -119,7 +129,7 @@ xcodebuild -scheme NotchBuddy -configuration Debug build
 open "$(xcodebuild -scheme NotchBuddy -configuration Debug -showBuildSettings | awk '/ BUILT_PRODUCTS_DIR /{print $3}')/Coucou.app"
 ```
 
-Run `xcodegen` again whenever files are added. Tests: `xcodebuild test -scheme NotchBuddy -destination 'platform=macOS'`.
+Run `xcodegen` again whenever files are added or after pulling — otherwise Xcode reports "cannot find … in scope" for the new files. Tests: `xcodebuild test -scheme NotchBuddy -destination 'platform=macOS'`.
 
 **Windows and Linux** — [Rust](https://rustup.rs) and [Node 20+](https://nodejs.org); on Windows the MSVC build
 tools, on Linux the WebKitGTK packages listed in [`windows/README.md`](windows/README.md#linux).
@@ -141,6 +151,7 @@ Menu bar icon (Mac) or tray icon (Windows, Linux) → **Settings…**
 |---|---|
 | **Claude Code Hooks → Install / Update hooks** | live sessions, approvals and plan usage. Coucou backs up `~/.claude/settings.json` and shows the diff first. |
 | **Chat → Engine** | *Claude Code (subscription)* needs nothing else; *Anthropic API key* goes to the Keychain. |
+| **Character** | pick the character, give integrations their own, choose notch or free placement. |
 | **Hotkey** | ⌃⌥M ask about the file · ⌃⌥V push-to-talk · ⌥⏎ / ⌥⌫ approvals. Grant Accessibility for ⌃⌥M (Mac). |
 | **Auto-approve · Phone alerts · Do not disturb** | optional, all off by default. |
 | **Integrations** | GitHub (uses `gh` if signed in), Linear, Vercel, Stripe, Resend, n8n, Notion, Cal.com, WhaTicket, AliExpress — all optional. |
@@ -153,9 +164,10 @@ If Coucou isn't running, the hook exits at once: **Claude Code is never blocked.
 
 | Mac | Windows / Linux | Does |
 |---|---|---|
-| ⌃⌥M | — (use the editor extension's "Ask Mochi about this") | ask Mochi about the file in the front editor (with the extension: exact cursor, selection and errors) |
+| ⌃⌥M | — (use the editor extension's "Ask Mochi about this") | ask about the file in the front editor (with the extension: exact cursor, selection and errors) |
 | hold ⌃⌥V | 🎙 in the chat (Windows) | push-to-talk |
 | ⌥⏎ / ⌥⌫ | Alt+Enter / Alt+Backspace (X11 only on Linux) | allow / deny the waiting approval (only while one is waiting) |
+| ⌥⌘← / ⌥⌘→ | Ctrl+Alt+← / → | switch between Chat and Code |
 | Esc | Esc | close the island |
 
 ## Privacy
@@ -178,10 +190,11 @@ The editor extension talks to Coucou over a local socket (named pipe on Windows)
 - **Claude Code**: the `nb-hook` script forwards hook events over a Unix socket; for approvals it waits for your answer. A status line script forwards plan usage and context.
 - **Chat**: `claude -p --output-format stream-json` with your subscription (or the Messages API with streaming and prompt caching).
 - **Views** live in `NotchBuddy/Sources/App/Views/`; tests in `NotchBuddy/Tests/`.
+- **Characters** are drawn in code (`Bot/Critter.swift`, `Canvas` + `TimelineView`) — no images.
 - Native Swift 6 / SwiftUI / AppKit, **no third-party dependencies**.
 
 **Windows and Linux** (`windows/`)
-- **Island**: a transparent, always-on-top Tauri window at the top centre (a layer-shell surface on Wayland); Mochi is drawn in Canvas 2D like on the Mac.
+- **Island**: a transparent, always-on-top Tauri window at the top centre (a layer-shell surface on Wayland); the characters are drawn in Canvas 2D like on the Mac.
 - **Claude Code / Codex**: `coucou-hook` relays hook events over a named pipe (Windows) or a `0600` Unix socket (Linux), and exits at once if Coucou isn't there.
 - **Backend** in Rust (`windows/src-tauri/`), front end in TypeScript with no framework (`windows/src/`).
 - What differs between Windows and Linux lives in `windows/src-tauri/src/platform/`.
@@ -190,6 +203,9 @@ The editor extension talks to Coucou over a local socket (named pipe on Windows)
 
 - **Code:** [MIT](LICENSE) — © Louis Raillé, and rouderz for the changes in this fork. This covers the macOS,
   Windows and Linux apps, the hook relays, the scripts and the editor extension.
+- **Characters (Bao, Pip, Nube, Lumo, Tecla):** © Wolfgang Welcomez (rouderz), under
+  [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/) — see [LICENSE-CHARACTERS.md](LICENSE-CHARACTERS.md).
+  The code that draws them is MIT like the rest.
 - **Name, Mochi character, icon, sounds and media:** © Louis Raillé, all rights reserved — see [LICENSE-ASSETS.md](LICENSE-ASSETS.md).
   This includes the Windows / Linux icons drawn by `windows/scripts/gen-icons.mjs` and the sounds the Tauri app
   bundles from `NotchBuddy/Resources/sounds/`. Running this fork for yourself is fine; publishing builds needs
