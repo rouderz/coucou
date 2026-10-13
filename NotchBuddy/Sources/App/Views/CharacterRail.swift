@@ -28,30 +28,19 @@ struct CharacterRail: View {
                 }
                 .padding(.vertical, 4)
             }
-            // The island's quick controls, under the characters (the gear at the bottom, as in
-            // the design).
-            HStack(spacing: 4) {
-                InboxButton()
-                DoNotDisturbButton()
-                Button { state.soundEnabled.toggle() } label: {
-                    Image(systemName: state.soundEnabled ? "speaker.wave.2" : "speaker.slash")
-                        .font(.system(size: 12))
-                        .foregroundColor(Color(hex: "#8E939C"))
-                }
-                .buttonStyle(.plain)
-                .help(state.soundEnabled ? L("Mute") : L("Sound on"))
-                Button {
-                    withAnimation(.spring(response: 0.3, dampingFraction: 0.8)) { state.view = .settings }
-                } label: {
-                    Image(systemName: "gearshape")
-                        .font(.system(size: 13))
-                        .foregroundColor(Color(hex: "#8E939C"))
-                }
-                .buttonStyle(.plain)
-                .help(L("Settings"))
+            // Settings at the bottom of the rail: opens the Settings window.
+            Button {
+                NotificationCenter.default.post(name: .openFullSettings, object: nil)
+            } label: {
+                Image(systemName: "gearshape")
+                    .font(.system(size: 14))
+                    .foregroundColor(Color(hex: "#8E939C"))
+                    .frame(width: 34, height: 28)
+                    .contentShape(Rectangle())
             }
-            .scaleEffect(0.9)
-            .padding(.vertical, 6)
+            .buttonStyle(.plain)
+            .help(L("Settings"))
+            .padding(.bottom, 4)
         }
         .frame(width: Self.width)
         .frame(maxHeight: .infinity)
@@ -218,6 +207,21 @@ struct RailHeader: View {
             }
             .padding(3)
             .background(RoundedRectangle(cornerRadius: 11).fill(Color.white.opacity(0.06)))
+
+            // Drop a file, the inbox, Do not disturb and sound, in a matching capsule.
+            HStack(spacing: 0) {
+                HeaderIcon(icon: "plus", help: L("Drop a file"), on: state.view == .upload) {
+                    withAnimation(.spring(response: 0.3, dampingFraction: 0.8)) { state.view = .upload }
+                }
+                InboxButton().frame(width: 28, height: 24)
+                DoNotDisturbButton().frame(width: 28, height: 24)
+                HeaderIcon(icon: state.soundEnabled ? "speaker.wave.2" : "speaker.slash",
+                           help: state.soundEnabled ? L("Mute") : L("Sound on"), on: false) {
+                    state.soundEnabled.toggle()
+                }
+            }
+            .padding(3)
+            .background(RoundedRectangle(cornerRadius: 11).fill(Color.white.opacity(0.06)))
         }
         .padding(.trailing, 10)
     }
@@ -233,6 +237,29 @@ struct RailHeader: View {
         case "integration_calcom": return ("calendar", L("Calendar"))
         default: return ("house", L("Home"))
         }
+    }
+}
+
+private struct HeaderIcon: View {
+    let icon: String
+    let help: String
+    let on: Bool
+    let action: () -> Void
+    @State private var hovered = false
+
+    var body: some View {
+        Button(action: action) {
+            Image(systemName: icon)
+                .font(.system(size: 12, weight: .medium))
+                .foregroundColor(on || hovered ? Color(hex: "#F5F6F8") : Color(hex: "#9A9EA6"))
+                .frame(width: 28, height: 24)
+                .background(RoundedRectangle(cornerRadius: 8).fill(on ? Color(hex: "#34363D") : .clear))
+                .contentShape(Rectangle())
+        }
+        .buttonStyle(.plain)
+        .onHover { hovered = $0 }
+        .help(Text(verbatim: help))
+        .accessibilityLabel(Text(verbatim: help))
     }
 }
 

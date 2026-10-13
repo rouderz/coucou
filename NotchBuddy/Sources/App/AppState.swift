@@ -701,6 +701,12 @@ final class AppState: ObservableObject {
     @Published var recentCodeFolders: [String] = UserDefaults.standard.stringArray(forKey: "recentCodeFolders") ?? [] {
         didSet { UserDefaults.standard.set(recentCodeFolders, forKey: "recentCodeFolders") }
     }
+    /// The folders kept at hand on the main character's base: one click works in one, and in Code
+    /// mode Claude Code can also read the others (--add-dir).
+    @Published var codeFolders: [String] = UserDefaults.standard.stringArray(forKey: "codeFolders")
+        ?? UserDefaults.standard.stringArray(forKey: "recentCodeFolders") ?? [] {
+        didSet { UserDefaults.standard.set(codeFolders, forKey: "codeFolders") }
+    }
 
     // Pending approval request from Claude Code hook
     @Published var pendingApproval: ApprovalInfo? = nil

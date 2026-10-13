@@ -305,9 +305,11 @@ struct UploadCanvasView: View {
         let (bp, rx, ry) = usBodyPath(m: m, R: R)
 
         // ── Body gradient ──────────────────────────────────────────
+        // The picked character's colours (the box keeps them as it morphs).
+        let palette = Critter.stored.palette
         let bodyGrad = Gradient(stops:[
-            .init(color: Color(hex:"#EDEDEF"), location:0),
-            .init(color: Color(hex:"#C4C5CA"), location:1)
+            .init(color: Color(cgColor: palette.top), location:0),
+            .init(color: Color(cgColor: palette.bottom), location:1)
         ])
         c.fill(bp, with: .linearGradient(bodyGrad,
             startPoint:  CGPoint(x:  rx*0.7, y: -ry*0.9),
@@ -381,7 +383,7 @@ struct UploadCanvasView: View {
     // MARK: - Eye shapes
 
     private func drawEyeShape(ctx: inout GraphicsContext, shape: USEyeShape, w: CGFloat, h: CGFloat) {
-        let ink = Color(red:0.055,green:0.059,blue:0.071)
+        let ink = Color(cgColor: Critter.stored.palette.ink)
         switch shape {
         case .pill:
             var p = Path()
@@ -559,12 +561,17 @@ func usBodyPath(m: Double, R: Double) -> (path: Path, rx: Double, ry: Double) {
     let n  = 2.15 + (5.5-2.15)*mc
     let rx = R * (1.04 - 0.04*mc)
     let ry = R * (0.97 - 0.03*mc)
+    // At rest it's the picked character's silhouette; it morphs into the box.
+    let critter = Critter.stored
     var path = Path()
     for i in 0...96 {
         let a  = Double(i)/96 * .pi*2
         let ca = cos(a), sa = sin(a)
-        let px = rx * (ca<0 ? -1 : ca>0 ? 1 : 0) * pow(abs(ca), 2/n)
-        let py = ry * (sa<0 ? -1 : sa>0 ? 1 : 0) * pow(abs(sa), 2/n)
+        let bx = rx * (ca<0 ? -1 : ca>0 ? 1 : 0) * pow(abs(ca), 2/n)
+        let by = ry * (sa<0 ? -1 : sa>0 ? 1 : 0) * pow(abs(sa), 2/n)
+        let own = critter.outline(a: CGFloat(a), rx: CGFloat(rx), ry: CGFloat(ry), R: CGFloat(R))
+        let px = Double(own.x) + (bx - Double(own.x)) * mc
+        let py = Double(own.y) + (by - Double(own.y)) * mc
         if i == 0 { path.move(to:    CGPoint(x:px,y:py)) }
         else       { path.addLine(to: CGPoint(x:px,y:py)) }
     }

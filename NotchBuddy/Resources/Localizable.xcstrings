@@ -9061,6 +9061,116 @@
           }
         }
       }
+    },
+    "Start": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Empezar"
+          }
+        }
+      }
+    },
+    "Ready in %@": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Lista en %@"
+          }
+        }
+      }
+    },
+    "Pick a folder and it starts working": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Elige una carpeta y se pone a trabajar"
+          }
+        }
+      }
+    },
+    "Add a folder": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Agregar carpeta"
+          }
+        }
+      }
+    },
+    "Folders Claude Code keeps at hand": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Carpetas que Claude Code tiene a mano"
+          }
+        }
+      }
+    },
+    "Remove from the list": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Quitar de la lista"
+          }
+        }
+      }
+    },
+    "Drop a file": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Soltar un archivo"
+          }
+        }
+      }
+    },
+    "Connected — click to disconnect": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Conectada — clic para desconectar"
+          }
+        }
+      }
+    },
+    "Disconnected — click to connect": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Desconectada — clic para conectar"
+          }
+        }
+      }
+    },
+    "on": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "activa"
+          }
+        }
+      }
+    },
+    "Open Proton VPN": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Abrir Proton VPN"
+          }
+        }
+      }
     }
   }
 }

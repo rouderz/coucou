@@ -58,6 +58,7 @@ enum CodeMode {
     /// Code mode starts working in this folder: Claude Code runs there, edits on.
     static func begin(_ folder: String, state: AppState) {
         state.codeFolder = folder
+        if !state.codeFolders.contains(folder) { state.codeFolders.append(folder) }
         state.recentCodeFolders = ([folder] + state.recentCodeFolders.filter { $0 != folder }).prefix(maxRecent).map { $0 }
         state.promptContext = .code(.folder(folder))
         state.chatAllowEdits = true
@@ -84,6 +85,26 @@ enum CodeMode {
         NSApp.activate(ignoringOtherApps: true)
         guard panel.runModal() == .OK, let url = panel.url else { return }
         switchFolder(url.path, state: state)
+    }
+
+    /// Adds a folder to the ones kept at hand (the folder picker), and works in it.
+    static func addFolder(state: AppState) {
+        let panel = NSOpenPanel()
+        panel.canChooseDirectories = true
+        panel.canChooseFiles = false
+        panel.allowsMultipleSelection = true
+        panel.prompt = L("Add")
+        panel.message = L("Folders Claude Code keeps at hand")
+        NSApp.activate(ignoringOtherApps: true)
+        guard panel.runModal() == .OK, !panel.urls.isEmpty else { return }
+        for url in panel.urls where !state.codeFolders.contains(url.path) { state.codeFolders.append(url.path) }
+        work(in: panel.urls[0].path, state: state)
+    }
+
+    /// Code mode in that folder.
+    static func work(in folder: String, state: AppState) {
+        show(.code, state: state)
+        switchFolder(folder, state: state)
     }
 
     /// Folders worth offering: the recent ones, then the folders of live Claude Code sessions.

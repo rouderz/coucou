@@ -27,8 +27,13 @@ struct MainBaseView: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 6) {
             if sessions.isEmpty {
+                // No terminal needed: Code mode is Claude Code at work right here.
                 row(dot: Color(hex: "#6B7079"), title: "Claude Code",
-                    detail: L("No session right now — start one in your terminal"), badge: nil) {}
+                    detail: state.codeFolder.map { L("Ready in \(($0 as NSString).lastPathComponent)") }
+                        ?? L("Pick a folder and it starts working"),
+                    badge: L("Start")) {
+                    ModeSwitch.showCode(state)
+                }
             } else {
                 ForEach(sessions) { s in
                     row(dot: SessionChip.color(for: s.state), title: s.project,
@@ -52,6 +57,28 @@ struct MainBaseView: View {
                     .background(RoundedRectangle(cornerRadius: 10).fill(Color.white.opacity(0.045)))
             }
 
+            // The folders kept at hand: one click and Claude Code works there.
+            ScrollView(.horizontal, showsIndicators: false) {
+                HStack(spacing: 6) {
+                    ForEach(state.codeFolders, id: \.self) { folder in
+                        folderChip(folder)
+                    }
+                    Button { CodeMode.addFolder(state: state) } label: {
+                        HStack(spacing: 4) {
+                            Image(systemName: "plus").font(.system(size: 9, weight: .bold))
+                            Text(state.codeFolders.isEmpty ? L("Add a folder") : L("Folder"))
+                        }
+                        .font(.system(size: 11, weight: .medium))
+                        .foregroundColor(Color(hex: "#9A9EA6"))
+                        .padding(.horizontal, 9).frame(height: 22)
+                        .background(RoundedRectangle(cornerRadius: 8)
+                            .strokeBorder(Color.white.opacity(0.14), style: StrokeStyle(lineWidth: 1, dash: [3, 2])))
+                    }
+                    .buttonStyle(.plain)
+                    .help(L("Folders Claude Code keeps at hand"))
+                }
+            }
+
             ScrollView(.horizontal, showsIndicators: false) {
                 HStack(spacing: 6) {
                     if let editor = Editor.preferred(state.preferredEditor) {
@@ -59,6 +86,7 @@ struct MainBaseView: View {
                             editor.open(folder: state.tasks.first { $0.id == "integration_claude" }?.sessionCwd)
                         }
                     }
+                    VPNChip(state: state)
                     if state.focus.phase == .idle {
                         chip(L("Focus"), color: Color(hex: "#E8C27A")) { FocusTimer.shared.start() }
                     }
@@ -79,6 +107,7 @@ struct MainBaseView: View {
         .padding(.top, 4)
         .padding(.trailing, 2)
         .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
+        .task(id: state.mode == .expanded) { await VPNChip.watch(state) }
     }
 
     private func row(dot: Color, title: String, detail: String, badge: String?,
@@ -110,6 +139,25 @@ struct MainBaseView: View {
             .contentShape(Rectangle())
         }
         .buttonStyle(.plain)
+    }
+
+    private func folderChip(_ folder: String) -> some View {
+        let on = state.codeFolder == folder
+        return Button { CodeMode.work(in: folder, state: state) } label: {
+            HStack(spacing: 5) {
+                Image(systemName: "folder.fill").font(.system(size: 10))
+                Text(verbatim: (folder as NSString).lastPathComponent).lineLimit(1)
+            }
+            .font(.system(size: 11, weight: .medium))
+            .foregroundColor(on ? Color(hex: "#F5F6F8") : Color(hex: "#C5C8CD"))
+            .padding(.horizontal, 9).frame(height: 22)
+            .background(RoundedRectangle(cornerRadius: 8).fill(Color.white.opacity(on ? 0.12 : 0.06)))
+        }
+        .buttonStyle(.plain)
+        .help((folder as NSString).abbreviatingWithTildeInPath)
+        .contextMenu {
+            Button(L("Remove from the list")) { state.codeFolders.removeAll { $0 == folder } }
+        }
     }
 
     private func chip(_ text: String, color: Color, dot: Color? = nil, action: @escaping () -> Void) -> some View {

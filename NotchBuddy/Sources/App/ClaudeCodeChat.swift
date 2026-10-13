@@ -160,6 +160,13 @@ final class ClaudeCodeChat {
             "--strict-mcp-config",
             "--append-system-prompt", systemPrompt,
         ]
+        // Code mode: the other folders kept at hand can be read too.
+        if coding {
+            let extra = AppState.shared.codeFolders.filter {
+                $0 != dir.path && FileManager.default.fileExists(atPath: $0)
+            }
+            if !extra.isEmpty { args += ["--add-dir"] + extra }
+        }
         if let sessionID { args += ["--resume", sessionID] }
 
         let p = Process()
