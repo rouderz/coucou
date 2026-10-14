@@ -23,7 +23,7 @@ using your Claude Code subscription, no API key needed. On macOS, Windows and Li
 > Fork of [Louis-CFM/coucou](https://github.com/Louis-CFM/coucou) by Louis Raillé. Mochi is gone:
 > this fork has its own characters (Bao, Pip, Nube, Lumo and Tecla, under CC BY 4.0). The name, the
 > icon and the sounds are still Louis Raillé's and are not covered by the MIT license — see
-> [License](#license). This fork is for personal use until it has its own name and icon.
+> [License](#license-and-copyright). This fork is for personal use until it has its own name and icon.
 
 ---
 
@@ -201,20 +201,23 @@ The editor extension talks to Coucou over a local socket (named pipe on Windows)
 - **Backend** in Rust (`windows/src-tauri/`), front end in TypeScript with no framework (`windows/src/`).
 - What differs between Windows and Linux lives in `windows/src-tauri/src/platform/`.
 
-## License
+## License and copyright
 
-- **Code:** [MIT](LICENSE) — © Louis Raillé, and rouderz for the changes in this fork. This covers the macOS,
-  Windows and Linux apps, the hook relays, the scripts and the editor extension.
-- **Characters (Bao, Pip, Nube, Lumo, Tecla):** © Wolfgang Welcomez (rouderz), under
-  [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/) — see [LICENSE-CHARACTERS.md](LICENSE-CHARACTERS.md).
-  The code that draws them is MIT like the rest.
-- **Name, Mochi character, icon, sounds and media:** © Louis Raillé, all rights reserved — see [LICENSE-ASSETS.md](LICENSE-ASSETS.md).
-  This includes the Windows / Linux icons drawn by `windows/scripts/gen-icons.mjs` and the sounds the Tauri app
-  bundles from `NotchBuddy/Resources/sounds/`. Running this fork for yourself is fine; publishing builds needs
-  its own name and artwork (tracked in #45).
-- **Third-party code:** the macOS app has no dependencies. The Windows and Linux builds include open-source
-  libraries — Tauri and its plugins, the `windows` crate, GTK / WebKitGTK bindings and others listed in
-  [`windows/Cargo.lock`](windows/Cargo.lock) and [`windows/package-lock.json`](windows/package-lock.json) —
-  each under its own license (mostly MIT and/or Apache-2.0). Their notices apply to the binaries you download.
+Coucou has three kinds of content, each with its own owner and terms:
 
-Original project: built by [Louis Raillé](https://louisraille.fr) with Claude Code.
+| What | Copyright | License | Details |
+|---|---|---|---|
+| **Source code** — the macOS, Windows and Linux apps, the hook relays, the scripts, the editor and browser extensions | © 2026 Louis Raillé (original project) · © 2026 rouderz / Wolfgang Welcomez (changes in this fork) | [MIT](LICENSE) | Use, change and share it, keeping the copyright notice and the license text. |
+| **Characters** — Lumo, Bao, Pip, Nube and Tecla: their names as characters, designs, palettes, faces, expressions and animations | © 2026 Wolfgang Welcomez (rouderz) | [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/) | Share and adapt them, commercially too, with credit: *"Lumo, Bao, Pip, Nube and Tecla © Wolfgang Welcomez (rouderz), CC BY 4.0"*. See [LICENSE-CHARACTERS.md](LICENSE-CHARACTERS.md). The code that draws them is MIT. |
+| **Brand and media** — the name "Coucou", the Mochi character, the app and menu bar icons (including the ones `windows/scripts/gen-icons.mjs` draws), the sounds and the images, GIFs and videos in `docs/media/` and `design/` | © 2026 Louis Raillé | All rights reserved | See [LICENSE-ASSETS.md](LICENSE-ASSETS.md). Running this fork for yourself is fine; publishing builds needs its own name, icon and sounds (tracked in #45). |
+
+**Third-party code.** The macOS app has no dependencies. The Windows and Linux builds include open-source
+libraries — Tauri and its plugins, the `windows` crate, GTK / WebKitGTK bindings and the others listed in
+[`windows/Cargo.lock`](windows/Cargo.lock) and [`windows/package-lock.json`](windows/package-lock.json) — each
+under its own license (mostly MIT and/or Apache-2.0); their notices apply to the binaries you download.
+
+**Trademarks.** Claude and Claude Code are Anthropic's; GitHub, Linear, Gmail, Google Drive, WhaTicket,
+AliExpress, Proton VPN, Cloudflare WARP, Visual Studio Code and the other services Coucou connects to belong to
+their owners. Coucou is not affiliated with or endorsed by any of them.
+
+Original project: built by [Louis Raillé](https://louisraille.fr) with Claude Code. This fork: rouderz.

@@ -1152,28 +1152,27 @@ final class IslandWindowController: NSWindowController {
 
     // MARK: - Dizzy recovery (triggered by BotEngine.slap via .botDizzy)
 
+    /// Too many pokes: the character gets dizzy for a moment, right where it is — no
+    /// separate "confused" screen taking over the island.
     private func handleDizzy() {
-        let prevView = state.view
         state.stateOverride = .dizzy
-        expand(to: .confused)
         confusedRecoveryTimer?.cancel()
         let recovery = DispatchWorkItem { [weak self] in
             guard let self else { return }
-            self.state.stateOverride = nil
-            if self.state.view == .confused {
-                let fallback = self.state.tasks.isEmpty ? IslandView.empty : .overview
-                self.state.view = (prevView == .confused) ? fallback : prevView
-            }
+            if self.state.stateOverride == .dizzy { self.state.stateOverride = nil }
             NotificationCenter.default.post(name: .triggerEmote, object: BotEmote.happy)
         }
         confusedRecoveryTimer = recovery
-        DispatchQueue.main.asyncAfter(deadline: .now() + 3.3, execute: recovery)
+        DispatchQueue.main.asyncAfter(deadline: .now() + 2.2, execute: recovery)
     }
 
     // MARK: - Bot hit test (for slap trigger)
 
     private func isBotHit(_ windowPoint: CGPoint) -> Bool {
         let s = AppState.shared
+        // The big character isn't drawn there: the rail (or the floating one) is. A press on
+        // the rail must not poke, drag or daze a character that isn't on screen.
+        if s.railShown || (s.freePlacement && (s.view == .overview || s.view == .empty)) { return false }
         let panelH = window?.frame.height ?? 320
         let panelW = window?.frame.width  ?? 720
         let (islandW, fixedH) = islandSize(mode: s.mode, view: s.view,

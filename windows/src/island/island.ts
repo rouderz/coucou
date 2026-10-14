@@ -95,7 +95,6 @@ export class Island {
   private botHoverStart = { x: 0, y: 0 };
 
   private confusedRecovery: number | null = null;
-  private prevViewBeforeConfused: IslandViewName = "overview";
   private lastSyncedView: IslandViewName | null = null;
 
   /** Drop sequence bookkeeping: last tick played, and whether the ✓ has fired. */
@@ -716,6 +715,8 @@ export class Island {
   }
 
   private isBotHit(x: number, y: number): boolean {
+    // The big character isn't drawn there: the rail (or the floating one) is.
+    if (railShown() || (State.settings.placement === "free" && (State.view === "overview" || State.view === "empty"))) return false;
     const rect = this.islandRect();
     const cx = rect.x + this.botCx.value;
     const cy = rect.y + this.botCy.value;
@@ -750,24 +751,20 @@ export class Island {
     this.engine.tgEs = 1;
   }
 
-  /** Three slaps → dizzy + confused view for 3.3 s, then back. */
+  /** Too many pokes: the character gets dizzy for a moment, right where it is — no separate
+   *  "confused" screen taking over the island. */
   private handleDizzy() {
-    this.prevViewBeforeConfused = State.view;
     State.stateOverride = "dizzy";
     this.engine.setState("dizzy");
     Sound.play("dizzy");
-    this.alert("confused");
     if (this.confusedRecovery != null) window.clearTimeout(this.confusedRecovery);
     this.confusedRecovery = window.setTimeout(() => {
       this.confusedRecovery = null;
-      State.stateOverride = null;
+      if (State.stateOverride === "dizzy") State.stateOverride = null;
       this.engine.setState(State.effectiveState);
-      if (State.view === "confused") {
-        const fallback = State.defaultView();
-        this.setView(this.prevViewBeforeConfused === "confused" ? fallback : this.prevViewBeforeConfused);
-      }
       this.engine.triggerEmote("happy");
-    }, 3300);
+      State.notify();
+    }, 2200);
   }
 
   // ── Frame loop ──────────────────────────────────────────────────────────────
