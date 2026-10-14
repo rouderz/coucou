@@ -164,41 +164,41 @@ struct GitHubRepoList: View {
 
     var body: some View {
         ScrollView(.vertical, showsIndicators: false) {
-        VStack(alignment: .leading, spacing: 4) {
-            if let error = store.error, store.repos.isEmpty {
-                Text(verbatim: error).font(.system(size: 11)).foregroundColor(Color(hex: "#8E939C"))
-            }
-            ForEach(store.repos) { r in
-                Button { AppLinks.open(r.htmlURL) } label: {
-                    HStack(spacing: 7) {
-                        Image(systemName: r.isPrivate ? "lock.fill" : "book.closed")
-                            .font(.system(size: 9.5))
-                            .foregroundColor(Color(hex: "#8E939C"))
-                            .frame(width: 12)
-                        Text(verbatim: r.name).font(.system(size: 11.5, weight: .medium))
-                            .foregroundColor(Color(hex: "#E8E9EC")).lineLimit(1)
-                        if let lang = r.language {
-                            Text(verbatim: lang).font(.system(size: 10)).foregroundColor(Color(hex: "#8E939C"))
-                        }
-                        Spacer(minLength: 4)
-                        if r.stars > 0 {
-                            Text(verbatim: "★ \(r.stars)").font(.system(size: 10)).foregroundColor(Color(hex: "#F5C842"))
-                        }
-                        if let at = r.pushedAt {
-                            Text(verbatim: Self.ago.localizedString(for: at, relativeTo: .now))
-                                .font(.system(size: 10)).foregroundColor(Color(hex: "#6B7079"))
-                                .lineLimit(1)
-                        }
-                    }
-                    .padding(.horizontal, 9).frame(height: 24)
-                    .background(RoundedRectangle(cornerRadius: 8).fill(Color.white.opacity(0.045)))
-                    .contentShape(Rectangle())
+            VStack(alignment: .leading, spacing: 4) {
+                if let error = store.error, store.repos.isEmpty {
+                    Text(verbatim: error).font(.system(size: 11)).foregroundColor(Color(hex: "#8E939C"))
                 }
-                .buttonStyle(.plain)
-                .help(r.fullName)
+                ForEach(store.repos) { r in
+                    Button { AppLinks.open(r.htmlURL) } label: {
+                        HStack(spacing: 7) {
+                            Image(systemName: r.isPrivate ? "lock.fill" : "book.closed")
+                                .font(.system(size: 9.5))
+                                .foregroundColor(Color(hex: "#8E939C"))
+                                .frame(width: 12)
+                            Text(verbatim: r.name).font(.system(size: 11.5, weight: .medium))
+                                .foregroundColor(Color(hex: "#E8E9EC")).lineLimit(1)
+                            if let lang = r.language {
+                                Text(verbatim: lang).font(.system(size: 10)).foregroundColor(Color(hex: "#8E939C"))
+                            }
+                            Spacer(minLength: 4)
+                            if r.stars > 0 {
+                                Text(verbatim: "★ \(r.stars)").font(.system(size: 10)).foregroundColor(Color(hex: "#F5C842"))
+                            }
+                            if let at = r.pushedAt {
+                                Text(verbatim: Self.ago.localizedString(for: at, relativeTo: .now))
+                                    .font(.system(size: 10)).foregroundColor(Color(hex: "#6B7079"))
+                                    .lineLimit(1)
+                            }
+                        }
+                        .padding(.horizontal, 9).frame(height: 24)
+                        .background(RoundedRectangle(cornerRadius: 8).fill(Color.white.opacity(0.045)))
+                        .contentShape(Rectangle())
+                    }
+                    .buttonStyle(.plain)
+                    .help(r.fullName)
+                }
             }
-        }
-        .padding(.bottom, 4)
+            .padding(.bottom, 4)
         }
         .task { await store.load() }
     }
