@@ -45,7 +45,10 @@ function frame(now: number) {
   const dt = Math.min(0.05, (now - last) / 1000);
   last = now;
   acc += dt;
-  if (acc >= 1 / 30) {
+  // 30 fps while it works or reacts, 20 while it just breathes; nothing while hidden.
+  const fps = engine.state === "idle" || engine.state === "sleeping" ? 20 : 30;
+  if (document.hidden) acc = 0;
+  else if (acc >= 1 / fps) {
     engine.update(acc);
     acc = 0;
     ctx.setTransform(dpr, 0, 0, dpr, 0, 0);

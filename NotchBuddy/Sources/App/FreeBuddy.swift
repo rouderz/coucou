@@ -272,6 +272,7 @@ final class FreeBuddyController {
 
         let task: String? = key == Self.mainKey ? nil : key
         let host = NSHostingView(rootView: FreeBuddyView(taskID: task).environmentObject(AppState.shared))
+        host.sizingOptions = []   // a fixed-size panel: no window size constraints from SwiftUI
         host.frame = drag.bounds
         host.autoresizingMask = [.width, .height]
         drag.addSubview(host)

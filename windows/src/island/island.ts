@@ -335,11 +335,16 @@ export class Island {
       this.width.jump(w);
       this.height.jump(h);
       this.radius.jump(r);
-      this.islandEl.classList.remove("pop");
+      this.islandEl.classList.remove("pop", "unpop");
       void this.islandEl.offsetWidth;
       this.islandEl.classList.add("pop");
       this.ensureRunning();
     } else {
+      if (State.settings.placement === "free" && prev === "expanded") {
+        // Folds back into the character instead of shrinking into a notch that isn't there.
+        this.islandEl.classList.remove("pop");
+        this.islandEl.classList.add("unpop");
+      }
       this.animateGeometry(modeOrder(mode) < modeOrder(prev));
     }
     State.notify();

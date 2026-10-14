@@ -200,6 +200,8 @@ enum FrameRate {
     static let decor: TimeInterval = 1.0 / 30
     /// Main Mochi when nobody is interacting (breathing, blinking, compact island).
     static let calm: TimeInterval = 1.0 / 30
+    /// A floating character while its island is closed: breathing and blinking read fine at 20 fps.
+    static let idle: TimeInterval = 1.0 / 20
 
     /// Every frame makes SwiftUI rebuild the whole island's display list, so Mochi only
     /// gets 60 fps while the pointer is over the open island (tracking, pokes, emotes).

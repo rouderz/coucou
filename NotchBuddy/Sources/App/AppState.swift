@@ -686,6 +686,8 @@ final class AppState: ObservableObject {
     /// The conversation on screen belongs to this integration's character (its own chat about
     /// what it handles), nil for the main character's Chat / Code.
     @Published var chatOwner: String? = nil
+    /// The screen is asleep or locked (PollGate): nothing on screen needs to animate.
+    @Published var screenOff = false
     var stashedCharacterChats: [String: UUID] = [:]
     /// Code mode on screen: no other context took over (a file from the editor, a window, a drop
     /// make it a chat about that thing).

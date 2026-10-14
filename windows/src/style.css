@@ -2431,3 +2431,10 @@ input[type="range"]::-webkit-slider-thumb {
   animation: island-pop 0.34s cubic-bezier(0.34, 1.35, 0.64, 1);
 }
 .rail-on .gh-repos { max-height: 118px; }
+@keyframes island-unpop {
+  to { scale: 0.9; opacity: 0; }
+}
+.free-placement #island.unpop {
+  transform-origin: 50% 0;
+  animation: island-unpop 0.14s ease-in forwards;
+}

@@ -144,15 +144,25 @@ struct IslandContainer: View {
                 let cr = newMode == .expanded ? IslandConst.expandedCorner : IslandConst.roundedCorner
                 var instant = Transaction()
                 instant.disablesAnimations = true
-                withTransaction(instant) {
-                    islandWidth = w
-                    islandHeight = (newMode == .expanded && state.view == .prompt) ? chatPromptHeight : h
-                    cornerRadius = cr
-                    islandTopRadius = newMode == .expanded ? cr : 0
-                    if newMode == .expanded { popScale = 0.86; popOpacity = 0 }
+                let apply = {
+                    withTransaction(instant) {
+                        islandWidth = w
+                        islandHeight = (newMode == .expanded && state.view == .prompt) ? chatPromptHeight : h
+                        cornerRadius = cr
+                        islandTopRadius = newMode == .expanded ? cr : 0
+                    }
                 }
                 if newMode == .expanded {
+                    apply()
+                    withTransaction(instant) { popScale = 0.86; popOpacity = 0 }
                     withAnimation(.spring(response: 0.34, dampingFraction: 0.74)) { popScale = 1; popOpacity = 1 }
+                } else {
+                    // Folds back into the character first, then takes its closed size unseen.
+                    withAnimation(.easeIn(duration: 0.14)) { popScale = 0.9; popOpacity = 0 }
+                    Task { @MainActor in
+                        try? await Task.sleep(nanoseconds: 160_000_000)
+                        if state.mode != .expanded { apply() }
+                    }
                 }
                 return
             }

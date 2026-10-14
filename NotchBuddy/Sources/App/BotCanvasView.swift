@@ -20,8 +20,11 @@ struct BotCanvasView: View {
     @StateObject private var engine = BotEngine()
 
     var body: some View {
-        TimelineView(AlignedAnimationSchedule(interval: freeBuddy ? FrameRate.calm : FrameRate.mochi(for: state),
-                                              paused: !freeBuddy && state.mode == .hidden)) { timeline in
+        // Floating: 30 fps while its island is open, 20 while it just breathes, none with the
+        // screen off. In the notch: nothing while the island is hidden.
+        TimelineView(AlignedAnimationSchedule(interval: freeBuddy ? (state.mode == .expanded ? FrameRate.calm : FrameRate.idle)
+                                                                  : FrameRate.mochi(for: state),
+                                              paused: freeBuddy ? state.screenOff : state.mode == .hidden)) { timeline in
             Canvas { context, size in
                 let now = timeline.date.timeIntervalSinceReferenceDate
                 let dtRaw = min(0.05, now - engine.lastTime)

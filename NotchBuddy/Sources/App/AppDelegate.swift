@@ -64,7 +64,12 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
                            backing: .buffered, defer: false)
         win.title = "Settings — Coucou"
         win.identifier = .coucouSettings   // the free character sits on it (#154)
-        win.contentView = NSHostingView(rootView: SettingsView())
+        // The window sizes itself (contentMinSize below): SwiftUI must not also drive its
+        // min / max content size, or a layout change while it's on screen (switching to free
+        // placement) can loop through constraint passes until AppKit throws.
+        let host = NSHostingView(rootView: SettingsView())
+        host.sizingOptions = []
+        win.contentView = host
         win.contentMinSize = NSSize(width: 480, height: 360)
         win.isReleasedWhenClosed = false
         placeBelowIsland(win)

@@ -51,14 +51,16 @@ has the details for Windows and Linux.
 - **Plan usage** — 5-hour and weekly limits like claude.ai, plus the context window of the running session.
 
 **Your character**
-- **Five original characters** — Bao 🥟, Pip 🌱, Nube ☁️, Lumo 🪼 and Tecla ⌨️, each with its own shape, colours, face and expressions. Pick one in Settings → Character; the UI, the launch greeting and the wake word ("Hey Pip") use its name.
-- **One character per task** — give Gmail, WhaTicket, AliExpress or any integration its own character, and a colour to tell two of the same apart. Clicking a character opens only its task.
-- **Notch or free** — keep the character in the notch, or let it float anywhere on the screen: drag it, and the island opens as a bubble under it. It sits on top of the Settings window while that's open. Right-click for its menu (back to the notch, reset positions).
+- **Five original characters** — Lumo 🪼 (the main one), Bao 🥟, Pip 🌱, Nube ☁️ and Tecla ⌨️, each with its own shape, colours, face and expressions. Pick one in Settings → Characters; the UI, the launch greeting (Lumo waves a tentacle) and the wake word ("Hey Lumo") use its name.
+- **Your team** (Settings → Characters) — give Gmail, WhaTicket, GitHub or any integration its own character; the same one twice gets a colour of its own. Each appears in the island's **character rail** with its own base and its own chat about what it handles: WhaTicket's shows today hour by hour, GitHub's your latest repositories. Only the main character has Chat and Code.
+- **Notch or free** — keep the characters in the notch, or let them float anywhere on the screen (all of them, or just the main one): drag one, click it and the island pops out under it; each reacts to its own clicks. They sit on top of the Settings window while it's open. Right-click for the menu.
+- **Drop a file** — the character catches it and reads it (Lumo holds it with two tentacles), then offers to answer questions about it.
 - **Smaller folded notch** — a status dot and a count instead of the grid.
 
 **Chat and Code**
 - **Two modes, one switch** — the segmented *Chat / Code* control in the island header (⌥⌘← / ⌥⌘→ on Mac, Ctrl+Alt+← / → on Windows and Linux). Each mode keeps its own conversation.
-- **Code** — Claude Code working in a folder you pick (recent folders and the folders of live sessions are offered). It reads and searches the project; with *Edits on* it changes files and runs commands, each one approved in the island.
+- **Code** — Claude Code working in a folder you pick, right in the island — no terminal: *Start* on the main base begins. Folders kept at hand are one click away, and Claude Code can read all of them. It reads and searches the project; with *Edits on* it changes files and runs commands, each one approved in the island.
+- **VPN** — a chip on the main base shows whether your VPN is on and turns it on or off: the VPNs the system knows (Proton VPN, WireGuard / NetworkManager on Linux, Windows VPN connections) and Cloudflare WARP. With none it points to Proton VPN's free plan.
 - **Chat with your Claude Code subscription** (no API key), or an Anthropic API key with streaming and clear errors. Model picker: Opus 5.5 by default.
   On Windows and Linux the chat can also use OpenAI, Gemini, OpenRouter, Ollama, LM Studio or any OpenAI-compatible server.
 - **Ask about the file you're editing** (⌃⌥M) in Chat — reads the project, never edits unless you turn on "Edits on"; every change is approved in the island.

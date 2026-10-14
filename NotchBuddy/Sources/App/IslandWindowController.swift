@@ -94,6 +94,7 @@ final class IslandWindowController: NSWindowController {
         container.autoresizingMask = [.width, .height]
 
         let hosting = NSHostingView(rootView: IslandRootView().environmentObject(AppState.shared))
+        hosting.sizingOptions = []   // the panel has a fixed size; SwiftUI must not resize it
         hosting.frame = NSRect(origin: .zero, size: contentSize)
         hosting.autoresizingMask = [.width, .height]
 
@@ -829,6 +830,7 @@ final class IslandWindowController: NSWindowController {
         let hosting = NSHostingView(
             rootView: GhostBotView(canvasSize: canvasSize)
         )
+        hosting.sizingOptions = []
         hosting.frame = NSRect(x: 0, y: 0, width: s, height: s)
         panel.contentView = hosting
         panel.alphaValue = 0
@@ -910,6 +912,7 @@ final class IslandWindowController: NSWindowController {
                     .padding(2)
                     .ignoresSafeArea()
             )
+            hosting.sizingOptions = []
             hosting.frame = CGRect(origin: .zero, size: appKitBounds.size)
             hosting.autoresizingMask = [.width, .height]
             panel.contentView = hosting
