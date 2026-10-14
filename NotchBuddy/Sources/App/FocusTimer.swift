@@ -1,7 +1,7 @@
 import Foundation
 import os
 
-// Focus timer (#119): work blocks led by Mochi.
+// Focus timer (#119): work blocks led by the character.
 // FocusTimerState is a pure value type with no clock and no timer (mirrors windows/src/core/focus.ts).
 // FocusTimer (below) owns the single one-shot Timer, which only exists while a phase is running,
 // and applies the Do not disturb writes a step asks for.
@@ -85,7 +85,7 @@ struct FocusTimerState: Sendable, Equatable {
         return max(0, (endsAt ?? now).timeIntervalSince(now))
     }
 
-    /// 0...1 elapsed, for the ring around Mochi.
+    /// 0...1 elapsed, for the ring around the character.
     func progress(at now: Date) -> Double {
         guard phase != .idle, duration > 0 else { return 0 }
         return min(1, max(0, (duration - remaining(at: now)) / duration))
@@ -314,7 +314,7 @@ final class FocusTimer {
         start(minutes: minutes, issue: issue)
     }
 
-    /// A focus command typed in the chat; returns Mochi's answer.
+    /// A focus command typed in the chat; returns the character's answer.
     func run(_ command: FocusCommand) -> String {
         let s = AppState.shared
         if s.focus.phase == .focus {

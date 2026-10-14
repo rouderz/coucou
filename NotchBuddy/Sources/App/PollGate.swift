@@ -119,6 +119,8 @@ final class PollGate: @unchecked Sendable {
         screenOff = off
         lock.unlock()
         guard changed else { return }
+        // Floating characters stop drawing while nobody can see them.
+        DispatchQueue.main.async { MainActor.assumeIsolated { AppState.shared.screenOff = off } }
         log.info("screen \(off ? "off" : "on", privacy: .public): polling \(off ? "paused" : "resumed", privacy: .public)")
         if !off { DispatchQueue.main.async { MainActor.assumeIsolated { self.catchUp() } } }
     }

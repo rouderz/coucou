@@ -122,6 +122,40 @@ pub fn arguments(model: &str, session: Option<&str>, in_project: bool) -> Vec<St
     args
 }
 
+/// Code mode (#152): Claude Code at work in the user's folder. It reads and searches the
+/// project; with edits on it also changes files and runs commands, and every one of those
+/// waits for the user's answer in the island (coucou-hook forwards the chat's PermissionRequests).
+pub fn code_arguments(model: &str, session: Option<&str>, edits: bool) -> Vec<String> {
+    let (tools, disallowed) = if edits {
+        ("WebSearch,WebFetch,Read,Grep,Glob,Edit,MultiEdit,Write,Bash", "NotebookEdit")
+    } else {
+        ("WebSearch,WebFetch,Read,Grep,Glob", "Edit,MultiEdit,Write,NotebookEdit,Bash")
+    };
+    let mut args: Vec<String> = [
+        "-p",
+        "--output-format", "stream-json", "--verbose",
+        "--model", model,
+        "--tools", tools,
+        "--allowedTools", "WebSearch,WebFetch,Read,Grep,Glob",
+        "--disallowedTools", disallowed,
+    ]
+    .iter()
+    .map(|s| s.to_string())
+    .collect();
+    // Edits: anything not allowed above waits for the island (unanswered = denied).
+    if edits {
+        args.extend(["--permission-mode", "default", "--permission-prompts", "none"].map(String::from));
+    } else {
+        args.extend(["--permission-mode", "dontAsk"].map(String::from));
+    }
+    args.extend(["--strict-mcp-config", "--append-system-prompt", SYSTEM_PROMPT].map(String::from));
+    if let Some(id) = session {
+        args.push("--resume".into());
+        args.push(id.into());
+    }
+    args
+}
+
 /// What the stream told us.
 #[derive(Default, Debug)]
 pub struct Outcome {
@@ -227,10 +261,67 @@ pub async fn send(
     }
     prompt.push_str(&query);
 
-    let mut cmd = tokio::process::Command::new(&program);
-    cmd.args(arguments(model, session.as_deref(), project.is_some()))
-        .current_dir(&dir)
-        // Coucou's own relay ignores this session: it is the chat, not your work.
+    let args = arguments(model, session.as_deref(), project.is_some());
+    run_turn(chat, &program, args, &dir, prompt).await
+}
+
+/// Code mode (#152): one turn of Claude Code at work in `folder`.
+pub async fn send_code(
+    chat: &ClaudeCodeChat,
+    model: &str,
+    query: String,
+    folder: String,
+    edits: bool,
+    at_hand: Vec<String>,
+) -> Result<ChatReply, String> {
+    let program = locate().ok_or_else(|| NOT_INSTALLED.to_string())?;
+    let dir = PathBuf::from(&folder);
+    if !dir.is_dir() {
+        return Err(format!("The folder {folder} isn't there any more. Pick another one."));
+    }
+    let session = chat.session.lock().unwrap().clone();
+    *chat.project.lock().unwrap() = Some(dir.clone());
+    let mut prompt = String::new();
+    if session.is_none() {
+        let name = dir.file_name().map(|n| n.to_string_lossy().to_string()).unwrap_or_else(|| folder.clone());
+        prompt.push_str(&format!(
+            "The user is coding in the project `{name}` (your working directory is its root). \
+             Explore it with Read, Grep and Glob as you need before answering.\n\n"
+        ));
+    }
+    if edits {
+        prompt.push_str(
+            "[You may change files in the project with Edit / Write and run commands with Bash. \
+             The user approves every change and every command before it happens.]\n\n",
+        );
+    }
+    prompt.push_str(&query);
+    let mut args = code_arguments(model, session.as_deref(), edits);
+    // The other folders kept at hand can be read too.
+    let extra: Vec<String> = at_hand
+        .into_iter()
+        .filter(|f| *f != folder && std::path::Path::new(f).is_dir())
+        .collect();
+    if !extra.is_empty() {
+        args.push("--add-dir".into());
+        args.extend(extra);
+    }
+    run_turn(chat, &program, args, &dir, prompt).await
+}
+
+/// Runs `claude` once with these arguments in `dir`, the prompt on stdin, and reads the answer.
+async fn run_turn(
+    chat: &ClaudeCodeChat,
+    program: &Path,
+    args: Vec<String>,
+    dir: &Path,
+    prompt: String,
+) -> Result<ChatReply, String> {
+    let mut cmd = tokio::process::Command::new(program);
+    cmd.args(args)
+        .current_dir(dir)
+        // Lumo's own relay ignores this session (it is the chat, not your work) except
+        // for its approvals, which come to the island (Code mode, #152).
         .env("COUCOU_INTERNAL", "1")
         .stdin(Stdio::piped())
         .stdout(Stdio::piped())
@@ -324,6 +415,20 @@ mod tests {
         assert_eq!(describe_failure("Invalid API key · Please run /login"), NOT_SIGNED_IN);
         assert_eq!(describe_failure("Claude Code 2.1 or newer is required"), OUTDATED);
         assert_eq!(describe_failure("boom"), "boom");
+    }
+
+    #[test]
+    fn code_mode_reads_and_with_edits_on_asks_for_the_rest() {
+        let read = code_arguments("m", None, false);
+        let tools = read.iter().position(|a| a == "--tools").map(|i| &read[i + 1]).unwrap();
+        assert_eq!(tools, "WebSearch,WebFetch,Read,Grep,Glob");
+        assert!(read.windows(2).any(|w| w[0] == "--permission-mode" && w[1] == "dontAsk"));
+        let edit = code_arguments("m", Some("s1"), true);
+        let tools = edit.iter().position(|a| a == "--tools").map(|i| &edit[i + 1]).unwrap();
+        assert!(tools.contains("Edit") && tools.contains("Bash"));
+        let allowed = edit.iter().position(|a| a == "--allowedTools").map(|i| &edit[i + 1]).unwrap();
+        assert!(!allowed.contains("Edit") && !allowed.contains("Bash"), "edits and commands are never pre-approved");
+        assert!(edit.windows(2).any(|w| w[0] == "--resume" && w[1] == "s1"));
     }
 
     #[test]

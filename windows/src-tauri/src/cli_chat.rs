@@ -3,7 +3,7 @@
 // page builds the conversation and reads the output (src/claude/chatEngines.ts).
 //
 // Like the Claude Code engine it never reads the CLI's credentials, runs in an empty
-// folder of Coucou's own (never a project), and sets COUCOU_INTERNAL=1 so the chat's
+// folder of Lumo's own (never a project), and sets COUCOU_INTERNAL=1 so the chat's
 // hooks never reach the island. Codex runs in its read-only sandbox; Gemini keeps its
 // default approval mode (no edit-capable mode is asked for).
 //
@@ -147,7 +147,7 @@ fn folder(engine: Engine) -> Result<PathBuf, String> {
     Ok(dir)
 }
 
-/// One turn: Mochi's instructions + the conversation on stdin, the CLI's output back.
+/// One turn: The character's instructions + the conversation on stdin, the CLI's output back.
 pub async fn run(engine: Engine, conversation: &str, model: &str) -> Result<CliRun, String> {
     if conversation.len() > MAX_PROMPT {
         return Err("The conversation is too long for this engine. Start a new chat.".into());

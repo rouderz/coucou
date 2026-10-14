@@ -1,5 +1,5 @@
 import XCTest
-@testable import Coucou
+@testable import Lumo
 
 /// CI pill logic (#115). Same cases as windows/src/core/ci.test.ts.
 final class CIStatusTests: XCTestCase {

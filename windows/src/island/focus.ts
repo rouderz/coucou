@@ -103,7 +103,7 @@ export const Focus = {
     if (f.phase === "break" || f.phase === "longBreak") apply(F.skip(f, Date.now(), current()));
     Focus.start(minutes, issue);
   },
-  /** A focus command typed in the chat; returns Mochi's answer (already translated). */
+  /** A focus command typed in the chat; returns the character's answer (already translated). */
   run(command: F.FocusCommand): string {
     if (State.focus.phase === "focus") {
       const left = F.formatRemaining(F.remainingMs(State.focus, Date.now()));

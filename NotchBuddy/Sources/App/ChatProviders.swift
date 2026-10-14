@@ -19,7 +19,7 @@ struct ChatCapabilities: OptionSet, Sendable {
     static let needsKey    = ChatCapabilities(rawValue: 1 << 3)
 }
 
-/// What every chat backend does for Mochi: one user turn in, the answer streamed back.
+/// What every chat backend does for the character: one user turn in, the answer streamed back.
 /// Adapters: ClaudeCodeChat (subscription), AnthropicAPIChat, OpenAICompatibleChat.
 @MainActor
 protocol ChatProvider: AnyObject {
@@ -147,7 +147,7 @@ final class OpenAICompatibleChat: ChatProvider {
         if let key { req.setValue("Bearer \(key)", forHTTPHeaderField: "Authorization") }
         if preset.id == "openrouter" {
             req.setValue("https://github.com/rouderz/coucou", forHTTPHeaderField: "HTTP-Referer")
-            req.setValue("Coucou", forHTTPHeaderField: "X-Title")
+            req.setValue("Lumo", forHTTPHeaderField: "X-Title")
         }
         req.httpBody = try JSONSerialization.data(withJSONObject: body)
 

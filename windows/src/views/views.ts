@@ -2,6 +2,10 @@
 // colours and wording are copied from the Swift views so both platforms read
 // identically.
 
+import { showMode } from "../core/codeMode";
+import { RAIL_VIEWS, baseTab, characterFor, characterName, characterTint, openCharacterChat, railShown, showsClaude } from "../core/characters";
+import { buildMainBase } from "./mainBase";
+import { PALETTES, tintedPalette } from "../mochi/critters";
 import { h, svg, clear, dot } from "./dom";
 import { ICONS } from "./icons";
 import { Ticker } from "./ticker";
@@ -41,6 +45,8 @@ export interface ViewActions {
   setAutoClose(seconds: number): void;
   openSettingsWindow(): void;
   blip(): void;
+  /** Character rail (design C): show that character's base (null: the main one). */
+  pickCharacter(taskId: string | null): void;
 }
 
 export interface ViewHost {
@@ -92,10 +98,89 @@ function stack(padLeft: number, padRight: number, ...children: Node[]): HTMLElem
 
 // ── Header ────────────────────────────────────────────────────────────────────
 
+/** Views that belong to the Chat side of the Chat / Code switch. */
+export const CHAT_VIEWS = new Set<IslandViewName>(["prompt", "searching", "result"]);
+/** Ctrl+Alt+← / → switch modes while the island has the keyboard (⌥⌘ on the Mac). */
+export const MODE_KEYS = { chat: "Ctrl+Alt+←", code: "Ctrl+Alt+→" };
+
 export function buildHeader(actions: ViewActions): ViewHost {
-  const tabHome = h("button", { class: "tab", title: "Overview", onclick: () => go("overview") }, svg(ICONS.house, 13));
-  const tabChat = h("button", { class: "tab", title: "Ask", onclick: () => go("prompt") }, svg(ICONS.bubble, 13));
+  // Chat / Code switch (#149): the conversation, or the Claude Code sessions.
+  // The house is the overview; the switch is Chat (anything) or Code (Claude Code in a folder, #152).
+  const tabHome = h("button", { class: "tab", title: "Overview", "aria-label": "Overview", onclick: () => go("overview") },
+    svg(ICONS.house, 13));
+  const tabChat = h("button", { class: "mode-seg", title: `Chat  ${MODE_KEYS.chat}`, "aria-label": "Chat",
+    onclick: () => void showMode("chat").then(() => go("prompt")) }, svg(ICONS.chats, 14, { stroke: 1.8 }));
+  const tabCode = h("button", { class: "mode-seg", title: `Code  ${MODE_KEYS.code}`, "aria-label": "Code",
+    onclick: () => void showMode("code").then(() => go("prompt")) }, svg(ICONS.code, 14, { stroke: 1.8 }));
   const tabDrop = h("button", { class: "tab", title: "Drop", onclick: () => go("upload") }, svg(ICONS.plus, 13));
+  const mainTabs = h("div", { class: "tabs" }, tabHome, h("div", { class: "mode-switch" }, tabChat, tabCode), tabDrop);
+
+  // An integration's own character (design C): its name, its integration, its base and its own
+  // chat about it — only the main character has Chat / Code.
+  const charName = h("span", { class: "char-name" });
+  const charTask = h("span", { class: "char-task" });
+  const charHome = h("button", { class: "mode-seg", title: "Home", "aria-label": "Home",
+    onclick: () => { actions.blip(); actions.pickCharacter(State.soloTaskId); } }, svg(ICONS.house, 13));
+  const charAsk = h("button", { class: "mode-seg", "aria-label": "Ask",
+    onclick: () => { actions.blip(); if (State.soloTaskId) void openCharacterChat(State.soloTaskId); } },
+    svg(ICONS.chats, 14, { stroke: 1.8 }));
+  const charTabs = h("div", { class: "tabs char-tabs" }, charName, charTask, h("div", { class: "mode-switch" }, charHome, charAsk));
+
+  // Design C's header, beside the rail: the character's name and what it handles, then labelled
+  // tabs — Home · Chat · Code for the main character, its base · Ask for an integration's.
+  const rhName = h("span", { class: "rh-name" });
+  const rhSub = h("span", { class: "rh-sub" });
+  const rhSeg = h("div", { class: "rh-seg" });
+  // Drop a file, the inbox, Do not disturb and sound, in a capsule matching the tabs.
+  const rhDrop = h("button", { class: "rh-icon", title: "Drop a file", "aria-label": "Drop a file", onclick: () => go("upload") },
+    svg(ICONS.plus, 12));
+  const rhInbox = h("button", { class: "rh-icon", title: "Inbox", "aria-label": "Inbox", onclick: () => go("inbox") },
+    svg(ICONS.bell, 12));
+  const rhDnd = h("button", {
+    class: "rh-icon", title: "Do not disturb", "aria-label": "Do not disturb",
+    onclick: () => (dndActive(State.settings.dndUntil) ? actions.setDnd(null) : go("settings")),
+  }, svg(ICONS.moon, 12));
+  const rhSound = h("button", { class: "rh-icon", title: "Mute", "aria-label": "Mute", onclick: () => actions.toggleSound() });
+  const rhIcons = h("div", { class: "rh-seg rh-icons" }, rhDrop, rhInbox, rhDnd, rhSound);
+  const railHead = h("div", { class: "rail-head" }, rhName, rhSub, h("span", { class: "rh-spacer" }), rhSeg, rhIcons);
+  let rhKey = "";
+  function labelled(icon: string, label: string, on: boolean, run: () => void): HTMLElement {
+    return h("button", { class: on ? "rh-tab on" : "rh-tab", "aria-label": label, onclick: () => { actions.blip(); run(); } },
+      svg(icon, 12, { stroke: 1.8 }), h("span", { text: label }));
+  }
+  function syncRailHead(v: IslandViewName) {
+    rhDrop.classList.toggle("on", v === "upload");
+    rhInbox.style.display = State.settings.inboxEnabled ? "" : "none";
+    rhInbox.classList.toggle("lit", State.inbox.length > 0);
+    rhDnd.classList.toggle("lit", dndActive(State.settings.dndUntil));
+    clear(rhSound);
+    rhSound.append(svg(State.settings.soundEnabled ? ICONS.speakerOn : ICONS.speakerOff, 12));
+    const solo = State.soloTaskId ? State.tasks.find((t) => t.id === State.soloTaskId) : undefined;
+    const critter = characterFor(solo?.id ?? null);
+    const tint = characterTint(solo?.id ?? null);
+    const top = (tint ? tintedPalette(critter, tint) : PALETTES[critter]).top;
+    rhName.textContent = characterName(solo?.id ?? null);
+    rhName.style.color = `rgb(${top.map((c) => Math.round(c * 255)).join(", ")})`;
+    rhSub.textContent = solo ? (solo.steps[0] ? `${solo.name} · ${solo.steps[0]}` : solo.name) : "Claude Code";
+    const inChat = CHAT_VIEWS.has(v);
+    const key = `${solo?.id ?? ""}|${v}|${State.chatMode}|${State.chatOwner ?? ""}`;
+    if (key === rhKey) return;
+    rhKey = key;
+    clear(rhSeg);
+    if (solo) {
+      rhSeg.append(
+        labelled(baseTab(solo.id) === "Mail" ? ICONS.envelope : ICONS.house, baseTab(solo.id), !inChat,
+          () => actions.pickCharacter(solo.id)),
+        labelled(ICONS.chats, "Ask", inChat && State.chatOwner === solo.id, () => void openCharacterChat(solo.id)),
+      );
+    } else {
+      rhSeg.append(
+        labelled(ICONS.house, "Home", v === "overview" || v === "empty", () => actions.pickCharacter(null)),
+        labelled(ICONS.chats, "Chat", inChat && State.chatMode === "chat", () => void showMode("chat").then(() => go("prompt"))),
+        labelled(ICONS.code, "Code", inChat && State.chatMode === "code", () => void showMode("code").then(() => go("prompt"))),
+      );
+    }
+  }
 
   const gearBtn = h("button", { title: "Settings", onclick: () => go("settings") }, svg(ICONS.gear, 14));
   // 🌙 Do not disturb: on → click turns it off; off → the choices (island settings).
@@ -106,7 +191,7 @@ export function buildHeader(actions: ViewActions): ViewHost {
   // 🔔 Inbox: GitHub / Linear notifications that need you.
   const inboxCount = h("span", { class: "badge-count" });
   const inboxBtn = h("button", { title: "Inbox", class: "inbox-btn", onclick: () => go("inbox") }, svg(ICONS.bell, 13), inboxCount);
-  // ⬇ A newer Coucou is out.
+  // ⬇ A newer Lumo is out.
   const updateBtn = h("button", {
     class: "update-btn",
     onclick: async () => {
@@ -150,7 +235,9 @@ export function buildHeader(actions: ViewActions): ViewHost {
   const el = h(
     "div",
     { id: "header" },
-    h("div", { class: "tabs" }, tabHome, tabChat, tabDrop),
+    mainTabs,
+    charTabs,
+    railHead,
     h("div", { class: "header-actions" }, updateBtn, focusBtn, inboxBtn, dndBtn, gearBtn, soundBtn),
   );
 
@@ -170,8 +257,28 @@ export function buildHeader(actions: ViewActions): ViewHost {
         ? "Focus: click to pause or resume (right-click for more)"
         : `Focus: start a ${f.config.focusMin}-min block (right-click for more)`;
       const v = State.view;
+      const rail = railShown();
+      el.classList.toggle("rail", rail);
+      if (rail) syncRailHead(v);
+      const solo = State.soloTaskId ? State.tasks.find((t) => t.id === State.soloTaskId) : undefined;
+      const charOn = !!solo && RAIL_VIEWS.has(v) && !rail;
+      mainTabs.style.display = charOn ? "none" : "";
+      charTabs.style.display = charOn ? "" : "none";
+      if (solo && charOn) {
+        const critter = characterFor(solo.id);
+        const tint = characterTint(solo.id);
+        const top = (tint ? tintedPalette(critter, tint) : PALETTES[critter]).top;
+        charName.textContent = characterName(solo.id);
+        charName.style.color = `rgb(${top.map((c) => Math.round(c * 255)).join(", ")})`;
+        charTask.textContent = solo.name;
+        const inChat = State.chatOwner === solo.id && CHAT_VIEWS.has(v);
+        charHome.classList.toggle("on", !inChat);
+        charAsk.classList.toggle("on", inChat);
+        charAsk.title = `Ask ${characterName(solo.id)}`;
+      }
       tabHome.classList.toggle("on", v === "overview" || v === "empty");
-      tabChat.classList.toggle("on", v === "prompt");
+      tabChat.classList.toggle("on", CHAT_VIEWS.has(v) && State.chatMode === "chat");
+      tabCode.classList.toggle("on", CHAT_VIEWS.has(v) && State.chatMode === "code");
       tabDrop.classList.toggle("on", v === "upload");
       gearBtn.classList.toggle("on", v === "settings");
       clear(gearBtn);
@@ -191,8 +298,8 @@ export function buildHeader(actions: ViewActions): ViewHost {
       updateBtn.classList.toggle("busy", !!u?.installing);
       updateBtn.title = !u ? ""
         : u.installing ? "Updating…"
-        : u.canInstall ? `Coucou ${u.latest} is out — install and restart`
-        : `Coucou ${u.latest} is out — download`;
+        : u.canInstall ? `Lumo ${u.latest} is out — install and restart`
+        : `Lumo ${u.latest} is out — download`;
     },
   };
 }
@@ -215,10 +322,10 @@ function buildOverview(actions: ViewActions): ViewHost {
   const pills = h("div", { class: "pills" });
   const right = card(null, pills);
 
-  const el = h("div", { class: "view overview" },
-    h("div", { class: "left" }, left),
-    h("div", { class: "right" }, right),
-  );
+  const mainBase = buildMainBase(actions);
+  const leftCol = h("div", { class: "left" }, left);
+  const rightCol = h("div", { class: "right" }, right);
+  const el = h("div", { class: "view overview" }, leftCol, rightCol, mainBase.el);
 
   let pillIds = "";
   let detailOpen = false;
@@ -254,6 +361,12 @@ function buildOverview(actions: ViewActions): ViewHost {
       syncFocusTimes(leftBody);
     },
     sync() {
+      // Design C: one thing, full width — the main character's base, or the integration picked.
+      const rail = railShown();
+      const base = rail && !State.soloTaskId && showsClaude();
+      el.classList.toggle("solo", rail || (State.soloTaskId != null && State.soloTaskId === State.focusId));
+      el.classList.toggle("base", base);
+      if (base) mainBase.sync();
       const task = State.focusTask;
       if (task?.id !== lastFocus) {
         lastFocus = task?.id ?? null;
@@ -301,7 +414,7 @@ function buildOverview(actions: ViewActions): ViewHost {
         const info = State.integrations[task.id];
         const key = [
           task.id, detailOpen, task.state, task.steps.join("|"),
-          task.id === "integration_claude" ? focusCardKey() : "",
+          task.id === "integration_claude" ? focusCardKey() : "", railShown(),
           info?.loaded, info?.error, info?.configured,
           JSON.stringify(info?.data ?? {}),
         ].join("~");
@@ -798,7 +911,7 @@ function buildQuestion(): ViewHost {
       const task = State.focusTask;
       title.textContent = task?.steps.at(-1) ?? "Claude needs an answer.";
       clear(row);
-      row.append(h("div", { class: "sub", text: "Answer in your terminal — Coucou can't reply for you yet." }));
+      row.append(h("div", { class: "sub", text: "Answer in your terminal — Lumo can't reply for you yet." }));
     },
   };
 }

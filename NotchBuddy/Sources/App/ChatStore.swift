@@ -1,7 +1,7 @@
 import Foundation
 import os
 
-/// One saved conversation with Mochi.
+/// One saved conversation with the character.
 struct SavedChat: Codable, Identifiable, Equatable {
     struct Message: Codable, Equatable {
         let user: Bool
@@ -20,7 +20,7 @@ struct SavedChat: Codable, Identifiable, Equatable {
     var contextLabel: String?
 }
 
-/// Mochi's chat history: kept in Application Support/NotchBuddy/chats.json, newest first.
+/// The character's chat history: kept in Application Support/NotchBuddy/chats.json, newest first.
 @MainActor
 final class ChatStore: ObservableObject {
     static let shared = ChatStore()
@@ -77,6 +77,9 @@ final class ChatStore: ObservableObject {
         state.currentChatID = chat.id
         state.chatHistory = chat.messages.map { ChatMessage(role: $0.user ? .user : .assistant, content: $0.text) }
         state.promptContext = chat.code.map { PromptContext.code($0) }
+        // A chat about a whole folder belongs to Code mode (#152).
+        state.chatMode = chat.code?.isFolder == true ? .code : .chat
+        if state.chatMode == .code { state.chatAllowEdits = true }
         AnthropicAPIChat.shared.restore(chat.messages)
         OpenAICompatibleChat.shared.restore(chat.messages)
         AgentCLIChat.codex.restore(chat.messages)
@@ -115,7 +118,7 @@ final class ChatStore: ObservableObject {
         }
     }
 
-    /// Only folders Coucou created for plain chats — never the user's project.
+    /// Only folders Lumo created for plain chats — never the user's project.
     private func removeWorkDir(of chat: SavedChat) {
         guard let dir = chat.workDir, dir.hasPrefix(Self.workDirsRoot.path + "/") else { return }
         try? FileManager.default.removeItem(atPath: dir)
@@ -141,7 +144,7 @@ final class ChatStore: ObservableObject {
     }
 }
 
-/// Starting a fresh conversation, in one place (new chat button, ⌃⌥M, Ask Mochi…).
+/// Starting a fresh conversation, in one place (new chat button, ⌃⌥M, Ask Lumo…).
 @MainActor
 enum ChatSession {
     static func startNew(_ state: AppState) {

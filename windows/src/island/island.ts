@@ -1,10 +1,11 @@
-// The island: DOM shell, sizing animation, Mochi placement, mouse handling.
+// The island: DOM shell, sizing animation, the character placement, mouse handling.
 // Mirrors IslandRootView.swift + IslandWindowController.swift.
 
+import { showMode } from "../core/codeMode";
 import { Tracked, Spring, clamp } from "../core/anim";
-import { Bridge, IS_TAURI, onDragDrop } from "../core/bridge";
+import { Bridge, IS_TAURI, onDragDrop, toBuddies } from "../core/bridge";
 import {
-  EXPANDED_CORNER, EXPANDED_W, NOTCH_W, PANEL_H, PANEL_W,
+  COMPACT_EAR, EXPANDED_CORNER, EXPANDED_W, NOTCH_W, PANEL_H, PANEL_W,
   ROUNDED_CORNER, VIEW_LAYOUTS, botGlowColor, botGlowOpacity, botPosition, chatPromptHeight,
   IDLE, IDLE_NOTCH_H, islandSize,
   type IslandMode, type IslandViewName,
@@ -15,7 +16,10 @@ import { BotEngine, hexToRGB, type EyeShape } from "../mochi/engine";
 import { progress as focusProgress } from "../core/focus.ts";
 import type { BotEmoteName } from "../core/layout";
 import { Greeting } from "../mochi/greeting";
-import { createMiniBot, pruneMiniBots, syncMiniBotStates, tickMiniBots } from "../mochi/minibots";
+import { buildRail, type Rail } from "../views/rail";
+import { RAIL_HEIGHT, characterTint, leaveCharacterChat, railShown, selectCharacter } from "../core/characters";
+import { setMiniCritter, syncMiniBotStates, tickMiniBots } from "../mochi/minibots";
+import { DEFAULT_CRITTER, assignments, isCritter, setCurrentCritter, tintFor, type CritterId } from "../mochi/critters";
 import { UploadCanvas } from "../upload/canvas";
 import { USC, UploadSeq } from "../upload/sequence";
 import { buildHeader, buildViews, type ViewActions, type ViewHost } from "../views/views";
@@ -35,6 +39,12 @@ const UPLOAD_VIEWS: ReadonlySet<IslandViewName> = new Set(["upload", "uploading"
 const PRE_PROGRESS = USC.T_PROG_START - USC.T_DROP;
 
 const modeOrder = (m: IslandMode) => (m === "hidden" ? 0 : m === "compact" ? 1 : 2);
+
+/** The folded island's status dot (#153), by state. */
+const COMPACT_COLORS: Record<string, string> = {
+  working: "#3B9EFF", thinking: "#A78BFA", searching: "#6366F1", approval: "#F5A524", question: "#F5A524",
+  error: "#F4505E", finished: "#34D399", ratelimit: "#F59E0B",
+};
 
 export class Island {
   readonly fsm = new IslandStateMachine();
@@ -85,7 +95,6 @@ export class Island {
   private botHoverStart = { x: 0, y: 0 };
 
   private confusedRecovery: number | null = null;
-  private prevViewBeforeConfused: IslandViewName = "overview";
   private lastSyncedView: IslandViewName | null = null;
 
   /** Drop sequence bookkeeping: last tick played, and whether the ✓ has fired. */
@@ -200,6 +209,7 @@ export class Island {
       },
       openSettingsWindow: () => void Bridge.openSettingsWindow(),
       blip: () => Sound.play("blip"),
+      pickCharacter: (id) => void this.pickCharacter(id),
     };
 
     this.wakeStrip = h("div", { id: "wake-strip" });
@@ -214,9 +224,18 @@ export class Island {
     this.views = buildViews(actions, () => this.animateGeometry(false));
     this.viewsEl = h("div", { id: "views" });
     for (const v of this.views.values()) this.viewsEl.append(v.el);
-    this.contentEl = h("div", { id: "content" }, this.header.el, this.viewsEl);
+    // Design C: The characters on the left of the views, once integrations have their own.
+    this.rail = buildRail((id) => {
+      Sound.play("blip");
+      void this.pickCharacter(id);
+    }, {
+      settings: () => actions.openSettingsWindow(),
+    });
+    // Design C: The characters run down the left, the header and the views sit beside them.
+    this.contentEl = h("div", { id: "content" }, this.rail.el,
+      h("div", { id: "content-col" }, this.header.el, this.viewsEl));
 
-    // The drop sequence draws the card, the bar and its own Mochi. It sits under
+    // The drop sequence draws the card, the bar and its own the character. It sits under
     // the header, which stays visible on top of it exactly as on macOS.
     this.uploadCanvas = new UploadCanvas({
       ask: () => {
@@ -308,7 +327,25 @@ export class Island {
       UploadSeq.deactivate();
     }
     this.updateWindowCollapsed();
-    this.animateGeometry(modeOrder(mode) < modeOrder(prev));
+    if (State.settings.placement === "free" && mode === "expanded") {
+      // Free placement: straight to its size, then a soft pop from under the character instead
+      // of growing out of a notch that isn't there.
+      const { w, h, r } = this.targetSize();
+      this.width.jump(w);
+      this.height.jump(h);
+      this.radius.jump(r);
+      this.islandEl.classList.remove("pop", "unpop");
+      void this.islandEl.offsetWidth;
+      this.islandEl.classList.add("pop");
+      this.ensureRunning();
+    } else {
+      if (State.settings.placement === "free" && prev === "expanded") {
+        // Folds back into the character instead of shrinking into a notch that isn't there.
+        this.islandEl.classList.remove("pop");
+        this.islandEl.classList.add("unpop");
+      }
+      this.animateGeometry(modeOrder(mode) < modeOrder(prev));
+    }
     State.notify();
   }
 
@@ -395,7 +432,8 @@ export class Island {
       case "over": {
         if (State.fileDragOver) return;
         State.fileDragOver = true;
-        this.engine.animateMorph(1);
+        // The character stays itself (no box): it just perks up at the file.
+        this.engine.triggerEmote("surprised");
         // enterZone must run before the island expands, so the sequence is
         // already active by the time the view becomes `upload`.
         UploadSeq.enterZone(State.mouseInIsland.x, State.mouseInIsland.y);
@@ -426,7 +464,7 @@ export class Island {
   }
 
   /**
-   * Mochi eats the file. Nothing here waits on the file system: the copy into
+   * The character eats the file. Nothing here waits on the file system: the copy into
    * the inbox runs in the background and swaps the path in when it lands, so a
    * slow disk can never stall the animation — same as FileDropHandler on macOS.
    */
@@ -467,7 +505,7 @@ export class Island {
 
   /**
    * Sounds and view changes hung off the canvas timeline: a `tick` every 10 %,
-   * the ✓ chime when the bar completes, then `choose` once Mochi has grown back.
+   * the ✓ chime when the bar completes, then `choose` once the character has grown back.
    */
   private stepSequence() {
     const since = UploadSeq.sinceDrop();
@@ -495,7 +533,10 @@ export class Island {
   // ── Geometry ────────────────────────────────────────────────────────────────
 
   private targetSize(): { w: number; h: number; r: number } {
-    const { w, h } = islandSize(State.mode, State.view, State.chatHistory.length);
+    const size = islandSize(State.mode, State.view, State.chatHistory.length);
+    const { w } = size;
+    // Design C: The character rail and the main character's base need a little more room.
+    const h = railShown() && State.view !== "prompt" ? Math.max(size.h, RAIL_HEIGHT) : size.h;
     const r = State.mode === "expanded" ? EXPANDED_CORNER : ROUNDED_CORNER;
     return { w, h, r };
   }
@@ -520,12 +561,14 @@ export class Island {
     const r = this.radius.value;
     this.islandEl.style.width = `${w}px`;
     this.islandEl.style.height = `${hh}px`;
-    this.islandEl.style.borderRadius = `0 0 ${r}px ${r}px`;
+    // Free placement: a bubble under the floating character, rounded all round.
+    const top = State.settings.placement === "free" && State.mode === "expanded" ? r : 0;
+    this.islandEl.style.borderRadius = `${top}px ${top}px ${r}px ${r}px`;
     this.islandEl.style.transform = `translateX(-50%)`;
     // These follow the island as it resizes, so they belong here rather than in
     // the state-driven DOM sync.
-    this.miniGrid.style.left = `${w - 40 - 14.5}px`;
-    this.miniGrid.style.top = `${hh / 2 - 14.5}px`;
+    this.miniGrid.style.left = `${w - COMPACT_EAR / 2 - 17}px`;
+    this.miniGrid.style.top = `${hh / 2 - 8}px`;
     this.greetingCanvas.style.left = `${(w - EXPANDED_W) / 2}px`;
     this.uploadCanvas.el.style.left = `${(w - EXPANDED_W) / 2}px`;
 
@@ -546,18 +589,25 @@ export class Island {
 
   // ── Window collapse (hidden → tiny wake strip, zero polling) ────────────────
 
+  /** Free placement: the island only exists while open, next to the floating character. */
+  private get folded(): boolean {
+    return State.mode === "hidden" || (State.settings.placement === "free" && State.mode !== "expanded");
+  }
+
   private updateWindowCollapsed() {
     if (this.collapseTimer != null) {
       window.clearTimeout(this.collapseTimer);
       this.collapseTimer = null;
     }
-    if (State.mode === "hidden") {
+    if (this.folded) {
       // Let the island finish retracting, then drop the window to the wake strip:
       // from there the OS delivers no cursor events, so nothing polls at all.
       this.collapseTimer = window.setTimeout(() => {
         this.collapseTimer = null;
-        if (State.mode !== "hidden") return;
+        if (!this.folded) return;
         this.collapsed = true;
+        this.activeBuddy = "main";   // the next alert opens on the main character
+        State.soloTaskId = null;
         void Bridge.setCollapsed(true);
       }, 420);
     } else if (this.collapsed) {
@@ -591,6 +641,12 @@ export class Island {
 
     window.addEventListener("keydown", (e) => {
       if (e.key === "Escape" && State.mode === "expanded" && !State.isPinned) this.collapse();
+      // Chat / Code (#149): Ctrl+Alt+← / →.
+      if (e.ctrlKey && e.altKey && !e.shiftKey && !e.metaKey && State.mode === "expanded"
+        && (e.key === "ArrowLeft" || e.key === "ArrowRight")) {
+        e.preventDefault();
+        void showMode(e.key === "ArrowLeft" ? "chat" : "code").then(() => this.setView("prompt"));
+      }
       State.lastActivity = performance.now();
     });
 
@@ -659,6 +715,8 @@ export class Island {
   }
 
   private isBotHit(x: number, y: number): boolean {
+    // The big character isn't drawn there: the rail (or the floating one) is.
+    if (railShown() || (State.settings.placement === "free" && (State.view === "overview" || State.view === "empty"))) return false;
     const rect = this.islandRect();
     const cx = rect.x + this.botCx.value;
     const cy = rect.y + this.botCy.value;
@@ -693,24 +751,20 @@ export class Island {
     this.engine.tgEs = 1;
   }
 
-  /** Three slaps → dizzy + confused view for 3.3 s, then back. */
+  /** Too many pokes: The character gets dizzy for a moment, right where it is — no separate
+   *  "confused" screen taking over the island. */
   private handleDizzy() {
-    this.prevViewBeforeConfused = State.view;
     State.stateOverride = "dizzy";
     this.engine.setState("dizzy");
     Sound.play("dizzy");
-    this.alert("confused");
     if (this.confusedRecovery != null) window.clearTimeout(this.confusedRecovery);
     this.confusedRecovery = window.setTimeout(() => {
       this.confusedRecovery = null;
-      State.stateOverride = null;
+      if (State.stateOverride === "dizzy") State.stateOverride = null;
       this.engine.setState(State.effectiveState);
-      if (State.view === "confused") {
-        const fallback = State.defaultView();
-        this.setView(this.prevViewBeforeConfused === "confused" ? fallback : this.prevViewBeforeConfused);
-      }
       this.engine.triggerEmote("happy");
-    }, 3300);
+      State.notify();
+    }, 2200);
   }
 
   // ── Frame loop ──────────────────────────────────────────────────────────────
@@ -750,7 +804,7 @@ export class Island {
         this.greeting.draw(gctx);
       }
     } else {
-      // Kept running even while the drop canvas is up, so the island's own Mochi
+      // Kept running even while the drop canvas is up, so the island's own the character
       // is already in the right place the moment the canvas fades out.
       this.drawBot(dt);
     }
@@ -761,6 +815,7 @@ export class Island {
     this.viewsEl.classList.toggle("hidden-by-upload", uploadActive);
 
     tickMiniBots(dt);
+    if (railShown()) this.rail.tick(dt);
     this.header.tick?.(nowMs);
     this.views.get(State.view)?.tick?.(nowMs);
     if (UploadSeq.isActive) this.stepSequence();
@@ -795,8 +850,13 @@ export class Island {
     this.botSize.target = p.diameter / 0.6;
 
     const greetingActive = State.mode === "expanded" && State.view === "greeting";
-    // The drop canvas draws its own Mochi; two of them would overlap.
-    const visible = p.opacity > 0 && !greetingActive && !this.uploadActive;
+    // The drop canvas draws its own the character; two of them would overlap.
+    // Free placement: the floating character sits on top of the island, so the overview
+    // doesn't draw it a second time (alerts still do, with their expressions).
+    // With the character rail, the characters are drawn there instead.
+    const botAbove = (State.settings.placement === "free" && (State.view === "overview" || State.view === "empty"))
+      || railShown();
+    const visible = p.opacity > 0 && !greetingActive && !this.uploadActive && !botAbove;
     this.botCanvas.style.opacity = visible ? "1" : "0";
 
     if (State.mode === "expanded" && State.view !== "uploading" && !greetingActive && !this.uploadActive) {
@@ -856,8 +916,8 @@ export class Island {
   }
 
   /**
-   * Focus timer (#119): what's left of the block as a thin ring around Mochi,
-   * shrinking clockwise. Drawn with Mochi, so only while the island is showing.
+   * Focus timer (#119): what's left of the block as a thin ring around the character,
+   * shrinking clockwise. Drawn with the character, so only while the island is showing.
    */
   private drawFocusRing(ctx: CanvasRenderingContext2D, w: number) {
     const f = State.focus;
@@ -881,7 +941,7 @@ export class Island {
     ctx.restore();
   }
 
-  /** During a block Mochi looks concentrated (flat eyes) while nothing else is going on. */
+  /** During a block the character looks concentrated (flat eyes) while nothing else is going on. */
   private applyFocusLook() {
     const f = State.focus;
     const on = f.phase === "focus" && !f.paused && State.effectiveState === "idle";
@@ -930,6 +990,9 @@ export class Island {
     this.contentEl.style.pointerEvents = expanded && !greetingActive ? "auto" : "none";
     this.greetingCanvas.style.display = greetingActive ? "block" : "none";
 
+    const rail = railShown();
+    document.documentElement.classList.toggle("rail-on", rail);
+    if (rail) this.rail.sync(this.engine.state);
     this.header.sync();
     for (const [name, view] of this.views) {
       const on = name === State.view;
@@ -949,24 +1012,29 @@ export class Island {
       }
     }
 
-    // Compact mini grid
+    // Folded island, right ear (#153): a dot in the colour of what's going on (breathing while
+    // something works) and how many other tasks are busy or need you.
     const showGrid = State.mode === "compact";
     this.miniGrid.style.opacity = showGrid ? "1" : "0";
     if (showGrid) {
-      const others = State.visiblePills;
-      const key = others.map((t) => t.id).join("|");
+      const s = State.effectiveState;
+      const others = State.tasks.filter((t) => t.id !== State.focusId
+        && (t.pillBadge || (t.state !== "idle" && t.state !== "sleeping"))).length;
+      const key = `${s}|${others}`;
       if (this.miniGrid.dataset.key !== key) {
         this.miniGrid.dataset.key = key;
-        this.miniGrid.replaceChildren();
-        for (const t of others) {
-          this.miniGrid.append(createMiniBot(t, 13));
-        }
-        pruneMiniBots();
+        const dot = h("span", { class: "cs-dot" });
+        dot.style.setProperty("--c", COMPACT_COLORS[s] ?? "#6B7079");
+        dot.classList.toggle("busy", s === "working" || s === "thinking" || s === "searching");
+        this.miniGrid.replaceChildren(dot, ...(others > 0 ? [h("span", { class: "cs-count", text: String(Math.min(others, 9)) })] : []));
       }
     }
 
     syncMiniBotStates(State.tasks);
     this.engine.setState(State.effectiveState);
+    this.engine.critter = this.focusCritter(this.mainCritter);
+    this.engine.userTint = this.focusTint();
+    this.pushBuddyState();
     this.applyFocusLook();
   }
 
@@ -977,14 +1045,91 @@ export class Island {
     window.setTimeout(() => this.views.get(view)?.focus?.(), 120);
   }
 
+  /** The floating character the open island belongs to ("main" or an integration id). */
+  private activeBuddy = "main";
+  private rail!: Rail;
+
+  /** Character rail (design C): that character's base; in free placement it's also the one the
+   *  island now belongs to. */
+  private async pickCharacter(id: string | null) {
+    if (State.chatOwner && State.chatOwner !== id) await leaveCharacterChat();
+    selectCharacter(id);
+    this.activeBuddy = id ?? "main";
+    this.setView(State.tasks.length ? "overview" : "empty");
+    State.notify();
+  }
+
+  /** Free placement: a click on a floating character opens the island on its task, sitting
+   *  on it; a click on the one the island belongs to folds it. */
+  toggleFromBuddy(key: string) {
+    Sound.resume();
+    if (State.mode === "expanded" && this.activeBuddy === key) {
+      this.collapse();
+      return;
+    }
+    this.activeBuddy = key;
+    const id = key === "main" ? null : key;
+    if (State.chatOwner && State.chatOwner !== id) void leaveCharacterChat().then(() => State.notify());
+    selectCharacter(id);
+    if (State.mode === "expanded") this.setView("overview");
+    else this.fsm.forceHome();
+    State.notify();
+  }
+
+  private mainCritter: CritterId = DEFAULT_CRITTER;
+  private lastBuddyStates = "";
+  /** Keeps the floating characters in step: the main one shows the focused task unless that
+   *  one has its own character, the others show their integration (#151). */
+  private pushBuddyState(force = false) {
+    if (State.settings.placement !== "free") return;
+    const own = assignments(State.settings.critterAssignments);
+    const focus = State.focusTask;
+    const states: Record<string, string> = {
+      main: focus && !own[focus.id] ? this.engine.state : State.tasks.find((t) => !own[t.id])?.state ?? "idle",
+    };
+    for (const t of State.tasks) if (own[t.id]) states[t.id] = t.state;
+    const json = JSON.stringify(states);
+    if (json === this.lastBuddyStates && !force) return;
+    this.lastBuddyStates = json;
+    toBuddies(states);
+  }
+
+  /** The user's colour for the focused task's own character (#156), if any. */
+  private focusTint(): string | null {
+    const id = State.focusTask?.id;
+    if (!id || !assignments(State.settings.critterAssignments)[id]) return null;
+    return characterTint(id);
+  }
+
+  /** The character in charge of the focused task (its own, or the main one). */
+  private focusCritter(main: CritterId): CritterId {
+    const id = State.focusTask?.id;
+    return (id && assignments(State.settings.critterAssignments)[id]) || main;
+  }
+
   /** Applies settings coming from Rust at boot. */
   applySettings() {
-    // The notch left on screen when hidden, and a wake strip that covers it.
-    IDLE.notch = State.settings.idleNotch !== false;
+    const critter = isCritter(State.settings.critter) ? State.settings.critter : DEFAULT_CRITTER;
+    this.mainCritter = critter;
+    this.engine.critter = this.focusCritter(critter);
+    this.engine.userTint = this.focusTint();
+    setCurrentCritter(critter);
+    const own = assignments(State.settings.critterAssignments);
+    const tints: Record<string, string> = {};
+    for (const id of Object.keys(own)) {
+      const t = tintFor(id, own, State.settings.critterColors, critter);
+      if (t) tints[id] = t;
+    }
+    setMiniCritter(critter, own, tints);
+    // The notch left on screen when hidden, and a wake strip that covers it (none in free placement).
+    IDLE.notch = State.settings.idleNotch !== false && State.settings.placement !== "free";
+    document.documentElement.classList.toggle("free-placement", State.settings.placement === "free");
     this.wakeStrip.style.height = `${IDLE.notch ? IDLE_NOTCH_H + 2 : 6}px`;
     Sound.setEnabled(State.settings.soundEnabled);
     Sound.setVolume(State.settings.soundVolume);
     this.fsm.homeToPetitDelay = State.settings.autoCloseInterval;
+    this.updateWindowCollapsed();
+    this.pushBuddyState(true);
     State.notify();
   }
 

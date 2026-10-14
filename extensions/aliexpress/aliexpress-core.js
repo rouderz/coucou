@@ -1,4 +1,4 @@
-// Coucou for AliExpress — the pure part, shared by the content script (aliexpress.js), the
+// Lumo for AliExpress — the pure part, shared by the content script (aliexpress.js), the
 // background worker (background.js) and the tests (aliexpress.test.js).
 //
 // AliExpress splits one checkout into one order per store, then often ships several orders in a
@@ -272,7 +272,7 @@
     return rows.join("\r\n") + "\r\n";
   }
 
-  /** What Coucou shows (no product titles needed there, only counts and totals). */
+  /** What Lumo shows (no product titles needed there, only counts and totals). */
   function summary(packages, orders) {
     return packages.map((p) => {
       const inv = invoiceOf(p, orders);
@@ -331,7 +331,7 @@
   }
 
   /**
-   * The invoice as PDF bytes (a Uint8Array). `buyer` is the user's own details from Coucou's
+   * The invoice as PDF bytes (a Uint8Array). `buyer` is the user's own details from Lumo's
    * settings: { name, id, address, email, phone }. `images` maps a line's picture address to a small
    * JPEG { w, h, data } (data: a binary string), made by the background worker; lines without one
    * get a plain placeholder. `labels` lets the caller translate.
@@ -537,5 +537,5 @@
 
   const api = { priceQty, amount, orderIdFrom, isoDate, dateTime, shortTitle, imageUrl, priceBlock, mergeOrder, pendingFetches, packagesOf, invoiceOf, invoiceNumber, csv, summary, invoicePdf, pdfText, wrap };
   if (typeof module !== "undefined") module.exports = api;
-  root.CoucouAli = api;
+  root.LumoAli = api;
 })(typeof self !== "undefined" ? self : globalThis);

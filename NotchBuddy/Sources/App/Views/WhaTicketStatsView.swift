@@ -92,7 +92,7 @@ struct WhaTicketStatsView: View {
                 stat(L("Average wait"), WhaTicketStats.duration(s.averageWait))
                 stat(L("Median wait"), WhaTicketStats.duration(s.medianWait))
             }
-            Text(verbatim: L("From Coucou \(s.click) · Auto-accepted \(s.auto) · Elsewhere \(s.web)"))
+            Text(verbatim: L("From Lumo \(s.click) · Auto-accepted \(s.auto) · Elsewhere \(s.web)"))
                 .font(.system(size: 11)).foregroundColor(.secondary)
             if s.backlog > 0 {
                 Text(verbatim: L("\(s.backlog) were already waiting when the tab opened (not in the per-hour chart or the waits)."))

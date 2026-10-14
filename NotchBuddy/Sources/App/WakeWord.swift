@@ -5,12 +5,12 @@ import IOKit.ps
 import Speech
 import os
 
-/// "Hey Mochi" (#61): optional hands-free start, fully on-device.
+/// "Hey Lumo" (#61): optional hands-free start, fully on-device.
 ///
 /// While enabled it listens with on-device speech recognition only (never the network; Macs that
 /// can't do it on-device don't get the feature). It pauses in Do not disturb, with the screen
-/// locked, on battery (optional), while push-to-talk is in use and while Mochi is speaking.
-/// "Hey Mochi, <question>" sends the question after ~1.5 s of silence; "Hey Mochi" alone opens
+/// locked, on battery (optional), while push-to-talk is in use and while the character is speaking.
+/// "Hey Lumo, <question>" sends the question after ~1.5 s of silence; "Hey Lumo" alone opens
 /// the chat listening.
 ///
 /// Cost (#112): the microphone tap only measures the level of each buffer. The speech recognizer
@@ -38,7 +38,11 @@ final class WakeWord {
     private var started = false
     private let log = Logger(subsystem: "fr.louisraille.NotchBuddy", category: "voice")
 
-    static let phrases = ["hey mochi", "hey, mochi", "oye mochi", "oye, mochi", "hola mochi", "ey mochi", "hi mochi"]
+    /// "Hey <name>" in the languages people use with it, for the character picked in Settings.
+    static var phrases: [String] {
+        let name = Critter.stored.displayName.lowercased()
+        return ["hey", "hey,", "oye", "oye,", "hola", "ey", "hi"].map { "\($0) \(name)" }
+    }
     /// Only the newest words of a partial result are searched for the wake phrase.
     private static let matchWindow = 80
 

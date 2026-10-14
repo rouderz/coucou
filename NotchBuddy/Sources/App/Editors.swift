@@ -1,6 +1,6 @@
 import AppKit
 
-/// Code editors / IDEs Coucou can open a Claude Code project in.
+/// Code editors / IDEs Lumo can open a Claude Code project in.
 struct Editor: Identifiable, Hashable, Sendable {
     let id: String
     let name: String

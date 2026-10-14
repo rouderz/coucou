@@ -61,7 +61,9 @@ export const PANEL_H = 320;
 // No notch on a PC: these are the hidden/compact sizes from docs/SPEC.md.
 export const NOTCH_W = 184;
 export const NOTCH_H = 32;
-export const COMPACT_W = 288; // NOTCH_W + 104
+/** Width of each ear of the folded island, beside the notch (#153). */
+export const COMPACT_EAR = 40;
+export const COMPACT_W = NOTCH_W + COMPACT_EAR * 2;
 export const EXPANDED_W = 640;
 
 export const ROUNDED_CORNER = 14; // hidden / compact
@@ -108,7 +110,7 @@ export const VIEW_LAYOUTS: Record<IslandViewName, ViewLayout> = {
 };
 
 // The upload views above are only the fallback geometry. Once a file is actually
-// dropped the whole sequence — Mochi included — is drawn by src/upload, which
+// dropped the whole sequence — The character included — is drawn by src/upload, which
 // owns its own constants (USC) straight from UploadSequenceEngine.swift.
 
 /** Chat view grows with the conversation — IslandContainer.chatPromptHeight. */
@@ -124,7 +126,7 @@ export function islandSize(
   switch (mode) {
     case "hidden":
       // No notch to hide inside on a PC. By default a small notch stays at the
-      // top centre, like the Mac's, so Coucou never seems gone; without it the
+      // top centre, like the Mac's, so Lumo never seems gone; without it the
       // island retracts into the top edge and only the wake strip remains.
       return IDLE.notch ? { w: IDLE_NOTCH_W, h: IDLE_NOTCH_H } : { w: NOTCH_W, h: 0 };
     case "compact":
@@ -154,7 +156,7 @@ export function botPosition(
     case "hidden":
       return { cx: 46, cy: 16, diameter: 6, opacity: 0 };
     case "compact":
-      return { cx: 40, cy: 16, diameter: 20, opacity: 1 };
+      return { cx: COMPACT_EAR / 2, cy: 16, diameter: 18, opacity: 1 };
     case "expanded": {
       const layout = VIEW_LAYOUTS[view];
       if (view === "uploading") {

@@ -57,6 +57,8 @@ final class AppState: ObservableObject {
     // Real notch dimensions (set by IslandWindowController on launch)
     var notchWidth:  CGFloat = IslandConst.notchWidth
     var notchHeight: CGFloat = IslandConst.notchHeight
+    /// Width of the monitor the island is on (for the character's eyes).
+    var islandScreenWidth: CGFloat = NSScreen.main?.frame.width ?? 1440
 
     // Last app active before NotchBuddy (for window context capture)
     var lastExternalApp: NSRunningApplication? = nil
@@ -71,7 +73,7 @@ final class AppState: ObservableObject {
         didSet { UserDefaults.standard.set(preferredEditor, forKey: "preferredEditor") }
     }
 
-    // Mochi's chat may edit the attached project (each change approved in the island).
+    // The character's chat may edit the attached project (each change approved in the island).
     // Per conversation: reset when a new chat starts.
     @Published var chatAllowEdits: Bool = false
     /// A skill picked with "/" in the chat; its SKILL.md goes with the next question.
@@ -126,7 +128,7 @@ final class AppState: ObservableObject {
         if case .cli(let login) = githubConnection { return login }
         return nil
     }
-    // Pointer over the island — published on enter/leave only; drives Mochi's frame rate
+    // Pointer over the island — published on enter/leave only; drives the character's frame rate
     @Published var pointerInIsland: Bool = false
     var lastMouseMove: Date = .now
     var lastActivity: Date = .now
@@ -230,7 +232,7 @@ final class AppState: ObservableObject {
         didSet { UserDefaults.standard.set(greetThresholdSeconds, forKey: "greetThreshold") }
     }
 
-    // Hotkey to ask Mochi about the file open in the editor (default ⌃⌥M).
+    // Hotkey to ask the character about the file open in the editor (default ⌃⌥M).
     // Global monitors can't swallow keys, so the default is a combo editors don't use.
     @Published var assistantHotkeyEnabled: Bool = true {
         didSet {
@@ -284,7 +286,7 @@ final class AppState: ObservableObject {
         }
     }
 
-    // Push-to-talk: hold the shortcut (default ⌃⌥V), speak, let go → Mochi answers.
+    // Push-to-talk: hold the shortcut (default ⌃⌥V), speak, let go → the character answers.
     @Published var voiceEnabled: Bool = true {
         didSet {
             UserDefaults.standard.set(voiceEnabled, forKey: "voiceEnabled")
@@ -304,6 +306,51 @@ final class AppState: ObservableObject {
         }
     }
     /// Theme: "dark" (the original look), "light", "system" or a palette id (Theme.swift).
+    /// Free placement (FreeBuddy.swift): the island opens as a bubble under the floating character.
+    @Published var freePlacement: Bool = IslandPlacement.isFree
+
+    /// The character drawn in the island (Settings → General → Character).
+    @Published var critter: Critter = .fallback {
+        didSet { UserDefaults.standard.set(critter.rawValue, forKey: Critter.storageKey) }
+    }
+    /// Who handles what (#151): integration task id → character. Missing = the main character.
+    /// In free placement each assigned integration gets its own floating character.
+    @Published var critterAssignments: [String: Critter] = [:] {
+        didSet {
+            UserDefaults.standard.set(critterAssignments.mapValues(\.rawValue), forKey: "critterAssignments")
+        }
+    }
+
+    /// A colour per integration for its character (#156): task id → hex. Missing = its own colours.
+    @Published var critterColors: [String: String] = [:] {
+        didSet { UserDefaults.standard.set(critterColors, forKey: "critterColors") }
+    }
+
+    /// The colour of the character in charge of a task: the user's, else one of its own when the
+    /// same character also handles something else, so the two are told apart.
+    func critterTint(for taskID: String?) -> CGColor? {
+        guard let id = taskID else { return nil }
+        return (critterColors[id] ?? Critter.autoTint(for: id, assigned: critterAssignments, main: critter))
+            .flatMap(cgColorFromHex)
+    }
+
+    /// The character in charge of a task: its own if it has one, else the main character.
+    func critter(for taskID: String?) -> Critter {
+        taskID.flatMap { critterAssignments[$0] } ?? critter
+    }
+
+    /// Integrations on screen that have their own character, in pill order.
+    var assignedTaskIDs: [String] {
+        tasks.filter { $0.isIntegration && $0.id != "integration_claude" && critterAssignments[$0.id] != nil }
+            .map(\.id)
+    }
+
+    /// What the main floating character shows: the focused task unless it has its own character
+    /// (then the first task that doesn't).
+    var mainBuddyState: BotState {
+        if let f = focusTask, critterAssignments[f.id] == nil { return effectiveState }
+        return stateOverride ?? tasks.first { critterAssignments[$0.id] == nil }?.state ?? .idle
+    }
     @Published var theme: String = "dark" {
         didSet {
             UserDefaults.standard.set(theme, forKey: "theme")
@@ -337,7 +384,7 @@ final class AppState: ObservableObject {
     @Published var voiceSpeakReplies: Bool = true {
         didSet { UserDefaults.standard.set(voiceSpeakReplies, forKey: "voiceSpeakReplies") }
     }
-    // "Hey Mochi" (#61): off by default; only on AC power unless changed
+    // "Hey Lumo" (#61): off by default; only on AC power unless changed
     @Published var wakeWordEnabled: Bool = false {
         didSet {
             UserDefaults.standard.set(wakeWordEnabled, forKey: "wakeWordEnabled")
@@ -412,8 +459,47 @@ final class AppState: ObservableObject {
     }
 
     /// The pills the island shows next to the focused one: up to 4, rotating through the rest.
+    /// Free placement, the island opened from an integration's own character (#155): it shows
+    /// just that integration, full width, without the pills of the others.
+    @Published var soloTaskID: String? = nil
+
+    /// Tasks with their own character live in the character rail (or float on their own in free
+    /// placement): they don't need a pill.
+    private var pillTasks: [AgentTask] {
+        tasks.filter { critterAssignments[$0.id] == nil }
+    }
+
+    /// The character rail at the island's left (CharacterRail.swift): shown on the overview and in
+    /// the chat once at least one integration has its own character.
+    var railShown: Bool {
+        mode == .expanded && railWanted(for: view)
+    }
+
+    /// The rail belongs on this view (whatever the island is doing right now).
+    func railWanted(for view: IslandView) -> Bool {
+        CharacterRail.views.contains(view) && !assignedTaskIDs.isEmpty
+    }
+
+    /// Picks whose island this is: the main character (nil) or the integration with its own
+    /// character. The main one comes back to the first task without a character of its own.
+    func selectCharacter(_ taskID: String?) {
+        if let taskID {
+            soloTaskID = taskID
+            setFocus(taskID)
+        } else {
+            soloTaskID = nil
+            // With the rail, the main character's base is Claude Code.
+            if !assignedTaskIDs.isEmpty, let claude = tasks.first(where: { $0.id == "integration_claude" }) {
+                setFocus(claude.id)
+                return
+            }
+            if let f = focusId, critterAssignments[f] == nil { return }
+            if let id = tasks.first(where: { critterAssignments[$0.id] == nil })?.id { setFocus(id) }
+        }
+    }
+
     var visiblePills: [AgentTask] {
-        let others = tasks.filter { $0.id != focusId }
+        let others = pillTasks.filter { $0.id != focusId }
         let news = Set(others.filter { $0.pillBadge != nil }.map(\.id))
         let ids = PillRotation.visible(ids: others.map(\.id), pinned: pinnedPills, news: news, offset: pillRotationOffset)
         return others.filter { ids.contains($0.id) }
@@ -422,11 +508,11 @@ final class AppState: ObservableObject {
     /// Active pills that aren't in the island right now (the "+N" strip).
     var overflowPills: [AgentTask] {
         let shown = Set(visiblePills.map(\.id))
-        return tasks.filter { $0.id != focusId && !shown.contains($0.id) }
+        return pillTasks.filter { $0.id != focusId && !shown.contains($0.id) }
     }
 
     /// How many active pills don't fit in the island right now.
-    var hiddenPillCount: Int { max(0, tasks.filter { $0.id != focusId }.count - PillRotation.slots) }
+    var hiddenPillCount: Int { max(0, pillTasks.filter { $0.id != focusId }.count - PillRotation.slots) }
 
     /// The rotation timer exists only while the island is showing and there is something to rotate: 0 % CPU otherwise.
     func updatePillRotation() {
@@ -500,7 +586,7 @@ final class AppState: ObservableObject {
     @Published var inboxLinear: Bool = true {
         didSet { UserDefaults.standard.set(inboxLinear, forKey: "inboxLinear") }
     }
-    /// Mochi says new inbox items out loud (push-to-talk voice and language).
+    /// The character says new inbox items out loud (push-to-talk voice and language).
     @Published var inboxSpeak: Bool = false {
         didSet { UserDefaults.standard.set(inboxSpeak, forKey: "inboxSpeak") }
     }
@@ -539,15 +625,15 @@ final class AppState: ObservableObject {
     var dndMeetingEnd: Date? = nil
     var dndSkippedMeetingEnd: Date? = nil
 
-    // Mochi moves with the music (#117). Off by default; Music / Spotify are only followed while on.
+    // The character moves with the music (#117). Off by default; Music / Spotify are only followed while on.
     @Published var mochiDance: Bool = false {
         didSet {
             UserDefaults.standard.set(mochiDance, forKey: "mochiDance")
             // Deferred, like dndDuringMeetings: this also runs while AppState.shared is being created.
-            if mochiDance != oldValue { DispatchQueue.main.async { MochiDanceController.shared.update() } }
+            if mochiDance != oldValue { DispatchQueue.main.async { DanceController.shared.update() } }
         }
     }
-    /// Set by MochiDanceController from the active player (no track details: that's #107's card).
+    /// Set by DanceController from the active player (no track details: that's #107's card).
     @Published var musicPlaying: Bool = false
     /// Goes up each time a new song starts playing (the headphones emote).
     @Published var musicTrackChanges: Int = 0
@@ -567,7 +653,7 @@ final class AppState: ObservableObject {
             focus.config = focusConfig.sanitized()
         }
     }
-    /// "Hey Mochi" stays off during focus blocks.
+    /// "Hey Lumo" stays off during focus blocks.
     @Published var focusMutesWakeWord: Bool = true {
         didSet { UserDefaults.standard.set(focusMutesWakeWord, forKey: "focusMutesWakeWord") }
     }
@@ -582,7 +668,7 @@ final class AppState: ObservableObject {
     @Published var focusIssue: String? = nil
     /// The end-of-block / end-of-break prompt on the note view.
     @Published var focusNote: FocusNote? = nil
-    /// A focus block is running and "Hey Mochi" should keep quiet.
+    /// A focus block is running and "Hey Lumo" should keep quiet.
     var focusSilencesWakeWord: Bool { focusMutesWakeWord && focus.phase == .focus && !focus.paused }
 
     // Claude Code sessions running at the same time (#24). The card shows the focused one.
@@ -594,6 +680,35 @@ final class AppState: ObservableObject {
     // Chat conversation on screen, and its entry in ChatStore once saved
     @Published var chatHistory: [ChatMessage] = []
     @Published var currentChatID: UUID? = nil
+    /// Chat or Code (#152), and the other mode's conversation while this one is on screen.
+    @Published var chatMode: ChatMode = .chat
+    var stashedChatIDs: [ChatMode: UUID] = [:]
+    /// The conversation on screen belongs to this integration's character (its own chat about
+    /// what it handles), nil for the main character's Chat / Code.
+    @Published var chatOwner: String? = nil
+    /// The screen is asleep or locked (PollGate): nothing on screen needs to animate.
+    @Published var screenOff = false
+    var stashedCharacterChats: [String: UUID] = [:]
+    /// Code mode on screen: no other context took over (a file from the editor, a window, a drop
+    /// make it a chat about that thing).
+    var isCoding: Bool {
+        guard chatMode == .code else { return false }
+        if case .code(let c)? = promptContext { return c.isFolder }
+        return promptContext == nil
+    }
+    /// The folder Claude Code works in (Code mode) and the ones used lately.
+    @Published var codeFolder: String? = UserDefaults.standard.string(forKey: "codeFolder") {
+        didSet { UserDefaults.standard.set(codeFolder, forKey: "codeFolder") }
+    }
+    @Published var recentCodeFolders: [String] = UserDefaults.standard.stringArray(forKey: "recentCodeFolders") ?? [] {
+        didSet { UserDefaults.standard.set(recentCodeFolders, forKey: "recentCodeFolders") }
+    }
+    /// The folders kept at hand on the main character's base: one click works in one, and in Code
+    /// mode Claude Code can also read the others (--add-dir).
+    @Published var codeFolders: [String] = UserDefaults.standard.stringArray(forKey: "codeFolders")
+        ?? UserDefaults.standard.stringArray(forKey: "recentCodeFolders") ?? [] {
+        didSet { UserDefaults.standard.set(codeFolders, forKey: "codeFolders") }
+    }
 
     // Pending approval request from Claude Code hook
     @Published var pendingApproval: ApprovalInfo? = nil
@@ -653,6 +768,11 @@ final class AppState: ObservableObject {
         if let v = ud.object(forKey: "voiceHotkeyCode")   as? Int    { voiceHotkeyCode = UInt16(v) }
         if let v = ud.object(forKey: "voiceLanguage")     as? String { voiceLanguage = v }
         if let v = ud.string(forKey: "theme") { theme = v }
+        if let v = ud.string(forKey: Critter.storageKey), let c = Critter(rawValue: v) { critter = c }
+        if let d = ud.dictionary(forKey: "critterColors") as? [String: String] { critterColors = d }
+        if let d = ud.dictionary(forKey: "critterAssignments") as? [String: String] {
+            critterAssignments = d.compactMapValues { Critter(rawValue: $0) }
+        }
         if let v = ud.object(forKey: "voiceSpeakReplies") as? Bool   { voiceSpeakReplies = v }
         if let v = ud.object(forKey: "pillRotationSeconds") as? Int { pillRotationSeconds = v }
         if let v = ud.stringArray(forKey: "pinnedPills") { pinnedPills = Set(v) }
@@ -691,10 +811,10 @@ final class AppState: ObservableObject {
         stateOverride ?? focusTask?.state ?? .idle
     }
 
-    /// Mochi bobs to the music right now (#117): setting on, something playing, idle, no Do not
+    /// The character bobs to the music right now (#117): setting on, something playing, idle, no Do not
     /// disturb, no Reduce Motion.
     var mochiDancing: Bool {
-        MochiDance.shouldDance(enabled: mochiDance, playing: musicPlaying,
+        CharacterDance.shouldDance(enabled: mochiDance, playing: musicPlaying,
                                doNotDisturb: DoNotDisturb.shared.isActive,
                                reduceMotion: reduceMotion, state: effectiveState)
     }

@@ -1,5 +1,5 @@
 import XCTest
-@testable import Coucou
+@testable import Lumo
 
 /// The integrations' response parsers, fed with recorded API responses (#12): if a service
 /// changes its format, these fail before the cards go blank.

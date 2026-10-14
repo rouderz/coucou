@@ -1,6 +1,6 @@
 {
   "$schema": "https://schema.tauri.app/config/2",
-  "productName": "Coucou",
+  "productName": "Lumo",
   "version": "0.3.9",
   "identifier": "fr.louisraille.coucou",
   "build": {
@@ -18,7 +18,7 @@
     "windows": [
       {
         "label": "island",
-        "title": "Coucou",
+        "title": "Lumo",
         "url": "index.html",
         "width": 240,
         "height": 6,
@@ -53,10 +53,10 @@
     "resources": {
       "../target/release/coucou-hook.exe": "coucou-hook.exe"
     },
-    "copyright": "© Louis Raille",
+    "copyright": "© 2026 Wolfgang Welcomez (rouderz). Based on Coucou © 2026 Louis Raillé (MIT).",
     "category": "DeveloperTool",
-    "shortDescription": "Mochi lives at the top of your screen",
-    "longDescription": "Coucou puts Mochi at the top of your screen: it shows your Claude Code sessions and a few integrations, and lets you approve, answer, chat and drop files without leaving what you are doing.",
+    "shortDescription": "Your characters live at the top of your screen",
+    "longDescription": "Lumo puts your characters at the top of your screen: they show your Claude Code sessions and a few integrations, and let you approve, answer, chat and drop files without leaving what you are doing.",
     "windows": {
       "nsis": {
         "installMode": "currentUser",

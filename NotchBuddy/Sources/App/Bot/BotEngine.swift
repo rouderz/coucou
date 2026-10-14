@@ -2,7 +2,7 @@ import Foundation
 import CoreGraphics
 import SwiftUI
 
-// Mochi's state machine: stored state and the public API (states, emotes, greet, slap…).
+// The character's state machine: stored state and the public API (states, emotes, greet, slap…).
 // Frame update, drawing and tweens live in BotEngine+Update / +Drawing / +Tweens.
 
 // MARK: - Bot engine
@@ -11,6 +11,11 @@ import SwiftUI
 final class BotEngine: ObservableObject {
     var isMini: Bool = false
     var bodyColor: CGColor? = nil    // override for mini bots
+    var critter: Critter = .fallback  // The character the user picked (Critter.swift)
+    /// A colour of the user's for this character (#156); nil = the character's own colours.
+    var userTint: CGColor? = nil
+    /// The colours drawn: the character's, or tinted with the user's colour.
+    var palette: Critter.Palette { userTint.map { critter.palette(tinted: $0) } ?? critter.palette }
 
     // Animation state (mirrors prototype 's' object)
     var yaw:    CGFloat = 0
@@ -93,11 +98,11 @@ final class BotEngine: ObservableObject {
     var miniLookTarget: CGPoint = .zero
     var miniLookNextTime: Double = 0
 
-    // Mochi moves with the music (#117). `dancing` is set every frame by BotCanvasView;
+    // The character moves with the music (#117). `dancing` is set every frame by BotCanvasView;
     // `danceAmt` eases the bob in and out; `dancePose` is added to the body when drawing.
     var dancing: Bool = false
     var danceAmt: CGFloat = 0
-    var dancePose = MochiDance.Pose.rest
+    var dancePose = CharacterDance.Pose.rest
     // Headphones emote on a track change (0 = off, 1 = on)
     var phones: CGFloat = 0
 

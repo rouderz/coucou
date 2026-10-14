@@ -2,7 +2,7 @@
 // what to fetch and when (core/ci.ts: pill state, events, adaptive interval); Rust adds the
 // GitHub token (the saved one, else the GitHub CLI's, like the GitHub poller), keeps ETags,
 // and refuses any request the CI pill doesn't make. Nothing goes out while the pill is off,
-// and polls stop while Coucou is paused. Logs and re-runs only follow a click in the card.
+// and polls stop while Lumo is paused. Logs and re-runs only follow a click in the card.
 
 use std::collections::HashMap;
 use std::sync::atomic::Ordering;
@@ -16,7 +16,7 @@ use crate::{files, integrations};
 
 pub const ID: &str = "integration_ci";
 const API: &str = "https://api.github.com/";
-/// Only the end of a job log matters ("Ask Mochi why" keeps ~150 lines of it).
+/// Only the end of a job log matters ("Ask why" keeps ~150 lines of it).
 const LOG_TAIL_BYTES: usize = 1_000_000;
 const NOT_CONNECTED: &str = "Not connected to GitHub · sign in with gh or add a token in Settings";
 
@@ -96,7 +96,7 @@ fn github(builder: reqwest::RequestBuilder, token: &str) -> reqwest::RequestBuil
     builder
         .header("Authorization", format!("Bearer {token}"))
         .header("Accept", "application/vnd.github+json")
-        .header("User-Agent", "Coucou")
+        .header("User-Agent", "Lumo")
 }
 
 /// One poll request (see `allowed_get`), with ETags.
@@ -105,7 +105,7 @@ pub async fn get(app: &AppHandle, path: &str) -> Result<Value, String> {
         return Err("Not a CI request".into());
     }
     if integrations::PAUSED.load(Ordering::Relaxed) {
-        return Err("Coucou is paused".into());
+        return Err("Lumo is paused".into());
     }
     pill_on(app)?;
     let token = token().await?;
@@ -149,7 +149,7 @@ pub async fn get(app: &AppHandle, path: &str) -> Result<Value, String> {
     Ok(body)
 }
 
-/// The end of a failed Actions job's log ("Ask Mochi why", on a click). GitHub answers with
+/// The end of a failed Actions job's log ("Ask why", on a click). GitHub answers with
 /// a redirect to short-lived storage; reqwest drops the Authorization header on the way.
 pub async fn job_log(app: &AppHandle, repo: &str, job_id: u64) -> Result<String, String> {
     if !repo_ok(repo) {

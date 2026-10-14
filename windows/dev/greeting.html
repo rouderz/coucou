@@ -1,0 +1,19 @@
+<!doctype html><html><body style="margin:0;background:#222">
+<div id="g" style="display:grid;grid-template-columns:repeat(2,640px);gap:6px;padding:6px"></div>
+<script type="module">
+import { Greeting } from "/src/mochi/greeting.ts";
+import { setCurrentCritter } from "/src/mochi/critters.ts";
+const params = new URLSearchParams(location.search);
+setCurrentCritter(params.get("c") || "lumo");
+const g = document.getElementById("g");
+for (const t of [1.6, 1.75, 1.9, 2.05, 2.2, 2.35]) {
+  const cv = document.createElement("canvas"); cv.width = 1280; cv.height = 300;
+  cv.style.width = "640px"; cv.style.height = "150px"; cv.style.background = "#000";
+  g.append(cv);
+  const gr = new Greeting();
+  Object.defineProperty(gr, "elapsed", { get: () => t });
+  const x = cv.getContext("2d"); x.setTransform(2, 0, 0, 2, 0, 0);
+  gr.draw(x);
+}
+document.body.dataset.done = "1";
+</script></body></html>

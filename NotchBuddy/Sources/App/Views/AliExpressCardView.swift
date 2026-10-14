@@ -19,7 +19,7 @@ struct AliExpressCardView: View {
                 Text(verbatim: subtitle).font(.system(size: 11)).foregroundColor(Color(hex: "#8E939C"))
                     .lineLimit(1).truncationMode(.tail)
             }
-            .padding(.top, 6).padding(.leading, 108).padding(.trailing, 62)
+            .padding(.top, 6).padding(.leading, botInset(108)).padding(.trailing, 62)
 
             HStack(spacing: 8) {
                 small(appState.aliSyncing ? L("Reading…") : L("Refresh")) { AliExpressBridge.shared.sync() }
@@ -37,10 +37,10 @@ struct AliExpressCardView: View {
                     .help(L("Show in Finder"))
                 }
             }
-            .padding(.top, 3).padding(.leading, 108).padding(.trailing, 12)
+            .padding(.top, 3).padding(.leading, botInset(108)).padding(.trailing, 12)
 
             if appState.aliPackages.isEmpty {
-                NotionHint(dot: "#F5A524", text: L("Open your AliExpress orders in Chrome or Edge once: Coucou reads them from there."))
+                NotionHint(dot: "#F5A524", text: L("Open your AliExpress orders in Chrome or Edge once: Lumo reads them from there."))
             }
 
             ScrollView(.vertical, showsIndicators: false) {
@@ -51,7 +51,7 @@ struct AliExpressCardView: View {
                 }
             }
             .frame(maxHeight: 72)
-            .padding(.leading, 102).padding(.trailing, 12).padding(.top, 4)
+            .padding(.leading, botInset(102)).padding(.trailing, 12).padding(.top, 4)
         }
         .frame(maxWidth: .infinity, alignment: .topLeading).padding(.top, 4)
     }
@@ -77,7 +77,7 @@ struct AliExpressCardView: View {
             .buttonStyle(.plain)
             .layoutPriority(2)
             .disabled(busy)
-            .help(L("Make the invoice of this box (PDF in Downloads/Coucou/AliExpress)"))
+            .help(L("Make the invoice of this box (PDF in Downloads/Lumo/AliExpress)"))
         }
         .padding(.horizontal, 6).padding(.vertical, 3)
         .help([p.carrier, p.status, p.lastEvent, p.lastTime].filter { !$0.isEmpty }.joined(separator: " · "))
@@ -99,7 +99,7 @@ struct AliExpressCardView: View {
     }
 }
 
-/// Settings → AliExpress: its own browser extension (Coucou for AliExpress), the buyer details
+/// Settings → AliExpress: its own browser extension (Lumo for AliExpress), the buyer details
 /// printed on the invoices, and how it works.
 struct AliExpressSettingsSection: View {
     @State private var buyer = AliBuyer.load()
@@ -113,7 +113,7 @@ struct AliExpressSettingsSection: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: 8) {
-            Text("Coucou groups your AliExpress orders by the box they ship in (same tracking number) and makes one invoice per box — PDF to your Downloads/Coucou/AliExpress folder — plus a CSV of every product for Excel or Google Sheets. It reads your own order pages through its own small Chrome / Edge extension, Coucou for AliExpress, with the session you already have open.")
+            Text("Lumo groups your AliExpress orders by the box they ship in (same tracking number) and makes one invoice per box — PDF to your Downloads/Lumo/AliExpress folder — plus a CSV of every product for Excel or Google Sheets. It reads your own order pages through its own small Chrome / Edge extension, Lumo for AliExpress, with the session you already have open.")
                 .font(.system(size: 11)).foregroundColor(.secondary)
                 .fixedSize(horizontal: false, vertical: true)
 

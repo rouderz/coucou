@@ -119,19 +119,27 @@ final class ClaudeCodeChat {
         }
         let dir = try projectDir ?? conversationDir()
         // Reading and searching the project is fine. Edits only when the user turned them on,
-        // and then every change goes through Coucou's approval (PermissionRequest hook → island).
+        // and then every change goes through Lumo's approval (PermissionRequest hook → island).
         // Running commands never.
         let canEdit = projectDir != nil && AppState.shared.chatAllowEdits
+        // Code mode (#152): a whole folder, and commands too — each one approved in the island.
+        var coding = false
+        if case .code(let c)? = context, c.isFolder { coding = true }
+        let canRun = canEdit && coding
         let tools = projectDir == nil ? "WebSearch,WebFetch,Read"
+                  : canRun ? "WebSearch,WebFetch,Read,Grep,Glob,Edit,MultiEdit,Write,Bash"
                   : canEdit ? "WebSearch,WebFetch,Read,Grep,Glob,Edit,MultiEdit,Write"
                   : "WebSearch,WebFetch,Read,Grep,Glob"
         let allowed = projectDir == nil ? "WebSearch,WebFetch" : "WebSearch,WebFetch,Read,Grep,Glob"
-        let disallowed = canEdit ? "NotebookEdit,Bash" : "Edit,MultiEdit,Write,NotebookEdit,Bash"
+        let disallowed = canRun ? "NotebookEdit" : canEdit ? "NotebookEdit,Bash" : "Edit,MultiEdit,Write,NotebookEdit,Bash"
         var prompt = ""
         if sessionID == nil, let context {
             prompt = contextPreamble(context, in: dir)
         }
-        if canEdit {
+        if canRun {
+            prompt += "[You may change files in the project with Edit / Write and run commands with Bash. " +
+                      "The user approves every change and every command before it happens.]\n\n"
+        } else if canEdit {
             prompt += "[Edits are allowed in this conversation: you may change files in the project with " +
                       "Edit / Write. The user approves every change before it's written. You still can't run commands.]\n\n"
         }
@@ -145,13 +153,20 @@ final class ClaudeCodeChat {
             "--allowedTools", allowed,
             "--disallowedTools", disallowed,
         ]
-        // Edits: unanswered prompts are denied, except what Coucou's PermissionRequest hook allows.
+        // Edits: unanswered prompts are denied, except what Lumo's PermissionRequest hook allows.
         args += canEdit ? ["--permission-mode", "default", "--permission-prompts", "none"]
                         : ["--permission-mode", "dontAsk"]
         args += [
             "--strict-mcp-config",
             "--append-system-prompt", systemPrompt,
         ]
+        // Code mode: the other folders kept at hand can be read too.
+        if coding {
+            let extra = AppState.shared.codeFolders.filter {
+                $0 != dir.path && FileManager.default.fileExists(atPath: $0)
+            }
+            if !extra.isEmpty { args += ["--add-dir"] + extra }
+        }
         if let sessionID { args += ["--resume", sessionID] }
 
         let p = Process()
@@ -160,7 +175,7 @@ final class ClaudeCodeChat {
         p.currentDirectoryURL = dir
         var env = ProcessInfo.processInfo.environment
         env["PATH"] = install.pathEnv
-        env["COUCOU_INTERNAL"] = "1"  // Coucou's own hook ignores this session.
+        env["COUCOU_INTERNAL"] = "1"  // Lumo's own hook ignores this session.
         p.environment = env
 
         let stdin = Pipe(), stdout = Pipe(), stderr = Pipe()

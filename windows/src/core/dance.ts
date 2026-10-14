@@ -1,4 +1,4 @@
-// Mochi moves with the music (#117): pure logic — when Mochi may dance, the bob pose at a given
+// The character moves with the music (#117): pure logic — when the character may dance, the bob pose at a given
 // time, and noticing track changes. No I/O here. The macOS twin is MochiDance.swift and the two
 // must agree (same cases in the tests).
 //
@@ -9,12 +9,12 @@
 import type { BotStateName } from "./layout";
 import type { NowPlayingState } from "./nowplaying";
 
-/** Players don't expose the tempo and Coucou looks nothing up online: a fixed, easy beat. */
+/** Players don't expose the tempo and Lumo looks nothing up online: a fixed, easy beat. */
 export const DANCE_BPM = 110;
 /** Seconds per beat. */
 export const BEAT = 60 / DANCE_BPM;
 
-/** Offsets added to Mochi's body while dancing (fractions of R, scales, radians). */
+/** Offsets added to the character's body while dancing (fractions of R, scales, radians). */
 export interface DancePose {
   oy: number;
   sx: number;
@@ -25,7 +25,7 @@ export interface DancePose {
 export const REST_POSE: Readonly<DancePose> = { oy: 0, sx: 1, sy: 1, tilt: 0 };
 
 /**
- * Only an idle Mochi dances: approvals, questions, work, errors… always win. Off with the
+ * Only an idle the character dances: approvals, questions, work, errors… always win. Off with the
  * setting, while nothing plays, in Do not disturb and with reduced motion.
  */
 export function shouldDance(o: {

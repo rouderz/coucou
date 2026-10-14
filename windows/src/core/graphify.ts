@@ -3,13 +3,13 @@
 // `graphify-out/`, and trimming `graphify query` output before it goes into a chat.
 // Mirrored in NotchBuddy/Sources/App/Graphify.swift (GraphifyLogic); keep both in step.
 //
-// Rules: Coucou never installs Python packages by itself (it only shows the command),
+// Rules: Lumo never installs Python packages by itself (it only shows the command),
 // builds with `--code-only` (local, no LLM, no network), writes only inside the project's
 // `graphify-out/`, and starts no `--watch` process.
 
 export const INSTALL_COMMAND = "uv tool install graphifyy";
 export const OUT_DIR = "graphify-out";
-/** Written by Coucou after a successful build, inside graphify-out/: the commit the graph was built at. */
+/** Written by Lumo after a successful build, inside graphify-out/: the commit the graph was built at. */
 export const STAMP_FILE = ".coucou-build.json";
 /** Default size cap (characters) of a `graphify query` result attached to a chat. */
 export const QUERY_CAP = 6000;
@@ -76,7 +76,7 @@ export function isCommit(s: string): boolean {
   return /^[0-9a-f]{7,64}$/i.test(s);
 }
 
-/** Coucou's own stamp file. Anything unexpected is null (the graph then counts as "unknown"). */
+/** Lumo's own stamp file. Anything unexpected is null (the graph then counts as "unknown"). */
 export function parseStamp(text: string): Stamp | null {
   try {
     const o = JSON.parse(text);

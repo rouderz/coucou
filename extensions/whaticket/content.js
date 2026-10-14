@@ -1,9 +1,9 @@
-// Coucou for WhaTicket — runs in your whaticket.com tab.
+// Lumo for WhaTicket — runs in your whaticket.com tab.
 //
 // Every few seconds it hands the tab's session token (the one the web app keeps in
 // this page's localStorage) to the extension's background, which reads your queue
 // with it. Nothing else on the page is read or changed, and when the tab closes
-// Coucou simply stops seeing the queue.
+// Lumo simply stops seeing the queue.
 
 "use strict";
 

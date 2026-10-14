@@ -1,5 +1,5 @@
 import XCTest
-@testable import Coucou
+@testable import Lumo
 
 /// WhaTicket stats: the arrival / accept log and the numbers drawn from it.
 final class WhaTicketStatsTests: XCTestCase {
@@ -23,7 +23,7 @@ final class WhaTicketStatsTests: XCTestCase {
         XCTAssertTrue(t.observe(pending: [seen("a"), seen("b")], mine: [], backlog: false, now: at(9), day: "2026-10-04"))
         // Same snapshot again: nothing new, nothing written.
         XCTAssertFalse(t.observe(pending: [seen("a"), seen("b")], mine: [], backlog: false, now: at(9, 1), day: "2026-10-04"))
-        // "a" accepted from Coucou, then it shows in mine: logged once, as a click.
+        // "a" accepted from Lumo, then it shows in mine: logged once, as a click.
         XCTAssertTrue(t.accept("a", how: "click", now: at(9, 5), day: "2026-10-04"))
         XCTAssertFalse(t.observe(pending: [seen("b")], mine: ["a"], backlog: false, now: at(9, 6), day: "2026-10-04"))
         // "b" taken in the web app.

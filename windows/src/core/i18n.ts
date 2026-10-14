@@ -26,8 +26,34 @@ export function language(): Lang {
 }
 
 const ES: Record<string, string> = {
+  // characters (#147–#151)
+  "Choose a folder": "Elegir una carpeta",
+  "📁 Choose a folder": "📁 Elegir una carpeta",
+  "Choose a folder first ↑": "Primero elige una carpeta ↑",
+  "Other folder…": "Otra carpeta…",
+  "Pick the folder to code in. Claude Code reads it, and changes files or runs commands only when you approve each one in the island.": "Elige la carpeta en la que programar. Claude Code la lee, y solo cambia archivos o ejecuta comandos cuando apruebas cada uno en la isla.",
+  "✎ Edits & commands": "✎ Ediciones y comandos",
+  "Read-only": "Solo lectura",
+  "What should we build? (/ skills)": "¿Qué construimos? (/ habilidades)",
+  "The folder Claude Code works in": "La carpeta en la que trabaja Claude Code",
+  "Claude Code can change files and run commands here. You approve each one in the island.": "Claude Code puede cambiar archivos y ejecutar comandos aquí. Apruebas cada uno en la isla.",
+  "Claude Code can only read this folder. Click to let it change files and run commands.": "Claude Code solo puede leer esta carpeta. Haz clic para que pueda cambiar archivos y ejecutar comandos.",
+  "Character": "Personaje",
+  "Who handles what": "Quién se encarga de qué",
+  "Its own colours": "Sus propios colores",
+  "An integration with its own character shows it in its pill and, in free placement, floats on its own: click it to open just that integration.": "Una integración con personaje propio lo muestra en su píldora y, en modo libre, flota por su cuenta: haz clic en él para abrir solo esa integración.",
+  "Where it lives": "Dónde vive",
+  "At the top of the screen": "Arriba de la pantalla",
+  "Free on the desktop": "Libre en el escritorio",
+  "Reset position": "Restablecer posición",
+  "free: drag the character anywhere, click it to open the island next to it, right-click for options": "libre: arrastra el personaje a donde quieras, haz clic para abrir la isla junto a él y clic derecho para ver opciones",
+  "A steamed bun that steams while it works": "Un panecillo al vapor que echa vapor mientras trabaja",
+  "A bean with a sprout that tells how things go": "Un frijol con un brote que cuenta cómo va todo",
+  "A little cloud: rain on errors, sun when done": "Una nubecita: llueve si hay errores, sale el sol al terminar",
+  "A glowing jellyfish that wiggles while it works": "Una medusa que brilla y se agita mientras trabaja",
+  "A keycap that presses itself while it types": "Una tecla que se pulsa sola mientras escribe",
   // header, tabs, common
-  "Overview": "Resumen", "Ask": "Preguntar", "Drop": "Soltar", "Settings": "Ajustes", "Mute": "Silenciar",
+  "Overview": "Resumen", "Code": "Código", "Ask": "Preguntar", "Drop": "Soltar", "Settings": "Ajustes", "Mute": "Silenciar",
   "Settings…": "Ajustes…", "Back": "Atrás", "Cancel": "Cancelar", "Save": "Guardar", "Remove": "Quitar",
   "Delete": "Borrar", "Dismiss": "Descartar", "Dismiss all": "Descartar todo", "Open": "Abrir", "Refresh": "Actualizar",
   "Retry": "Reintentar", "OK": "OK", "Details": "Detalles", "Download": "Descargar", "Send": "Enviar", "Done": "Hecho",
@@ -49,7 +75,7 @@ const ES: Record<string, string> = {
   "Nothing running right now.": "No hay nada en marcha ahora.",
   "Give me a sec — back to work in three seconds.": "Un segundo — vuelvo al trabajo en tres segundos.",
   "Too many hits at once.": "Demasiados golpes a la vez.", "Workflow stopped.": "El workflow se detuvo.",
-  "Answer in your terminal — Coucou can't reply for you yet.": "Responde en tu terminal — Coucou aún no puede responder por ti.",
+  "Answer in your terminal — Lumo can't reply for you yet.": "Responde en tu terminal — Lumo aún no puede responder por ti.",
   "Claude Code finished": "Claude Code terminó", "Claude Code is asking a question": "Claude Code tiene una pregunta",
   "Claude needs an answer.": "Claude necesita una respuesta.", "Claude is searching…": "Claude está buscando…",
   "Completed successfully.": "Completado con éxito.", "Session finished": "Sesión terminada",
@@ -98,27 +124,27 @@ const ES: Record<string, string> = {
   "Claude Code": "Claude Code", "Install hooks…": "Instalar hooks…", "Reinstall hooks…": "Reinstalar hooks…",
   "Update hooks…": "Actualizar hooks…", "Uninstall hooks…": "Desinstalar hooks…", "Uninstall": "Desinstalar",
   "Relay": "Relé", "The relay isn't installed yet.": "El relé aún no está instalado.",
-  "Coucou is hooked into your Claude Code sessions. Tool calls, questions and permission requests show up in the island, and you can answer them there.":
-    "Coucou está conectado a tus sesiones de Claude Code. Las herramientas, preguntas y permisos aparecen en la isla y puedes responderlos ahí.",
+  "Lumo is hooked into your Claude Code sessions. Tool calls, questions and permission requests show up in the island, and you can answer them there.":
+    "Lumo está conectado a tus sesiones de Claude Code. Las herramientas, preguntas y permisos aparecen en la isla y puedes responderlos ahí.",
   "Install the hooks to see your Claude Code sessions in the island and approve permissions without leaving what you are doing.":
     "Instala los hooks para ver tus sesiones de Claude Code en la isla y aprobar permisos sin dejar lo que estás haciendo.",
-  "Coucou's hooks are installed but out of date. Update them to get every event and approvals that don't time out.":
-    "Los hooks de Coucou están instalados pero desactualizados. Actualízalos para recibir todos los eventos y aprobaciones que no caducan.",
-  "The plan usage bars come from Claude Code's status line: the hooks add Coucou's, unless you already have your own (then it stays, and the bars stay empty).":
-    "Las barras de uso del plan vienen de la línea de estado de Claude Code: los hooks añaden la de Coucou, salvo que ya tengas la tuya (entonces se queda, y las barras quedan vacías).",
-  "The relay (coucou-hook) is not in place yet. Restart Coucou; if it still fails, build it with `cargo build -p coucou-hook`.":
-    "El relé (coucou-hook) aún no está en su sitio. Reinicia Coucou; si sigue fallando, compílalo con `cargo build -p coucou-hook`.",
+  "Lumo's hooks are installed but out of date. Update them to get every event and approvals that don't time out.":
+    "Los hooks de Lumo están instalados pero desactualizados. Actualízalos para recibir todos los eventos y aprobaciones que no caducan.",
+  "The plan usage bars come from Claude Code's status line: the hooks add Lumo's, unless you already have your own (then it stays, and the bars stay empty).":
+    "Las barras de uso del plan vienen de la línea de estado de Claude Code: los hooks añaden la de Lumo, salvo que ya tengas la tuya (entonces se queda, y las barras quedan vacías).",
+  "The relay (coucou-hook) is not in place yet. Restart Lumo; if it still fails, build it with `cargo build -p coucou-hook`.":
+    "El relé (coucou-hook) aún no está en su sitio. Reinicia Lumo; si sigue fallando, compílalo con `cargo build -p coucou-hook`.",
   "This is exactly what will change in your settings.json. Your own hooks are left untouched.":
     "Esto es exactamente lo que cambiará en tu settings.json. Tus propios hooks no se tocan.",
-  "This removes Coucou's entries only. Your own hooks are left untouched.": "Esto quita solo las entradas de Coucou. Tus propios hooks no se tocan.",
+  "This removes Lumo's entries only. Your own hooks are left untouched.": "Esto quita solo las entradas de Lumo. Tus propios hooks no se tocan.",
   "Back up and write": "Copiar y escribir", "Back up and remove": "Copiar y quitar",
   "Codex CLI": "Codex CLI", "Install Codex hooks": "Instalar hooks de Codex", "Reinstall Codex hooks": "Reinstalar hooks de Codex",
   "Codex CLI isn't set up here yet. Install it and run it once to follow its sessions and approve them from the island too.":
     "Codex CLI aún no está configurado aquí. Instálalo y ejecútalo una vez para seguir sus sesiones y aprobarlas también desde la isla.",
-  "Coucou's hooks are in Codex. Run /hooks in Codex once to review and trust them; its sessions then show up next to Claude Code's.":
-    "Los hooks de Coucou están en Codex. Ejecuta /hooks en Codex una vez para revisarlos y confiar en ellos; después sus sesiones aparecen junto a las de Claude Code.",
-  "Coucou can follow Codex CLI sessions and approve them from the island. Codex is never blocked if Coucou isn't running.":
-    "Coucou puede seguir las sesiones de Codex CLI y aprobarlas desde la isla. Codex nunca se bloquea si Coucou no está abierto.",
+  "Lumo's hooks are in Codex. Run /hooks in Codex once to review and trust them; its sessions then show up next to Claude Code's.":
+    "Los hooks de Lumo están en Codex. Ejecuta /hooks en Codex una vez para revisarlos y confiar en ellos; después sus sesiones aparecen junto a las de Claude Code.",
+  "Lumo can follow Codex CLI sessions and approve them from the island. Codex is never blocked if Lumo isn't running.":
+    "Lumo puede seguir las sesiones de Codex CLI y aprobarlas desde la isla. Codex nunca se bloquea si Lumo no está abierto.",
   "Engine": "Motor", "Anthropic API key": "Clave de API de Anthropic", "Claude Code (your subscription)": "Claude Code (tu suscripción)",
   "Other provider (OpenAI, Gemini, Ollama…)": "Otro proveedor (OpenAI, Gemini, Ollama…)", "Provider": "Proveedor",
   "Server": "Servidor", "Model": "Modelo", "Load models": "Cargar modelos", "API key": "Clave de API",
@@ -132,8 +158,6 @@ const ES: Record<string, string> = {
   "no keyboard or mouse for 2 min (Windows)": "sin teclado ni ratón durante 2 min (Windows)",
   "An approval still waiting after 20 seconds goes to your phone through ntfy (free app, no account). Subscribe to the topic in the app; it carries the project and the command, so keep it private.":
     "Una aprobación que sigue esperando tras 20 segundos llega a tu móvil por ntfy (app gratuita, sin cuenta). Suscríbete al tema en la app; lleva el proyecto y el comando, así que mantenlo en privado.",
-  "GitHub (your token, or a signed-in gh) and Linear notifications that need you, behind the 🔔. Mochi peeks out when something new arrives.":
-    "Las notificaciones de GitHub (tu token, o gh con sesión) y de Linear que te necesitan, detrás de la 🔔. Mochi se asoma cuando llega algo nuevo.",
   "Review requests": "Solicitudes de revisión", "Mentions": "Menciones", "Assignments": "Asignaciones", "Comments": "Comentarios",
   "Other updates": "Otras novedades", "Check daily": "Comprobar cada día", "Check now": "Comprobar ahora",
   "Island lives on": "La isla vive en", "Main display": "Pantalla principal", "Display under the cursor": "Pantalla bajo el cursor",
@@ -141,7 +165,6 @@ const ES: Record<string, string> = {
   "File manager (no editor found)": "Explorador de archivos (no hay editor)", "Language": "Idioma", "Same as the system": "Igual que el sistema",
   "Rotate the rest": "Rotar las demás", "Every 10 s": "Cada 10 s", "Every 30 s": "Cada 30 s", "Every minute": "Cada minuto",
   "Pin (always visible)": "Fijar (siempre visible)", "Unpin": "Dejar de fijar", "Hide": "Ocultar",
-  "Mochi moves with the music": "Mochi se mueve con la música",
   "bobs along while music plays; off in Do not disturb and with reduced motion. Music detection isn't available on this system yet":
     "se balancea mientras suena música; se desactiva en No molestar y con movimiento reducido. La detección de música aún no está disponible en este sistema",
   "Idle notch": "Notch en reposo", "a small notch stays at the top when the island hides": "una pequeña notch queda arriba cuando la isla se esconde",
@@ -156,18 +179,18 @@ const ES: Record<string, string> = {
   "Browser extension not set up": "Extensión del navegador sin configurar",
   "Open whaticket.com in Chrome or Edge": "Abre whaticket.com en Chrome o Edge",
   "Your queues show here once whaticket.com is open with the extension.": "Tus colas aparecen aquí cuando whaticket.com esté abierto con la extensión.",
-  "Coucou reads your whaticket.com queue through a small Chrome / Edge extension that uses the session you already have open — no token, no password, and it never signs you out.":
-    "Coucou lee tu cola de whaticket.com con una pequeña extensión de Chrome / Edge que usa la sesión que ya tienes abierta: sin token, sin contraseña, y nunca te cierra la sesión.",
+  "Lumo reads your whaticket.com queue through a small Chrome / Edge extension that uses the session you already have open — no token, no password, and it never signs you out.":
+    "Lumo lee tu cola de whaticket.com con una pequeña extensión de Chrome / Edge que usa la sesión que ya tienes abierta: sin token, sin contraseña, y nunca te cierra la sesión.",
   "Click Set up browser extension.": "Haz clic en Configurar la extensión del navegador.",
   "In Chrome open chrome://extensions (in Edge: edge://extensions) and turn on Developer mode.":
     "En Chrome abre chrome://extensions (en Edge: edge://extensions) y activa el Modo de desarrollador.",
   "Click Load unpacked and pick the extension folder shown above.": "Haz clic en Cargar descomprimida y elige la carpeta de la extensión que aparece arriba.",
   "Keep a whaticket.com tab open, and turn on the WhaTicket pill under Integrations.": "Deja una pestaña de whaticket.com abierta y activa la píldora de WhaTicket en Integraciones.",
-  "Only while your whaticket.com tab is open. Never during Do not disturb, never group chats, never tickets an AI agent is handling. Coucou only assigns the ticket — it never writes to the customer.":
-    "Solo mientras tu pestaña de whaticket.com esté abierta. Nunca en No molestar, nunca chats de grupo, nunca tickets que atiende un agente de IA. Coucou solo se asigna el ticket: nunca le escribe al cliente.",
+  "Only while your whaticket.com tab is open. Never during Do not disturb, never group chats, never tickets an AI agent is handling. Lumo only assigns the ticket — it never writes to the customer.":
+    "Solo mientras tu pestaña de whaticket.com esté abierta. Nunca en No molestar, nunca chats de grupo, nunca tickets que atiende un agente de IA. Lumo solo se asigna el ticket: nunca le escribe al cliente.",
   "Sign in to whaticket.com in Chrome or Edge.": "Inicia sesión en whaticket.com en Chrome o Edge.",
   "whaticket.com's session expired: use the tab once (or sign in again).": "La sesión de whaticket.com expiró: usa la pestaña una vez (o vuelve a iniciar sesión).",
-  "Open whaticket.com in Chrome or Edge (with the Coucou extension) to accept from here.": "Abre whaticket.com en Chrome o Edge (con la extensión de Coucou) para aceptar desde aquí.",
+  "Open whaticket.com in Chrome or Edge (with the Lumo extension) to accept from here.": "Abre whaticket.com en Chrome o Edge (con la extensión de Lumo) para aceptar desde aquí.",
   "No Chrome, Edge, Brave or Chromium found for this user": "No se encontró Chrome, Edge, Brave ni Chromium para este usuario",
   "Unknown ticket": "Ticket desconocido", "Someone already took that ticket.": "Alguien ya tomó ese ticket.",
   "Your WhaTicket profile isn't allowed to do that (403).": "Tu perfil de WhaTicket no tiene permiso para eso (403).",
@@ -191,8 +214,8 @@ const ES: Record<string, string> = {
   "Not connected yet.": "Aún no está conectado.", "Add your OAuth client first (steps above).": "Primero agrega tu cliente OAuth (pasos de arriba).",
   "Finish signing in in your browser…": "Termina de iniciar sesión en tu navegador…", "Connected.": "Conectado.",
   "Client ID": "ID de cliente", "Client secret": "Secreto del cliente", "Gmail shows": "Gmail muestra",
-  "Gmail in the island and your Drive files in the chat (type @ and a file name). Read-only: Coucou never sends mail or changes files.":
-    "Gmail en la isla y tus archivos de Drive en el chat (escribe @ y el nombre de un archivo). Solo lectura: Coucou nunca envía correos ni cambia archivos.",
+  "Gmail in the island and your Drive files in the chat (type @ and a file name). Read-only: Lumo never sends mail or changes files.":
+    "Gmail en la isla y tus archivos de Drive en el chat (escribe @ y el nombre de un archivo). Solo lectura: Lumo nunca envía correos ni cambia archivos.",
   "One-time setup, free: in console.cloud.google.com create a project, turn on the Gmail API and the Google Drive API, set up the OAuth consent screen (External, add yourself as a test user, then Publish it so the sign-in doesn't expire every 7 days), and create an OAuth client ID of type \"Desktop app\". Paste its ID and secret here.":
     "Configuración única y gratuita: en console.cloud.google.com crea un proyecto, activa la API de Gmail y la de Google Drive, configura la pantalla de consentimiento OAuth (Externa, agrégate como usuario de prueba y luego Publícala para que la sesión no caduque cada 7 días) y crea un ID de cliente OAuth de tipo \"App de escritorio\". Pega aquí su ID y su secreto.",
   "A Gmail search, e.g. is:unread in:inbox, or is:important is:unread. Turn on the Gmail pill under Integrations.":
@@ -205,9 +228,9 @@ const ES: Record<string, string> = {
   "That file is over 10 MB — too big for the chat.": "Ese archivo pasa de 10 MB: demasiado grande para el chat.",
   "Nobody finished signing in within 5 minutes.": "Nadie terminó de iniciar sesión en 5 minutos.",
   "Paste your Google OAuth client ID first (see the steps above).": "Pega primero tu ID de cliente OAuth de Google (mira los pasos de arriba).",
-  "Google signed Coucou out — connect again in Settings": "Google cerró la sesión de Coucou: vuelve a conectar en Ajustes",
+  "Google signed Lumo out — connect again in Settings": "Google cerró la sesión de Lumo: vuelve a conectar en Ajustes",
   "Google refused (403): is the Gmail / Drive API turned on in your Google Cloud project?": "Google lo rechazó (403): ¿está activada la API de Gmail / Drive en tu proyecto de Google Cloud?",
-  "Coucou can read Docs, Sheets, Slides and ordinary files — not this kind.": "Coucou puede leer Documentos, Hojas, Presentaciones y archivos normales, pero no este tipo.",
+  "Lumo can read Docs, Sheets, Slides and ordinary files — not this kind.": "Lumo puede leer Documentos, Hojas, Presentaciones y archivos normales, pero no este tipo.",
   // Skills
   "Skills": "Skills", "Search skills…": "Buscar skills…", "View": "Ver", "Folder": "Carpeta",
   "Open in the editor": "Abrir en el editor", "scripts": "scripts", "off": "apagada", "No description.": "Sin descripción.",
@@ -218,10 +241,10 @@ const ES: Record<string, string> = {
   "Or drop a skill folder or a .zip / .skill file on this window. You see what's inside before anything is installed.":
     "O suelta una carpeta de skill o un archivo .zip / .skill en esta ventana. Ves lo que contiene antes de instalar nada.",
   "Looking…": "Buscando…", "Installs to ": "Se instala en ",
-  "It has scripts. Coucou never runs them, but Claude may when it uses the skill — read them first.":
-    "Tiene scripts. Coucou nunca los ejecuta, pero Claude puede hacerlo al usar la skill: revísalos antes.",
-  "A skill with this name is already there; installing replaces it (the old one is kept in Coucou's trash).":
-    "Ya hay una skill con este nombre; instalar la reemplaza (la anterior se guarda en la papelera de Coucou).",
+  "It has scripts. Lumo never runs them, but Claude may when it uses the skill — read them first.":
+    "Tiene scripts. Lumo nunca los ejecuta, pero Claude puede hacerlo al usar la skill: revísalos antes.",
+  "A skill with this name is already there; installing replaces it (the old one is kept in Lumo's trash).":
+    "Ya hay una skill con este nombre; instalar la reemplaza (la anterior se guarda en la papelera de Lumo).",
   "Installed. Claude Code picks it up in its next session.": "Instalada. Claude Code la usará desde su próxima sesión.",
   "New skill name": "Nombre de la nueva skill", "Create": "Crear",
   "What Claude Code and Codex can use on this computer: your own skills, each project's, and the ones that come with plugins. Turning one off moves it aside; nothing is deleted.":
@@ -234,10 +257,6 @@ const ES: Record<string, string> = {
   "You're already up to date.": "Ya estás al día.",
   "Speak your question": "Di tu pregunta", "Listening…": "Escuchando…",
   "I didn't catch that. Try again.": "No te he entendido. Inténtalo de nuevo.",
-  "🎙 in the chat: say your question and Mochi sends it (Windows speech recognition; dictation needs online speech recognition on in Windows Settings → Privacy & security → Speech).":
-    "🎙 en el chat: di tu pregunta y Mochi la envía (reconocimiento de voz de Windows; el dictado necesita el reconocimiento de voz en línea activado en Configuración → Privacidad y seguridad → Voz).",
-  "Speaking your questions isn't available on Linux: it has no built-in speech recognition. Mochi can still read its replies aloud.":
-    "Hablarle a Mochi no está disponible en Linux: no trae reconocimiento de voz. Mochi sí puede leer sus respuestas en voz alta.",
   "Speech recognition isn't available on Linux.": "El reconocimiento de voz no está disponible en Linux.",
   "No telemetry. Network requests only go to the services you configure yourself.":
     "Sin telemetría. Las peticiones de red solo van a los servicios que tú configuras.",
@@ -319,7 +338,7 @@ const ES: Record<string, string> = {
   "CI failed": "CI falló", "All checks passed": "Todas las comprobaciones pasaron",
   "No open pull requests.": "No hay pull requests abiertos.", "Your open PRs": "Tus PRs abiertos",
   "No checks on this commit": "No hay comprobaciones en este commit",
-  "Open log": "Abrir log", "Ask Mochi why": "Preguntar a Mochi por qué", "Re-run": "Relanzar",
+  "Open log": "Abrir log", "Re-run": "Relanzar",
   "Re-running…": "Relanzando…", "Re-run failed jobs": "Relanzar los jobs fallidos",
   "queued": "en cola", "skipped": "omitido", "cancelled": "cancelado", "neutral": "neutral",
   "Not connected to GitHub · sign in with gh or add a token in Settings":
@@ -330,7 +349,7 @@ const ES: Record<string, string> = {
   "Couldn't re-run the failed jobs": "No se pudieron relanzar los jobs fallidos",
   "GitHub refused the re-run (403) · the token needs the Actions permission":
     "GitHub rechazó el relanzamiento (403) · el token necesita el permiso de Actions",
-  "The CI pill is off": "La pastilla CI está desactivada", "Coucou is paused": "Coucou está en pausa",
+  "The CI pill is off": "La pastilla CI está desactivada", "Lumo is paused": "Lumo está en pausa",
   "Not a CI request": "No es una petición de CI",
   "This check isn't a GitHub Actions job, so there's no log to fetch.":
     "Esta comprobación no es un job de GitHub Actions, así que no hay log que obtener.",
@@ -372,16 +391,16 @@ const ES: Record<string, string> = {
   "Turn on the AliExpress pill first (Settings → Integrations), then open your AliExpress orders in Chrome or Edge.": "Activa primero la píldora AliExpress (Ajustes → Integraciones) y luego abre tus pedidos de AliExpress en Chrome o Edge.",
   "No packages with a tracking number yet.": "Todavía no hay paquetes con número de seguimiento.",
   "I don't see that tracking number among your packages.": "No veo ese número de seguimiento entre tus paquetes.",
-  "Exporting the CSV to Downloads/Coucou/AliExpress.": "Exportando el CSV a Descargas/Coucou/AliExpress.",
-  "Coucou groups your AliExpress orders by the box they ship in (same tracking number) and makes one invoice per box — PDF to your Downloads/Coucou/AliExpress folder — plus a CSV of every product for Excel or Google Sheets. It reads your own order pages through its own small Chrome / Edge extension, Coucou for AliExpress, with the session you already have open.":
-    "Coucou agrupa tus pedidos de AliExpress por la caja en que llegan (mismo número de seguimiento) y hace una factura por caja —PDF en tu carpeta Descargas/Coucou/AliExpress— y un CSV con todos los productos para Excel o Google Sheets. Lee tus propias páginas de pedidos con su propia extensión de Chrome / Edge, Coucou for AliExpress, usando la sesión que ya tienes abierta.",
+  "Exporting the CSV to Downloads/Lumo/AliExpress.": "Exportando el CSV a Descargas/Lumo/AliExpress.",
+  "Lumo groups your AliExpress orders by the box they ship in (same tracking number) and makes one invoice per box — PDF to your Downloads/Lumo/AliExpress folder — plus a CSV of every product for Excel or Google Sheets. It reads your own order pages through its own small Chrome / Edge extension, Lumo for AliExpress, with the session you already have open.":
+    "Lumo agrupa tus pedidos de AliExpress por la caja en que llegan (mismo número de seguimiento) y hace una factura por caja —PDF en tu carpeta Descargas/Lumo/AliExpress— y un CSV con todos los productos para Excel o Google Sheets. Lee tus propias páginas de pedidos con su propia extensión de Chrome / Edge, Lumo for AliExpress, usando la sesión que ya tienes abierta.",
   "Open your AliExpress orders once, and turn on the AliExpress pill under Integrations.": "Abre tus pedidos de AliExpress una vez y activa la píldora AliExpress en Integraciones.",
   "Invoice": "Factura", "Export CSV": "Exportar CSV", "Reading…": "Leyendo…", "Show in the file manager": "Mostrar en el administrador de archivos",
   "Full name": "Nombre completo", "ID / RUC (cédula)": "Cédula / RUC", "Address (several lines are fine)": "Dirección (puede tener varias líneas)",
   "Email (optional)": "Correo (opcional)", "Phone (optional)": "Teléfono (opcional)", "Printed on the invoices as the buyer:": "Se imprime en las facturas como comprador:",
   "Open your AliExpress orders in Chrome or Edge": "Abre tus pedidos de AliExpress en Chrome o Edge",
-  "Open your AliExpress orders in Chrome or Edge once: Coucou reads them from there.": "Abre tus pedidos de AliExpress en Chrome o Edge una vez: Coucou los lee desde ahí.",
-  "Make the invoice of this box (PDF in Downloads/Coucou/AliExpress)": "Hacer la factura de esta caja (PDF en Descargas/Coucou/AliExpress)",
+  "Open your AliExpress orders in Chrome or Edge once: Lumo reads them from there.": "Abre tus pedidos de AliExpress en Chrome o Edge una vez: Lumo los lee desde ahí.",
+  "Make the invoice of this box (PDF in Downloads/Lumo/AliExpress)": "Hacer la factura de esta caja (PDF en Descargas/Lumo/AliExpress)",
   "Your orders grouped by box (tracking number), one invoice per box. Set up below.": "Tus pedidos agrupados por caja (número de seguimiento), una factura por caja. Se configura abajo.",
   "The invoice is your own document built from your orders: it lists the AliExpress order numbers it comes from and says it isn't issued by AliExpress. Keep the original order receipts (Download invoice on each order) for customs.":
     "La factura es un documento tuyo hecho a partir de tus pedidos: indica los números de pedido de AliExpress de los que sale y aclara que no la emite AliExpress. Guarda los comprobantes originales de cada pedido (Descargar factura en cada pedido) para aduanas.",
@@ -391,9 +410,9 @@ const ES: Record<string, string> = {
 const PATTERNS: [RegExp, string][] = [
   [/^Reading your orders again\. So far: (\d+) packages, (\d+) on the way\. Type “aliexpress facturas” for one invoice per package\.$/,
     "Leyendo tus pedidos de nuevo. Por ahora: $1 paquetes, $2 en camino. Escribe “aliexpress facturas” para una factura por paquete."],
-  [/^Making (\d+) invoices \(one per package\) and the CSV\. They go to Downloads\/Coucou\/AliExpress\.$/,
-    "Haciendo $1 facturas (una por paquete) y el CSV. Van a Descargas/Coucou/AliExpress."],
-  [/^Making the invoice of (\S+)\. It goes to Downloads\/Coucou\/AliExpress\.$/, "Haciendo la factura de $1. Va a Descargas/Coucou/AliExpress."],
+  [/^Making (\d+) invoices \(one per package\) and the CSV\. They go to Downloads\/Lumo\/AliExpress\.$/,
+    "Haciendo $1 facturas (una por paquete) y el CSV. Van a Descargas/Lumo/AliExpress."],
+  [/^Making the invoice of (\S+)\. It goes to Downloads\/Lumo\/AliExpress\.$/, "Haciendo la factura de $1. Va a Descargas/Lumo/AliExpress."],
   [/^(\d+) packages · (\d+) on the way$/, "$1 paquetes · $2 en camino"],
   [/^(\d+) packages · (\d+) orders$/, "$1 paquetes · $2 pedidos"],
   [/^(\d+) orders · (.+)$/, "$1 pedidos · $2"],
@@ -433,7 +452,7 @@ const PATTERNS: [RegExp, string][] = [
   [/^Waiting (\d+) · Mine (\d+)( · Auto)?$/, "En espera $1 · Míos $2$3"],
   [/^Today · Arrived (\d+) · Accepted (\d+) \((\d+) auto\)$/, "Hoy · Llegaron $1 · Aceptados $2 ($3 auto)"],
   [/^Today · Arrived (\d+) · Accepted (\d+)$/, "Hoy · Llegaron $1 · Aceptados $2"],
-  [/^From Coucou (\d+) · Auto-accepted (\d+) · Elsewhere (\d+)$/, "Desde Coucou $1 · Auto-aceptados $2 · En otro lugar $3"],
+  [/^From Lumo (\d+) · Auto-accepted (\d+) · Elsewhere (\d+)$/, "Desde Lumo $1 · Auto-aceptados $2 · En otro lugar $3"],
   [/^(\d+) were already waiting when the tab opened \(not in the per-hour chart or the waits\)\.$/,
     "$1 ya estaban esperando cuando se abrió la pestaña (no cuentan en el gráfico por hora ni en las esperas)."],
   [/^(\d+) arrived · (\d+) accepted$/, "$1 llegaron · $2 aceptados"],
@@ -444,10 +463,10 @@ const PATTERNS: [RegExp, string][] = [
   [/^Message · (.+)$/, "Mensaje · $1"],
   [/^(\d+) new$/, "$1 nuevos"],
   [/^(\d+) files: (.*)$/s, "$1 archivos: $2"],
-  [/^Coucou (.+) is out — download$/, "Coucou $1 ya está disponible — descargar"],
-  [/^Coucou (.+) is out — install and restart$/, "Coucou $1 ya está disponible — instalar y reiniciar"],
+  [/^Lumo (.+) is out — download$/, "Lumo $1 ya está disponible — descargar"],
+  [/^Lumo (.+) is out — install and restart$/, "Lumo $1 ya está disponible — instalar y reiniciar"],
   [/^The update couldn't be installed: (.+)$/, "No se pudo instalar la actualización: $1"],
-  [/^Coucou (.+) is out \(you have (.+)\)\.$/, "Coucou $1 ya está disponible (tienes $2)."],
+  [/^Lumo (.+) is out \(you have (.+)\)\.$/, "Lumo $1 ya está disponible (tienes $2)."],
   [/^You're up to date \((.+)\)\.$/, "Estás al día ($1)."],
   [/^You have (.+)\.$/, "Tienes $1."],
   [/^Key saved in (.+)\.$/, "Clave guardada en $1."],
@@ -472,8 +491,8 @@ const PATTERNS: [RegExp, string][] = [
   [/^(\d+) models — pick one in the field\.$/, "$1 modelos — elige uno en el campo."],
   [/^Uploading (.+)$/, "Subiendo $1"],
   [/^Assigned to you · (\d+)$/, "Asignado a ti · $1"],
-  [/^Allowed from Coucou: (.+)$/, "Permitido desde Coucou: $1"],
-  [/^Denied from Coucou: (.+)$/, "Denegado desde Coucou: $1"],
+  [/^Allowed from Lumo: (.+)$/, "Permitido desde Lumo: $1"],
+  [/^Denied from Lumo: (.+)$/, "Denegado desde Lumo: $1"],
   [/^Left to the terminal: (.+)$/, "Respondido en la terminal: $1"],
   [/^Auto-approved \((.+)\): (.+)$/, "Auto-aprobado ($1): $2"],
   [/^(\d+)s$/, "$1 s"],
@@ -491,6 +510,18 @@ const PATTERNS: [RegExp, string][] = [
   [/^A focus block is already running \((.+) left\)\.$/, "Ya hay un bloque de concentración en marcha (quedan $1)."],
   [/^Focus: (\d+) min on (.+)\. Do not disturb is on until the end of the block\.$/, "Concentración: $1 min en $2. No molestar está activado hasta el final del bloque."],
   [/^Focus: (\d+) min\. Do not disturb is on until the end of the block\.$/, "Concentración: $1 min. No molestar está activado hasta el final del bloque."],
+  // the character's name (Settings → Character)
+  [/^Code  (.+)$/, "Código  $1"],
+  [/^Same as (Bao|Pip|Nube|Lumo|Tecla)$/, "Igual que $1"],
+  [/^(Bao|Pip|Nube|Lumo|Tecla) moves with the music$/, "$1 se mueve con la música"],
+  [/^Ask (Bao|Pip|Nube|Lumo|Tecla) why$/, "Preguntar a $1 por qué"],
+  [/^GitHub \(your token, or a signed-in gh\) and Linear notifications that need you, behind the 🔔\. (Bao|Pip|Nube|Lumo|Tecla) peeks out when something new arrives\.$/,
+    "Las notificaciones de GitHub (tu token, o gh con sesión) y de Linear que te necesitan, detrás de la 🔔. $1 se asoma cuando llega algo nuevo."],
+  [/^🎙 in the chat: say your question and (Bao|Pip|Nube|Lumo|Tecla) sends it \(Windows speech recognition; dictation needs online speech recognition on in Windows Settings → Privacy & security → Speech\)\.$/,
+    "🎙 en el chat: di tu pregunta y $1 la envía (reconocimiento de voz de Windows; el dictado necesita el reconocimiento de voz en línea activado en Configuración → Privacidad y seguridad → Voz)."],
+  [/^Speaking your questions isn't available on Linux: it has no built-in speech recognition\. (Bao|Pip|Nube|Lumo|Tecla) can still read its replies aloud\.$/,
+    "Hablarle a $1 no está disponible en Linux: no trae reconocimiento de voz. $1 sí puede leer sus respuestas en voz alta."],
+  [/^The interface calls it by its name, like “Ask Lumo”\.$/, "La interfaz lo llama por su nombre, como «Preguntar a Lumo»."],
 ];
 
 const RAW = ".chat-log, .code, .diff, .inbox-open .title, .path, .tl-time, [data-raw]";

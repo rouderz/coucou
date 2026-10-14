@@ -1,10 +1,10 @@
 <div align="center">
 
-<img src="src-tauri/icons/128x128.png" width="96" alt="Coucou icon">
+<img src="src-tauri/icons/128x128.png" width="96" alt="Lumo icon">
 
-# Coucou for Windows and Linux
+# Lumo for Windows and Linux
 
-**Mochi doesn't get a notch on a PC — so it brings its own, at the top of your screen.**
+**Your character doesn't get a notch on a PC — so it brings its own, at the top of your screen.**
 
 Approve Claude Code permissions, watch your session work, drop a file, chat with Claude, keep an eye on your services — without leaving what you're doing.
 
@@ -16,7 +16,7 @@ Approve Claude Code permissions, watch your session work, drop a file, chat with
 
 </div>
 
-<img src="screenshots/greeting.png" width="640" alt="Mochi waving hello at launch">
+<img src="screenshots/greeting.png" width="640" alt="Lumo waving a tentacle at launch">
 
 ---
 
@@ -26,10 +26,10 @@ Every release on the [Releases](https://github.com/rouderz/coucou/releases) page
 
 | | File | Notes |
 |---|---|---|
-| Windows 10/11 | `Coucou-<version>-Windows-setup.exe` | installs for the current user only, no admin prompt |
-| Debian, Ubuntu | `Coucou-<version>-Linux-<arch>.deb` | `x86_64` or `arm64` |
-| Fedora, openSUSE | `Coucou-<version>-Linux-<arch>.rpm` | |
-| Any other distribution | `Coucou-<version>-Linux-<arch>.AppImage` | `chmod +x`, then run it |
+| Windows 10/11 | `Lumo-<version>-Windows-setup.exe` | installs for the current user only, no admin prompt |
+| Debian, Ubuntu | `Lumo-<version>-Linux-<arch>.deb` | `x86_64` or `arm64` |
+| Fedora, openSUSE | `Lumo-<version>-Linux-<arch>.rpm` | |
+| Any other distribution | `Lumo-<version>-Linux-<arch>.AppImage` | `chmod +x`, then run it |
 
 The builds aren't code-signed yet (#39). On Windows, SmartScreen asks first:
 **More info → Run anyway**. Microsoft Defender has wrongly flagged unsigned
@@ -37,53 +37,50 @@ builds before (`Trojan:Win32/Wacatac.H!ml`, a machine-learning false positive);
 if that happens, [build it yourself](#build-it-yourself) — it takes a few minutes.
 
 **Updates:** when a new version is out, a ⬇ appears in the island. Click it and
-Coucou downloads the update, checks its signature, installs it and restarts.
+Lumo downloads the update, checks its signature, installs it and restarts.
 The Windows installer and the AppImage update themselves; `.deb` and `.rpm`
 installs (owned by the package manager) open the download instead. Turn the
 check off in Settings → Updates.
 
 ## Using it
 
-<img src="screenshots/compact.png" width="292" alt="The compact island, with the integration pills as mini Mochis">
-<img src="screenshots/overview.png" width="640" alt="The overview: the focused integration on the left, the other pills on the right">
-<img src="screenshots/approval.png" width="640" alt="A Claude Code permission request, with Deny and Allow">
-<img src="screenshots/chat.png" width="640" alt="Chatting with Claude from the island">
-<img src="screenshots/drop.png" width="640" alt="Mochi turned into a box, waiting for a file">
+<img src="screenshots/overview.png" width="640" alt="The main base: Claude Code sessions with Approve, plan usage, folders and chips, with the character rail on the left">
+<img src="screenshots/github.png" width="640" alt="GitHub's character with your latest repositories">
+<img src="screenshots/chat.png" width="640" alt="Asking Gmail's character about your mail">
+<img src="screenshots/drop.png" width="640" alt="Lumo holding a dropped file">
 
 | What you do | What happens |
 |---|---|
-| Move the mouse to the small notch at the top centre of the screen | Mochi peeks out |
+| Move the mouse to the small notch at the top centre of the screen | The character peeks out |
 | Click the small island | It opens |
-| Click Mochi | It gets annoyed. Three times in a row and it goes dizzy |
-| Rest the pointer on Mochi for two seconds | Hearts |
-| Drag a file onto the island | Mochi turns into a box, swallows it, then offers to answer questions about it |
+| Click the character | It gets annoyed. Three times in a row and it goes dizzy |
+| Rest the pointer on the character for two seconds | Hearts |
+| Drag a file onto the island | The character turns into a box, swallows it, then offers to answer questions about it |
 | `Esc` | Closes the island |
 | `Alt+Enter` / `Alt+Backspace` | Allow / deny the waiting approval, from any app (X11 only on Linux) |
 | Tray icon | Open, Settings…, Pause, Quit |
 
 Everything else happens on its own: a Claude Code permission request opens the
 island with **Deny / Allow**, a finished session shows what it did, and
-your integrations sit in the coloured pills next to Mochi.
+your integrations sit in the coloured pills next to the character.
 
 When the island hides, a small notch stays at the top centre, like the Mac's, so
-Coucou never seems gone. Coucou also keeps itself above other always-on-top
+Lumo never seems gone. Lumo also keeps itself above other always-on-top
 windows (the taskbar, full-screen apps). Don't want the notch? **Settings →
 General → Idle notch** leaves only an invisible strip at the top edge.
 
 ## Claude Code
 
-<img src="screenshots/settings.png" width="562" alt="The settings window">
-
 Open **Settings… → Claude Code → Install hooks…**. You get the exact diff of what
 will change in `%USERPROFILE%\.claude\settings.json`, the path of the dated backup
 that will be taken, and nothing is written until you click. Your own hooks are
-never touched, and uninstalling removes only Coucou's entries.
+never touched, and uninstalling removes only Lumo's entries.
 
 The relay is a tiny executable, `coucou-hook.exe`, copied to
-`%LOCALAPPDATA%\Coucou\bin\` at launch. It is given 300 ms to reach Coucou and
+`%LOCALAPPDATA%\Coucou\bin\` at launch. It is given 300 ms to reach Lumo and
 exits cleanly if the app is closed, slow or crashed — **a Claude Code session is
-never blocked or slowed down by Coucou.** If nobody answers a permission request
-in time, Coucou stays quiet and Claude Code asks in the terminal as usual.
+never blocked or slowed down by Lumo.** If nobody answers a permission request
+in time, Lumo stays quiet and Claude Code asks in the terminal as usual.
 
 It works from any terminal — Windows Terminal, PowerShell, VS Code, Git Bash.
 
@@ -96,7 +93,7 @@ it at). Keys live in the **Windows Credential Manager** or the Linux **Secret
 Service** (GNOME Keyring, KWallet), never on disk and never in the interface —
 the island can only ask whether a key exists. Same for every integration key.
 
-No telemetry. The only network requests Coucou makes are to the services you
+No telemetry. The only network requests Lumo makes are to the services you
 configure yourself, and to GitHub to check for updates (Settings → Updates).
 
 ## Build it yourself
@@ -120,8 +117,8 @@ otherwise needs a real drag from Explorer to see. Neither page ships in the app.
 `npm run pack` leaves two files in `windows/release/`:
 
 ```
-Coucou-Windows-X.Y.Z-setup.exe    the versioned installer
-Coucou-Windows-setup.exe          the same file under the rolling name
+Lumo-Windows-X.Y.Z-setup.exe      the versioned installer
+Lumo-Windows-setup.exe            the same file under the rolling name
 ```
 
 Tests: `npm test` for the front-end logic, `cargo test` for the Rust side. Both
@@ -133,16 +130,16 @@ root does the tagging).
 
 Installing is optional — `target/release/coucou.exe` runs on its own. There is no
 window in the taskbar and no console: the island at the top of the screen and the
-Mochi in the notification area are the whole app, and Quit lives in its menu.
+icon in the notification area are the whole app, and Quit lives in its menu.
 
 The 28 sounds are the macOS app's own files; they are never duplicated in this
 folder. The path is declared once, in `SOUNDS_DIR` at the top of
 `vite.config.ts` — when they move to `shared/sounds/`, change that one line.
 
-The app icon and the tray icon are drawn in code, like Mochi itself:
+The app icon and the tray icon are drawn in code, like the characters:
 
 ```powershell
-npm run icons          # regenerates src-tauri/icons from scripts/gen-icons.mjs
+npm run icons          # renders every icon (Mac, Windows, Linux, website) from dev/icon.html
 ```
 
 ### Layout
@@ -150,7 +147,7 @@ npm run icons          # regenerates src-tauri/icons from scripts/gen-icons.mjs
 ```
 windows/
   src/                 island front end (TypeScript, no framework)
-    mochi/             Mochi and the launch greeting, in Canvas 2D
+    mochi/             the characters and the launch greeting, in Canvas 2D
     island/            state machine, hooks, integrations
     views/             every island view
     settings/          the settings window
@@ -187,7 +184,7 @@ What changes:
 **Wayland** gives apps neither a global cursor nor a say in where windows go, so
 there the island is a *layer-shell* surface anchored to the top edge (KDE Plasma,
 Sway, Hyprland, and other wlroots compositors), and the page tracks the pointer
-itself. GNOME has no layer-shell: on GNOME Coucou runs through XWayland
+itself. GNOME has no layer-shell: on GNOME Lumo runs through XWayland
 (`GDK_BACKEND=x11`) automatically. Set `GDK_BACKEND` yourself to override.
 
 To build it:
@@ -208,7 +205,7 @@ npx tauri build         # .deb, .rpm and .AppImage in target/release/bundle/
   small notch of its own there when it hides (Settings → General → Idle notch).
 - Permission approval works from **any** terminal; the Mac build only listens to
   VS Code sessions.
-- Not in this version: sending a file by email, dragging Mochi onto a window to
+- Not in this version: sending a file by email, dragging the character onto a window to
   attach it as context, and jumping to a specific terminal window — "Open
   terminal" opens the working folder in the editor picked in Settings (VS Code,
   Cursor, Windsurf or Zed, whichever are on your `PATH`).
@@ -224,9 +221,9 @@ npx tauri build         # .deb, .rpm and .AppImage in target/release/bundle/
   Linux). Not here: Do not disturb during calendar events (needs macOS EventKit).
 - Chats are saved (History, New chat); the chat can also use OpenAI, Gemini,
   OpenRouter, Ollama, LM Studio or any OpenAI-compatible server; the interface
-  is in English or Spanish; Mochi can read its replies aloud, and on Windows
+  is in English or Spanish; the character can read its replies aloud, and on Windows
   you can speak your question (🎙). The VS Code / Cursor extension works here
-  too ("Ask Mochi about this"). Not here: "Hey Mochi" (no on-device keyword
+  too ("Ask Lumo about this"). Not here: "Hey <character>" (no on-device keyword
   detection) and speaking questions on Linux (no built-in speech recognition).
 - The chat runs on an Anthropic API key or on your own Claude Code (Settings →
   Chat → Engine), signed in with your Claude plan; GitHub works with a token or
@@ -235,9 +232,11 @@ npx tauri build         # .deb, .rpm and .AppImage in target/release/bundle/
 
 ## License
 
-The code is [MIT](../LICENSE). The name Coucou, the Mochi character, the icons
-(including the ones `scripts/gen-icons.mjs` draws) and the sounds are Louis
-Raillé's and are not covered by it — see [LICENSE-ASSETS.md](../LICENSE-ASSETS.md).
+The code is [MIT](../LICENSE) (© Louis Raillé for the original Coucou code, © Wolfgang Welcomez /
+rouderz for Lumo's changes). The characters (Lumo, Bao, Pip, Nube, Tecla) are under CC BY 4.0 — see
+[LICENSE-CHARACTERS.md](../LICENSE-CHARACTERS.md). The name Lumo, its icons (drawn by
+`dev/icon.html`), its sounds and its media are Wolfgang Welcomez's, all rights reserved — see
+[LICENSE-ASSETS.md](../LICENSE-ASSETS.md).
 The builds include open-source libraries (Tauri and its plugins, the `windows`
 crate, GTK / WebKitGTK bindings and the rest of [`Cargo.lock`](Cargo.lock) and
 [`package-lock.json`](package-lock.json)), each under its own license.

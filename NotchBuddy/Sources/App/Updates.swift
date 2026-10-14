@@ -73,7 +73,7 @@ final class Updates: ObservableObject {
                 latest = release
                 if announce, !wasKnown, available != nil, !DoNotDisturb.shared.isActive {
                     log.info("update available: \(release.version, privacy: .public)")
-                    AppState.shared.noteMessage = L("Coucou \(release.version) is available · Settings → Updates")
+                    AppState.shared.noteMessage = L("Lumo \(release.version) is available · Settings → Updates")
                     NotificationCenter.default.post(name: .hookExpand, object: IslandView.note)
                 }
             } catch {
@@ -105,7 +105,7 @@ final class Updates: ObservableObject {
         return key.isValidSignature(sig, for: data)
     }
 
-    /// Download → check the signature → unzip → check it's Coucou, that version → swap and relaunch.
+    /// Download → check the signature → unzip → check it's Lumo, that version → swap and relaunch.
     func installAndRestart() {
         guard installStep == nil, let release = available, canInstall,
               let zipURL = release.zipURL.flatMap(URL.init(string:)),
@@ -120,7 +120,7 @@ final class Updates: ObservableObject {
                 let zip = try Data(contentsOf: zipFile)
                 guard Self.signatureIsValid(String(decoding: sigData, as: UTF8.self), for: zip,
                                             publicKey: UpdateKey.macPublicKey) else {
-                    throw UpdateError(L("The download isn't signed by Coucou's key. Nothing was installed."))
+                    throw UpdateError(L("The download isn't signed by Lumo's key. Nothing was installed."))
                 }
                 let newApp = try Self.unzip(zipFile, expecting: release.version)
                 installStep = L("Restarting…")
@@ -139,7 +139,7 @@ final class Updates: ObservableObject {
         init(_ message: String) { self.message = message }
     }
 
-    /// Unzips into a fresh temporary folder and checks the app inside is Coucou at `version`.
+    /// Unzips into a fresh temporary folder and checks the app inside is Lumo at `version`.
     nonisolated static func unzip(_ zip: URL, expecting version: String) throws -> URL {
         let dir = FileManager.default.temporaryDirectory.appendingPathComponent("coucou-update-\(UUID().uuidString)")
         try FileManager.default.createDirectory(at: dir, withIntermediateDirectories: true)
@@ -148,12 +148,14 @@ final class Updates: ObservableObject {
         ditto.arguments = ["-x", "-k", zip.path, dir.path]
         try ditto.run()
         ditto.waitUntilExit()
-        let app = dir.appendingPathComponent("Coucou.app")
+        // Lumo.app; zips made for the first release after the rename hold Coucou.app (see make-dmg.sh).
+        let app = ["Lumo.app", "Coucou.app"].map { dir.appendingPathComponent($0) }
+            .first { FileManager.default.fileExists(atPath: $0.path) } ?? dir.appendingPathComponent("Lumo.app")
         guard ditto.terminationStatus == 0,
               let info = Bundle(url: app)?.infoDictionary,
               info["CFBundleIdentifier"] as? String == Bundle.main.bundleIdentifier,
               info["CFBundleShortVersionString"] as? String == version else {
-            throw UpdateError(L("The downloaded app isn't the expected Coucou version. Nothing was installed."))
+            throw UpdateError(L("The downloaded app isn't the expected Lumo version. Nothing was installed."))
         }
         return app
     }
@@ -161,19 +163,24 @@ final class Updates: ObservableObject {
     /// A small script waits for this process to quit, swaps the bundle (putting the old one
     /// back if anything fails) and opens the new one.
     nonisolated static func swapAndRelaunch(with newApp: URL) throws {
-        let target = Bundle.main.bundleURL.path
+        let current = Bundle.main.bundleURL.path
+        // An install still named Coucou.app (before the rename) becomes Lumo.app next to it.
+        let renamed = Bundle.main.bundleURL.lastPathComponent == "Coucou.app"
+            && !FileManager.default.fileExists(atPath: Bundle.main.bundleURL.deletingLastPathComponent().appendingPathComponent("Lumo.app").path)
+        let target = renamed ? Bundle.main.bundleURL.deletingLastPathComponent().appendingPathComponent("Lumo.app").path : current
         func q(_ s: String) -> String { "'" + s.replacingOccurrences(of: "'", with: "'\\''") + "'" }
         let script = """
         #!/bin/sh
         while kill -0 \(ProcessInfo.processInfo.processIdentifier) 2>/dev/null; do sleep 0.2; done
-        rm -rf \(q(target + ".old"))
-        if mv \(q(target)) \(q(target + ".old")) && /usr/bin/ditto \(q(newApp.path)) \(q(target)); then
-          rm -rf \(q(target + ".old"))
+        rm -rf \(q(current + ".old"))
+        APP=\(q(target))
+        if mv \(q(current)) \(q(current + ".old")) && /usr/bin/ditto \(q(newApp.path)) \(q(target)); then
+          rm -rf \(q(current + ".old"))
         else
-          rm -rf \(q(target)); mv \(q(target + ".old")) \(q(target))
+          rm -rf \(q(target)); mv \(q(current + ".old")) \(q(current)); APP=\(q(current))
         fi
-        /usr/bin/xattr -dr com.apple.quarantine \(q(target)) 2>/dev/null
-        /usr/bin/open \(q(target))
+        /usr/bin/xattr -dr com.apple.quarantine "$APP" 2>/dev/null
+        /usr/bin/open "$APP"
         rm -rf \(q(newApp.deletingLastPathComponent().path))
         """
         let file = FileManager.default.temporaryDirectory.appendingPathComponent("coucou-update-\(UUID().uuidString).sh")
@@ -181,7 +188,7 @@ final class Updates: ObservableObject {
         let sh = Process()
         sh.executableURL = URL(fileURLWithPath: "/bin/sh")
         sh.arguments = [file.path]
-        try sh.run()   // outlives us: launchd adopts it when Coucou quits
+        try sh.run()   // outlives us: launchd adopts it when Lumo quits
     }
 
     func download() {
@@ -230,10 +237,10 @@ struct UpdatesSection: View {
             HStack(spacing: 8) {
                 Circle().fill(updates.available != nil ? Color.orange : Color.green).frame(width: 8, height: 8)
                 if let new = updates.available {
-                    Text("Coucou \(new.version) is available (you have \(Updates.currentVersion))")
+                    Text("Lumo \(new.version) is available (you have \(Updates.currentVersion))")
                         .font(.system(size: 12.5, weight: .semibold))
                 } else {
-                    Text("Coucou \(Updates.currentVersion)")
+                    Text("Lumo \(Updates.currentVersion)")
                         .font(.system(size: 12.5, weight: .semibold))
                     Text(updates.lastCheck == nil ? "" : L("up to date"))
                         .font(.system(size: 11)).foregroundColor(.secondary)
@@ -257,14 +264,14 @@ struct UpdatesSection: View {
                         Button(updates.installStep ?? L("Install and restart")) { updates.installAndRestart() }
                             .buttonStyle(.borderedProminent)
                             .disabled(updates.installStep != nil)
-                        Text("Coucou updates itself and opens again in a few seconds.")
+                        Text("Lumo updates itself and opens again in a few seconds.")
                             .font(.system(size: 11)).foregroundColor(.secondary)
                     }
                 } else {
                     HStack {
                         Button(new.dmgURL != nil ? "Download the DMG" : "Open the release page") { updates.download() }
                             .buttonStyle(.borderedProminent)
-                        Text("Open it and drag Coucou to Applications, replacing this one.")
+                        Text("Open it and drag Lumo to Applications, replacing this one.")
                             .font(.system(size: 11)).foregroundColor(.secondary)
                     }
                 }
@@ -273,6 +280,17 @@ struct UpdatesSection: View {
                 Text(error).font(.system(size: 11)).foregroundColor(.orange)
             }
             Toggle("Check for updates automatically (every 6 hours, GitHub releases)", isOn: $state.updateChecks)
+            // Credits: who made what, and under which license (LICENSE, LICENSE-CHARACTERS.md, NOTICE).
+            Text(verbatim: AppCredits.line)
+                .font(.system(size: 10.5)).foregroundColor(.secondary)
+                .textSelection(.enabled)
+                .fixedSize(horizontal: false, vertical: true)
         }
     }
+}
+
+/// The credits line shown under the version in Settings.
+enum AppCredits {
+    static let line = "Lumo © 2026 Wolfgang Welcomez (rouderz) · Characters Lumo, Bao, Pip, Nube and Tecla "
+        + "© Wolfgang Welcomez, CC BY 4.0 · Based on Coucou by Louis Raillé, MIT License"
 }

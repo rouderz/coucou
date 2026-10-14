@@ -1,6 +1,6 @@
 // Phone alerts (#31 on macOS) and the update check.
 //
-// Phone alerts go through ntfy (https://ntfy.sh): a free app, no account. Coucou
+// Phone alerts go through ntfy (https://ntfy.sh): a free app, no account. Lumo
 // posts to a random topic only you know — it carries the project and the command,
 // so the topic acts as a password.
 
@@ -148,7 +148,7 @@ pub async fn check() -> Result<UpdateInfo, String> {
         .map_err(|e| e.to_string())?
         .get(format!("https://api.github.com/repos/{REPO}/releases/latest"))
         .header("Accept", "application/vnd.github+json")
-        .header("User-Agent", "Coucou")
+        .header("User-Agent", "Lumo")
         .send()
         .await
         .map_err(|_| "Can't reach GitHub".to_string())?;
@@ -176,8 +176,8 @@ mod tests {
         let json = serde_json::json!({
             "tag_name": "v9.0.0", "html_url": "https://github.com/rouderz/coucou/releases/tag/v9.0.0",
             "assets": [
-                { "name": "Coucou-9.0.0-macOS.dmg", "browser_download_url": "https://x/mac" },
-                { "name": format!("Coucou-9.0.0{}", asset_suffix()), "browser_download_url": "https://x/mine" }
+                { "name": "Lumo-9.0.0-macOS.dmg", "browser_download_url": "https://x/mac" },
+                { "name": format!("Lumo-9.0.0{}", asset_suffix()), "browser_download_url": "https://x/mine" }
             ]
         });
         let info = parse_release(&json, "0.2.1").unwrap();

@@ -53,7 +53,7 @@ enum AutoApprove {
     }
 
     /// True when the request may go through without asking. Never for high risk, edits outside
-    /// the project or Mochi's own chat.
+    /// the project or the character's own chat.
     static func shouldAllow(risk: ApprovalRisk, cwd: String, fromChat: Bool) -> Bool {
         guard !fromChat, !cwd.isEmpty, risk != .high else { return false }
         let ok = level(for: cwd).allows(risk)

@@ -93,7 +93,7 @@ enum CLITool {
 // MARK: - GitHub CLI
 
 /// Uses the user's signed-in GitHub CLI (`gh`) for the GitHub integration, so no
-/// Personal Access Token is needed. Requests go through `gh api`: Coucou never reads,
+/// Personal Access Token is needed. Requests go through `gh api`: Lumo never reads,
 /// stores or forwards the GitHub credential.
 enum GitHubCLI {
     enum Status: Sendable, Equatable {

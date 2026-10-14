@@ -1,102 +1,67 @@
 <!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Privacy Policy — Coucou</title><link rel="icon" href="media/icon.png"><link rel="stylesheet" href="site.css"></head><body><div class="wrap">
-<header><a href="index.html"><img src="media/icon.png" alt=""></a><span class="name">Coucou</span>
+<title>Privacy Policy — Lumo</title><link rel="icon" href="media/icon.png"><link rel="stylesheet" href="site.css"></head><body><div class="wrap">
+<header><a href="index.html"><img src="media/icon.png" alt=""></a><span class="name">Lumo</span>
 <nav><a href="index.html">Home</a><a href="support.html">Support</a><a href="privacy.html" class="on">Privacy</a><a href="terms.html">Terms</a><a href="legal.html">Legal</a></nav></header>
-<div class="lang"><a href="#en">English</a><a href="#fr">Français</a></div>
+<div class="lang"><a href="#en">English</a><a href="#es">Español</a></div>
 <section id="en">
 <h1>Privacy Policy</h1>
-<div class="meta">Last updated: September 30, 2026</div>
-<div class="card"><b>In short:</b> Coucou has no account, no analytics, no ads and no tracking. The developer receives none of your data. Everything stays on your computer (Mac or PC), except what you choose to send to the services you connect yourself.</div>
-
+<div class="meta">Last updated: October 13, 2026</div>
+<div class="card"><b>In short:</b> Lumo has no account, no analytics, no ads and no tracking. The publisher receives none of your data. Everything stays on your computer, except what you choose to send to the services you connect yourself.</div>
 <h2>1. Who is responsible</h2>
-<p>Coucou is published by Louis Raillé, an individual developer based in France (“we”). Contact: <a href="mailto:raillelouis@gmail.com">raillelouis@gmail.com</a>.</p>
-
+<p>Lumo is published by Wolfgang Welcomez (rouderz), an individual developer. Contact: <a href="mailto:wolfgangwilfredo@gmail.com">wolfgangwilfredo@gmail.com</a>.</p>
 <h2>2. Data we collect</h2>
-<p><b>None.</b> Coucou does not send any data to us or to any server we operate. There is no telemetry, no crash reporting service, no advertising identifier and no third-party SDK.</p>
-
+<p><b>None.</b> Lumo sends no data to the publisher or to any server the publisher runs. No telemetry, no crash reporting service, no advertising identifier, no third-party SDK.</p>
 <h2>3. Data stored on your computer</h2>
 <table>
 <tr><th>What</th><th>Where</th><th>Why</th></tr>
-<tr><td>API keys and tokens you enter (Anthropic, Stripe, GitHub, Vercel, Resend, Notion, Cal.com, n8n)</td><td>macOS Keychain, or Windows Credential Manager</td><td>To call these services on your behalf</td></tr>
-<tr><td>Preferences (sound, delays, active integrations, shortcut)</td><td>App preferences on your Mac, or <code>%APPDATA%\Coucou</code> on Windows</td><td>To remember your settings</td></tr>
-<tr><td>Files you drop on the notch</td><td>A copy in the app’s own folder (on Windows: <code>%LOCALAPPDATA%\Coucou</code>)</td><td>So you can ask a question about them or attach them to an email</td></tr>
-<tr><td>Claude Code session events (project name, current step, permission requests)</td><td>In memory only</td><td>To show them in the notch</td></tr>
+<tr><td>Keys and tokens you enter</td><td>macOS Keychain, Windows Credential Manager or the Linux Secret Service</td><td>To call those services for you</td></tr>
+<tr><td>Preferences</td><td>App preferences on your Mac; <code>%APPDATA%\Coucou</code> on Windows; <code>~/.config/coucou</code> on Linux</td><td>To remember your settings</td></tr>
+<tr><td>Chat history, WhaTicket stats, files you drop</td><td>The app’s own folder (<code>~/Library/Application Support/NotchBuddy</code>, <code>%LOCALAPPDATA%\Coucou</code> or <code>~/.local/share/coucou</code>)</td><td>To resume chats, show stats and answer about files</td></tr>
+<tr><td>Claude Code and Codex session events</td><td>In memory</td><td>To show them in the notch</td></tr>
 </table>
-<p>You can delete all of this at any time by removing your keys in Settings, then deleting the app and its folder in <code>~/Library/Application Support/NotchBuddy</code> (or the app’s container for the App Store version). On Windows: uninstall Coucou from Settings → Apps, then delete <code>%APPDATA%\Coucou</code> and <code>%LOCALAPPDATA%\Coucou</code>.</p>
-
+<p>(The folders keep their older names so updates don’t lose your settings.) You can delete all of it at any time: remove your keys in Settings, uninstall Lumo and delete those folders.</p>
 <h2>4. Services you connect yourself</h2>
-<p>Coucou only talks to the services you configure, directly from your Mac, using your own keys. Those services process your data under their own privacy policies:</p>
-<ul>
-<li><b>Anthropic (Claude API)</b> — when you chat with Claude or ask about a file or a window, the text you type, the file content and/or the window context you chose are sent to Anthropic. <a href="https://www.anthropic.com/legal/privacy">Anthropic privacy policy</a>.</li>
-<li><b>Stripe, GitHub, Vercel, Resend, Notion, Cal.com, n8n</b> — Coucou reads data from your own accounts (payments, repositories, deployments, emails, pages, bookings, workflow runs) to display them. Coucou only reads from them.</li>
-</ul>
-<p>We have no access to these requests or their responses.</p>
-
+<p>Lumo talks only to the services you configure, directly from your computer, with your own login or keys; they handle your data under their own policies. For example: Claude Code / Anthropic (chat, code and plan usage), GitHub and Linear (notifications, pull requests, updates), Google (Gmail and Drive, read-only), ntfy (phone alerts, if you turn them on). WhaTicket and AliExpress are read by Lumo’s browser extensions inside your own browser tab; Lumo never calls them itself.</p>
 <h2>5. Claude Code</h2>
-<p>If you install the Claude Code hooks, Claude Code sends session events to Coucou through a local connection on your computer. These events never leave your computer through Coucou. Before changing <code>~/.claude/settings.json</code>, Coucou makes a dated backup and shows you the changes.</p>
-
-<h2>6. Email</h2>
-<p>When you send a file by email, the message is created and sent by your own Mail app. Coucou never sends email by itself.</p>
-
-<h2>7. System permissions</h2>
-<p>Depending on the version and the features you use, macOS may ask you to allow Automation (Mail, Terminal), Accessibility (to read the title of the window you attach) or Screen Recording (to capture a window you attach). These are only used for the feature you triggered and can be revoked at any time in System Settings → Privacy &amp; Security. The Windows version asks for no special permission and no administrator rights.</p>
-
-<h2>8. Children</h2>
-<p>Coucou is a developer tool and is not directed at children.</p>
-
-<h2>9. Your rights</h2>
-<p>Since we hold no personal data about you, there is nothing for us to access, correct or delete. For data held by a service you connected, please contact that service. If you live in the EU, you can also contact your data protection authority (in France: the <a href="https://www.cnil.fr">CNIL</a>).</p>
-
-<h2>10. Changes</h2>
-<p>If this policy changes, the new version will be published on this page with a new date.</p>
+<p>If you install the hooks, Claude Code sends session events to Lumo over a local connection on your computer; they never leave it through Lumo. Before changing <code>~/.claude/settings.json</code>, Lumo makes a dated backup and shows you the changes.</p>
+<h2>6. System permissions</h2>
+<p>Depending on what you use, your system may ask to allow Accessibility (to read the file you’re editing), the microphone and speech recognition (push-to-talk) or calendars (Do not disturb). They’re used only for that feature and can be revoked at any time.</p>
+<h2>7. Children</h2>
+<p>Lumo is a developer tool and is not directed at children.</p>
+<h2>8. Your rights</h2>
+<p>The publisher holds no personal data about you, so there is nothing to access, correct or delete on our side. For data held by a service you connected, contact that service, or your data protection authority.</p>
+<h2>9. Changes</h2>
+<p>If this policy changes, the new version will be published here with a new date.</p>
 </section>
-
 <hr>
-<section id="fr" lang="fr">
-<h1>Politique de confidentialité</h1>
-<div class="meta">Dernière mise à jour : 30 septembre 2026</div>
-<div class="card"><b>En bref :</b> Coucou n’a ni compte, ni statistiques, ni publicité, ni pistage. Le développeur ne reçoit aucune de tes données. Tout reste sur ton ordinateur (Mac ou PC), sauf ce que tu choisis d’envoyer aux services que tu connectes toi-même.</div>
-
+<section id="es" lang="es">
+<h1>Política de privacidad</h1>
+<div class="meta">Última actualización: 13 de octubre de 2026</div>
+<div class="card"><b>En resumen:</b> Lumo no tiene cuentas, estadísticas, publicidad ni rastreo. El responsable no recibe ninguno de tus datos. Todo se queda en tu ordenador, salvo lo que decidas enviar a los servicios que conectas tú.</div>
 <h2>1. Responsable</h2>
-<p>Coucou est publié par Louis Raillé, développeur indépendant basé en France. Contact : <a href="mailto:raillelouis@gmail.com">raillelouis@gmail.com</a>.</p>
-
-<h2>2. Données collectées</h2>
-<p><b>Aucune.</b> Coucou n’envoie aucune donnée au développeur ni à un serveur qu’il exploite. Pas de télémétrie, pas de service de rapport de plantage, pas d’identifiant publicitaire, pas de SDK tiers.</p>
-
-<h2>3. Données stockées sur ton ordinateur</h2>
+<p>Lumo lo publica Wolfgang Welcomez (rouderz), desarrollador independiente. Contacto: <a href="mailto:wolfgangwilfredo@gmail.com">wolfgangwilfredo@gmail.com</a>.</p>
+<h2>2. Datos que recogemos</h2>
+<p><b>Ninguno.</b> Lumo no envía datos al responsable ni a ningún servidor suyo. Sin telemetría, sin servicio de informes de fallos, sin identificador publicitario, sin SDK de terceros.</p>
+<h2>3. Datos guardados en tu ordenador</h2>
 <table>
-<tr><th>Quoi</th><th>Où</th><th>Pourquoi</th></tr>
-<tr><td>Clés d’API et jetons saisis (Anthropic, Stripe, GitHub, Vercel, Resend, Notion, Cal.com, n8n)</td><td>Trousseau macOS, ou Gestionnaire d’identifiants Windows</td><td>Appeler ces services pour toi</td></tr>
-<tr><td>Préférences (son, délais, intégrations actives, raccourci)</td><td>Préférences de l’app sur ton Mac, ou <code>%APPDATA%\Coucou</code> sous Windows</td><td>Garder tes réglages</td></tr>
-<tr><td>Fichiers déposés sur le notch</td><td>Une copie dans le dossier de l’app (sous Windows : <code>%LOCALAPPDATA%\Coucou</code>)</td><td>Pouvoir poser une question dessus ou les joindre à un mail</td></tr>
-<tr><td>Événements des sessions Claude Code (nom du projet, étape en cours, demandes de permission)</td><td>En mémoire uniquement</td><td>Les afficher dans le notch</td></tr>
+<tr><th>Qué</th><th>Dónde</th><th>Para qué</th></tr>
+<tr><td>Claves y tokens que introduces</td><td>Llavero de macOS, Administrador de credenciales de Windows o Secret Service de Linux</td><td>Llamar a esos servicios por ti</td></tr>
+<tr><td>Preferencias</td><td>Preferencias de la app en tu Mac; <code>%APPDATA%\Coucou</code> en Windows; <code>~/.config/coucou</code> en Linux</td><td>Recordar tus ajustes</td></tr>
+<tr><td>Historial del chat, estadísticas de WhaTicket, archivos que sueltas</td><td>La carpeta de la app (<code>~/Library/Application Support/NotchBuddy</code>, <code>%LOCALAPPDATA%\Coucou</code> o <code>~/.local/share/coucou</code>)</td><td>Retomar chats, mostrar estadísticas y responder sobre archivos</td></tr>
+<tr><td>Eventos de sesiones de Claude Code y Codex</td><td>En memoria</td><td>Mostrarlos en el notch</td></tr>
 </table>
-<p>Tu peux tout supprimer à tout moment : retire tes clés dans les Réglages, puis supprime l’app et son dossier <code>~/Library/Application Support/NotchBuddy</code> (ou le conteneur de l’app pour la version App Store). Sous Windows : désinstalle Coucou depuis Paramètres → Applications, puis supprime <code>%APPDATA%\Coucou</code> et <code>%LOCALAPPDATA%\Coucou</code>.</p>
-
-<h2>4. Services que tu connectes toi-même</h2>
-<p>Coucou ne communique qu’avec les services que tu configures, directement depuis ton Mac, avec tes propres clés. Ces services traitent tes données selon leur propre politique :</p>
-<ul>
-<li><b>Anthropic (API Claude)</b> : quand tu discutes avec Claude ou poses une question sur un fichier ou une fenêtre, le texte saisi, le contenu du fichier et/ou le contexte de la fenêtre choisie sont envoyés à Anthropic. <a href="https://www.anthropic.com/legal/privacy">Politique de confidentialité d’Anthropic</a>.</li>
-<li><b>Stripe, GitHub, Vercel, Resend, Notion, Cal.com, n8n</b> : Coucou lit les données de tes propres comptes (paiements, dépôts, déploiements, e-mails, pages, rendez-vous, exécutions de workflows) pour les afficher. Coucou ne fait que lire.</li>
-</ul>
-<p>Le développeur n’a accès ni à ces requêtes ni à leurs réponses.</p>
-
+<p>(Las carpetas conservan sus nombres anteriores para que las actualizaciones no pierdan tus ajustes.) Puedes borrarlo todo cuando quieras: quita tus claves en Ajustes, desinstala Lumo y borra esas carpetas.</p>
+<h2>4. Servicios que conectas tú</h2>
+<p>Lumo solo habla con los servicios que configuras, directamente desde tu ordenador y con tu propio inicio de sesión o claves; ellos tratan tus datos según sus políticas. Por ejemplo: Claude Code / Anthropic (chat, código y uso del plan), GitHub y Linear (notificaciones, pull requests, actualizaciones), Google (Gmail y Drive, solo lectura), ntfy (avisos al móvil, si los activas). WhaTicket y AliExpress los leen las extensiones de Lumo dentro de tu propia pestaña del navegador; Lumo nunca los llama por su cuenta.</p>
 <h2>5. Claude Code</h2>
-<p>Si tu installes les hooks Claude Code, Claude Code envoie les événements de session à Coucou par une connexion locale sur ton ordinateur. Coucou ne les fait jamais sortir de ton ordinateur. Avant de modifier <code>~/.claude/settings.json</code>, Coucou en fait une sauvegarde datée et te montre les changements.</p>
-
-<h2>6. E-mail</h2>
-<p>Quand tu envoies un fichier par e-mail, le message est créé et envoyé par ta propre app Mail. Coucou n’envoie jamais d’e-mail de lui-même.</p>
-
-<h2>7. Autorisations système</h2>
-<p>Selon la version et les fonctions utilisées, macOS peut te demander d’autoriser l’Automatisation (Mail, Terminal), l’Accessibilité (lire le titre de la fenêtre que tu attaches) ou l’Enregistrement de l’écran (capturer une fenêtre que tu attaches). Elles ne servent qu’à la fonction que tu as déclenchée et se retirent à tout moment dans Réglages Système → Confidentialité et sécurité. La version Windows ne demande aucune autorisation particulière ni droit administrateur.</p>
-
-<h2>8. Enfants</h2>
-<p>Coucou est un outil pour développeurs, il ne s’adresse pas aux enfants.</p>
-
-<h2>9. Tes droits</h2>
-<p>Le développeur ne détenant aucune donnée personnelle te concernant, il n’y a rien à consulter, corriger ou supprimer de son côté. Pour les données détenues par un service que tu as connecté, contacte ce service. Tu peux aussi saisir la <a href="https://www.cnil.fr">CNIL</a>.</p>
-
-<h2>10. Modifications</h2>
-<p>En cas de changement, la nouvelle version sera publiée sur cette page avec une nouvelle date.</p>
+<p>Si instalas los hooks, Claude Code envía los eventos de sesión a Lumo por una conexión local en tu ordenador; nunca salen de él a través de Lumo. Antes de cambiar <code>~/.claude/settings.json</code>, Lumo hace una copia con fecha y te muestra los cambios.</p>
+<h2>6. Permisos del sistema</h2>
+<p>Según lo que uses, tu sistema puede pedir Accesibilidad (leer el archivo que editas), micrófono y reconocimiento de voz (pulsar para hablar) o calendarios (No molestar). Solo se usan para esa función y puedes retirarlos cuando quieras.</p>
+<h2>7. Menores</h2>
+<p>Lumo es una herramienta para desarrolladores y no está dirigida a menores.</p>
+<h2>8. Tus derechos</h2>
+<p>El responsable no guarda datos personales tuyos, así que no hay nada que consultar, corregir o borrar por nuestra parte. Para los datos de un servicio que conectaste, contacta con ese servicio o con tu autoridad de protección de datos.</p>
+<h2>9. Cambios</h2>
+<p>Si esta política cambia, la nueva versión se publicará aquí con una nueva fecha.</p>
 </section>
-<footer>© 2026 Louis Raillé · Coucou is free and open source (MIT) · <a href="https://github.com/Louis-CFM/coucou">GitHub</a> · <a href="privacy.html">Privacy</a> · <a href="terms.html">Terms</a> · <a href="legal.html">Legal notice</a></footer></div></body></html>
+<footer>© 2026 Wolfgang Welcomez (rouderz) · Lumo is free and open source (code: MIT) · started from <a href="https://github.com/Louis-CFM/coucou">Coucou</a> by Louis Raillé · <a href="https://github.com/rouderz/coucou">GitHub</a> · <a href="privacy.html">Privacy</a> · <a href="terms.html">Terms</a> · <a href="legal.html">Legal notice</a></footer></div></body></html>

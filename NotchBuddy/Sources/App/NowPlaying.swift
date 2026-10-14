@@ -215,7 +215,7 @@ enum NowPlayingCommands {
 // MARK: AppleScript
 
 /// Scripts address the player by bundle id and are only run while it's running: `tell application
-/// id` would launch it otherwise, and Coucou never launches Music or Spotify.
+/// id` would launch it otherwise, and Lumo never launches Music or Spotify.
 enum NowPlayingScripts {
     private static func seconds(_ ms: Int) -> String {
         let m = max(0, ms)

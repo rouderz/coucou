@@ -1,54 +1,45 @@
 <!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Support — Coucou</title><link rel="icon" href="media/icon.png"><link rel="stylesheet" href="site.css"></head><body><div class="wrap">
-<header><a href="index.html"><img src="media/icon.png" alt=""></a><span class="name">Coucou</span>
+<title>Support — Lumo</title><link rel="icon" href="media/icon.png"><link rel="stylesheet" href="site.css"></head><body><div class="wrap">
+<header><a href="index.html"><img src="media/icon.png" alt=""></a><span class="name">Lumo</span>
 <nav><a href="index.html">Home</a><a href="support.html" class="on">Support</a><a href="privacy.html">Privacy</a><a href="terms.html">Terms</a><a href="legal.html">Legal</a></nav></header>
-<div class="lang"><a href="#en">English</a><a href="#fr">Français</a></div>
+<div class="lang"><a href="#en">English</a><a href="#es">Español</a></div>
 <section id="en">
 <h1>Support</h1>
-<div class="meta">Something wrong, or an idea for Mochi? Here’s how to get help.</div>
+<div class="meta">Something wrong, or an idea for Lumo? Here’s how to get help.</div>
 <div class="card">
-<b>Report a bug or request a feature:</b> <a href="https://github.com/Louis-CFM/coucou/issues">open an issue on GitHub</a> (fastest).<br>
-<b>Email:</b> <a href="mailto:raillelouis@gmail.com">raillelouis@gmail.com</a>
+<b>Report a bug or request a feature:</b> <a href="https://github.com/rouderz/coucou/issues">open an issue on GitHub</a> (fastest).<br>
+<b>Email:</b> <a href="mailto:wolfgangwilfredo@gmail.com">wolfgangwilfredo@gmail.com</a>
 </div>
 <h2>FAQ</h2>
-<h3>macOS says it can’t verify the app</h3>
-<p>The current Mac build isn’t notarized by Apple yet. The first time, open <b>System Settings → Privacy &amp; Security</b>, scroll down and click <b>Open Anyway</b>. You only need to do it once.</p>
-<h3>Where is the Windows download?</h3>
-<p>It is paused for now. Microsoft Defender wrongly flags the unsigned Windows installer as malware; a false-positive report is under review at Microsoft, and the installer will come back once it’s cleared and signed. Until then you can <a href="https://github.com/Louis-CFM/coucou/tree/main/windows#build-it-yourself">build it from source</a>.</p>
-<h3>Mochi doesn’t show my Claude Code sessions</h3>
-<p>Open Settings → Claude Code → <b>Install hooks</b>, review the changes, confirm, then start a new Claude Code session.</p>
+<h3>The system says it can’t verify the app</h3>
+<p>Builds aren’t signed yet. On a Mac, the first time: <b>System Settings → Privacy &amp; Security → Open Anyway</b>. On Windows: SmartScreen → <b>More info → Run anyway</b>. Only once.</p>
+<h3>Lumo doesn’t show my Claude Code sessions</h3>
+<p>Settings → Claude Code → <b>Install hooks</b>, review the changes, confirm, then start a new Claude Code session.</p>
 <h3>The chat doesn’t answer</h3>
-<p>Add your Anthropic API key in Settings. API usage is billed by Anthropic, separately from a Claude subscription.</p>
-<h3>An integration pill stays grey</h3>
-<p>Check its key in Settings → Integrations. Up to 4 integrations can be shown at once.</p>
+<p>Check that Claude Code is installed and signed in (Settings → Chat → Engine), or add an Anthropic API key there.</p>
 <h3>No sound</h3>
-<p>Check the speaker icon in the notch header and the volume in Settings.</p>
+<p>Check the speaker icon in the island header and the volume in Settings.</p>
 <h3>How do I uninstall?</h3>
-<p>Settings → Claude Code → <b>Uninstall</b> (removes only Coucou’s hooks), then quit the app and move it to the Trash. Optionally delete <code>~/Library/Application Support/NotchBuddy</code>.</p>
-<p>On Windows: same <b>Uninstall</b> button for the hooks, then Windows Settings → Apps → <b>Coucou</b> → Uninstall. Optionally delete <code>%LOCALAPPDATA%\Coucou</code>.</p>
+<p>Settings → Claude Code → <b>Uninstall</b> (removes only Lumo’s hooks), then quit the app and delete it. Optionally delete its folders (see the <a href="privacy.html#en">privacy policy</a>).</p>
 </section>
 <hr>
-<section id="fr" lang="fr">
-<h1>Assistance</h1>
+<section id="es" lang="es">
+<h1>Ayuda</h1>
+<div class="meta">¿Algo falla o tienes una idea para Lumo? Así puedes pedir ayuda.</div>
 <div class="card">
-<b>Signaler un bug ou proposer une idée :</b> <a href="https://github.com/Louis-CFM/coucou/issues">ouvre une issue sur GitHub</a> (le plus rapide).<br>
-<b>E-mail :</b> <a href="mailto:raillelouis@gmail.com">raillelouis@gmail.com</a>
+<b>Informar de un error o pedir una función:</b> <a href="https://github.com/rouderz/coucou/issues">abre un issue en GitHub</a> (lo más rápido).<br>
+<b>Correo:</b> <a href="mailto:wolfgangwilfredo@gmail.com">wolfgangwilfredo@gmail.com</a>
 </div>
-<h2>Questions fréquentes</h2>
-<h3>macOS dit qu’il ne peut pas vérifier l’app</h3>
-<p>La version Mac actuelle n’est pas encore notarisée par Apple. La première fois, ouvre <b>Réglages Système → Confidentialité et sécurité</b>, descends et clique sur <b>Ouvrir quand même</b>. Une seule fois suffit.</p>
-<h3>Où est le téléchargement Windows ?</h3>
-<p>Il est en pause pour le moment. Microsoft Defender détecte à tort l’installeur Windows (non signé) comme un malware ; un signalement de faux positif est en cours d’analyse chez Microsoft, et l’installeur reviendra dès que ce sera réglé et signé. En attendant, tu peux <a href="https://github.com/Louis-CFM/coucou/tree/main/windows#build-it-yourself">le compiler depuis le code source</a>.</p>
-<h3>Mochi n’affiche pas mes sessions Claude Code</h3>
-<p>Réglages → Claude Code → <b>Install hooks</b>, vérifie les changements, confirme, puis lance une nouvelle session Claude Code.</p>
-<h3>Le chat ne répond pas</h3>
-<p>Ajoute ta clé d’API Anthropic dans les Réglages. L’API est facturée par Anthropic, à part d’un abonnement Claude.</p>
-<h3>Une pastille d’intégration reste grise</h3>
-<p>Vérifie sa clé dans Réglages → Intégrations. Jusqu’à 4 intégrations s’affichent en même temps.</p>
-<h3>Pas de son</h3>
-<p>Vérifie l’icône haut-parleur dans l’en-tête du notch et le volume dans les Réglages.</p>
-<h3>Comment désinstaller ?</h3>
-<p>Réglages → Claude Code → <b>Uninstall</b> (retire seulement les hooks de Coucou), puis quitte l’app et mets-la à la corbeille. Tu peux aussi supprimer <code>~/Library/Application Support/NotchBuddy</code>.</p>
-<p>Sous Windows : le même bouton <b>Uninstall</b> pour les hooks, puis Paramètres Windows → Applications → <b>Coucou</b> → Désinstaller. Tu peux aussi supprimer <code>%LOCALAPPDATA%\Coucou</code>.</p>
+<h2>Preguntas frecuentes</h2>
+<h3>El sistema dice que no puede verificar la app</h3>
+<p>Las versiones aún no están firmadas. En Mac, la primera vez: <b>Ajustes del Sistema → Privacidad y seguridad → Abrir igualmente</b>. En Windows: SmartScreen → <b>Más información → Ejecutar de todas formas</b>. Solo una vez.</p>
+<h3>Lumo no muestra mis sesiones de Claude Code</h3>
+<p>Ajustes → Claude Code → <b>Install hooks</b>, revisa los cambios, confirma y abre una sesión nueva de Claude Code.</p>
+<h3>El chat no responde</h3>
+<p>Comprueba que Claude Code está instalado y con sesión iniciada (Ajustes → Chat → Motor), o añade ahí una clave de la API de Anthropic.</p>
+<h3>No hay sonido</h3>
+<p>Revisa el icono del altavoz en la cabecera de la isla y el volumen en Ajustes.</p>
+<h3>¿Cómo lo desinstalo?</h3>
+<p>Ajustes → Claude Code → <b>Uninstall</b> (quita solo los hooks de Lumo), cierra la app y bórrala. Si quieres, borra también sus carpetas (ver la <a href="privacy.html#es">política de privacidad</a>).</p>
 </section>
-<footer>© 2026 Louis Raillé · Coucou is free and open source (MIT) · <a href="https://github.com/Louis-CFM/coucou">GitHub</a> · <a href="privacy.html">Privacy</a> · <a href="terms.html">Terms</a> · <a href="legal.html">Legal notice</a></footer></div></body></html>
+<footer>© 2026 Wolfgang Welcomez (rouderz) · Lumo is free and open source (code: MIT) · started from <a href="https://github.com/Louis-CFM/coucou">Coucou</a> by Louis Raillé · <a href="https://github.com/rouderz/coucou">GitHub</a> · <a href="privacy.html">Privacy</a> · <a href="terms.html">Terms</a> · <a href="legal.html">Legal notice</a></footer></div></body></html>

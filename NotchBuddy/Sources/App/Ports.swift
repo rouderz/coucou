@@ -34,7 +34,7 @@ enum Secrets {
 
 // MARK: Integrations
 
-/// Something Coucou polls and shows on a card (GitHub, Vercel, Stripe…).
+/// Something Lumo polls and shows on a card (GitHub, Vercel, Stripe…).
 @MainActor
 protocol IntegrationSource: AnyObject {
     /// The card's task id, e.g. "integration_github".
@@ -72,7 +72,7 @@ enum Integrations {
 
 enum CodingAgentHookState: Equatable { case unavailable, notInstalled, needsUpdate, installed }
 
-/// A coding agent whose sessions Coucou follows through hooks.
+/// A coding agent whose sessions Lumo follows through hooks.
 @MainActor
 protocol CodingAgent {
     /// Matches the "agent" field nb-hook adds to events ("claude" when absent).

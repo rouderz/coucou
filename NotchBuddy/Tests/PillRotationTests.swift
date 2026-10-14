@@ -1,5 +1,5 @@
 import XCTest
-@testable import Coucou
+@testable import Lumo
 
 final class PillRotationTests: XCTestCase {
     private let ids = ["a", "b", "c", "d", "e", "f"]

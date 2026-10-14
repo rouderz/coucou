@@ -43,7 +43,7 @@ export function recordEvent(name: string, sessionId: string, payload: Record<str
 
 export function recordApproval(sessionId: string, command: string, decision: "allow" | "deny" | "timeout", at = Date.now()) {
   const verb = decision === "allow" ? "Allowed" : decision === "deny" ? "Denied" : "Left to the terminal";
-  push(sessionId, "approval", `${verb} from Coucou: ${command}`, at);
+  push(sessionId, "approval", `${verb} from Lumo: ${command}`, at);
 }
 
 export function recordAutoApproval(sessionId: string, command: string, reason: string, at = Date.now()) {

@@ -202,12 +202,12 @@ struct SkillsSettingsSection: View {
                         .font(.system(size: 10.5, design: .monospaced)).foregroundColor(.secondary)
                         .textSelection(.enabled)
                     if sk.hasScripts {
-                        Text("It has scripts. Coucou never runs them, but Claude may when it uses the skill — read them first.")
+                        Text("It has scripts. Lumo never runs them, but Claude may when it uses the skill — read them first.")
                             .font(.system(size: 11)).foregroundColor(.orange)
                             .fixedSize(horizontal: false, vertical: true)
                     }
                     if sk.exists {
-                        Text("A skill with this name is already there; installing replaces it (the old one is kept in Coucou's trash).")
+                        Text("A skill with this name is already there; installing replaces it (the old one is kept in Lumo's trash).")
                             .font(.system(size: 11)).foregroundColor(.orange)
                             .fixedSize(horizontal: false, vertical: true)
                     }

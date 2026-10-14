@@ -15,7 +15,7 @@ struct WhaTicketSettingsSection: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: 10) {
-            Text("Coucou reads your whaticket.com queue through a small Chrome / Edge extension that uses the session you already have open — no token, no password, and it never signs you out.")
+            Text("Lumo reads your whaticket.com queue through a small Chrome / Edge extension that uses the session you already have open — no token, no password, and it never signs you out.")
                 .font(.system(size: 11)).foregroundColor(.secondary)
                 .fixedSize(horizontal: false, vertical: true)
 
@@ -85,7 +85,7 @@ struct WhaTicketSettingsSection: View {
                     .onChange(of: hours) { _, v in WhaTicketSettings.hours = v.trimmingCharacters(in: .whitespaces) }
             }
 
-            Text("Only while your whaticket.com tab is open. Never during Do not disturb, never group chats, never tickets an AI agent is handling. Coucou only assigns the ticket — it never writes to the customer.")
+            Text("Only while your whaticket.com tab is open. Never during Do not disturb, never group chats, never tickets an AI agent is handling. Lumo only assigns the ticket — it never writes to the customer.")
                 .font(.system(size: 11)).foregroundColor(.secondary)
                 .fixedSize(horizontal: false, vertical: true)
 

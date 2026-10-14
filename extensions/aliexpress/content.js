@@ -1,14 +1,14 @@
-// Coucou for AliExpress — runs on your AliExpress order pages, with your own session.
+// Lumo for AliExpress — runs on your AliExpress order pages, with your own session.
 //
 // Reads what the page shows (nothing else): the order list, an order's detail (products, their
 // pictures, amounts and when it was placed) and an order's tracking page (carrier, tracking number, what's in the box). It hands
-// that to the extension's background, which keeps it in this browser and tells Coucou. Nothing is
+// that to the extension's background, which keeps it in this browser and tells Lumo. Nothing is
 // clicked, bought or changed.
 
 "use strict";
 
 (function () {
-  const A = self.CoucouAli;
+  const A = self.LumoAli;
   const text = (el) => (el ? el.innerText.trim() : "");
   const all = (sel, root = document) => [...root.querySelectorAll(sel)];
   const byPrefix = (prefix, root = document) => all(`[class*="${prefix}"]`, root);

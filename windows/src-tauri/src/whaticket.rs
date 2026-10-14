@@ -1,4 +1,4 @@
-// WhaTicket (whaticket.com) through the browser: the "Coucou for WhaTicket" extension
+// WhaTicket (whaticket.com) through the browser: the "Lumo for WhaTicket" extension
 // (extensions/whaticket) reads your queue in your whaticket.com tab, with your own
 // session and permissions, and sends a summary here every ~15 s through native
 // messaging (coucou-hook → the pipe / socket → `handle_browser`). Our answer carries
@@ -6,7 +6,7 @@
 // extension then sends the same POST /tickets/{id}/assign the web app's Accept
 // button does, and tells us how it went.
 //
-// Coucou holds no WhaTicket credentials and makes no WhaTicket requests of its own.
+// Lumo holds no WhaTicket credentials and makes no WhaTicket requests of its own.
 // With the tab closed, the card says so and nothing happens.
 //
 // Stats (same as NotchBuddy/Sources/App/WhaTicketStats.swift): every check-in also
@@ -15,7 +15,7 @@
 // ticket ids, queues and times only, never a customer's name, number or message.
 // The numbers are worked out by windows/src/core/whaticketStats.ts.
 //  - "arrived": a ticket id seen in the queue for the first time.
-//  - "accepted": an arrived ticket that moved into my tickets — "click" (Coucou),
+//  - "accepted": an arrived ticket that moved into my tickets — "click" (Lumo),
 //    "auto" (auto-accept) or "web" (anywhere else); `wait` = seconds since it arrived.
 //  - One arrival and one accept per ticket and day at most.
 //  - The first snapshot after a gap logs the tickets already waiting with
@@ -257,7 +257,7 @@ impl Tracker {
             changed = true;
         }
         // Moved from the queue into my tickets, by any means: accepted elsewhere (a click
-        // or auto-accept in Coucou is logged as soon as the extension confirms it).
+        // or auto-accept in Lumo is logged as soon as the extension confirms it).
         let waiting: HashSet<&str> = pending.iter().map(|t| t.id.as_str()).collect();
         for id in mine {
             if !waiting.contains(id.as_str()) && self.accept(id, "web", now_ms, day) {
@@ -479,7 +479,7 @@ fn now_ms() -> u64 {
 pub fn handle_browser(app: &AppHandle, msg: &Value) -> Value {
     let rules = rules(app);
     if !rules.enabled || crate::integrations::PAUSED.load(std::sync::atomic::Ordering::Relaxed) {
-        // Pill off or Coucou paused: not watching WhaTicket. Check in rarely.
+        // Pill off or Lumo paused: not watching WhaTicket. Check in rarely.
         BRIDGE.lock().unwrap().start_over();
         return json!({ "commands": [], "interval": 60 });
     }
@@ -643,7 +643,7 @@ pub fn queue_accept(app: &AppHandle, id: &str) -> Result<(), String> {
     let mut b = BRIDGE.lock().unwrap();
     let seen_at = b.last.as_ref().and_then(|d| d["seenAt"].as_u64()).unwrap_or(0);
     if now_ms().saturating_sub(seen_at) > 60_000 {
-        return Err("Open whaticket.com in Chrome or Edge (with the Coucou extension) to accept from here.".into());
+        return Err("Open whaticket.com in Chrome or Edge (with the Lumo extension) to accept from here.".into());
     }
     if !b.queued.iter().any(|(q, _)| q == id) && !b.in_flight.contains_key(id) {
         b.queued.push((id.to_string(), Instant::now()));
@@ -753,7 +753,7 @@ mod tests {
         assert!(t.observe(&[seen("a", "Soporte"), seen("b", "Soporte")], &[], false, 9.0 * H, day));
         // The same snapshot again writes nothing.
         assert!(!t.observe(&[seen("a", "Soporte"), seen("b", "Soporte")], &[], false, 9.0 * H + M, day));
-        // "a" accepted from Coucou, then it shows in mine: logged once, as a click.
+        // "a" accepted from Lumo, then it shows in mine: logged once, as a click.
         assert!(t.accept("a", "click", 9.0 * H + 5.0 * M, day));
         assert!(!t.observe(&[seen("b", "Soporte")], &["a".to_string()], false, 9.0 * H + 6.0 * M, day));
         // "b" taken in the web app.

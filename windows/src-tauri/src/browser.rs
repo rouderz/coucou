@@ -1,5 +1,5 @@
-// Coucou's browser extensions (Chrome, Edge, Brave, Chromium): Coucou for WhaTicket and
-// Coucou for AliExpress, two separate extensions on one native-messaging host.
+// Lumo's browser extensions (Chrome, Edge, Brave, Chromium): Lumo for WhaTicket and
+// Lumo for AliExpress, two separate extensions on one native-messaging host.
 //
 // whaticket.com only lets admins create API tokens, so instead of signing in
 // ourselves we ride on the session the user already has open in their browser:
@@ -23,7 +23,7 @@ use crate::settings;
 
 pub const HOST: &str = "fr.louisraille.coucou";
 
-/// One of Coucou's browser extensions, shipped inside the app and written out for "Load unpacked".
+/// One of Lumo's browser extensions, shipped inside the app and written out for "Load unpacked".
 pub struct Extension {
     /// Fixed by the public `key` in the extension's manifest.json.
     pub id: &'static str,
@@ -31,7 +31,7 @@ pub struct Extension {
     pub files: &'static [(&'static str, &'static str)],
 }
 
-/// Coucou for WhaTicket (extensions/whaticket).
+/// Lumo for WhaTicket (extensions/whaticket).
 pub const WHATICKET: Extension = Extension {
     id: "jcdddeeehgafiakcgaabpiocfdijekce",
     dir_name: "browser-extension",
@@ -42,7 +42,7 @@ pub const WHATICKET: Extension = Extension {
     ],
 };
 
-/// Coucou for AliExpress (extensions/aliexpress): a separate extension on the same host.
+/// Lumo for AliExpress (extensions/aliexpress): a separate extension on the same host.
 pub const ALIEXPRESS: Extension = Extension {
     id: "fkdhifnmpmkjgkaacobdgohnnnlpgmil",
     dir_name: "aliexpress-extension",
@@ -81,7 +81,7 @@ pub fn host_manifest(exe: &Path) -> String {
     let origins: Vec<String> = ALL.iter().map(|e| format!("chrome-extension://{}/", e.id)).collect();
     let body = serde_json::json!({
         "name": HOST,
-        "description": "Coucou — WhaTicket and AliExpress in the notch",
+        "description": "Lumo — WhaTicket and AliExpress in the notch",
         "path": exe.to_string_lossy(),
         "type": "stdio",
         "allowed_origins": origins,
@@ -118,7 +118,7 @@ pub fn install(ext: &Extension) -> Result<Status, String> {
     }
     let exe = settings::hook_exe_path();
     if !exe.exists() {
-        return Err(format!("{} is missing — restart Coucou and try again", exe.display()));
+        return Err(format!("{} is missing — restart Lumo and try again", exe.display()));
     }
     let manifest = host_manifest_path();
     std::fs::write(&manifest, host_manifest(&exe)).map_err(|e| format!("could not write the host manifest: {e}"))?;

@@ -3,7 +3,7 @@
 // events and the interval (30 s while a check runs, 5 min otherwise, 4x slower with the
 // island hidden, longer after errors); Rust (ci.rs) only makes the GitHub calls with the
 // user's token or gh session, keeps ETags, and refuses anything else. No call while the
-// pill is off or Coucou is paused. Logs and re-runs only follow a click.
+// pill is off or Lumo is paused. Logs and re-runs only follow a click.
 
 import { Bridge, type DroppedFile } from "./bridge";
 import { Sound } from "./sound";
@@ -188,7 +188,7 @@ function announce(events: CIEvent[]) {
 
 // ── Card actions (explicit clicks only) ──────────────────────────────────────
 
-/** "Ask Mochi why": the failed job's log tail as a text file, ready to attach to the chat. */
+/** "Ask Lumo why": the failed job's log tail as a text file, ready to attach to the chat. */
 export async function ciLogFile(pr: CIPr, run: CheckRun): Promise<DroppedFile> {
   const job = parseJobUrl(run.htmlUrl);
   if (!job) throw new Error("This check isn't a GitHub Actions job, so there's no log to fetch.");

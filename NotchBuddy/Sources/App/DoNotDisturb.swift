@@ -2,7 +2,7 @@ import EventKit
 import SwiftUI
 import os
 
-/// Do not disturb (#30): while on, Coucou plays no sounds and never opens the island by itself.
+/// Do not disturb (#30): while on, Lumo plays no sounds and never opens the island by itself.
 /// Finished / failed / approval events only badge the pill (approvals still reveal it, quietly).
 /// Manual (for a while, or until turned off) or automatic during calendar events.
 @MainActor

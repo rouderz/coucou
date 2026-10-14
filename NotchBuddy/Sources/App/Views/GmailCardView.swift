@@ -1,7 +1,7 @@
 import AppKit
 import SwiftUI
 
-/// Gmail on the overview card: the mails matching your search, with "Ask" to hand one to Mochi.
+/// Gmail on the overview card: the mails matching your search, with "Ask" to hand one to the character.
 struct GmailCardView: View {
     @ObservedObject private var appState = AppState.shared
     @State private var busy: String?
@@ -14,7 +14,7 @@ struct GmailCardView: View {
                 Text(verbatim: appState.gmailTotal > 0 ? L("Unread · \(appState.gmailTotal)") : L("Inbox"))
                     .font(.system(size: 11)).foregroundColor(Color(hex: "#8E939C"))
             }
-            .padding(.top, 6).padding(.leading, 108).padding(.trailing, 36)
+            .padding(.top, 6).padding(.leading, botInset(108)).padding(.trailing, 36)
 
             if let error = appState.gmailError {
                 NotionHint(dot: "#F4505E", text: error)
@@ -52,7 +52,7 @@ struct GmailCardView: View {
                 }
             }
             .frame(maxHeight: 76)
-            .padding(.leading, 102).padding(.trailing, 12).padding(.top, 5)
+            .padding(.leading, botInset(102)).padding(.trailing, 12).padding(.top, 5)
         }
         .frame(maxWidth: .infinity, alignment: .topLeading).padding(.top, 4)
     }

@@ -236,3 +236,24 @@ pub fn unzip(zip: &std::path::Path, dest: &std::path::Path) -> Result<(), String
         .map_err(|e| e.to_string())?;
     if status.success() { Ok(()) } else { Err("The archive couldn't be opened.".into()) }
 }
+
+/// Code mode (#152): Windows' folder picker, through PowerShell (no extra dependency).
+/// Blocking: call it off the main thread. None when cancelled.
+pub fn pick_folder(start: Option<&str>) -> Option<String> {
+    let start = start.unwrap_or("").replace('\'', "''");
+    let script = format!(
+        "Add-Type -AssemblyName System.Windows.Forms; \
+         $f = New-Object System.Windows.Forms.FolderBrowserDialog; \
+         $f.Description = 'The folder Claude Code works in'; \
+         $f.UseDescriptionForTitle = $true; \
+         if ('{start}' -ne '') {{ $f.SelectedPath = '{start}' }}; \
+         if ($f.ShowDialog() -eq [System.Windows.Forms.DialogResult]::OK) {{ [Console]::Out.Write($f.SelectedPath) }}"
+    );
+    let out = Command::new("powershell.exe")
+        .args(["-NoProfile", "-STA", "-Command", &script])
+        .creation_flags(CREATE_NO_WINDOW)
+        .output()
+        .ok()?;
+    let path = String::from_utf8_lossy(&out.stdout).trim().to_string();
+    (!path.is_empty()).then_some(path)
+}

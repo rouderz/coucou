@@ -1,4 +1,4 @@
-// Focus timer (#119): work blocks led by Mochi. Pure state machine: no timers, no
+// Focus timer (#119): work blocks led by the character. Pure state machine: no timers, no
 // clock, no DND store in here. Callers pass `now` and the current Do not disturb
 // value, apply the `dnd` write a step returns, and arm ONE wake-up with
 // nextWakeMs() only while a block is running (0 % CPU when nothing is active).
@@ -95,7 +95,7 @@ export function remainingMs(s: FocusState, now: number): number {
   return Math.max(0, (s.endsAt ?? now) - now);
 }
 
-/** 0...1 elapsed, for the ring around Mochi. */
+/** 0...1 elapsed, for the ring around the character. */
 export function progress(s: FocusState, now: number): number {
   if (s.phase === "idle" || s.durationMs <= 0) return 0;
   return Math.min(1, Math.max(0, (s.durationMs - remainingMs(s, now)) / s.durationMs));

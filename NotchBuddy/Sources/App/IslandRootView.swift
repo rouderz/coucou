@@ -29,6 +29,10 @@ struct IslandContainer: View {
     // topRadius > 0 → convex expanded corners; < 0 → concave ear cutouts
     @State private var islandTopRadius: CGFloat = 0
     @State private var greetNotif: Bool = false
+    /// Free placement: the bubble pops out of the character (scale + fade) instead of growing
+    /// out of a notch that isn't there.
+    @State private var popScale: CGFloat = 1
+    @State private var popOpacity: Double = 1
 
     private let openSpring = Animation.spring(response: 0.5, dampingFraction: 0.72)
     private let closeEase  = Animation.timingCurve(0.45, 0, 0.2, 1, duration: 0.34)
@@ -59,8 +63,17 @@ struct IslandContainer: View {
             IslandShape(width: islandWidth, height: islandHeight,
                         cornerRadius: cornerRadius, topRadius: islandTopRadius)
                 // Collapsed it stays black, so it still reads as the hardware notch.
-                .fill(Theme.current.id == Theme.dark.id || state.mode != .expanded
+                // Free placement: a bubble under the character, card-coloured, outlined and lifted.
+                .fill(state.freePlacement
+                      ? Color(hex: Theme.current.id == Theme.dark.id ? "#1A1B1F" : Theme.current.bg)
+                      : Theme.current.id == Theme.dark.id || state.mode != .expanded
                       ? Color.black : Color(hex: Theme.current.bg))
+                .overlay(
+                    IslandShape(width: islandWidth, height: islandHeight,
+                                cornerRadius: cornerRadius, topRadius: islandTopRadius)
+                        .stroke(Color.white.opacity(state.freePlacement ? 0.09 : 0), lineWidth: 1)
+                )
+                .shadow(color: .black.opacity(state.freePlacement ? 0.45 : 0), radius: 22, y: 12)
                 .animation(.easeInOut(duration: 0.25), value: state.mode)
 
             // Content
@@ -98,31 +111,68 @@ struct IslandContainer: View {
 
             // Single BotPlacement — always alive in the view tree so spring animations
             // fire from the current position (e.g. choose at 60,101) when canvas deactivates.
-            // Hidden during upload canvas or greeting (both draw their own Mochi).
+            // Hidden during upload canvas or greeting (both draw their own the character).
+            // Free placement: the floating character sits on top of the island, so the cards
+            // don't draw it a second time (alerts still do, with their expressions).
+            // With the character rail, the characters are drawn there instead.
+            let botAbove = (state.freePlacement && (state.view == .overview || state.view == .empty))
+                || state.railShown
             BotPlacement(state: state, islandW: islandWidth, islandH: islandHeight)
-                .opacity(uploadActive || greetingActive ? 0 : 1)
+                .opacity(uploadActive || greetingActive || botAbove ? 0 : 1)
                 .animation(.easeInOut(duration: 0.25), value: uploadActive || greetingActive)
 
             CountdownBar(state: state, islandW: islandWidth)
 
             Group {
                 if state.mode == .compact {
-                    CompactMiniGrid(state: state)
-                        .position(x: islandWidth - 40, y: islandHeight / 2)
+                    CompactStatus(state: state)
+                        .position(x: islandWidth - IslandConst.compactEar / 2, y: islandHeight / 2)
                         .transition(.opacity)
                 }
             }
             .animation(.easeInOut(duration: 0.25), value: state.mode == .compact)
         }
         .frame(width: islandWidth, height: islandHeight, alignment: .topLeading)
+        .scaleEffect(state.freePlacement ? popScale : 1, anchor: .top)
+        .opacity(state.freePlacement ? popOpacity : 1)
         .onChange(of: state.mode) { oldMode, newMode in
+            if state.freePlacement {
+                // Straight to its size, then a soft pop from under the character.
+                let (w, h) = islandSize(mode: newMode, view: state.view,
+                                        progress: state.uploadProgress,
+                                        nw: state.notchWidth, nh: state.notchHeight)
+                let cr = newMode == .expanded ? IslandConst.expandedCorner : IslandConst.roundedCorner
+                var instant = Transaction()
+                instant.disablesAnimations = true
+                let apply = {
+                    withTransaction(instant) {
+                        islandWidth = w
+                        islandHeight = (newMode == .expanded && state.view == .prompt) ? chatPromptHeight : h
+                        cornerRadius = cr
+                        islandTopRadius = newMode == .expanded ? cr : 0
+                    }
+                }
+                if newMode == .expanded {
+                    apply()
+                    withTransaction(instant) { popScale = 0.86; popOpacity = 0 }
+                    withAnimation(.spring(response: 0.34, dampingFraction: 0.74)) { popScale = 1; popOpacity = 1 }
+                } else {
+                    // Folds back into the character first, then takes its closed size unseen.
+                    withAnimation(.easeIn(duration: 0.14)) { popScale = 0.9; popOpacity = 0 }
+                    Task { @MainActor in
+                        try? await Task.sleep(nanoseconds: 160_000_000)
+                        if state.mode != .expanded { apply() }
+                    }
+                }
+                return
+            }
             let shrinking = modeOrder(newMode) < modeOrder(oldMode)
             let anim = shrinking ? closeEase : openSpring
             let (w, h) = islandSize(mode: newMode, view: state.view,
                                     progress: state.uploadProgress,
                                     nw: state.notchWidth, nh: state.notchHeight)
             let cr  = newMode == .expanded ? IslandConst.expandedCorner : IslandConst.roundedCorner
-            let tr: CGFloat = 0
+            let tr: CGFloat = state.freePlacement && newMode == .expanded ? cr : 0
             withAnimation(anim) {
                 islandWidth      = w
                 islandHeight     = (newMode == .expanded && state.view == .prompt) ? chatPromptHeight : h
@@ -156,7 +206,7 @@ struct IslandContainer: View {
             islandWidth      = w
             islandHeight     = state.view == .prompt ? chatPromptHeight : h
             cornerRadius     = state.mode == .expanded ? IslandConst.expandedCorner : IslandConst.roundedCorner
-            islandTopRadius  = 0
+            islandTopRadius  = state.freePlacement && state.mode == .expanded ? cornerRadius : 0
         }
         .onReceive(NotificationCenter.default.publisher(for: .botGreet)) { _ in
             greetNotif.toggle()
@@ -281,7 +331,7 @@ struct BotPlacement: View {
                     .animation(.easeInOut(duration: 0.4), value: state.effectiveState)
             }
 
-            // Focus timer (#119): what's left of the block, as a thin ring around Mochi.
+            // Focus timer (#119): what's left of the block, as a thin ring around the character.
             if !isUploading {
                 FocusRing(state: state, diameter: diameter + (state.mode == .compact ? 6 : 12))
                     .position(x: cx, y: cy)
@@ -355,11 +405,11 @@ struct BotPlacement: View {
 func botPosition(mode: IslandMode, view: IslandView, islandW: CGFloat, islandH: CGFloat, uploadProgress: Double) -> (CGFloat, CGFloat, CGFloat, Double) {
     switch mode {
     case .hidden:   return (46, 16, 6, 0)
-    case .compact:  return (40, 16, 20, 1)
+    case .compact:  return (IslandConst.compactEar / 2, 16, 18, 1)
     case .expanded:
         let layout = IslandConst.viewLayouts[view]!
         let diameter = layout.botDiameter
-        // Uploading: Mochi dot rides the leading edge of the progress fill.
+        // Uploading: The character dot rides the leading edge of the progress fill.
         // Bar in island coords: left=36, width=526. cx = 36 + progress*526 (dot center at fill right edge).
         // cy comes from ViewLayout.botY (bar center in island coords).
         if view == .uploading {
@@ -439,36 +489,50 @@ struct IslandContentView: View {
     @ObservedObject var state: AppState
 
     var body: some View {
-        VStack(spacing: 0) {
-            IslandHeader(state: state)
-                .frame(height: 34)
-                .opacity(state.view == .confused ? 0 : 1)
-                .animation(.easeInOut(duration: 0.2), value: state.view == .confused)
-
-            ZStack {
-                ForEach(IslandView.allCases, id: \.self) { v in
-                    let active = state.view == v
-                    // Views that fill available height instead of the fixed 98pt content frame:
-                    // chat (prompt) is always flexible; mail is flexible only when active so
-                    // it doesn't push the ZStack taller when inactive.
-                    let isTall = v == .prompt || (v == .mail && active) || (v == .live && active)
-                    let anim: Animation = active
-                        ? .spring(response: 0.4, dampingFraction: 0.8).delay(0.16)
-                        : .easeIn(duration: 0.16)
-                    IslandViewContent(view: v, state: state)
-                        .frame(maxWidth: .infinity)
-                        .frame(height: isTall ? nil : 98)
-                        .frame(maxHeight: isTall ? .infinity : nil)
-                        .opacity(active ? 1 : 0)
-                        .scaleEffect(active ? 1 : 0.97)
-                        .allowsHitTesting(active)
-                        .animation(anim, value: state.view)
-                }
+        // Design C: The characters run down the left, the header and the views sit beside them.
+        HStack(alignment: .top, spacing: 8) {
+            if state.railShown {
+                CharacterRail(state: state)
+                    .padding(.leading, 10)
+                    .transition(.move(edge: .leading).combined(with: .opacity))
             }
-            .frame(maxWidth: .infinity, maxHeight: .infinity)
-            .padding(.horizontal, 10)
+            VStack(spacing: 0) {
+                IslandHeader(state: state)
+                    .frame(height: 34)
+                    // Beside the rail: a clear gap between the header and the card under it.
+                    .padding(.bottom, state.railShown ? 8 : 0)
+                    .opacity(state.view == .confused ? 0 : 1)
+                    .animation(.easeInOut(duration: 0.2), value: state.view == .confused)
+
+                ZStack {
+                    ForEach(IslandView.allCases, id: \.self) { v in
+                        let active = state.view == v
+                        // Views that fill available height instead of the fixed 98pt content frame:
+                        // chat (prompt) is always flexible; mail is flexible only when active so
+                        // it doesn't push the ZStack taller when inactive.
+                        let isTall = v == .prompt || (v == .mail && active) || (v == .live && active)
+                            || (v == .overview && state.railShown)
+                        let anim: Animation = active
+                            ? .spring(response: 0.4, dampingFraction: 0.8).delay(0.16)
+                            : .easeIn(duration: 0.16)
+                        IslandViewContent(view: v, state: state)
+                            .frame(maxWidth: .infinity)
+                            .frame(height: isTall ? nil : 98)
+                            .frame(maxHeight: isTall ? .infinity : nil)
+                            .opacity(active ? 1 : 0)
+                            .scaleEffect(active ? 1 : 0.97)
+                            .allowsHitTesting(active)
+                            .animation(anim, value: state.view)
+                    }
+                }
+                .frame(maxWidth: .infinity, maxHeight: .infinity)
+                .padding(.leading, state.railShown ? 0 : 10)
+                .padding(.trailing, 10)
+            }
         }
-        .padding(.top, 8)
+        .animation(.spring(response: 0.35, dampingFraction: 0.85), value: state.railShown)
+        // A little more air above the rail and its header.
+        .padding(.top, state.railShown ? 14 : 8)
         .padding(.bottom, 10)
         .foregroundColor(Color(hex: "#F5F6F8"))
     }
@@ -480,17 +544,20 @@ struct IslandHeader: View {
     @ObservedObject var state: AppState
 
     var body: some View {
+        if state.railShown {
+            RailHeader(state: state)
+                .frame(maxHeight: .infinity)
+        } else {
+            classic
+        }
+    }
+
+    private var classic: some View {
         HStack(spacing: 0) {
             // Left: tab capsules
-            HStack(spacing: 5) {
+            HStack(spacing: 6) {
                 TabButton(icon: "house.fill", view: .overview, state: state)
-                TabButton(icon: "bubble.left.fill", view: .prompt, state: state, preAction: {
-                    #if !APPSTORE
-                    if state.promptContext == nil {
-                        state.promptContext = WindowContextCapture.captureActive(from: state.lastExternalApp)
-                    }
-                    #endif
-                })
+                ModeSwitch(state: state)
                 TabButton(icon: "plus", view: .upload, state: state)
             }
             .padding(.leading, 14)
@@ -527,6 +594,62 @@ struct IslandHeader: View {
     }
 }
 
+// MARK: - Chat / Code switch (#149)
+
+/// Two modes, side by side like a segmented control: Chat (the conversation about anything)
+/// and Code (Claude Code at work in a folder you pick, CodeMode.swift). The house next to them
+/// is the overview. ⌥⌘← / ⌥⌘→ switch while the island is open.
+struct ModeSwitch: View {
+    @ObservedObject var state: AppState
+
+    static let chatViews: Set<IslandView> = [.prompt, .searching, .result]
+
+    /// Chat: the conversation about anything (#149).
+    static func showChat(_ state: AppState) { CodeMode.show(.chat, state: state) }
+
+    /// Code: Claude Code at work in a folder you pick (#152).
+    static func showCode(_ state: AppState) { CodeMode.show(.code, state: state) }
+
+    private var inChat: Bool { Self.chatViews.contains(state.view) }
+    private var chatOn: Bool { inChat && !state.isCoding }
+    private var codeOn: Bool { inChat && state.isCoding }
+
+    var body: some View {
+        HStack(spacing: 2) {
+            ModeSegment(icon: "bubble.left.and.bubble.right", on: chatOn,
+                        label: L("Chat"), keys: "\u{2325}\u{2318}\u{2190}") { Self.showChat(state) }
+            ModeSegment(icon: "chevron.left.forwardslash.chevron.right", on: codeOn,
+                        label: L("Code"), keys: "\u{2325}\u{2318}\u{2192}") { Self.showCode(state) }
+        }
+        .padding(2)
+        .background(Capsule().fill(Color.white.opacity(0.06)))
+    }
+}
+
+private struct ModeSegment: View {
+    let icon: String
+    let on: Bool
+    let label: String
+    let keys: String
+    let action: () -> Void
+    @State private var hovered = false
+
+    var body: some View {
+        Button(action: action) {
+            Image(systemName: icon)
+                .font(.system(size: 12, weight: .medium))
+                .foregroundColor(on ? Color(hex: "#F5F6F8") : (hovered ? Color(hex: "#B0B5BE") : Color(hex: "#8E939C")))
+                .frame(width: 34, height: 22)
+                .background(Capsule().fill(on ? Color(hex: "#2A2D33") : (hovered ? Color.white.opacity(0.06) : .clear)))
+                .overlay(Capsule().stroke(on ? Color.white.opacity(0.12) : .clear, lineWidth: 1))
+        }
+        .buttonStyle(.plain)
+        .onHover { hovered = $0 }
+        .help(Text(verbatim: "\(label)  \(keys)"))
+        .accessibilityLabel(Text(verbatim: label))
+    }
+}
+
 struct TabButton: View {
     let icon: String
     let view: IslandView
@@ -558,6 +681,65 @@ struct TabButton: View {
         }
         .buttonStyle(.plain)
         .onHover { isHovered = $0 }
+    }
+}
+
+// MARK: - Folded island, right ear (#153)
+
+/// A dot in the colour of what's going on (soft glow, breathing while something works) and how
+/// many other tasks are busy or need you. Replaces the 2×2 grid of mini bots.
+struct CompactStatus: View {
+    @ObservedObject var state: AppState
+    @State private var breathe = false
+
+    private var color: Color {
+        switch state.effectiveState {
+        case .working:   return Color(hex: "#3B9EFF")
+        case .thinking:  return Color(hex: "#A78BFA")
+        case .searching: return Color(hex: "#6366F1")
+        case .approval, .question: return Color(hex: "#F5A524")
+        case .error:     return Color(hex: "#F4505E")
+        case .finished:  return Color(hex: "#34D399")
+        case .ratelimit: return Color(hex: "#F59E0B")
+        default:         return Color(hex: "#6B7079")
+        }
+    }
+
+    private var busy: Bool { [.working, .thinking, .searching].contains(state.effectiveState) }
+
+    private func setBreathing(_ on: Bool) {
+        if on {
+            withAnimation(.easeInOut(duration: 1.1).repeatForever(autoreverses: true)) { breathe = true }
+        } else {
+            var t = Transaction(); t.disablesAnimations = true
+            withTransaction(t) { breathe = false }
+        }
+    }
+
+    /// Other tasks that are working or waiting on you.
+    private var others: Int {
+        state.tasks.filter { $0.id != state.focusId && ($0.pillBadge != nil || ![.idle, .sleeping].contains($0.state)) }.count
+    }
+
+    var body: some View {
+        HStack(spacing: 4) {
+            Circle()
+                .fill(color)
+                .frame(width: 7, height: 7)
+                .shadow(color: color.opacity(0.8), radius: busy && breathe ? 5 : 2)
+                .scaleEffect(busy && breathe ? 1.15 : 1)
+            if others > 0 {
+                Text(verbatim: "\(min(others, 9))")
+                    .font(.system(size: 10, weight: .semibold, design: .rounded))
+                    .foregroundColor(Color(hex: "#B0B5BE"))
+                    .monospacedDigit()
+            }
+        }
+        .frame(width: IslandConst.compactEar - 8, height: 16)
+        // Breathes only while something works, so a quiet island costs nothing.
+        .onAppear { setBreathing(busy) }
+        .onChange(of: busy) { _, b in setBreathing(b) }
+        .animation(.easeInOut(duration: 0.3), value: state.effectiveState)
     }
 }
 

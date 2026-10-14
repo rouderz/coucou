@@ -4,12 +4,13 @@ import AppKit
 
 /// The Settings tabs: everything used to be one long page.
 enum SettingsTab: String, CaseIterable, Identifiable {
-    case general, chat, claude, integrations, alerts
+    case general, characters, chat, claude, integrations, alerts
     var id: String { rawValue }
 
     var title: String {
         switch self {
         case .general: return L("General")
+        case .characters: return L("Characters")
         case .chat: return L("Chat")
         case .claude: return "Claude Code"
         case .integrations: return L("Integrations")
@@ -243,7 +244,7 @@ struct SettingsView: View {
                                         .buttonStyle(.bordered)
                                 }
                             } else {
-                                Text("Choose your ~/.claude folder so Coucou can add its hooks.")
+                                Text("Choose your ~/.claude folder so Lumo can add its hooks.")
                                     .font(.system(size: 12))
                                     .foregroundColor(.secondary)
                                 Button("Choose .claude folder…") { chooseClaudeFolder() }
@@ -272,7 +273,7 @@ struct SettingsView: View {
                             #endif
 
                             if showDiff {
-                                Text("Coucou will write this to ~/.claude/settings.json (your current file is backed up first). Review it, then confirm.")
+                                Text("Lumo will write this to ~/.claude/settings.json (your current file is backed up first). Review it, then confirm.")
                                     .font(.system(size: 11))
                                     .foregroundColor(.secondary)
                                     .fixedSize(horizontal: false, vertical: true)
@@ -493,6 +494,9 @@ struct SettingsView: View {
                 }
 
                 // MARK: Son
+                if tab == .characters {
+                    CharactersSettings(state: state)
+                }
                 if tab == .general {
                     GroupBox("Appearance") {
                         ThemePicker(state: state)
@@ -535,8 +539,8 @@ struct SettingsView: View {
                                     .frame(width: 48)
                                 Text("min without movement")
                             }
-                            Toggle("Mochi moves with the music", isOn: $state.mochiDance)
-                            Text("While Music or Spotify plays, Mochi bobs along and puts on headphones when the song changes. Off in Do not disturb and with Reduce Motion.")
+                            Toggle("\(botName()) moves with the music", isOn: $state.mochiDance)
+                            Text("While Music or Spotify plays, \(botName()) bobs along and puts on headphones when the song changes. Off in Do not disturb and with Reduce Motion.")
                                 .font(.system(size: 11))
                                 .foregroundColor(.secondary)
                                 .fixedSize(horizontal: false, vertical: true)
@@ -614,7 +618,7 @@ struct SettingsView: View {
                             }
 
                             Divider().padding(.vertical, 2)
-                            Toggle("Ask Mochi about the file you're editing", isOn: $state.assistantHotkeyEnabled)
+                            Toggle("Ask \(botName()) about the file you're editing", isOn: $state.assistantHotkeyEnabled)
                             if state.assistantHotkeyEnabled {
                                 HStack(spacing: 8) {
                                     Text("Shortcut")
@@ -626,7 +630,7 @@ struct SettingsView: View {
                                         .font(.system(size: 11))
                                         .foregroundColor(.secondary)
                                 }
-                                Text("Mochi can read and search that project but never edits it.")
+                                Text("\(botName()) can read and search that project but never edits it.")
                                     .font(.system(size: 11))
                                     .foregroundColor(.secondary)
                                     .fixedSize(horizontal: false, vertical: true)
@@ -651,7 +655,7 @@ struct SettingsView: View {
                                 .fixedSize(horizontal: false, vertical: true)
 
                             Divider().padding(.vertical, 2)
-                            Toggle("Push-to-talk: hold to talk to Mochi", isOn: $state.voiceEnabled)
+                            Toggle("Push-to-talk: hold to talk to \(botName())", isOn: $state.voiceEnabled)
                             if state.voiceEnabled {
                                 HStack(spacing: 8) {
                                     Text("Shortcut")
@@ -677,16 +681,16 @@ struct SettingsView: View {
                                     .labelsHidden()
                                     .frame(width: 180)
                                 }
-                                Toggle("Read Mochi's answers aloud", isOn: $state.voiceSpeakReplies)
-                                Toggle("Hey Mochi: start by voice, without the shortcut", isOn: $state.wakeWordEnabled)
+                                Toggle("Read \(botName())'s answers aloud", isOn: $state.voiceSpeakReplies)
+                                Toggle("Hey \(botName()): start by voice, without the shortcut", isOn: $state.wakeWordEnabled)
                                 if state.wakeWordEnabled {
                                     Toggle("Only when the Mac is plugged in", isOn: $state.wakeWordOnlyOnPower)
-                                    Text(WakeWord.shared.blocker ?? L("Listening for \u{201C}Hey Mochi\u{201D} (or \u{201C}Oye Mochi\u{201D}) on this Mac only. macOS shows the orange microphone dot while it listens."))
+                                    Text(WakeWord.shared.blocker ?? L("Listening for \u{201C}Hey \(botName())\u{201D} (or \u{201C}Oye \(botName())\u{201D}) on this Mac only. macOS shows the orange microphone dot while it listens."))
                                         .font(.system(size: 11))
                                         .foregroundColor(WakeWord.shared.blocker == nil ? .secondary : .orange)
                                         .fixedSize(horizontal: false, vertical: true)
                                 }
-                                Text("Speech is transcribed on this Mac when it supports it. Mochi only listens while you hold the shortcut.")
+                                Text("Speech is transcribed on this Mac when it supports it. \(botName()) only listens while you hold the shortcut.")
                                     .font(.system(size: 11))
                                     .foregroundColor(.secondary)
                                     .fixedSize(horizontal: false, vertical: true)
@@ -717,7 +721,7 @@ struct SettingsView: View {
                 if tab == .claude {
                     GroupBox("Auto-approve (Claude Code)") {
                         VStack(alignment: .leading, spacing: 8) {
-                            Text("Coucou can answer Allow for you, per project. High-risk requests always ask. Auto-allowed steps show in the session timeline.")
+                            Text("Lumo can answer Allow for you, per project. High-risk requests always ask. Auto-allowed steps show in the session timeline.")
                                 .font(.system(size: 11))
                                 .foregroundColor(.secondary)
                                 .fixedSize(horizontal: false, vertical: true)
@@ -750,14 +754,14 @@ struct SettingsView: View {
                 if tab == .alerts {
                     GroupBox("Inbox") {
                         VStack(alignment: .leading, spacing: 8) {
-                            Toggle("Mochi tells me when someone needs me", isOn: $state.inboxEnabled)
+                            Toggle("\(botName()) tells me when someone needs me", isOn: $state.inboxEnabled)
                             if state.inboxEnabled {
                                 HStack(spacing: 16) {
                                     Toggle("GitHub (through gh)", isOn: $state.inboxGitHub)
                                     Toggle("Linear", isOn: $state.inboxLinear)
                                 }
                                 HStack(spacing: 8) {
-                                    Toggle("Mochi says it out loud", isOn: $state.inboxSpeak)
+                                    Toggle("\(botName()) says it out loud", isOn: $state.inboxSpeak)
                                     Button("Try it") {
                                         let sample = InboxItem(id: "sample", remoteID: "", source: .github, kind: .review,
                                                                title: "Fix the cart total", subtitle: "rouderz/coucou #80",
@@ -779,7 +783,7 @@ struct SettingsView: View {
                                             }))
                                     }
                                 }
-                                Text("Checked every minute. New items make Mochi peek out (only a badge in Do not disturb); the 🔔 in the island lists them. Opening or dismissing one marks it read on GitHub / Linear.")
+                                Text("Checked every minute. New items make \(botName()) peek out (only a badge in Do not disturb); the 🔔 in the island lists them. Opening or dismissing one marks it read on GitHub / Linear.")
                                     .font(.system(size: 11))
                                     .foregroundColor(.secondary)
                                     .fixedSize(horizontal: false, vertical: true)
@@ -844,7 +848,7 @@ struct SettingsView: View {
                                 HStack(spacing: 6) {
                                     Circle().fill(calendarAllowed ? Color.green : Color.orange).frame(width: 7, height: 7)
                                     Text(calendarAllowed ? "Calendar access granted"
-                                                         : "Coucou needs access to your calendars to see when you're in a meeting")
+                                                         : "Lumo needs access to your calendars to see when you're in a meeting")
                                         .font(.system(size: 11))
                                     Spacer()
                                     if !calendarAllowed {
@@ -870,6 +874,13 @@ struct SettingsView: View {
                     }
                 }
 
+                // MARK: Display
+                if tab == .general {
+                    GroupBox("Display") {
+                        DisplaySettingsSection().padding(6)
+                    }
+                }
+
                 // MARK: Language
                 if tab == .general {
                     GroupBox("Language") {
@@ -880,7 +891,7 @@ struct SettingsView: View {
                             .onChange(of: language) { _, value in value.apply() }
                             if language != AppLanguage.atLaunch {
                                 HStack {
-                                    Text("Restart Coucou to apply the new language.")
+                                    Text("Restart Lumo to apply the new language.")
                                         .font(.system(size: 11))
                                         .foregroundColor(.secondary)
                                     Spacer()
@@ -1026,7 +1037,7 @@ struct SettingsView: View {
     #if APPSTORE
     private func chooseClaudeFolder() {
         let panel = NSOpenPanel()
-        panel.message = L("Choose your .claude folder so Coucou can add its hooks")
+        panel.message = L("Choose your .claude folder so Lumo can add its hooks")
         panel.prompt = "Choose"
         panel.canChooseFiles = false
         panel.canChooseDirectories = true
@@ -1399,7 +1410,7 @@ struct ProviderSettingsSection: View {
             }
 
             Text(preset.needsKey
-                 ? "Mochi's chat goes to \(preset.name) with your key. Files and the code you're on are sent as text; edits and web search stay with the Claude engines."
+                 ? "\(botName())'s chat goes to \(preset.name) with your key. Files and the code you're on are sent as text; edits and web search stay with the Claude engines."
                  : "Runs on your Mac: nothing leaves it. Start \(preset.name) first, then Load models.")
                 .font(.system(size: 11))
                 .foregroundColor(.secondary)
@@ -1433,7 +1444,7 @@ struct CodexHooksSection: View {
                          ? "Run /hooks in Codex once to review and trust them. Codex sessions then show up next to Claude Code's."
                          : status == .unavailable
                          ? "Install Codex CLI and run it once to see its sessions and approvals here too."
-                         : "Coucou can follow Codex CLI sessions and approve them from the island. Codex is never blocked if Coucou isn't running.")
+                         : "Lumo can follow Codex CLI sessions and approve them from the island. Codex is never blocked if Lumo isn't running.")
                         .font(.system(size: 11))
                         .foregroundColor(.secondary)
                         .fixedSize(horizontal: false, vertical: true)
@@ -1481,15 +1492,68 @@ struct HookStatusRow: View {
                      : "Hooks not installed")
                     .font(.system(size: 12.5, weight: .semibold))
                 Text(status == .installed
-                     ? "Claude Code sessions, approvals and plan usage are connected to Coucou."
+                     ? "Claude Code sessions, approvals and plan usage are connected to Lumo."
                      : status == .needsUpdate
                      ? "Update them to get the latest: approvals that don't time out, plan usage bars."
-                     : "Install them so Coucou sees your Claude Code sessions and can approve from the island. Claude Code is never blocked if Coucou isn't running.")
+                     : "Install them so Lumo sees your Claude Code sessions and can approve from the island. Claude Code is never blocked if Lumo isn't running.")
                     .font(.system(size: 11))
                     .foregroundColor(.secondary)
                     .fixedSize(horizontal: false, vertical: true)
             }
         }
         .help(path)
+    }
+}
+
+
+// MARK: - Display (which monitor the island lives on)
+
+struct DisplaySettingsSection: View {
+    @State private var choice = IslandDisplay.choice
+    @State private var hideInFullscreen = IslandDisplay.hideInFullscreen
+    @State private var screens = IslandDisplay.screens
+    @State private var placement = IslandPlacement.current
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 8) {
+            Picker("Where it lives", selection: $placement) {
+                Text("In the notch").tag(IslandPlacement.notch)
+                Text("Free on the desktop").tag(IslandPlacement.free)
+            }
+            .onChange(of: placement) { _, v in IslandPlacement.current = v }
+            if placement == .free {
+                Text("Which characters float: Settings → Characters.")
+                    .font(.system(size: 11))
+                    .foregroundColor(.secondary)
+                HStack {
+                    Text("Drag the character anywhere. Click it to open the island next to it, right-click for options.")
+                        .font(.system(size: 11))
+                        .foregroundColor(.secondary)
+                        .fixedSize(horizontal: false, vertical: true)
+                    Spacer()
+                    Button("Reset positions") {
+                        NotificationCenter.default.post(name: .freeBuddyReset, object: nil)
+                    }
+                }
+            }
+            Picker("Monitor", selection: $choice) {
+                Text("Automatic (notch, else main)").tag(IslandDisplay.auto)
+                ForEach(screens, id: \.id) { Text($0.name).tag($0.id) }
+            }
+            .onChange(of: choice) { _, v in IslandDisplay.choice = v }
+            .disabled(placement == .free)   // free: the island opens next to the character
+            Toggle("Hide while a full-screen app is open on that monitor", isOn: $hideInFullscreen)
+                .onChange(of: hideInFullscreen) { _, v in IslandDisplay.hideInFullscreen = v }
+            Text("Applies to monitors without a notch. The island never takes clicks outside its own pill.")
+                .font(.system(size: 11))
+                .foregroundColor(.secondary)
+                .fixedSize(horizontal: false, vertical: true)
+        }
+        .onReceive(NotificationCenter.default.publisher(for: NSApplication.didChangeScreenParametersNotification)) { _ in
+            screens = IslandDisplay.screens
+        }
+        .onReceive(NotificationCenter.default.publisher(for: .islandPlacementChanged)) { _ in
+            placement = IslandPlacement.current   // the character's right-click menu can change it too
+        }
     }
 }

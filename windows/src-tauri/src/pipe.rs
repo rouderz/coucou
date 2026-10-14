@@ -98,7 +98,7 @@ pub fn start(app: AppHandle) {
             }
         }
         // A socket left behind by a crash; the single-instance plugin already
-        // guarantees no other Coucou of ours is serving it.
+        // guarantees no other Lumo of ours is serving it.
         let _ = std::fs::remove_file(&path);
         let listener = match tokio::net::UnixListener::bind(&path) {
             Ok(l) => l,
@@ -234,7 +234,7 @@ async fn handle<S: AsyncRead + AsyncWrite + Unpin>(app: AppHandle, mut pipe: S) 
     app.state::<Pending>().0.lock().unwrap().remove(&id);
 
     // No decision: say nothing at all. coucou-hook then writes nothing to stdout
-    // and Claude Code asks in the terminal, exactly as if Coucou were closed.
+    // and Claude Code asks in the terminal, exactly as if Lumo were closed.
     if let Some(d) = decision {
         let _ = pipe.write_all(format!("{d}\n").as_bytes()).await;
         let _ = pipe.flush().await;

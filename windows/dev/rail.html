@@ -1,0 +1,27 @@
+<!doctype html><html><head><link rel="stylesheet" href="/src/style.css"></head>
+<body style="margin:0;background:#1a1b1f" class="">
+<div style="display:flex;gap:24px;padding:16px">
+  <div id="a" style="height:150px;display:flex"></div>
+  <div id="b" style="height:150px;display:flex"></div>
+</div>
+<script type="module">
+import { State } from "/src/core/state.ts";
+import { buildRail } from "/src/views/rail.ts";
+document.documentElement.classList.add("rail-on");
+State.tasks = [
+  { id: "integration_claude", name: "Claude Code", color: "#E8DCC6", state: "idle", steps: [], source: "claudeCode", isIntegration: true },
+  { id: "integration_gmail", name: "Gmail", color: "#E8604F", state: "working", steps: [], source: "integration", isIntegration: true },
+  { id: "integration_whaticket", name: "WhaTicket", color: "#5BC46A", state: "idle", steps: [], source: "integration", isIntegration: true, pillBadge: "new" },
+];
+function mount(el, assign, solo) {
+  State.settings.critterAssignments = assign;
+  State.soloTaskId = solo;
+  const r = buildRail(() => {});
+  el.append(r.el);
+  r.sync("idle");
+  for (let i = 0; i < 40; i++) r.tick(1 / 30);
+}
+mount(document.getElementById("a"), { integration_gmail: "pip", integration_whaticket: "bao" }, null);
+mount(document.getElementById("b"), { integration_gmail: "bao", integration_whaticket: "bao" }, "integration_gmail");
+document.body.dataset.done = "1";
+</script></body></html>

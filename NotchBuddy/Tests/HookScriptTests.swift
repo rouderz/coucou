@@ -1,7 +1,7 @@
 import XCTest
-@testable import Coucou
+@testable import Lumo
 
-/// Runs the real nb-hook script against a fake Coucou socket and checks what it tells Claude Code.
+/// Runs the real nb-hook script against a fake Lumo socket and checks what it tells Claude Code.
 final class HookScriptTests: XCTestCase {
     private var dir: URL!
     private var script: URL!
@@ -65,7 +65,7 @@ final class HookScriptTests: XCTestCase {
         XCTAssertEqual(got?["session_id"] as? String, "s1")
     }
 
-    func testMochisOwnChatOnlyForwardsApprovals() throws {
+    func testOwnChatOnlyForwardsApprovals() throws {
         let server = try FakeCoucou(path: socketPath, reply: #"{"ok":true}"#)
         _ = try exec(["hook_event_name": "PreToolUse", "tool_name": "Read"], fromChat: true)
         XCTAssertNil(server.received(timeout: 0.5), "chat activity must not reach the island")
@@ -152,7 +152,7 @@ private final class Got: @unchecked Sendable {
     var value: [String: Any]? { lock.withLock { stored } }
 }
 
-/// A one-shot Unix socket server standing in for Coucou: reads one line, answers `reply`.
+/// A one-shot Unix socket server standing in for Lumo: reads one line, answers `reply`.
 private final class FakeCoucou: @unchecked Sendable {
     private let fd: Int32
     private let lock = NSLock()

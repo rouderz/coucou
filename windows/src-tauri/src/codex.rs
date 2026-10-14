@@ -11,7 +11,7 @@ use serde_json::{json, Map, Value};
 
 use crate::{platform, settings};
 
-/// Codex events Coucou listens to, with their timeouts (seconds).
+/// Codex events Lumo listens to, with their timeouts (seconds).
 const EVENTS: &[(&str, u64)] = &[
     ("SessionStart", 10),
     ("SessionEnd", 10),
@@ -60,7 +60,7 @@ fn is_ours(group: &Value) -> bool {
         .unwrap_or(false)
 }
 
-/// hooks.json with Coucou's hooks added; the user's own hooks are kept.
+/// hooks.json with Lumo's hooks added; the user's own hooks are kept.
 pub fn installed(root: &Value, command: &str) -> Value {
     let mut root = root.as_object().cloned().unwrap_or_default();
     let mut hooks = root.get("hooks").and_then(Value::as_object).cloned().unwrap_or_else(Map::new);
@@ -74,7 +74,7 @@ pub fn installed(root: &Value, command: &str) -> Value {
             .filter(|g| !is_ours(g))
             .collect();
         groups.push(json!({
-            "hooks": [{ "type": "command", "command": command, "timeout": timeout, "statusMessage": "Coucou" }]
+            "hooks": [{ "type": "command", "command": command, "timeout": timeout, "statusMessage": "Lumo" }]
         }));
         hooks.insert((*event).to_string(), Value::Array(groups));
     }
@@ -82,7 +82,7 @@ pub fn installed(root: &Value, command: &str) -> Value {
     Value::Object(root)
 }
 
-/// hooks.json without Coucou's hooks.
+/// hooks.json without Lumo's hooks.
 pub fn uninstalled(root: &Value) -> Value {
     let mut root = root.as_object().cloned().unwrap_or_default();
     let Some(hooks) = root.get("hooks").and_then(Value::as_object).cloned() else {
@@ -115,7 +115,7 @@ fn read() -> Result<Value, String> {
         Ok(bytes) => {
             let bytes = bytes.strip_prefix(&[0xEF, 0xBB, 0xBF]).unwrap_or(&bytes);
             serde_json::from_slice(bytes).map_err(|e| {
-                format!("{} isn't valid JSON ({e}) — Coucou won't overwrite it.", hooks_path().display())
+                format!("{} isn't valid JSON ({e}) — Lumo won't overwrite it.", hooks_path().display())
             })
         }
         Err(e) if e.kind() == std::io::ErrorKind::NotFound => Ok(json!({})),

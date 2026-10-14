@@ -1,7 +1,7 @@
 import Foundation
 
-/// Cursor CLI and Gemini CLI (#109): Coucou's answer in each agent's format, and the merge of
-/// Coucou's hooks into ~/.cursor/hooks.json and ~/.gemini/settings.json. Pure functions (no I/O,
+/// Cursor CLI and Gemini CLI (#109): Lumo's answer in each agent's format, and the merge of
+/// Lumo's hooks into ~/.cursor/hooks.json and ~/.gemini/settings.json. Pure functions (no I/O,
 /// nothing is written here): the mirror of windows/src/claude/agents.ts, which has the tests and
 /// the sources. Not wired to the relay or to Settings yet.
 enum AgentHooks {
@@ -26,14 +26,14 @@ enum AgentHooks {
             case "allow", "always": return #"{"permission":"allow"}"#
             case "ask": return #"{"permission":"ask"}"#
             case "deny":
-                return #"{"permission":"deny","user_message":"Denied from Coucou","agent_message":"Denied from Coucou"}"#
+                return #"{"permission":"deny","user_message":"Denied from Lumo","agent_message":"Denied from Lumo"}"#
             default: return nil
             }
         case .gemini:
             guard hookEvent == "BeforeTool" else { return nil }
             switch d {
             case "allow", "always": return #"{"decision":"allow"}"#
-            case "deny": return #"{"decision":"deny","reason":"Denied from Coucou"}"#
+            case "deny": return #"{"decision":"deny","reason":"Denied from Lumo"}"#
             default: return nil // Gemini has no "ask": its own confirmation stays.
             }
         }

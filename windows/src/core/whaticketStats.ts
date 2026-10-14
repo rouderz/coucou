@@ -6,7 +6,7 @@
 // Pure functions only. Times are LOCAL (hour of day, days).
 //
 //  - "arrived": a ticket id seen in the queue for the first time.
-//  - "accepted": it moved into my tickets — how = "click" (Coucou), "auto"
+//  - "accepted": it moved into my tickets — how = "click" (Lumo), "auto"
 //    (auto-accept) or "web" (anywhere else); wait = seconds since it arrived.
 //  - backlog = already waiting when we started watching (the tab had been closed):
 //    counted as an arrival, but left out of the per-hour chart and of the waits.

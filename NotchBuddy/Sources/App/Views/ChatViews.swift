@@ -1,6 +1,6 @@
 import SwiftUI
 
-// Mochi's chat: prompt, bubbles, history list, push-to-talk, search and results.
+// The character's chat: prompt, bubbles, history list, push-to-talk, search and results.
 
 // MARK: - Prompt (chat)
 
@@ -11,6 +11,25 @@ struct PromptView: View {
     @FocusState private var focused: Bool
     @ObservedObject private var skillsStore = SkillsStore.shared
     @State private var pickIndex = 0
+
+    /// The send button takes the colour of the character whose chat this is.
+    private var sendColor: Color {
+        guard let owner = state.chatOwner else { return Color(hex: "#F5F6F8") }
+        let critter = state.critter(for: owner)
+        let palette = state.critterTint(for: owner).map { critter.palette(tinted: $0) } ?? critter.palette
+        return Color(cgColor: palette.top)
+    }
+
+    private var placeholder: String {
+        if state.chatSkill != nil { return L("What should it do?") }
+        if let owner = state.chatOwner, let task = state.tasks.first(where: { $0.id == owner }) {
+            let name = state.critter(for: owner).displayName
+            return state.chatHistory.isEmpty ? L("Ask \(name) about \(task.name)…") : L("Continue…")
+        }
+        if state.isCoding && state.codeFolder == nil { return L("Choose a folder first ↑") }
+        if state.isCoding && state.chatHistory.isEmpty { return L("What should we build? (/ skills)") }
+        return state.chatHistory.isEmpty ? L("Ask me anything… (/ skills, @ Drive)") : L("Continue…")
+    }
 
     /// "/" at the start of the field lists the skills, in the chat's place.
     private var picking: Bool { text.hasPrefix("/") && !text.contains(" ") }
@@ -28,15 +47,19 @@ struct PromptView: View {
 
             VStack(alignment: .leading, spacing: 6) {
                 HStack(spacing: 6) {
+                    // Code mode (#152): the folder Claude Code works in, and switching it.
+                    if state.isCoding {
+                        CodeFolderChip(state: state)
+                    }
                     if let ctx = state.promptContext {
-                        ContextChip(context: ctx)
-                        // Code context: let Mochi change files, each change approved in the island
-                        if case .code = ctx, ClaudeService.provider(for: state.chatEngine).capabilities.contains(.editsFiles) {
+                        if state.chatMode != .code { ContextChip(context: ctx) }
+                        // Code context: let the character change files, each change approved in the island
+                        if case .code = ctx, state.isCoding || ClaudeService.provider(for: state.chatEngine).capabilities.contains(.editsFiles) {
                             Button { state.chatAllowEdits.toggle() } label: {
                                 HStack(spacing: 4) {
                                     Image(systemName: state.chatAllowEdits ? "pencil.circle.fill" : "pencil.slash")
                                         .font(.system(size: 10, weight: .semibold))
-                                    Text(state.chatAllowEdits ? "Edits on" : "Read-only")
+                                    Text(state.chatAllowEdits ? (state.isCoding ? "Edits & commands" : "Edits on") : "Read-only")
                                         .font(.system(size: 11, weight: .medium))
                                 }
                                 .foregroundColor(state.chatAllowEdits ? Color(hex: "#22C55E") : Color(hex: "#8E939C"))
@@ -46,8 +69,8 @@ struct PromptView: View {
                             }
                             .buttonStyle(.plain)
                             .help(state.chatAllowEdits
-                                  ? L("Mochi can change files in this project. You approve every change in the island.")
-                                  : L("Mochi can only read this project. Click to let it propose edits."))
+                                  ? L("\(botName()) can change files in this project. You approve every change in the island.")
+                                  : L("\(botName()) can only read this project. Click to let it propose edits."))
                         }
                     }
                     if let skill = state.chatSkill {
@@ -81,6 +104,12 @@ struct PromptView: View {
                     }
                     #if !APPSTORE
                     // Which agent answers (#108): switch mid-chat; the new engine gets the conversation so far.
+                    // Code mode is always Claude Code.
+                    if state.isCoding {
+                        Text(verbatim: "Claude Code")
+                            .font(.system(size: 10.5, weight: .medium))
+                            .foregroundColor(Color(hex: "#8E939C"))
+                    } else {
                     Menu {
                         ForEach(ChatEngine.allCases, id: \.self) { engine in
                             Button {
@@ -105,12 +134,14 @@ struct PromptView: View {
                     .menuIndicator(.hidden)
                     .fixedSize()
                     .help(L("Chat engine"))
+                    }
                     #endif
                     HeaderIconButton(symbol: "clock.arrow.circlepath", active: showHistory,
                                      help: L("Chat history")) { showHistory.toggle() }
                     if !state.chatHistory.isEmpty || state.promptContext != nil {
                         HeaderIconButton(symbol: "square.and.pencil", active: false, help: L("New chat")) {
                             ChatSession.startNew(state)
+                            if state.isCoding, let f = state.codeFolder { CodeMode.begin(f, state: state) }
                             showHistory = false
                             focused = true
                         }
@@ -170,8 +201,7 @@ struct PromptView: View {
                     if state.voicePhase != .idle {
                         VoiceListeningLabel(phase: state.voicePhase, transcript: state.voiceTranscript)
                     } else {
-                        TextField(state.chatSkill != nil ? "What should it do?"
-                                  : state.chatHistory.isEmpty ? "Ask me anything… (/ skills, @ Drive)" : "Continue…", text: $text)
+                        TextField(placeholder, text: $text)
                             .textFieldStyle(.plain)
                             .font(.system(size: 13))
                             .focused($focused)
@@ -210,7 +240,7 @@ struct PromptView: View {
                                 .frame(width: 22, height: 22)
                         }
                         .buttonStyle(.plain)
-                        .help(state.voicePhase == .listening ? L("Stop and send") : L("Talk to Mochi (or hold the push-to-talk shortcut)"))
+                        .help(state.voicePhase == .listening ? L("Stop and send") : L("Talk to \(botName()) (or hold the push-to-talk shortcut)"))
                     }
 
                     Button(action: sendMessage) {
@@ -218,7 +248,7 @@ struct PromptView: View {
                             .font(.system(size: 11, weight: .semibold))
                             .foregroundColor(Color(hex: "#0B0C0E"))
                     }
-                    .buttonStyle(SendButtonStyle())
+                    .buttonStyle(SendButtonStyle(fill: sendColor))
                     .disabled(text.isEmpty)
                 }
                 .padding(.horizontal, 10).padding(.vertical, 6)
@@ -227,7 +257,7 @@ struct PromptView: View {
                 .simultaneousGesture(TapGesture().onEnded { focused = true })
                 }
             }
-            .padding(.leading, 84)
+            .padding(.leading, state.railShown ? 12 : 84)
             .padding(.trailing, 16)
             .padding(.top, 12)
             .padding(.bottom, 14)
@@ -291,6 +321,11 @@ struct PromptView: View {
     private func sendMessage() {
         let query = text.trimmingCharacters(in: .whitespacesAndNewlines)
         guard !query.isEmpty else { return }
+        // Code mode needs its folder first (#152).
+        if state.isCoding && state.codeFolder == nil {
+            CodeMode.pickFolder(state: state)
+            return
+        }
         text = ""
         ChatSession.send(query, state: state, spoken: false)
         focused = true
@@ -454,7 +489,7 @@ struct SearchingView: View {
                 ShimmeringText(label)
                     .font(.system(size: 13.5))
             }
-            .padding(.leading, 84)
+            .padding(.leading, state.railShown ? 12 : 84)
             .padding(.trailing, 16)
         }
     }
@@ -505,7 +540,7 @@ struct ResultView: View {
                         SecondaryButton("Close") { state.view = state.tasks.isEmpty ? .empty : .overview }
                     }
                 }
-                .padding(.leading, 84)
+                .padding(.leading, state.railShown ? 12 : 84)
                 .padding(.trailing, 16)
             }
         }
@@ -549,7 +584,7 @@ struct ChatHistoryList: View {
                 Text("No saved chats yet")
                     .font(.system(size: 12, weight: .medium))
                     .foregroundColor(Color(hex: "#C5C8CD"))
-                Text("Conversations with Mochi are kept here so you can pick them up later.")
+                Text("Conversations with \(botName()) are kept here so you can pick them up later.")
                     .font(.system(size: 11))
                     .foregroundColor(Color(hex: "#6B7079"))
                     .multilineTextAlignment(.center)
@@ -636,7 +671,7 @@ struct ChatHistoryRow: View {
 
 // MARK: - Push-to-talk
 
-/// Replaces the text field while Mochi is listening: a pulsing dot and the live transcript.
+/// Replaces the text field while the character is listening: a pulsing dot and the live transcript.
 struct VoiceListeningLabel: View {
     let phase: VoicePhase
     let transcript: String

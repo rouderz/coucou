@@ -93,6 +93,10 @@ enum IslandConst {
     static let notchWidth: CGFloat  = 184
     static let notchHeight: CGFloat = 32
     static let expandedWidth: CGFloat = 640
+    /// The open island's height with the character rail (design C).
+    static let railHeight: CGFloat = 244
+    /// Width of each ear of the folded island, beside the notch (#153).
+    static let compactEar: CGFloat = 46
     static let earRadius: CGFloat   = 14
     static let roundedCorner: CGFloat = 14    // hidden/peek/compact
     static let expandedCorner: CGFloat = 22
@@ -188,16 +192,18 @@ enum IslandConst {
 /// ProMotion MacBooks — which kept the open island above 50 % CPU. These caps are
 /// visually indistinguishable at the island's size.
 enum FrameRate {
-    /// Main Mochi, greeting, upload sequence.
+    /// Main the character, greeting, upload sequence.
     static let main: TimeInterval = 1.0 / 60
-    /// Mini Mochis in the integration pills.
+    /// Mini characters in the integration pills.
     static let mini: TimeInterval = 1.0 / 30
     /// Decorative loops (text shimmer).
     static let decor: TimeInterval = 1.0 / 30
-    /// Main Mochi when nobody is interacting (breathing, blinking, compact island).
+    /// Main the character when nobody is interacting (breathing, blinking, compact island).
     static let calm: TimeInterval = 1.0 / 30
+    /// A floating character while its island is closed: breathing and blinking read fine at 20 fps.
+    static let idle: TimeInterval = 1.0 / 20
 
-    /// Every frame makes SwiftUI rebuild the whole island's display list, so Mochi only
+    /// Every frame makes SwiftUI rebuild the whole island's display list, so the character only
     /// gets 60 fps while the pointer is over the open island (tracking, pokes, emotes).
     @MainActor
     static func mochi(for state: AppState) -> TimeInterval {
@@ -207,7 +213,7 @@ enum FrameRate {
 
 /// Animation schedule whose ticks land on a shared clock: multiples of `interval`
 /// since a fixed epoch. `.animation(minimumInterval:)` counts from when each view
-/// appeared, so Mochi, every mini-Mochi and the shimmer ticked out of phase and each
+/// appeared, so the character, every mini character and the shimmer ticked out of phase and each
 /// forced its own rebuild of the whole island. Aligned ticks coincide, so SwiftUI
 /// renders them together — 30 fps really means 30 island updates per second.
 struct AlignedAnimationSchedule: TimelineSchedule {

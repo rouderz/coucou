@@ -3,7 +3,7 @@
 // `npm run dev` alone.
 
 import { invoke } from "@tauri-apps/api/core";
-import { listen } from "@tauri-apps/api/event";
+import { emit, listen } from "@tauri-apps/api/event";
 import { getCurrentWebview } from "@tauri-apps/api/webview";
 import type { Settings } from "./state";
 import type { StatEvent } from "./whaticketStats.ts";
@@ -147,7 +147,7 @@ export const Bridge = {
   browserInstall: () => callOrThrow<BrowserStatus>("browser_install"),
   browserStatus: () => call<BrowserStatus>("browser_status"),
   browserReveal: () => call<void>("browser_reveal"),
-  /** Coucou for AliExpress: its own extension, same host. */
+  /** Lumo for AliExpress: its own extension, same host. */
   aliexpressExtensionInstall: () => callOrThrow<BrowserStatus>("aliexpress_extension_install"),
   aliexpressExtensionStatus: () => call<BrowserStatus>("aliexpress_extension_status"),
   aliexpressExtensionReveal: () => call<void>("aliexpress_extension_reveal"),
@@ -206,6 +206,14 @@ export const Bridge = {
   chatSend: (query: string, context: ChatContext | null) =>
     callOrThrow<{ text: string }>("chat_send", { query, context }),
   chatReset: () => call<void>("chat_reset"),
+  /** Code mode (#152): one turn of Claude Code in the folder; edits and commands wait for the island. */
+  codeSend: (query: string, folder: string, edits: boolean) =>
+    callOrThrow<{ text: string }>("code_send", { query, folder, edits }),
+  /** The system's folder picker; null when cancelled. */
+  pickFolder: (start: string | null) => call<string | null>("pick_folder", { start }),
+  vpnList: () => call<VpnService[]>("vpn_list"),
+  vpnToggle: (id: string, on: boolean) => call<void>("vpn_toggle", { id, on }),
+  vpnOpenProton: () => call<void>("vpn_open_proton"),
   /** Codex / Gemini CLI engines (#108): one turn, the CLI's raw output back (parsed in claude/cliChat.ts). */
   cliChatRun: (engine: "codex" | "gemini", conversation: string, model: string) =>
     callOrThrow<{ exitCode: number | null; stdout: string; stderr: string }>("cli_chat_run", { engine, conversation, model }),
@@ -232,6 +240,15 @@ export interface IntegrationUpdate {
   data: Record<string, unknown>;
   error: string | null;
   event: { success: boolean; label: string; detail: string | null } | null;
+}
+
+/** A VPN the system knows (src-tauri/src/vpn.rs). */
+export interface VpnService {
+  id: string;
+  name: string;
+  connected: boolean;
+  /** False when only its own app can turn it on or off (Proton VPN on Windows). */
+  canToggle: boolean;
 }
 
 export type ChatContext =
@@ -309,7 +326,7 @@ export interface HookPreview {
 
 /** Same as `call`, but surfaces the error so the UI can show what went wrong. */
 async function callOrThrow<T>(cmd: string, args?: Record<string, unknown>): Promise<T> {
-  if (!IS_TAURI) throw new Error("not running inside Coucou");
+  if (!IS_TAURI) throw new Error("not running inside Lumo");
   return invoke<T>(cmd, args);
 }
 
@@ -332,6 +349,12 @@ export async function onDragDrop(handler: (e: DragDropPayload) => void) {
   return getCurrentWebview().onDragDropEvent((event) => {
     handler(event.payload as DragDropPayload);
   });
+}
+
+/** Tells the free-floating characters what to show: key ("main" or integration id) → state. */
+export function toBuddies(states: Record<string, string>) {
+  if (!IS_TAURI) return;
+  void emit("buddy-state", states).catch(() => {});
 }
 
 export async function onEvent<T>(name: string, handler: (payload: T) => void) {

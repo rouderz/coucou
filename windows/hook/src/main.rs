@@ -1,18 +1,18 @@
 //! coucou-hook — the relay Claude Code runs on every hook event.
 //!
 //! Reads the hook JSON on stdin, adds a little terminal context, and hands it to
-//! Coucou: over the named pipe `\\.\pipe\coucou-<sid>` on Windows, over the
+//! Lumo: over the named pipe `\\.\pipe\coucou-<sid>` on Windows, over the
 //! Unix socket `$XDG_RUNTIME_DIR/coucou.sock` on Linux (#33).
 //!
 //! Hard rule (docs/CLAUDE.md): **never block Claude Code.**
-//! * If the pipe does not exist — Coucou is closed — we exit 0 immediately with
+//! * If the pipe does not exist — Lumo is closed — we exit 0 immediately with
 //!   nothing on stdout, and the session carries on untouched.
 //! * Every step runs under a deadline enforced by the main thread, so a pipe that
 //!   accepts the connection and then stops reading cannot wedge the session
 //!   either: we abandon the worker and exit.
 //! * Only `PermissionRequest` waits for an answer, because approving from the
 //!   island is the whole point. No answer means empty stdout, and Claude Code
-//!   asks in the terminal exactly as if Coucou were not installed.
+//!   asks in the terminal exactly as if Lumo were not installed.
 //!
 //! Usage: `coucou-hook <EventName>` (the name is also read from the JSON).
 //!
@@ -31,7 +31,7 @@ const CONNECT_TIMEOUT: Duration = Duration::from_millis(300);
 const FIRE_AND_FORGET_BUDGET: Duration = Duration::from_secs(2);
 /// How long a permission prompt may stay on screen before the terminal takes over.
 const DECISION_BUDGET: Duration = Duration::from_secs(110);
-/// How long the browser extension waits for Coucou's answer to a check-in.
+/// How long the browser extension waits for Lumo's answer to a check-in.
 const BROWSER_BUDGET: Duration = Duration::from_secs(10);
 /// The browser never sends us more than this in one message for our purposes
 /// (a queue snapshot); anything larger is not ours.
@@ -79,7 +79,7 @@ fn unix_uid() -> u32 {
 
 /// Opens the socket. Only one that belongs to us: a socket file somebody else
 /// owns gets nothing, as with the pipe owner check on Windows. A missing socket
-/// (Coucou closed) fails at once.
+/// (Lumo closed) fails at once.
 #[cfg(unix)]
 fn connect() -> Option<std::os::unix::net::UnixStream> {
     use std::os::unix::fs::MetadataExt;
@@ -118,11 +118,10 @@ fn connect() -> Option<std::fs::File> {
 }
 
 fn main() {
-    // Coucou's own chat runs through Claude Code too (the subscription engine):
-    // its activity is not the user's work and never reaches the island.
-    if std::env::var("COUCOU_INTERNAL").as_deref() == Ok("1") {
-        std::process::exit(0);
-    }
+    // Lumo's own chat runs through Claude Code too (the subscription engine):
+    // its activity is not the user's work and never reaches the island — only its
+    // approvals do (Code mode, #152: edits and commands approved in the island).
+    let internal = std::env::var("COUCOU_INTERNAL").as_deref() == Ok("1");
     // Claude Code's status line (`coucou-hook --statusline`): forward the plan
     // usage to the island, print a short line for the terminal.
     if std::env::args().any(|a| a == "--statusline") {
@@ -134,7 +133,13 @@ fn main() {
         native_host(&origin);
         std::process::exit(0);
     }
-    let Some((payload, event)) = read_event() else { std::process::exit(0) };
+    let Some((mut payload, event)) = read_event() else { std::process::exit(0) };
+    if internal {
+        if event != "PermissionRequest" {
+            std::process::exit(0);
+        }
+        payload = mark_internal(&payload);
+    }
 
     let waits_for_answer = event == "PermissionRequest";
     let budget = if waits_for_answer { DECISION_BUDGET } else { FIRE_AND_FORGET_BUDGET };
@@ -178,7 +183,7 @@ fn native_host(origin: &str) {
                 .flatten()
                 .and_then(|text| serde_json::from_str::<serde_json::Value>(&text).ok())
                 .filter(|v| v.is_object())
-                .unwrap_or_else(|| serde_json::json!({ "unreachable": "Coucou isn't running" }))
+                .unwrap_or_else(|| serde_json::json!({ "unreachable": "Lumo isn't running" }))
         }
         _ => serde_json::json!({ "error": "bad message" }),
     };
@@ -214,7 +219,7 @@ fn decision_json(decision: &str) -> Option<String> {
         // "always" still answers a plain allow; remembering it is the island's
         // business, not Claude Code's.
         "allow" | "always" => r#"{"behavior":"allow"}"#.to_string(),
-        "deny" => r#"{"behavior":"deny","message":"Denied from Coucou"}"#.to_string(),
+        "deny" => r#"{"behavior":"deny","message":"Denied from Lumo"}"#.to_string(),
         _ => return None,
     };
     Some(format!(
@@ -223,6 +228,18 @@ fn decision_json(decision: &str) -> Option<String> {
 }
 
 /// Reads stdin and returns the payload to forward plus the event name.
+/// Tags a request from Lumo's own chat, so the island approves it without a session card.
+fn mark_internal(payload: &str) -> String {
+    let line = payload.trim_end();
+    match serde_json::from_str::<serde_json::Value>(line) {
+        Ok(mut v) if v.is_object() => {
+            v["coucou_internal"] = serde_json::Value::Bool(true);
+            v.to_string() + "\n"
+        }
+        _ => payload.to_string(),
+    }
+}
+
 fn read_event() -> Option<(String, String)> {
     let mut raw = Vec::new();
     if std::io::stdin().read_to_end(&mut raw).is_err() || raw.is_empty() {
@@ -270,7 +287,7 @@ fn read_event() -> Option<(String, String)> {
         }
     }
 
-    // Which terminal the session runs in. Unlike macOS, Coucou on Windows accepts
+    // Which terminal the session runs in. Unlike macOS, Lumo on Windows accepts
     // events from every terminal, so this is context only — never a filter.
     for (key, var) in [
         ("term_program", "TERM_PROGRAM"),
@@ -338,7 +355,7 @@ fn status_text(v: &serde_json::Value) -> String {
         parts.push(format!("7d {}%", p.round()));
     }
     if parts.is_empty() {
-        "Coucou".into()
+        "Lumo".into()
     } else {
         parts.join(" · ")
     }
@@ -426,7 +443,7 @@ mod tests {
         );
         assert_eq!(
             decision_json("deny").unwrap(),
-            r#"{"hookSpecificOutput":{"hookEventName":"PermissionRequest","decision":{"behavior":"deny","message":"Denied from Coucou"}}}"#
+            r#"{"hookSpecificOutput":{"hookEventName":"PermissionRequest","decision":{"behavior":"deny","message":"Denied from Lumo"}}}"#
         );
         // "always" is an island concept; Claude Code just gets an allow.
         assert!(decision_json("always").unwrap().contains(r#""behavior":"allow""#));
@@ -440,7 +457,7 @@ mod tests {
             "rate_limits": { "five_hour": { "used_percentage": 42.0 }, "seven_day": { "used_percentage": 18.2 } }
         });
         assert_eq!(status_text(&v), "Opus 5.5 · ctx 34% · 5h 42% · 7d 18%");
-        assert_eq!(status_text(&serde_json::json!({})), "Coucou");
+        assert_eq!(status_text(&serde_json::json!({})), "Lumo");
     }
 
     #[test]

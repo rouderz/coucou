@@ -2,7 +2,7 @@
 // NotchBuddy/Sources/App/Theme.swift — keep both in step.
 //
 // A theme only re-points the CSS colour tokens (--ink, --dim, --card, …) of the island and the
-// Settings window. Brand colours (pills), status colours (red / amber / green) and Mochi stay.
+// Settings window. Brand colours (pills), status colours (red / amber / green) and the character stay.
 
 export interface ThemePalette {
   id: string;

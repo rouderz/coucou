@@ -1,5 +1,5 @@
 import XCTest
-@testable import Coucou
+@testable import Lumo
 
 /// Graphify (Settings → Graphify): finding the CLI, versions, stale detection, query trimming.
 /// Same cases as windows/src/core/graphify.test.ts.

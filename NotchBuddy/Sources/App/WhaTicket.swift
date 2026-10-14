@@ -3,15 +3,15 @@ import os
 
 // WhaTicket (whaticket.com) through the browser. Same behaviour as windows/src-tauri/src/whaticket.rs.
 //
-// whaticket.com only lets admins create API tokens, so Coucou doesn't sign in at all. The
-// "Coucou for WhaTicket" extension (extensions/whaticket, set up from Settings → WhaTicket) runs
+// whaticket.com only lets admins create API tokens, so Lumo doesn't sign in at all. The
+// "Lumo for WhaTicket" extension (extensions/whaticket, set up from Settings → WhaTicket) runs
 // in the user's own whaticket.com tab, reads the queue with that tab's session, and checks in here
 // every ~15 s through native messaging: coucou-native-host → nb.sock → HookServer →
 // `WhaTicketBridge.handle`. Our answer carries the tickets to accept — one the user clicked, or one
 // auto-accept picked — and the extension sends the same POST /tickets/{id}/assign as the web app's
 // Accept button, then tells us how it went.
 //
-// Coucou holds no WhaTicket credentials and makes no WhaTicket requests of its own. It never writes
+// Lumo holds no WhaTicket credentials and makes no WhaTicket requests of its own. It never writes
 // to a customer: accepting only assigns the ticket.
 
 struct WhaTicketQueue: Identifiable, Equatable, Sendable {
@@ -175,7 +175,7 @@ final class WhaTicketBridge {
 
     /// One message from the extension; returns the answer it gets.
     func handle(_ msg: [String: Any]) -> [String: Any] {
-        // Pill off: Coucou isn't watching WhaTicket. Check in rarely.
+        // Pill off: Lumo isn't watching WhaTicket. Check in rarely.
         guard enabled else {
             startOver()
             return ["commands": [Any](), "interval": 60]
@@ -308,7 +308,7 @@ final class WhaTicketBridge {
     func accept(_ id: String) throws {
         guard WhaTicketRules.validID(id) else { throw Failure.message(L("Unknown ticket")) }
         guard let seenAt = AppState.shared.whaticketSeenAt, Date.now.timeIntervalSince(seenAt) < Self.staleAfter else {
-            throw Failure.message(L("Open whaticket.com in Chrome or Edge (with the Coucou extension) to accept from here."))
+            throw Failure.message(L("Open whaticket.com in Chrome or Edge (with the Lumo extension) to accept from here."))
         }
         if inFlight[id] == nil && !queued.contains(where: { $0.id == id }) {
             queued.append((id, .now))

@@ -7,6 +7,9 @@ import { Bridge, type ChatContext, type DriveFile, type SkillInfo } from "../cor
 import { attachToChat } from "./integrations";
 import { matchSkills, withSkill } from "../core/skills";
 import { saveCurrent, startNewChat } from "../core/chats";
+import { folderName, folderSuggestions, pickFolder, useFolder } from "../core/codeMode";
+import { characterFor, characterPlaceholder, characterTint } from "../core/characters";
+import { PALETTES, tintedPalette } from "../mochi/critters";
 import { Sound } from "../core/sound";
 import { State, type ChatMessage } from "../core/state";
 import type { ViewHost } from "./views";
@@ -30,6 +33,11 @@ async function ask(engine: Engine, sent: string, context: ChatContext | null): P
       (engine === "codex" ? State.settings.codexModel : State.settings.geminiModel) ?? "")) };
   }
   return Bridge.chatSend(sent, context);
+}
+
+/** Code mode (#152): Claude Code in the folder, no other engine stands in. */
+function coding(): boolean {
+  return State.chatMode === "code";
 }
 
 /**
@@ -166,7 +174,29 @@ export function buildPrompt(
     beginCapture(draft.line, { label: "Chat answer", text: draft.description }, true);
     openCapture();
   });
-  chipRow.append(contextSlot, skillChip, attach, h("div", { style: "flex:1" }), engineSelect, linearBtn, newBtn, historyBtn);
+  // Code mode (#152): the folder Claude Code works in, and switching it.
+  const folderSelect = h("select", { class: "chip-select folder-select", title: "The folder Claude Code works in" }) as HTMLSelectElement;
+  folderSelect.addEventListener("change", () => {
+    const v = folderSelect.value;
+    if (v === "__pick__") void pickFolder();
+    else if (v) void useFolder(v);
+    folderSelect.value = State.settings.codeFolder ?? "";
+  });
+  const editsBtn = h("button", { class: "chip-action edits-toggle" });
+  editsBtn.addEventListener("click", () => {
+    State.codeEdits = !State.codeEdits;
+    State.notify();
+  });
+  const codeTag = h("span", { class: "chip-select code-tag", text: "Claude Code" });
+  chipRow.append(folderSelect, editsBtn, contextSlot, skillChip, attach, h("div", { style: "flex:1" }), engineSelect, codeTag, linearBtn, newBtn, historyBtn);
+  // Code mode without a folder: a button in the chip row.
+  const folderPrompt = h("button", {
+    class: "chip-action folder-pick",
+    text: "📁 Choose a folder",
+    title: "Pick the folder to code in. Claude Code reads it, and changes files or runs commands only when you approve each one in the island.",
+    onclick: () => void pickFolder(),
+  });
+  chipRow.prepend(folderPrompt);
   const log = h("div", { class: "chat-log" });
   // "/" at the start of the field lists the skills, "@" searches Google Drive —
   // both in the log's place.
@@ -328,6 +358,10 @@ export function buildPrompt(
   async function submit() {
     const query = input.value.trim();
     if (!query || sending) return;
+    if (coding() && !State.settings.codeFolder) {
+      void pickFolder();
+      return;
+    }
     input.value = "";
     closePicker();
     if (!State.chatSkill) {
@@ -359,17 +393,26 @@ export function buildPrompt(
     const fileNow = first || State.attachNext;
     State.attachNext = false;
     const context: ChatContext | null =
-      first && code ? { kind: "code", ...code }
+      coding() ? null
+      : first && code ? { kind: "code", ...code }
       : fileNow && file ? { kind: "file", name: file.name, path: file.path }
       : null;
 
     try {
       let sent = query;
+      // An integration character's chat: what it shows goes before the first question.
+      if (first && State.characterPreamble) {
+        sent = `${State.characterPreamble}\n\nQuestion: ${query}`;
+        State.characterPreamble = null;
+      }
       if (skill) {
         const text = await Bridge.skillRead(skill.path);
         sent = withSkill(skill.name, text.path, text.content, query);
       }
-      const reply = await askWithFallback(sent, context);
+      const folder = State.settings.codeFolder;
+      const reply = coding() && folder
+        ? await Bridge.codeSend(sent, folder, State.codeEdits)
+        : await askWithFallback(sent, context);
       State.chatHistory.push({ id: nextId++, role: "assistant", content: reply.text });
       State.stateOverride = null;
       Sound.play("finish");
@@ -437,6 +480,33 @@ export function buildPrompt(
       newBtn.style.display = State.chatHistory.length ? "" : "none";
       historyBtn.style.display = State.chats.length ? "" : "none";
       if (document.activeElement !== engineSelect) engineSelect.value = State.settings.chatEngine ?? "api";
+      // Chat or Code (#152).
+      const inCode = coding();
+      engineSelect.style.display = inCode ? "none" : "";
+      codeTag.style.display = inCode ? "" : "none";
+      folderSelect.style.display = inCode && State.settings.codeFolder ? "" : "none";
+      editsBtn.style.display = inCode && State.settings.codeFolder ? "" : "none";
+      contextSlot.style.display = inCode ? "none" : "";
+      folderPrompt.style.display = inCode && !State.settings.codeFolder ? "" : "none";
+      editsBtn.textContent = State.codeEdits ? "✎ Edits & commands" : "Read-only";
+      editsBtn.classList.toggle("on", State.codeEdits);
+      editsBtn.title = State.codeEdits
+        ? "Claude Code can change files and run commands here. You approve each one in the island."
+        : "Claude Code can only read this folder. Click to let it change files and run commands.";
+      if (inCode && document.activeElement !== folderSelect) {
+        const current = State.settings.codeFolder ?? "";
+        const key = [current, ...folderSuggestions()].join("|");
+        if (folderSelect.dataset.key !== key) {
+          folderSelect.dataset.key = key;
+          clear(folderSelect);
+          if (!current) folderSelect.append(h("option", { value: "", text: "📁 Choose a folder" }));
+          for (const f of [current, ...folderSuggestions().filter((x) => x !== current)].filter(Boolean)) {
+            folderSelect.append(h("option", { value: f, text: `📁 ${folderName(f)}`, title: f }));
+          }
+          folderSelect.append(h("option", { value: "__pick__", text: "Other folder…" }));
+        }
+        folderSelect.value = current;
+      }
       const lastMsg = State.chatHistory[State.chatHistory.length - 1];
       const linearOn = State.integrations.integration_linear?.configured ?? false;
       linearBtn.style.display = linearOn && lastMsg?.role === "assistant" && State.stateOverride !== "thinking" ? "" : "none";
@@ -451,8 +521,20 @@ export function buildPrompt(
         log.scrollTop = log.scrollHeight;
       }
 
+      // An integration character's chat sends in its colour.
+      if (State.chatOwner) {
+        const c = characterFor(State.chatOwner);
+        const tint = characterTint(State.chatOwner);
+        const top = (tint ? tintedPalette(c, tint) : PALETTES[c]).top;
+        send.style.background = `rgb(${top.map((v) => Math.round(v * 255)).join(", ")})`;
+      } else {
+        send.style.background = "";
+      }
       if (!mic.classList.contains("on")) {
         input.placeholder = State.chatSkill ? "What should it do?"
+          : State.chatOwner && State.chatHistory.length === 0 ? characterPlaceholder() ?? "Continue…"
+          : coding() && !State.settings.codeFolder ? "Choose a folder first ↑"
+          : coding() && State.chatHistory.length === 0 ? "What should we build? (/ skills)"
           : State.chatHistory.length === 0 ? "Ask me anything… (/ skills, @ Drive)" : "Continue…";
       }
       mic.style.display = canListen ? "" : "none";
@@ -465,7 +547,7 @@ export function buildPrompt(
   };
 }
 
-/** Mochi reads the reply aloud (Settings → Voice); see src/core/voice.ts. */
+/** The character reads the reply aloud (Settings → Voice); see src/core/voice.ts. */
 let speakHook: (text: string) => void = () => {};
 export function setSpeaker(fn: (text: string) => void) {
   speakHook = fn;

@@ -1,4 +1,4 @@
-// Coucou for Windows — app wiring and the commands the island calls.
+// Lumo for Windows — app wiring and the commands the island calls.
 
 mod claude;
 mod alerts;
@@ -26,6 +26,8 @@ mod voice;
 mod whaticket;
 mod aliexpress;
 mod browser;
+mod buddy;
+mod vpn;
 
 use std::sync::atomic::Ordering;
 use std::sync::{Arc, Mutex};
@@ -82,7 +84,13 @@ fn save_settings(app: AppHandle, shared: State<Shared>, settings: Settings) {
     let (screen_changed, autostart_changed) = {
         let mut current = shared.settings.lock().unwrap();
         // The idle notch changes the hidden window's size too.
-        let screen_changed = current.screen != settings.screen || current.idle_notch != settings.idle_notch;
+        let screen_changed = current.screen != settings.screen
+            || current.idle_notch != settings.idle_notch
+            || current.placement != settings.placement
+            || current.float_all != settings.float_all
+            || current.grounded_characters != settings.grounded_characters
+            || current.critter_assignments != settings.critter_assignments
+            || current.active_integrations != settings.active_integrations;
         shared.gate.idle_notch.store(settings.idle_notch, Ordering::Relaxed);
         let autostart_changed = current.autostart != settings.autostart;
         *current = settings.clone();
@@ -99,8 +107,10 @@ fn save_settings(app: AppHandle, shared: State<Shared>, settings: Settings) {
         }
     }
     if screen_changed {
+        buddy::sync(&app);
         let collapsed = shared.gate.collapsed.load(Ordering::Relaxed);
         island::apply_geometry(&app, &settings.screen, collapsed);
+        island::set_ignore_cursor(&app, collapsed && settings.placement == "free");
     }
     apply_capture_shortcut(&app, &settings.capture_shortcut);
     // Keep the other window in step (island ⇄ settings window).
@@ -118,8 +128,9 @@ fn set_collapsed(app: AppHandle, shared: State<Shared>, collapsed: bool) {
     shared.gate.idle_notch.store(idle_notch, Ordering::Relaxed);
     shared.gate.collapsed.store(collapsed, Ordering::Relaxed);
     island::apply_geometry(&app, &pref, collapsed);
-    // The wake strip must always take the mouse, and a resize invalidates the flag.
-    island::set_ignore_cursor(&app, false);
+    // The wake strip must always take the mouse (free placement has none: the folded
+    // island is a speck that must never catch a click), and a resize invalidates the flag.
+    island::set_ignore_cursor(&app, collapsed && buddy::is_free(&app));
     shared.gate.forget_ignore_state();
     shared.gate.set_active(!collapsed);
     island::apply_input_region(&app, &shared.gate);
@@ -258,6 +269,49 @@ async fn chat_send(
         }
         _ => claude::send(&chat, &s.model, query, context).await,
     }
+}
+
+/// Code mode (#152): one turn of Claude Code at work in the folder the user picked.
+#[tauri::command]
+async fn code_send(
+    shared: State<'_, Shared>,
+    code_chat: State<'_, ClaudeCodeChat>,
+    query: String,
+    folder: String,
+    edits: bool,
+) -> Result<ChatReply, String> {
+    let (model, extra) = {
+        let s = shared.settings.lock().unwrap();
+        (s.model.clone(), s.code_folders.clone())
+    };
+    claude_code::send_code(&code_chat, &model, query, folder, edits, extra).await
+}
+
+/// VPN chip: the VPNs the system knows, and whether each one is on.
+#[tauri::command]
+async fn vpn_list() -> Vec<vpn::VpnService> {
+    vpn::list().await
+}
+
+/// Turns one on or off (Proton VPN on Windows: opens its app).
+#[tauri::command]
+async fn vpn_toggle(id: String, on: bool) -> Result<(), String> {
+    vpn::toggle(&id, on).await
+}
+
+/// No VPN yet: Proton VPN's app, or its free plan's page.
+#[tauri::command]
+fn vpn_open_proton() {
+    vpn::open_proton();
+}
+
+/// Code mode: the system's folder picker. None when cancelled.
+#[tauri::command]
+async fn pick_folder(start: Option<String>) -> Option<String> {
+    tauri::async_runtime::spawn_blocking(move || platform::pick_folder(start.as_deref()))
+        .await
+        .ok()
+        .flatten()
 }
 
 /// Codex / Gemini CLI engines (#108): one turn. The page sends the conversation as text and
@@ -509,7 +563,7 @@ fn browser_reveal() {
     browser::reveal(&browser::WHATICKET);
 }
 
-/// Coucou for AliExpress: its own extension, on the same native-messaging host.
+/// Lumo for AliExpress: its own extension, on the same native-messaging host.
 #[tauri::command]
 fn aliexpress_extension_install() -> Result<browser::Status, String> {
     browser::install(&browser::ALIEXPRESS)
@@ -571,7 +625,7 @@ async fn ci_get(app: AppHandle, path: String) -> Result<serde_json::Value, Strin
     ci::get(&app, &path).await
 }
 
-/// The end of a failed job's log, for "Ask Mochi why" (on a click).
+/// The end of a failed job's log, for "Ask why" (on a click).
 #[tauri::command]
 async fn ci_job_log(app: AppHandle, repo: String, job_id: u64) -> Result<String, String> {
     ci::job_log(&app, &repo, job_id).await
@@ -743,7 +797,7 @@ async fn phone_alert(
 
 #[tauri::command]
 async fn phone_test(server: String, topic: String) -> Result<(), String> {
-    alerts::send(&server, &topic, "Coucou is connected",
+    alerts::send(&server, &topic, "Lumo is connected",
         "You'll get approvals here when you're away from the computer.", "default", "white_check_mark").await
 }
 
@@ -954,7 +1008,7 @@ fn create_settings_window(app: &AppHandle) {
     let url = settings_page_url(app);
     match WebviewWindowBuilder::new(app, "settings", url)
         .additional_browser_args(BROWSER_ARGS)
-        .title("Settings — Coucou")
+        .title("Settings — Lumo")
         .inner_size(560.0, 680.0)
         .min_inner_size(460.0, 480.0)
         .resizable(true)
@@ -965,11 +1019,18 @@ fn create_settings_window(app: &AppHandle) {
         Ok(win) => {
             // Closing it must only hide it, or it could never be reopened.
             let hidden = win.clone();
-            win.on_window_event(move |event| {
-                if let tauri::WindowEvent::CloseRequested { api, .. } = event {
+            let handle = app.clone();
+            win.on_window_event(move |event| match event {
+                tauri::WindowEvent::CloseRequested { api, .. } => {
                     api.prevent_close();
                     let _ = hidden.hide();
+                    buddy::leave_settings(&handle);
                 }
+                // Free placement: The character sits on Settings while it's open (#154).
+                tauri::WindowEvent::Moved(_) | tauri::WindowEvent::Resized(_) | tauri::WindowEvent::Focused(true) => {
+                    buddy::sit_on_settings(&handle);
+                }
+                _ => {}
             });
         }
         Err(err) => log::line(format!("settings window failed: {err}")),
@@ -984,6 +1045,7 @@ pub fn show_settings_window(app: &AppHandle) {
     let _ = win.unminimize();
     let _ = win.show();
     let _ = win.set_focus();
+    buddy::sit_on_settings(app);
 }
 
 #[tauri::command]
@@ -1035,6 +1097,9 @@ pub fn run() {
         )
         .invoke_handler(tauri::generate_handler![
             boot,
+            vpn_list,
+            vpn_toggle,
+            vpn_open_proton,
             save_settings,
             set_collapsed,
             set_island_rect,
@@ -1128,12 +1193,19 @@ pub fn run() {
             ci_job_log,
             ci_rerun_failed,
             ci_save_log,
+            buddy::buddy_clicked,
+            code_send,
+            pick_folder,
+            buddy::buddy_key,
+            buddy::buddy_moved,
+            buddy::buddy_menu,
         ])
         .setup(move |app| {
             let handle = app.handle().clone();
             tray::build(&handle)?;
             // Before the island: see create_settings_window.
             create_settings_window(&handle);
+            buddy::create(&handle, BROWSER_ARGS, loaded.placement == "free");
 
             if let Some(win) = island::window(&handle) {
                 platform::prepare_island(&win);
@@ -1149,16 +1221,27 @@ pub fn run() {
             }
             gate.idle_notch.store(loaded.idle_notch, Ordering::Relaxed);
             island::spawn_topmost_keeper(handle.clone());
+            buddy::sync(&handle);
 
-            log::line(format!("--- Coucou {} started ---", env!("CARGO_PKG_VERSION")));
+            log::line(format!("--- Lumo {} started ---", env!("CARGO_PKG_VERSION")));
             hooks::ensure_hook_exe(&handle);
             secrets::forget_retired();
             pipe::start(handle.clone());
             integrations::start(handle.clone());
             inbox::start(handle.clone());
             apply_capture_shortcut(&handle, &loaded.capture_shortcut);
+            // "Open at login" is kept in the settings, but the system entry is per app name and
+            // path: after the rename to Lumo (or a move) it may point at the old app. Re-register.
+            if loaded.autostart {
+                let manager = handle.autolaunch();
+                if !manager.is_enabled().unwrap_or(false) {
+                    if let Err(err) = manager.enable() {
+                        eprintln!("[coucou] autostart: {err}");
+                    }
+                }
+            }
             Ok(())
         })
         .run(tauri::generate_context!())
-        .expect("error while running Coucou");
+        .expect("error while running Lumo");
 }

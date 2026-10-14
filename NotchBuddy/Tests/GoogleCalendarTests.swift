@@ -1,5 +1,5 @@
 import XCTest
-@testable import Coucou
+@testable import Lumo
 
 /// Google Calendar: join links, busy/free, all-day, time zones, pill, do not disturb, timers.
 final class GoogleCalendarTests: XCTestCase {

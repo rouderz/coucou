@@ -1,6 +1,6 @@
-# Contributing to Coucou
+# Contributing to Lumo
 
-Thanks for wanting to help Mochi grow up! 🫶
+Thanks for wanting to help Lumo grow up! 🫶
 
 ## Getting started
 
@@ -14,7 +14,7 @@ Never edit `NotchBuddy.xcodeproj` by hand: change `project.yml` and run `xcodege
 ## Good first contributions
 
 - A new integration (a poller + a pill + a detail card). Look at `StripePoller.swift` for a compact example.
-- A new emote or sound for Mochi.
+- A new emote or sound for Lumo and its team.
 - Bug fixes — please describe how to reproduce.
 
 ## Rules of the house

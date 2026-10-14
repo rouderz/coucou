@@ -1,0 +1,124 @@
+<!doctype html><html><body style="margin:0;background:transparent">
+<canvas id="c"></canvas>
+<script type="module">
+// Lumo's app icon, drawn in code: the real character (BotEngine, Lumo) floating in a night-sea
+// squircle. windows/scripts/render-icons.mjs screenshots this page at every size it needs.
+//   ?kind=mac      macOS app icon: 1024 grid, 824 body (Apple's icon template), transparent margin
+//   ?kind=full     Windows / Linux / website: the squircle fills the canvas
+//   ?kind=menubar  macOS menu bar template: a black silhouette, 4:3
+//   &size=N        canvas size in px (width for menubar)
+import { BotEngine } from "/src/mochi/engine.ts";
+import { setCurrentCritter } from "/src/mochi/critters.ts";
+
+const q = new URLSearchParams(location.search);
+const kind = q.get("kind") || "full";
+const S = +(q.get("size") || 1024);
+const cv = document.getElementById("c");
+const W = S, H = kind === "menubar" ? Math.round(S * 0.75) : S;
+cv.width = W; cv.height = H;
+const x = cv.getContext("2d");
+
+function squircle(px, py, w, h, r) {
+  // Continuous-corner rounded rect (close to Apple's), from cubic curves.
+  const k = r * 1.28, c = r * 0.36;
+  x.beginPath();
+  x.moveTo(px + k, py);
+  x.lineTo(px + w - k, py);
+  x.bezierCurveTo(px + w - c, py, px + w, py + c, px + w, py + k);
+  x.lineTo(px + w, py + h - k);
+  x.bezierCurveTo(px + w, py + h - c, px + w - c, py + h, px + w - k, py + h);
+  x.lineTo(px + k, py + h);
+  x.bezierCurveTo(px + c, py + h, px, py + h - c, px, py + h - k);
+  x.lineTo(px, py + k);
+  x.bezierCurveTo(px, py + c, px + c, py, px + k, py);
+  x.closePath();
+}
+
+function drawApp() {
+  const m = kind === "mac" ? S * 100 / 1024 : 0;
+  const s = S - 2 * m;
+  const r = s * 0.225;
+  // Soft drop shadow, as macOS icons have (mac only).
+  if (kind === "mac") {
+    x.save();
+    x.shadowColor = "rgba(0,0,0,0.30)"; x.shadowBlur = S * 0.02; x.shadowOffsetY = S * 0.01;
+    squircle(m, m, s, s, r); x.fillStyle = "#1A1440"; x.fill();
+    x.restore();
+  }
+  x.save();
+  squircle(m, m, s, s, r);
+  x.clip();
+  // Night sea.
+  const bg = x.createLinearGradient(0, m, 0, m + s);
+  bg.addColorStop(0, "#2B1F6E");
+  bg.addColorStop(1, "#120E33");
+  x.fillStyle = bg; x.fillRect(m, m, s, s);
+  // Lumo's glow.
+  const cx = m + s / 2, cy = m + s * 0.47;
+  const glow = x.createRadialGradient(cx, cy, 0, cx, cy, s * 0.5);
+  glow.addColorStop(0, "rgba(190,170,255,0.7)");
+  glow.addColorStop(0.45, "rgba(150,120,255,0.18)");
+  glow.addColorStop(1, "rgba(120,90,255,0)");
+  x.fillStyle = glow; x.fillRect(m, m, s, s);
+  // A few bubbles rising.
+  for (const [bx, by, br, a] of [[0.2, 0.3, 0.022, 0.5], [0.15, 0.52, 0.013, 0.35], [0.82, 0.22, 0.016, 0.45], [0.86, 0.62, 0.024, 0.3], [0.74, 0.12, 0.01, 0.4]]) {
+    x.beginPath(); x.arc(m + bx * s, m + by * s, br * s, 0, Math.PI * 2);
+    x.strokeStyle = `rgba(214,203,255,${a})`; x.lineWidth = s * 0.006; x.stroke();
+  }
+  // Lumo, the real one.
+  setCurrentCritter("lumo");
+  const e = new BotEngine();
+  e.critter = "lumo";
+  e.setState("idle", true);
+  e.update(0);
+  const box = s * 1.1;
+  x.save();
+  x.translate(cx - box / 2, m + s * 0.5 - box / 2 - s * 0.03);
+  e.draw(x, box, box);
+  x.restore();
+  // Top sheen.
+  const sh = x.createLinearGradient(0, m, 0, m + s * 0.5);
+  sh.addColorStop(0, "rgba(255,255,255,0.10)"); sh.addColorStop(1, "rgba(255,255,255,0)");
+  x.fillStyle = sh; x.fillRect(m, m, s, s * 0.5);
+  x.restore();
+}
+
+function drawMenubar() {
+  // Template image: black where it shows, transparent elsewhere; the eyes are cut out.
+  const u = H; // height unit
+  const cx = W / 2, top = u * 0.06, rx = u * 0.44, ry = u * 0.42;
+  const base = top + ry; // where the bell's rim sits
+  x.fillStyle = "#000"; x.strokeStyle = "#000";
+  x.beginPath();
+  for (let i = 0; i <= 64; i++) {
+    const t = Math.PI + (i / 64) * Math.PI; // left rim → over the top → right rim
+    const ca = Math.cos(t), sa = Math.sin(t);
+    const px = cx + rx * Math.sign(ca) * Math.pow(Math.abs(ca), 0.9);
+    const py = base - ry * Math.pow(Math.abs(sa), 0.85);
+    if (i === 0) x.moveTo(px, py); else x.lineTo(px, py);
+  }
+  // Scalloped rim.
+  for (let i = 0; i <= 4; i++) {
+    const px = cx + rx - (i / 4) * 2 * rx;
+    if (i > 0) x.quadraticCurveTo(px + rx / 4, base + u * 0.09, px, base);
+  }
+  x.closePath(); x.fill();
+  // Tentacles.
+  x.lineWidth = u * 0.085; x.lineCap = "round";
+  for (let i = 0; i < 4; i++) {
+    const x0 = cx + ((i - 1.5) / 1.5) * rx * 0.55;
+    x.beginPath(); x.moveTo(x0, base);
+    x.bezierCurveTo(x0 - u * 0.06, base + u * 0.14, x0 + u * 0.06, base + u * 0.28, x0 + (i < 2 ? -1 : 1) * u * 0.02, base + u * 0.4);
+    x.stroke();
+  }
+  // Eyes.
+  x.globalCompositeOperation = "destination-out";
+  for (const s of [-1, 1]) {
+    x.beginPath(); x.ellipse(cx + s * rx * 0.36, base - ry * 0.42, u * 0.055, u * 0.085, 0, 0, Math.PI * 2); x.fill();
+  }
+  x.globalCompositeOperation = "source-over";
+}
+
+if (kind === "menubar") drawMenubar(); else drawApp();
+document.body.dataset.done = "1";
+</script></body></html>

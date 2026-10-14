@@ -138,7 +138,7 @@ final class AgentCLIChat: ChatProvider {
 
     // MARK: Helpers
 
-    /// One prompt with Mochi's instructions, the recent turns and the new question.
+    /// One prompt with the character's instructions, the recent turns and the new question.
     nonisolated static func prompt(system: String, history: [(role: String, text: String)],
                                    context: String?, query: String) -> String {
         var out = system + "\n\n"

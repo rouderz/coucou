@@ -2,7 +2,7 @@ import Foundation
 import CoreGraphics
 import SwiftUI
 
-// Small math, colour and shape helpers for drawing Mochi.
+// Small math, colour and shape helpers for drawing the character.
 
 // MARK: - Math helpers
 

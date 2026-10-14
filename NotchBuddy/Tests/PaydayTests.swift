@@ -1,5 +1,5 @@
 import XCTest
-@testable import Coucou
+@testable import Lumo
 
 /// Payday: the calculator and the Gmail matcher. Mirrors windows/src/core/payday.test.ts and paydayMail.test.ts.
 final class PaydayTests: XCTestCase {

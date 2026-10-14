@@ -4,14 +4,14 @@ import Foundation
 // Skills: every skill Claude Code (and Codex) can use on this Mac, and an easy way to add one.
 //
 //   personal  ~/.claude/skills/<name>/SKILL.md
-//   project   <project>/.claude/skills/<name>/SKILL.md   (projects of the sessions Coucou has seen)
+//   project   <project>/.claude/skills/<name>/SKILL.md   (projects of the sessions Lumo has seen)
 //   plugin    <installPath>/skills/<name>/SKILL.md       (~/.claude/plugins/installed_plugins.json)
 //   codex     ~/.codex/skills/<name>/SKILL.md
 //
 // Turning a skill off moves its folder to a sibling `skills-disabled/` (Claude Code only reads
 // `skills/<name>/SKILL.md`), so nothing is ever deleted. Plugin skills are read-only.
 // Adding stages a folder, a .zip / .skill file or a GitHub link, shows what's in it, and copies
-// it only on a click. Coucou never runs a skill's scripts. Same behaviour as windows/src-tauri/src/skills.rs.
+// it only on a click. Lumo never runs a skill's scripts. Same behaviour as windows/src-tauri/src/skills.rs.
 
 struct SkillInfo: Identifiable, Equatable, Sendable {
     enum Source: String, Sendable { case personal, project, plugin, codex }
@@ -410,7 +410,7 @@ final class SkillsStore: ObservableObject {
             }
             let sub = archive.subpath
             var request = URLRequest(url: archive.url, timeoutInterval: 60)
-            request.setValue("Coucou", forHTTPHeaderField: "User-Agent")
+            request.setValue("Lumo", forHTTPHeaderField: "User-Agent")
             let (data, response) = try await URLSession.shared.data(for: request)
             let code = (response as? HTTPURLResponse)?.statusCode ?? 0
             guard code == 200 else { throw SkillError.message(L("GitHub answered \(code) — check the link (public repos only).")) }
@@ -458,7 +458,7 @@ final class SkillsStore: ObservableObject {
     }
 
     /// Installs what `preview` staged — only ever after the user clicked Install. A skill being
-    /// replaced goes to Coucou's own trash folder first.
+    /// replaced goes to Lumo's own trash folder first.
     func install(_ preview: SkillPreview) throws {
         let stage = URL(fileURLWithPath: preview.staging)
         guard stage.path.hasPrefix(stagingDir.path + "/"), fm.fileExists(atPath: stage.path) else {

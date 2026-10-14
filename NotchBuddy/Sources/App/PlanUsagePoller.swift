@@ -4,9 +4,9 @@ import os
 /// Reads the Claude plan limits (5-hour and weekly) the same way claude.ai and Claude Code's
 /// /usage do: Claude Code's OAuth token → `GET api.anthropic.com/api/oauth/usage`.
 ///
-/// Works with no Claude Code session open and for Mochi's own chat. The token is read with
+/// Works with no Claude Code session open and for the character's own chat. The token is read with
 /// `/usr/bin/security`, so macOS asks once ("Always Allow") instead of after every Debug build.
-/// The token is never refreshed or stored by Coucou: when it expires, the next `claude` run renews it.
+/// The token is never refreshed or stored by Lumo: when it expires, the next `claude` run renews it.
 final class PlanUsagePoller: @unchecked Sendable {
     static let shared = PlanUsagePoller()
     private var timer: DispatchSourceTimer?

@@ -1,5 +1,5 @@
 import XCTest
-@testable import Coucou
+@testable import Lumo
 
 /// Chat engines that run other agent CLIs (#108): invocation, output parsing, failures.
 /// The samples match the event types defined in the CLIs' own sources (codex-rs/exec/src/exec_events.rs,
@@ -101,9 +101,9 @@ final class ChatEngineCLITests: XCTestCase {
 @MainActor
 final class AgentCLIChatPromptTests: XCTestCase {
     func testPromptCarriesTheConversationAndTheQuestion() {
-        let p = AgentCLIChat.prompt(system: "You are Mochi.", history: [(role: "User", text: "hi"), (role: "Assistant", text: "hello")],
+        let p = AgentCLIChat.prompt(system: "You are Lumo.", history: [(role: "User", text: "hi"), (role: "Assistant", text: "hello")],
                                     context: "Context — App: Xcode, Window: main.swift", query: "and now?")
-        XCTAssertTrue(p.hasPrefix("You are Mochi."))
+        XCTAssertTrue(p.hasPrefix("You are Lumo."))
         XCTAssertTrue(p.contains("User: hi\n\nAssistant: hello"))
         XCTAssertTrue(p.contains("Context — App: Xcode"))
         XCTAssertTrue(p.hasSuffix("User: and now?"))

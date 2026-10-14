@@ -53,7 +53,7 @@ fn client() -> reqwest::Client {
 }
 
 /// Set from the tray's Pause item. While it is on, nothing reaches the network:
-/// pausing Coucou has to mean pausing Coucou, not just hiding the island.
+/// pausing Lumo has to mean pausing Lumo, not just hiding the island.
 pub static PAUSED: AtomicBool = AtomicBool::new(false);
 
 pub fn set_paused(on: bool) {
@@ -350,7 +350,7 @@ async fn poll_github(app: AppHandle) {
         .get("https://api.github.com/user")
         .header("Authorization", format!("Bearer {token}"))
         .header("Accept", "application/vnd.github+json")
-        .header("User-Agent", "Coucou")
+        .header("User-Agent", "Lumo")
         .send()
         .await;
     let Ok(response) = user else { return };
@@ -375,27 +375,39 @@ async fn poll_github(app: AppHandle) {
         .get("https://api.github.com/user/repos?per_page=100&affiliation=owner&sort=pushed")
         .header("Authorization", format!("Bearer {token}"))
         .header("Accept", "application/vnd.github+json")
-        .header("User-Agent", "Coucou")
+        .header("User-Agent", "Lumo")
         .send()
         .await;
-    let stars: i64 = match repos {
+    let list: Vec<Value> = match repos {
         Ok(r) if r.status().is_success() => r
             .json::<Value>()
             .await
             .ok()
             .and_then(|v| v.as_array().cloned())
-            .map(|list| {
-                list.iter()
-                    .filter_map(|r| r.get("stargazers_count").and_then(Value::as_i64))
-                    .sum()
-            })
-            .unwrap_or(0),
-        _ => 0,
+            .unwrap_or_default(),
+        _ => Vec::new(),
     };
+    let stars: i64 = list.iter().filter_map(|r| r.get("stargazers_count").and_then(Value::as_i64)).sum();
+    // The ones pushed to last, for the GitHub character's base (design C).
+    let recent: Vec<Value> = list
+        .iter()
+        .take(6)
+        .map(|r| {
+            json!({
+                "name": r.get("name"),
+                "fullName": r.get("full_name"),
+                "url": r.get("html_url"),
+                "language": r.get("language"),
+                "stars": r.get("stargazers_count"),
+                "pushedAt": r.get("pushed_at"),
+                "private": r.get("private"),
+            })
+        })
+        .collect();
 
     emit(&app, IntegrationUpdate {
         id: "integration_github",
-        data: json!({ "totalRepos": public + private, "totalStars": stars }),
+        data: json!({ "totalRepos": public + private, "totalStars": stars, "repos": recent }),
         error: None,
         event: None,
     });

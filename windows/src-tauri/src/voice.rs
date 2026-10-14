@@ -1,6 +1,6 @@
 // Push-to-talk (the macOS VoiceInput): one spoken question, turned into text by
 // the system's own speech recognition. Windows has it built in (WinRT); Linux
-// has none, so the button isn't offered there. Mochi reading replies aloud is
+// has none, so the button isn't offered there. The character reading replies aloud is
 // the page's own speechSynthesis (src/core/voice.ts).
 
 /// Listens until the user stops talking and returns what they said.
@@ -27,7 +27,7 @@ fn listen_blocking() -> Result<String, String> {
             // The user turned off online speech recognition (needed for dictation).
             0x80045509 => "Turn on online speech recognition: Windows Settings → Privacy & security → Speech.".to_string(),
             // No microphone, or access denied.
-            0x80070005 => "Coucou can't use the microphone: allow it in Windows Settings → Privacy & security → Microphone.".to_string(),
+            0x80070005 => "Lumo can't use the microphone: allow it in Windows Settings → Privacy & security → Microphone.".to_string(),
             _ => format!("Speech recognition failed: {}", e.message()),
         }
     };

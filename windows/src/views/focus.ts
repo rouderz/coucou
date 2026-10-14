@@ -1,6 +1,6 @@
 // Focus timer (#119) in the island — ports of FocusViews.swift: the controls on the
 // Claude Code card and the time left. The ⏱ in the header lives in views.ts (it
-// shares the pill menu); the ring around Mochi is drawn by island.ts.
+// shares the pill menu); the ring around the character is drawn by island.ts.
 
 import { h, svg, dot } from "./dom";
 import { ICONS } from "./icons";

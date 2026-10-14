@@ -1,8 +1,13 @@
-// The launch "coucou" — port of GreetingCanvasView.swift.
+// The launch greeting — port of GreetingCanvasView.swift. It draws the character picked in
+// Settings (critters.ts): its silhouette, colours, eyes and a smile.
 // Everything is laid out in the same 640×150 reference space as on macOS.
 
 import { Sound } from "../core/sound";
-import { COMPACT_W, NOTCH_H, NOTCH_W } from "../core/layout";
+import { COMPACT_EAR, COMPACT_W, NOTCH_H, NOTCH_W } from "../core/layout";
+import { PALETTES, currentCritter, faceLift, outline } from "./critters";
+
+const rgb = (c: readonly [number, number, number]) =>
+  `rgb(${Math.round(c[0] * 255)},${Math.round(c[1] * 255)},${Math.round(c[2] * 255)})`;
 
 // ── Timing (mirrors greeting-v2.html `T`) ─────────────────────────────────────
 
@@ -248,18 +253,16 @@ function rr(x: CanvasRenderingContext2D, X: number, Y: number, W: number, H: num
   x.closePath();
 }
 
+/** The picked character's silhouette, half-size hw × hh. */
 function mochiPath(hw: number, hh: number): Path2D {
-  const n = 3.2;
+  const c = currentCritter();
   const p = new Path2D();
   const steps = 96;
   for (let i = 0; i <= steps; i++) {
     const a = (i / steps) * 2 * Math.PI;
-    const ca = Math.cos(a);
-    const sa = Math.sin(a);
-    const px = hw * (ca < 0 ? -1 : 1) * Math.pow(Math.abs(ca), 2 / n);
-    const py = hh * (sa < 0 ? -1 : 1) * Math.pow(Math.abs(sa), 2 / n);
-    if (i === 0) p.moveTo(px, py);
-    else p.lineTo(px, py);
+    const pt = outline(c, a, hw, hh, hw / 1.14);
+    if (i === 0) p.moveTo(pt.x, pt.y);
+    else p.lineTo(pt.x, pt.y);
   }
   p.closePath();
   return p;
@@ -270,8 +273,8 @@ function whiteFill(
   x0: number, y0: number, x1: number, y1: number,
 ) {
   const g = x.createLinearGradient(x0, y0, x1, y1);
-  g.addColorStop(0, "rgb(251,251,252)");
-  g.addColorStop(1, "rgb(231,233,236)");
+  g.addColorStop(0, rgb(PALETTES[currentCritter()].top));
+  g.addColorStop(1, rgb(PALETTES[currentCritter()].bottom));
   x.save();
   x.fillStyle = g;
   x.fill(path);
@@ -316,8 +319,8 @@ function drawHandR(x: CanvasRenderingContext2D, hw: number, hh: number, p: Pose)
   x.translate(rx, ry);
   x.rotate(ang);
   const g = x.createLinearGradient(L / 2, -T2 / 2, -L / 2, T2 / 2);
-  g.addColorStop(0, "rgb(251,251,252)");
-  g.addColorStop(1, "rgb(231,233,236)");
+  g.addColorStop(0, rgb(PALETTES[currentCritter()].top));
+  g.addColorStop(1, rgb(PALETTES[currentCritter()].bottom));
   rr(x, -L / 2, -T2 / 2, L, T2, T2 / 2);
   x.fillStyle = g;
   x.fill();
@@ -327,7 +330,51 @@ function drawHandR(x: CanvasRenderingContext2D, hw: number, hh: number, p: Pose)
   x.restore();
 }
 
-function drawMochi(x: CanvasRenderingContext2D, p: Pose) {
+/** Lumo's four tentacles under its hem; the right one rises and waves hello (the greeting's
+ *  "hand"), the others sway. */
+function drawTentacles(x: CanvasRenderingContext2D, hw: number, hh: number, p: Pose, t: number) {
+  const R = hw / 1.14;
+  const y0 = outline("lumo", Math.PI / 2, hw, hh, R).y - R * 0.04;
+  const raise = p.handR;
+  const waving = p.wave >= 0;
+  const len = R * 0.55;
+  x.save();
+  x.strokeStyle = PALETTES.lumo.accent;
+  x.lineWidth = R * 0.07;
+  x.lineCap = "round";
+  x.lineJoin = "round";
+  for (let i = 0; i < 4; i++) {
+    const x0 = ((i - 1.5) / 1.5) * hw * 0.5;
+    x.beginPath();
+    if (i === 3 && raise > 0.01) {
+      // Swings from hanging down to up and out, and waggles while waving.
+      const wag = waving ? Math.sin(p.wave * 2 * Math.PI * 2.5) * 0.45 : 0;
+      const base = lerp(Math.PI / 2, -0.7, raise) + wag * raise;
+      let px = lerp(x0, hw * 0.9, raise);
+      let py = lerp(y0, y0 - hh * 0.18, raise);
+      x.moveTo(px, py);
+      for (let k = 1; k <= 11; k++) {
+        const f = k / 11;
+        const ang = base - f * 0.9 * raise - (waving ? Math.sin(p.wave * 2 * Math.PI * 2.5 - f * 2) * 0.35 * f : 0);
+        px += (Math.cos(ang) * len * 1.5) / 11;
+        py += (Math.sin(ang) * len * 1.5) / 11;
+        x.lineTo(px, py);
+      }
+    } else {
+      for (let k = 0; k <= 11; k++) {
+        const f = k / 11;
+        const px = x0 + Math.sin(k * 0.7 + t * 2.5 + i) * R * 0.05 * f;
+        const py = y0 + f * len;
+        if (k === 0) x.moveTo(px, py);
+        else x.lineTo(px, py);
+      }
+    }
+    x.stroke();
+  }
+  x.restore();
+}
+
+function drawCharacter(x: CanvasRenderingContext2D, p: Pose, t: number) {
   const hh = p.hb / 2;
   const hw = hh * ASP;
   if (hh <= 0.4) return;
@@ -354,8 +401,13 @@ function drawMochi(x: CanvasRenderingContext2D, p: Pose) {
   x.rotate(p.tilt);
   x.scale(p.sx, p.sy);
 
-  drawHandL(x, hw, hh, p);
-  drawHandR(x, hw, hh, p);
+  // Lumo has no hands: it waves a tentacle instead.
+  if (currentCritter() === "lumo") {
+    drawTentacles(x, hw, hh, p, t);
+  } else {
+    drawHandL(x, hw, hh, p);
+    drawHandR(x, hw, hh, p);
+  }
 
   const body = mochiPath(hw, hh);
   whiteFill(x, body, hw * 0.6, -hh, -hw * 0.6, hh);
@@ -374,12 +426,13 @@ function drawMochi(x: CanvasRenderingContext2D, p: Pose) {
   // Eyes
   x.save();
   x.clip(body);
-  x.fillStyle = "#16171A";
-  x.strokeStyle = "#16171A";
+  const ink = PALETTES[currentCritter()].ink;
+  x.fillStyle = ink;
+  x.strokeStyle = ink;
   const er = p.hb * 0.06;
   const sp = p.hb * 0.19;
   const lx = p.lookX * hw * 0.42;
-  const ly = p.lookY * hh * 0.28 + hh * 0.12 + p.eyeRoll * hh * 1.25;
+  const ly = p.lookY * hh * 0.28 + hh * 0.12 + p.eyeRoll * hh * 1.25 - faceLift(currentCritter()) * hh;
   for (const sd of [-1, 1]) {
     x.save();
     x.translate(sd * sp + lx, ly);
@@ -403,6 +456,13 @@ function drawMochi(x: CanvasRenderingContext2D, p: Pose) {
     }
     x.restore();
   }
+  // A smile under the eyes.
+  x.lineWidth = er * 0.8;
+  x.lineCap = "round";
+  x.beginPath();
+  x.moveTo(lx - er * 1.5, ly + er * 2.8);
+  x.quadraticCurveTo(lx, ly + er * (p.eye === "dot" ? 4.2 : 4.8), lx + er * 1.5, ly + er * 2.8);
+  x.stroke();
   x.restore();
 
   // Activity badge
@@ -460,22 +520,16 @@ function drawParticles(x: CanvasRenderingContext2D, t: number, p: Pose) {
   }
 }
 
-const MINI_COLORS = ["#E86A6A", "#3E86E0", "#EFAE5A", "#8C73F2"];
-
+/** The folded island's status dot (#153), where the greeting lands. */
 function drawMinis(x: CanvasRenderingContext2D, alpha: number) {
   if (alpha <= 0.01) return;
-  const cx = 320 + SMALL_W / 2 - 27;
-  const cy = 16;
-  const sp = 6;
-  const offsets: [number, number][] = [[-sp, -sp], [sp, -sp], [-sp, sp], [sp, sp]];
-  offsets.forEach(([dx, dy], i) => {
-    x.save();
-    x.translate(cx + dx, cy + dy);
-    x.scale(alpha, alpha);
-    x.fillStyle = MINI_COLORS[i];
-    x.fill(mochiPath(5.3, 4));
-    x.restore();
-  });
+  x.save();
+  x.globalAlpha *= alpha;
+  x.fillStyle = "#6B7079";
+  x.beginPath();
+  x.arc(320 + SMALL_W / 2 - COMPACT_EAR / 2, 16, 3.5, 0, Math.PI * 2);
+  x.fill();
+  x.restore();
 }
 
 // ── Controller ────────────────────────────────────────────────────────────────
@@ -561,6 +615,6 @@ export class Greeting {
     }
 
     drawMinis(x, p.minis);
-    drawMochi(x, p);
+    drawCharacter(x, p, t);
   }
 }

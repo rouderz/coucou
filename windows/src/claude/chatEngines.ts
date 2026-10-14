@@ -71,7 +71,7 @@ export function engineInfo(id: EngineID): EngineInfo {
   return ENGINES.find((e) => e.id === id)!;
 }
 
-/** Engines Coucou can run today (the ones with a confirmed call and parser). */
+/** Engines Lumo can run today (the ones with a confirmed call and parser). */
 export function runnableEngines(): EngineInfo[] {
   return ENGINES.filter((e) => e.confirmed);
 }

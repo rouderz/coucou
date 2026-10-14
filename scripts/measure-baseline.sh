@@ -1,8 +1,8 @@
 #!/usr/bin/env bash
 # Baseline measurements for issue #1 (compare against them after the F2 work).
 #
-#   bash scripts/measure-baseline.sh cpu [seconds]   Sample Coucou's CPU and memory (default 60 s)
-#   bash scripts/measure-baseline.sh heymochi [seconds]  Same as cpu, default 300 s (#112: Hey Mochi on, quiet room → target ≤ 2 %)
+#   bash scripts/measure-baseline.sh cpu [seconds]   Sample Lumo's CPU and memory (default 60 s)
+#   bash scripts/measure-baseline.sh heymochi [seconds]  Same as cpu, default 300 s (#112: Hey Lumo on, quiet room → target ≤ 2 %)
 #   bash scripts/measure-baseline.sh tokens          Stream per-request token usage from the chat
 #
 # Suggested runs:
@@ -17,8 +17,8 @@ mode="${1:-cpu}"
 case "$mode" in
   cpu|heymochi)
     if [ "$mode" = heymochi ]; then secs="${2:-300}"; else secs="${2:-60}"; fi
-    pid=$(pgrep -x Coucou | head -1) || { echo "Coucou is not running." >&2; exit 1; }
-    echo "Sampling Coucou (pid $pid) for ${secs}s…"
+    pid=$(pgrep -x Lumo | head -1) || { echo "Lumo is not running." >&2; exit 1; }
+    echo "Sampling Lumo (pid $pid) for ${secs}s…"
     # top's first sample has no CPU delta, so take one extra and drop it.
     top -l "$((secs + 1))" -s 1 -pid "$pid" -stats pid,cpu,mem 2>/dev/null | awk -v pid="$pid" '
       function mb(v,  n, u) {

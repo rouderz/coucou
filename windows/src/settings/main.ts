@@ -5,10 +5,12 @@
 import "./settings.css";
 import { setLanguage, startTranslating } from "../core/i18n.ts";
 import { Bridge, onDragDrop, onEvent, type BrowserStatus, type HookStatus, type SkillInfo, type SkillPreview } from "../core/bridge";
-import { DEFAULT_SETTINGS, type Settings } from "../core/state";
+import { DEFAULT_SETTINGS, INTEGRATION_AGENTS, type Settings } from "../core/state";
 import { parseTeams, type TeamInfo } from "../core/capture";
 import { h, clear } from "../views/dom";
 import { THEMES, applyTheme } from "../core/themes.ts";
+import { BotEngine } from "../mochi/engine";
+import { CRITTERS, CRITTER_INFO, DEFAULT_CRITTER, TINT_CHOICES, assignments, botName, isCritter, setCurrentCritter, tintFor, type CritterId } from "../mochi/critters";
 import { dayKey as wtDayKey, duration, range, summary, toCsv as wtToCsv, type Period, type StatEvent } from "../core/whaticketStats.ts";
 import {
   addAdjustment, dayKey, formatDuration, formatHours, groupPeriod, parseStore, recentPeriods, rowsFromStore,
@@ -23,6 +25,7 @@ let keychainName = "the Windows Credential Manager";
 const root = document.getElementById("settings-root")!;
 
 async function save() {
+  onCritterChange();
   await Bridge.saveSettings(settings);
 }
 
@@ -77,14 +80,14 @@ function claudeSection(status: HookStatus): HTMLElement {
       h("div", {
         class: "hint",
         text: status.outdated
-          ? "Coucou's hooks are installed but out of date. Update them to get every event and approvals that don't time out."
+          ? "Lumo's hooks are installed but out of date. Update them to get every event and approvals that don't time out."
           : status.installed
-          ? "Coucou is hooked into your Claude Code sessions. Tool calls, questions and permission requests show up in the island, and you can answer them there."
+          ? "Lumo is hooked into your Claude Code sessions. Tool calls, questions and permission requests show up in the island, and you can answer them there."
           : "Install the hooks to see your Claude Code sessions in the island and approve permissions without leaving what you are doing.",
       }),
       h("div", {
         class: "hint",
-        text: "The plan usage bars come from Claude Code's status line: the hooks add Coucou's, unless you already have your own (then it stays, and the bars stay empty).",
+        text: "The plan usage bars come from Claude Code's status line: the hooks add Lumo's, unless you already have your own (then it stays, and the bars stay empty).",
       }),
       h("div", { class: "row" },
         h("label", { text: "settings.json" }),
@@ -100,7 +103,7 @@ function claudeSection(status: HookStatus): HTMLElement {
     if (!status.hookReady) {
       body.append(h("div", {
         class: "notice warn",
-        text: "The relay (coucou-hook) is not in place yet. Restart Coucou; if it still fails, build it with `cargo build -p coucou-hook`.",
+        text: "The relay (coucou-hook) is not in place yet. Restart Lumo; if it still fails, build it with `cargo build -p coucou-hook`.",
       }));
     }
 
@@ -151,7 +154,7 @@ function claudeSection(status: HookStatus): HTMLElement {
         class: "hint",
         text: install
           ? "This is exactly what will change in your settings.json. Your own hooks are left untouched."
-          : "This removes Coucou's entries only. Your own hooks are left untouched.",
+          : "This removes Lumo's entries only. Your own hooks are left untouched.",
       }),
       renderDiff(preview.diff),
       h("div", { class: "row" },
@@ -204,8 +207,8 @@ function codexSection(initial: { found: boolean; installed: boolean; hooksPath: 
       text: !status.found
         ? "Codex CLI isn't set up here yet. Install it and run it once to follow its sessions and approve them from the island too."
         : status.installed
-        ? "Coucou's hooks are in Codex. Run /hooks in Codex once to review and trust them; its sessions then show up next to Claude Code's."
-        : "Coucou can follow Codex CLI sessions and approve them from the island. Codex is never blocked if Coucou isn't running.",
+        ? "Lumo's hooks are in Codex. Run /hooks in Codex once to review and trust them; its sessions then show up next to Claude Code's."
+        : "Lumo can follow Codex CLI sessions and approve them from the island. Codex is never blocked if Lumo isn't running.",
     }));
     if (status.found) {
       body.append(h("div", { class: "row" },
@@ -660,7 +663,7 @@ function inboxSection(): HTMLElement {
   }
   return h("section", {},
     h("h2", {}, statusDot(settings.inboxEnabled), h("span", { text: "Inbox" })),
-    h("div", { class: "hint", text: "GitHub (your token, or a signed-in gh) and Linear notifications that need you, behind the 🔔. Mochi peeks out when something new arrives." }),
+    h("div", { class: "hint", text: `GitHub (your token, or a signed-in gh) and Linear notifications that need you, behind the 🔔. ${botName()} peeks out when something new arrives.` }),
     h("div", { class: "row" }, h("label", { text: "Inbox" }),
       toggle(settings.inboxEnabled, (v) => { settings.inboxEnabled = v; void save(); })),
     h("div", { class: "row" }, h("label", { text: "GitHub" }),
@@ -953,7 +956,7 @@ function googleSection(connected: boolean, hasClient: boolean): HTMLElement {
   draw();
   return h("section", {},
     h("h2", {}, h("i", { class: "dot", style: "background:#EA4335" }), h("span", { text: "Google" })),
-    h("div", { class: "hint", text: "Gmail in the island and your Drive files in the chat (type @ and a file name). Read-only: Coucou never sends mail or changes files." }),
+    h("div", { class: "hint", text: "Gmail in the island and your Drive files in the chat (type @ and a file name). Read-only: Lumo never sends mail or changes files." }),
     h("div", { class: "hint", text: "One-time setup, free: in console.cloud.google.com create a project, turn on the Gmail API and the Google Drive API, set up the OAuth consent screen (External, add yourself as a test user, then Publish it so the sign-in doesn't expire every 7 days), and create an OAuth client ID of type \"Desktop app\". Paste its ID and secret here." }),
     clientRow("google-client-id", "Client ID", hasClient ? "••••••••  (stored)" : "….apps.googleusercontent.com", false),
     clientRow("google-client-secret", "Client secret", hasClient ? "••••••••  (stored)" : "GOCSPX-…", true),
@@ -968,7 +971,7 @@ function googleSection(connected: boolean, hasClient: boolean): HTMLElement {
 // ── AliExpress (packages and invoices) ────────────────────────────────────────
 
 function aliexpressSection(ext: BrowserStatus | null): HTMLElement {
-  // Coucou for AliExpress: its own browser extension, on the same native-messaging host.
+  // Lumo for AliExpress: its own browser extension, on the same native-messaging host.
   const extStatus = h("div", { class: "hint" });
   const install = h("button", { text: "Set up browser extension" }) as HTMLButtonElement;
   const reveal = h("button", { text: "Show folder" }) as HTMLButtonElement;
@@ -1020,7 +1023,7 @@ function aliexpressSection(ext: BrowserStatus | null): HTMLElement {
   } });
   return h("section", {},
     h("h2", {}, h("i", { class: "dot", style: "background:#FF4747" }), h("span", { text: "AliExpress" })),
-    h("div", { class: "hint", text: "Coucou groups your AliExpress orders by the box they ship in (same tracking number) and makes one invoice per box — PDF to your Downloads/Coucou/AliExpress folder — plus a CSV of every product for Excel or Google Sheets. It reads your own order pages through its own small Chrome / Edge extension, Coucou for AliExpress, with the session you already have open." }),
+    h("div", { class: "hint", text: "Lumo groups your AliExpress orders by the box they ship in (same tracking number) and makes one invoice per box — PDF to your Downloads/Lumo/AliExpress folder — plus a CSV of every product for Excel or Google Sheets. It reads your own order pages through its own small Chrome / Edge extension, Lumo for AliExpress, with the session you already have open." }),
     h("div", { class: "row" }, install, reveal),
     extStatus,
     h("ol", { class: "hint", style: "margin:4px 0 0 18px;padding:0;line-height:1.6" },
@@ -1105,7 +1108,7 @@ function whaticketSection(browser: BrowserStatus | null): HTMLElement {
 
   return h("section", {},
     h("h2", {}, h("i", { class: "dot", style: "background:#25D366" }), h("span", { text: "WhaTicket" })),
-    h("div", { class: "hint", text: "Coucou reads your whaticket.com queue through a small Chrome / Edge extension that uses the session you already have open — no token, no password, and it never signs you out." }),
+    h("div", { class: "hint", text: "Lumo reads your whaticket.com queue through a small Chrome / Edge extension that uses the session you already have open — no token, no password, and it never signs you out." }),
     h("div", { class: "row" }, install, reveal),
     status,
     h("ol", { class: "hint", style: "margin:4px 0 0 18px;padding:0;line-height:1.6" },
@@ -1121,7 +1124,7 @@ function whaticketSection(browser: BrowserStatus | null): HTMLElement {
     ),
     queues,
     h("div", { class: "row" }, h("label", { text: "Only between" }), hours),
-    h("div", { class: "hint", text: "Only while your whaticket.com tab is open. Never during Do not disturb, never group chats, never tickets an AI agent is handling. Coucou only assigns the ticket — it never writes to the customer." }),
+    h("div", { class: "hint", text: "Only while your whaticket.com tab is open. Never during Do not disturb, never group chats, never tickets an AI agent is handling. Lumo only assigns the ticket — it never writes to the customer." }),
     whaticketStatsBlock(),
   );
 }
@@ -1183,7 +1186,7 @@ function whaticketStatsBlock(): HTMLElement {
         stat("Average wait", duration(s.averageWait)),
         stat("Median wait", duration(s.medianWait)),
       ),
-      h("div", { class: "hint", text: `From Coucou ${s.click} · Auto-accepted ${s.auto} · Elsewhere ${s.web}` }),
+      h("div", { class: "hint", text: `From Lumo ${s.click} · Auto-accepted ${s.auto} · Elsewhere ${s.web}` }),
     );
     if (s.backlog > 0) {
       body.append(h("div", { class: "hint", text: `${s.backlog} were already waiting when the tab opened (not in the per-hour chart or the waits).` }));
@@ -1382,10 +1385,10 @@ function skillsSection(targets: { id: string; label: string }[]): HTMLElement {
           h("div", { class: "hint", text: `${sk.files.length} files: ${files}` }),
           h("div", { class: "hint" }, h("span", { text: "Installs to " }), h("span", { class: "path", text: sk.dest })),
           sk.hasScripts
-            ? h("div", { class: "notice warn", text: "It has scripts. Coucou never runs them, but Claude may when it uses the skill — read them first." })
+            ? h("div", { class: "notice warn", text: "It has scripts. Lumo never runs them, but Claude may when it uses the skill — read them first." })
             : h("span", {}),
           sk.exists
-            ? h("div", { class: "notice warn", text: "A skill with this name is already there; installing replaces it (the old one is kept in Coucou's trash)." })
+            ? h("div", { class: "notice warn", text: "A skill with this name is already there; installing replaces it (the old one is kept in Lumo's trash)." })
             : h("span", {}),
         ),
       ));
@@ -1471,8 +1474,8 @@ function voiceSection(canListen: boolean): HTMLElement {
     h("div", { class: "row" }, h("label", { text: "Read replies aloud" }),
       toggle(settings.speakReplies, (v) => { settings.speakReplies = v; void save(); })),
     h("div", { class: "hint", text: canListen
-      ? "🎙 in the chat: say your question and Mochi sends it (Windows speech recognition; dictation needs online speech recognition on in Windows Settings → Privacy & security → Speech)."
-      : "Speaking your questions isn't available on Linux: it has no built-in speech recognition. Mochi can still read its replies aloud." }),
+      ? `🎙 in the chat: say your question and ${botName()} sends it (Windows speech recognition; dictation needs online speech recognition on in Windows Settings → Privacy & security → Speech).`
+      : `Speaking your questions isn't available on Linux: it has no built-in speech recognition. ${botName()} can still read its replies aloud.` }),
   );
 }
 
@@ -1535,7 +1538,7 @@ function updatesSection(): HTMLElement {
       const info = await Bridge.checkUpdate();
       url = info.url;
       canInstall = info.newer ? (await Bridge.updateCanInstall()) ?? false : false;
-      status.textContent = info.newer ? `Coucou ${info.latest} is out (you have ${info.current}).` : `You're up to date (${info.current}).`;
+      status.textContent = info.newer ? `Lumo ${info.latest} is out (you have ${info.current}).` : `You're up to date (${info.current}).`;
       link.textContent = canInstall ? "Install and restart" : "Download";
       link.style.display = info.newer ? "" : "none";
     } catch (err) {
@@ -1559,6 +1562,172 @@ function paintTheme() {
   applyTheme(document.documentElement, settings.theme, darkQuery.matches);
 }
 darkQuery.addEventListener("change", paintTheme);
+
+// ── Character ─────────────────────────────────────────────────────────────────
+
+/** A still drawing of a character at rest (drawn once, no animation loop). */
+function critterPreview(c: CritterId, tint: string | null = null, w = 44, ht = 38): HTMLCanvasElement {
+  const dpr = Math.min(2, window.devicePixelRatio || 1);
+  const canvas = h("canvas", { class: "critter-preview" }) as HTMLCanvasElement;
+  canvas.width = Math.round(w * dpr);
+  canvas.height = Math.round(ht * dpr);
+  canvas.style.width = `${w}px`;
+  canvas.style.height = `${ht}px`;
+  const ctx = canvas.getContext("2d");
+  if (ctx) {
+    const engine = new BotEngine();
+    engine.critter = c;
+    engine.userTint = tint;
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    engine.draw(ctx, w, ht);
+  }
+  return canvas;
+}
+
+function characterSection(): HTMLElement {
+  const grid = h("div", { class: "theme-grid critter-grid" });
+  function draw() {
+    clear(grid);
+    const current = (CRITTERS as readonly string[]).includes(settings.critter) ? settings.critter : DEFAULT_CRITTER;
+    for (const c of CRITTERS) {
+      grid.append(h("button", {
+        class: "theme-choice critter-choice" + (current === c ? " on" : ""),
+        onclick: () => { settings.critter = c; setCurrentCritter(c); void save(); draw(); onCritterChange(); },
+      },
+      critterPreview(c),
+      h("span", { class: "critter-text" },
+        h("b", { text: CRITTER_INFO[c].name }),
+        h("small", { text: CRITTER_INFO[c].tagline }),
+      )));
+    }
+  }
+  draw();
+
+  // Your team (#151): every active integration can have a character of its own — a separate
+  // entry in the island's rail, with its own base and chat.
+  const who = h("div", { class: "team" });
+  function drawWho() {
+    clear(who);
+    const main = isCritter(settings.critter) ? settings.critter : DEFAULT_CRITTER;
+    const assigned = assignments(settings.critterAssignments);
+    const agents = INTEGRATION_AGENTS.filter((a) => a.id !== "integration_claude" && settings.activeIntegrations.includes(a.id));
+    if (!agents.length) who.append(h("div", { class: "hint", text: "Turn on an integration (Integrations tab) to give it a character." }));
+    for (const agent of agents) {
+      const own = assigned[agent.id];
+      const tint = own ? tintFor(agent.id, assigned, settings.critterColors, main) : null;
+      const setOwn = (c: CritterId | null) => {
+        const next = { ...(settings.critterAssignments ?? {}) };
+        if (c) next[agent.id] = c; else delete next[agent.id];
+        settings.critterAssignments = next;
+        void save();
+        drawWho();
+      };
+      const preview = critterPreview(own ?? main, tint);
+      if (!own) preview.style.opacity = "0.45";
+      const head = h("div", { class: "team-head" },
+        preview,
+        h("span", { class: "team-text" },
+          h("b", { text: agent.name }),
+          h("small", { text: own ? `${CRITTER_INFO[own].name} · its own character` : `Handled by ${CRITTER_INFO[main].name}` })),
+        h("span", { class: "spacer" }),
+        h("span", { class: "hint", text: "Own character" }),
+        toggle(!!own, (v) => {
+          // A new one starts with a character not used yet, so it's separate from the start.
+          const used = new Set<string>([main, ...Object.values(assigned)]);
+          setOwn(v ? CRITTERS.find((c) => !used.has(c)) ?? "lumo" : null);
+        }),
+      );
+      const card = h("div", { class: "team-row" }, head);
+      if (own) {
+        const picks = h("div", { class: "team-picks" });
+        for (const c of CRITTERS) {
+          picks.append(h("button", {
+            class: "team-pick" + (c === own ? " on" : ""),
+            "aria-label": CRITTER_INFO[c].name,
+            onclick: () => setOwn(c),
+          }, critterPreview(c, null, 34, 30), h("small", { text: CRITTER_INFO[c].name })));
+        }
+        const dots = h("span", { class: "tint-dots" });
+        const current = settings.critterColors?.[agent.id] ?? null;
+        for (const c of [null, ...TINT_CHOICES]) {
+          dots.append(h("button", {
+            class: "tint-dot" + (c === current ? " on" : "") + (c ? "" : " none"),
+            style: c ? `background:${c}` : "",
+            title: c ?? "Its own colours",
+            "aria-label": c ?? "Its own colours",
+            onclick: () => {
+              const next = { ...(settings.critterColors ?? {}) };
+              if (c) next[agent.id] = c; else delete next[agent.id];
+              settings.critterColors = next;
+              void save();
+              drawWho();
+            },
+          }));
+        }
+        const colourRow = h("div", { class: "team-colour" }, h("span", { class: "hint", text: "Colour" }), dots);
+        if (!current && tint) colourRow.append(h("span", { class: "hint", text: "automatic, to tell it apart" }));
+        if (settings.placement === "free") {
+          const grounded = settings.groundedCharacters ?? [];
+          colourRow.append(h("span", { class: "spacer" }), h("span", { class: "hint", text: "Floats on the desktop" }),
+            toggle(!grounded.includes(agent.id), (v) => {
+              settings.groundedCharacters = v ? grounded.filter((id) => id !== agent.id) : [...grounded, agent.id];
+              void save();
+            }));
+        }
+        card.append(picks, colourRow);
+      }
+      who.append(card);
+    }
+  }
+  drawWho();
+  onCritterChange = drawWho;
+
+  // Where they live, and which ones float.
+  const placement = h("select", {}) as HTMLSelectElement;
+  placement.append(
+    h("option", { value: "notch", text: "At the top of the screen" }),
+    h("option", { value: "free", text: "Free on the desktop" }),
+  );
+  placement.value = settings.placement === "free" ? "free" : "notch";
+  const floatAll = h("select", {}) as HTMLSelectElement;
+  floatAll.append(
+    h("option", { value: "all", text: "All of them" }),
+    h("option", { value: "main", text: "Just the main one (the others in the island)" }),
+  );
+  floatAll.value = settings.floatAll === false ? "main" : "all";
+  const floatRow = h("div", { class: "row" }, h("label", { text: "Floating characters" }), floatAll);
+  floatRow.style.display = settings.placement === "free" ? "" : "none";
+  placement.addEventListener("change", () => {
+    settings.placement = placement.value === "free" ? "free" : "notch";
+    floatRow.style.display = settings.placement === "free" ? "" : "none";
+    void save();
+    drawWho();
+  });
+  floatAll.addEventListener("change", () => {
+    settings.floatAll = floatAll.value === "all";
+    void save();
+  });
+
+  return h("section", {},
+    h("h2", {}, h("span", { text: "Main character" })),
+    grid,
+    h("div", { class: "hint", text: "It handles Claude Code — Chat and Code — and every integration without a character of its own. The interface calls it by its name, like \u201CAsk Lumo\u201D." }),
+    h("h2", {}, h("span", { text: "Your team" })),
+    h("div", { class: "hint", text: "Give an integration its own character: it gets its own place in the island's rail, its own base and its own chat about what it handles. The same character can work for several integrations; each one is separate, in a colour of its own." }),
+    who,
+    h("h2", {}, h("span", { text: "On the desktop" })),
+    h("div", { class: "row" }, h("label", { text: "Where they live" }), placement,
+      h("button", {
+        text: "Reset positions",
+        onclick: () => { settings.buddyX = null; settings.buddyY = null; settings.buddySpots = {}; void save(); },
+      }),
+      h("span", { class: "hint", text: "free: drag a character anywhere, click it to open the island next to it, right-click for options" })),
+    floatRow,
+  );
+}
+
+/** Redraws "Who handles what" when the main character or the integrations change. */
+let onCritterChange: () => void = () => {};
 
 function appearanceSection(): HTMLElement {
   const grid = h("div", { class: "theme-grid" });
@@ -1640,6 +1809,7 @@ function generalSection(editors: { id: string; name: string }[]): HTMLElement {
     void save();
   });
 
+
   return h(
     "section",
     {},
@@ -1659,6 +1829,10 @@ function generalSection(editors: { id: string; name: string }[]): HTMLElement {
       language,
     ),
     h("div", { class: "row" },
+      h("label", { text: "Where it lives" }),
+      h("span", { class: "hint", text: "Characters tab" }),
+    ),
+    h("div", { class: "row" },
       h("label", { text: "Island lives on" }),
       screen,
     ),
@@ -1668,7 +1842,7 @@ function generalSection(editors: { id: string; name: string }[]): HTMLElement {
       h("span", { class: "hint", text: "a small notch stays at the top when the island hides" }),
     ),
     h("div", { class: "row" },
-      h("label", { text: "Mochi moves with the music" }),
+      h("label", { text: `${botName()} moves with the music` }),
       toggle(settings.mochiDance === true, (v) => { settings.mochiDance = v; void save(); }),
       h("span", { class: "hint", text: "bobs along while music plays; off in Do not disturb and with reduced motion. Music detection isn't available on this system yet" }),
     ),
@@ -1689,6 +1863,7 @@ async function main() {
   const boot = await Bridge.boot();
   if (boot) {
     settings = { ...settings, ...boot.settings };
+    setCurrentCritter(isCritter(settings.critter) ? settings.critter : DEFAULT_CRITTER);
     version = boot.version;
     if (boot.platform === "linux") keychainName = "your keyring (Secret Service)";
   }
@@ -1722,9 +1897,10 @@ async function main() {
 
   clear(root);
   // Tabs: everything used to be one long page.
-  type Tab = "general" | "chat" | "claude" | "integrations" | "alerts";
+  type Tab = "general" | "characters" | "chat" | "claude" | "integrations" | "alerts";
   const pages: [Tab, string, HTMLElement[]][] = [
     ["general", "General", [appearanceSection(), generalSection(editors), voiceSection(canListen), updatesSection()]],
+    ["characters", "Characters", [characterSection()]],
     ["chat", "Chat", [apiSection(hasKey, claudeCode, presets, present), skillsSection(skillTargets)]],
     ["claude", "Claude Code", [claudeSection(status), codexSection(codex), timeSection(), focusSection()]],
     ["integrations", "Integrations", [
@@ -1752,12 +1928,17 @@ async function main() {
     tabBar.append(b);
   }
   root.append(
-    h("h1", {}, h("span", { text: "Coucou" }), h("span", { class: "version", text: version })),
+    h("h1", {}, h("span", { text: "Lumo" }), h("span", { class: "version", text: version })),
     tabBar,
     ...pages.flatMap(([, , sections]) => sections),
     h("div", {
       class: "hint",
       text: "No telemetry. Network requests only go to the services you configure yourself.",
+    }),
+    // Credits: who made what, and under which license (LICENSE, LICENSE-CHARACTERS.md, NOTICE).
+    h("div", {
+      class: "hint",
+      text: "Lumo © 2026 Wolfgang Welcomez (rouderz) · Characters Lumo, Bao, Pip, Nube and Tecla © Wolfgang Welcomez, CC BY 4.0 · Based on Coucou by Louis Raillé, MIT License",
     }),
   );
   show(current);
@@ -1766,6 +1947,7 @@ async function main() {
 
   void onEvent<Settings>("settings-changed", (s) => {
     settings = { ...settings, ...s };
+    setCurrentCritter(isCritter(settings.critter) ? settings.critter : DEFAULT_CRITTER);
   });
 }
 

@@ -1,5 +1,5 @@
 import XCTest
-@testable import Coucou
+@testable import Lumo
 
 /// Pure logic: approval risk, "Always" rules, API errors, chat history trimming, HTTP parsing…
 final class ApprovalRiskTests: XCTestCase {
@@ -305,11 +305,11 @@ final class UpdatesTests: XCTestCase {
         let json = """
         {"tag_name":"v0.3.0","html_url":"https://github.com/rouderz/coucou/releases/tag/v0.3.0","draft":false,
          "prerelease":false,"body":"Notes","published_at":"2026-10-02T10:00:00Z",
-         "assets":[{"name":"Coucou-0.3.0.dmg","browser_download_url":"https://github.com/x/Coucou-0.3.0.dmg"}]}
+         "assets":[{"name":"Lumo-0.3.0.dmg","browser_download_url":"https://github.com/x/Lumo-0.3.0.dmg"}]}
         """
         let r = try XCTUnwrap(Updates.parse(Data(json.utf8)))
         XCTAssertEqual(r.version, "0.3.0")
-        XCTAssertEqual(r.dmgURL, "https://github.com/x/Coucou-0.3.0.dmg")
+        XCTAssertEqual(r.dmgURL, "https://github.com/x/Lumo-0.3.0.dmg")
         XCTAssertNil(Updates.parse(Data(#"{"tag_name":"v9","prerelease":true}"#.utf8)), "pre-releases are ignored")
     }
 }

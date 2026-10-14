@@ -1,5 +1,5 @@
 import XCTest
-@testable import Coucou
+@testable import Lumo
 
 /// The PR list parsers and the pure rules for later steps (#113). Mirrors windows/src/core/github-prs.test.ts.
 final class GithubPRsTests: XCTestCase {

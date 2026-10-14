@@ -24,7 +24,7 @@ test("asks for tickets like the web app's inbox", () => {
   assert.ok(!CHANNELS.includes("INTERNAL"));
 });
 
-test("keeps only what Coucou shows", () => {
+test("keeps only what Lumo shows", () => {
   const queues = [{ id: "q-1", name: "Soporte", color: "#0af" }];
   const v = ticketView({ id: "t-1", status: "pending", queueId: "q-1", userId: null, unreadMessages: 3,
     lastMessage: "Hola", contact: { name: "", number: "54911" }, metadata: { aiHandling: true }, secret: "x" }, queues);

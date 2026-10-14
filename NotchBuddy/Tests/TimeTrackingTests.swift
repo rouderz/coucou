@@ -1,5 +1,5 @@
 import XCTest
-@testable import Coucou
+@testable import Lumo
 
 /// Time per Linear issue (#114): aggregation with overlapping sessions and idle gaps, periods, export, store.
 final class TimeTrackingTests: XCTestCase {

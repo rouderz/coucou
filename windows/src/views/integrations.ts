@@ -6,10 +6,13 @@
 
 import { h, svg, clear, dot } from "./dom";
 import { ICONS } from "./icons";
+import { botName } from "../mochi/critters";
 import { State, type AgentTask } from "../core/state";
 import { startNewChat } from "../core/chats";
 import { Bridge } from "../core/bridge";
 import { todayLine } from "../core/whaticketStats.ts";
+import { railShown } from "../core/characters";
+import { githubRepos, whaticketChart } from "./railCharts";
 import { CI_ID, ciLogFile, ciRerunFailed, refreshCI, type CIPr } from "../core/ciPoller";
 import { checkState, durationSeconds, formatDuration, parseJobUrl, type CheckRun, type CheckState, type PillState, type PrState } from "../core/ci.ts";
 import { focusCardPanel, focusStartButton } from "./focus";
@@ -242,6 +245,8 @@ function githubCard(): HTMLElement {
       statRow(ICONS.star, "#F5A524", "Total stars", fmt(stars)),
       statRow(ICONS.stack, "#6B7079", "Repositories", String(repos)),
     ),
+    // Its own character's base has the room: the repositories pushed to last.
+    ...(railShown() && Array.isArray(d.repos) ? [githubRepos(d.repos as Record<string, unknown>[])] : []),
   );
 }
 
@@ -427,7 +432,9 @@ function whaticketCard(): HTMLElement {
   const kind = `Waiting ${Number(d.pendingCount ?? 0)} · Mine ${Number(d.mineCount ?? 0)}${d.autoAccept ? " · Auto" : ""}`;
   // "Today · Arrived 23 · Accepted 18 (5 auto)" — the rest is in Settings → WhaTicket → Stats.
   const today = h("div", { class: "int-status", text: todayLine(d.today as Record<string, unknown> | undefined) });
-  return h("div", { class: "int-card" }, header("#25D366", "WhaTicket", kind), today, rows);
+  // Its own character's base has the room: today, hour by hour.
+  return h("div", { class: "int-card" }, header("#25D366", "WhaTicket", kind), today, rows,
+    ...(railShown() ? [whaticketChart()] : []));
 }
 
 // ── AliExpress: packages by tracking number, one invoice per box ──────────────
@@ -451,14 +458,14 @@ function aliexpressCard(): HTMLElement {
       text: "↓ " + file.split(/[\\/]/).pop(), onclick: (e: Event) => { e.stopPropagation(); void Bridge.revealDownload(file); } }));
   }
   rows.append(tools);
-  if (!packages.length) rows.append(h("div", { class: "int-empty", text: "Open your AliExpress orders in Chrome or Edge once: Coucou reads them from there." }));
+  if (!packages.length) rows.append(h("div", { class: "int-empty", text: "Open your AliExpress orders in Chrome or Edge once: Lumo reads them from there." }));
   const sorted = [...packages].sort((a, b) => Number(delivered(a.status)) - Number(delivered(b.status)));
   for (const p of sorted.slice(0, 12)) {
     const tracking = String(p.tracking);
     const orders = Array.isArray(p.orders) ? p.orders.length : 0;
     const money = `${p.currency === "USD" || !p.currency ? "$" : `${p.currency} `}${Number(p.total ?? 0).toFixed(2)}`;
     const invoice = h("button", { class: "int-mini", text: busy.has(tracking) ? "…" : "Invoice",
-      title: "Make the invoice of this box (PDF in Downloads/Coucou/AliExpress)" }) as HTMLButtonElement;
+      title: "Make the invoice of this box (PDF in Downloads/Lumo/AliExpress)" }) as HTMLButtonElement;
     invoice.disabled = busy.has(tracking);
     invoice.addEventListener("click", async (e) => {
       e.stopPropagation();
@@ -594,7 +601,7 @@ function ciRunRows(pr: CIPr, run: CheckRun): HTMLElement[] {
     const url = run.htmlUrl;
     acts.append(ciAction("Open log", "Open log", () => void Bridge.openUrl(url)));
   }
-  acts.append(ciAction("Ask Mochi why", "Ask Mochi why", async () => attachToChat(await ciLogFile(pr, run), true)));
+  acts.append(ciAction(`Ask ${botName()} why`, `Ask ${botName()} why`, async () => attachToChat(await ciLogFile(pr, run), true)));
   const job = parseJobUrl(run.htmlUrl);
   if (job) {
     const label = ciRerunning.has(job.runId) ? "Re-running…" : "Re-run";

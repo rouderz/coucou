@@ -1,5 +1,5 @@
 import XCTest
-@testable import Coucou
+@testable import Lumo
 
 /// Now playing (#107): parsing, active player and command validation. The same cases as
 /// windows/src/core/nowplaying.test.ts.

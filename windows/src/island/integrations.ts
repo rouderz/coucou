@@ -43,7 +43,7 @@ export async function refreshConfigured() {
   const wt = State.integrations.integration_whaticket ?? { data: {}, error: null, loaded: false, configured: false };
   State.integrations.integration_whaticket = { ...wt, configured: !!browser && browser.installed && browser.browsers.length > 0 };
   const ali = State.integrations.integration_aliexpress ?? { data: {}, error: null, loaded: false, configured: false };
-  // AliExpress has its own extension (Coucou for AliExpress).
+  // AliExpress has its own extension (Lumo for AliExpress).
   const aliExt = await Bridge.aliexpressExtensionStatus();
   State.integrations.integration_aliexpress = { ...ali, configured: !!aliExt && aliExt.installed && aliExt.browsers.length > 0 };
   const hooks = State.settings.hooksInstalled;

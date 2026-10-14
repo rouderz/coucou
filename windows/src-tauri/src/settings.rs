@@ -59,7 +59,7 @@ pub struct Settings {
     #[serde(default = "yes")]
     pub phone_only_when_away: bool,
 
-    /// GitHub / Linear notifications in Mochi's inbox.
+    /// GitHub / Linear notifications in the character's inbox.
     #[serde(default = "yes")]
     pub inbox_enabled: bool,
     #[serde(default = "yes")]
@@ -88,7 +88,7 @@ pub struct Settings {
     #[serde(default = "default_theme")]
     pub theme: String,
 
-    /// Mochi reads its chat replies aloud.
+    /// The character reads its chat replies aloud.
     #[serde(default)]
     pub speak_replies: bool,
 
@@ -97,7 +97,44 @@ pub struct Settings {
     #[serde(default = "yes")]
     pub idle_notch: bool,
 
-    /// Mochi moves with the music (#117). Off by default.
+    /// The character (src/mochi/critters.ts): "bao", "pip", "nube", "lumo", or "tecla".
+    #[serde(default = "default_critter")]
+    pub critter: String,
+    /// "notch" = the island at the top of the screen; "free" = the character floats in its
+    /// own window (buddy.rs) that you drag anywhere, and the island opens next to it.
+    #[serde(default = "default_placement")]
+    pub placement: String,
+    /// Where the free character was left (logical px, top-left of its window); None = default.
+    #[serde(default)]
+    pub buddy_x: Option<f64>,
+    #[serde(default)]
+    pub buddy_y: Option<f64>,
+    /// Who handles what (#151): integration id → character. Missing = the main character.
+    #[serde(default)]
+    pub critter_assignments: HashMap<String, String>,
+    /// A colour per integration for its character (#156): id → "#RRGGBB".
+    #[serde(default)]
+    pub critter_colors: HashMap<String, String>,
+    /// Code mode (#152): the folder Claude Code works in, and the ones used lately.
+    #[serde(default)]
+    pub code_folder: Option<String>,
+    #[serde(default)]
+    pub recent_code_folders: Vec<String>,
+    /// The folders kept at hand on the main character's base (Claude Code can read them all).
+    #[serde(default)]
+    pub code_folders: Vec<String>,
+    /// Where each integration's own floating character was left (logical px, top-left).
+    #[serde(default)]
+    pub buddy_spots: HashMap<String, [f64; 2]>,
+    /// Free placement: every character floats on its own, or just the main one (the others
+    /// stay in the island's character rail).
+    #[serde(default = "yes")]
+    pub float_all: bool,
+    /// Characters kept off the desktop one by one; they stay in the island's rail.
+    #[serde(default)]
+    pub grounded_characters: Vec<String>,
+
+    /// The character moves with the music (#117). Off by default.
     #[serde(default)]
     pub mochi_dance: bool,
 
@@ -166,6 +203,14 @@ fn ids_as_text<'de, D: serde::Deserializer<'de>>(d: D) -> Result<Vec<String>, D:
             _ => None,
         })
         .collect())
+}
+
+fn default_critter() -> String {
+    "lumo".into()
+}
+
+fn default_placement() -> String {
+    "notch".into()
 }
 
 fn default_theme() -> String {
@@ -250,6 +295,18 @@ impl Default for Settings {
             theme: default_theme(),
             speak_replies: false,
             idle_notch: true,
+            critter: default_critter(),
+            placement: default_placement(),
+            buddy_x: None,
+            buddy_y: None,
+            critter_assignments: HashMap::new(),
+            critter_colors: HashMap::new(),
+            code_folder: None,
+            recent_code_folders: Vec::new(),
+            code_folders: Vec::new(),
+            buddy_spots: HashMap::new(),
+            float_all: true,
+            grounded_characters: Vec::new(),
             mochi_dance: false,
             whaticket_auto_accept: false,
             whaticket_queues: Vec::new(),

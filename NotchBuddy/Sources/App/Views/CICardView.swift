@@ -2,7 +2,7 @@ import AppKit
 import SwiftUI
 
 /// CI pill (#115) on the overview card: your open PRs with their latest check runs. A failed
-/// Actions job gets "Open log", "Ask Mochi why" (its log tail goes to the chat) and "Re-run".
+/// Actions job gets "Open log", "Ask why" (its log tail goes to the chat) and "Re-run".
 struct CICardView: View {
     @ObservedObject private var appState = AppState.shared
     @State private var busy: String?
@@ -26,7 +26,7 @@ struct CICardView: View {
                     .font(.system(size: 11)).foregroundColor(Color(hex: "#8E939C"))
                     .lineLimit(1)
             }
-            .padding(.top, 6).padding(.leading, 108).padding(.trailing, 36)
+            .padding(.top, 6).padding(.leading, botInset(108)).padding(.trailing, 36)
 
             if let error = appState.ciError {
                 NotionHint(dot: "#F4505E", text: error)
@@ -45,7 +45,7 @@ struct CICardView: View {
                 }
             }
             .frame(maxHeight: 76)
-            .padding(.leading, 102).padding(.trailing, 12).padding(.top, 5)
+            .padding(.leading, botInset(102)).padding(.trailing, 12).padding(.top, 5)
         }
         .frame(maxWidth: .infinity, alignment: .topLeading).padding(.top, 4)
     }
@@ -102,7 +102,7 @@ struct CICardView: View {
                     if let url = run.htmlURL {
                         action(L("Open log"), help: L("Open log")) { AppLinks.open(url) }
                     }
-                    action(busy == "ask\(run.id)" ? "…" : L("Ask Mochi why"), help: L("Ask Mochi why")) { ask(pr, run) }
+                    action(busy == "ask\(run.id)" ? "…" : L("Ask \(botName()) why"), help: L("Ask \(botName()) why")) { ask(pr, run) }
                     let runId = CICore.parseJobURL(run.htmlURL)?.runId
                     if let runId {
                         action(rerunning.contains(runId) ? L("Re-running…") : busy == "rerun\(run.id)" ? "…" : L("Re-run"),

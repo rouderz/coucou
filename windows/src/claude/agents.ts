@@ -1,6 +1,6 @@
-// Cursor CLI and Gemini CLI (#109): each agent's hook events mapped to Coucou's
-// (the Claude Code–style events the island already understands), Coucou's answer
-// mapped back to each agent's format, and the merge of Coucou's hooks into
+// Cursor CLI and Gemini CLI (#109): each agent's hook events mapped to Lumo's
+// (the Claude Code–style events the island already understands), Lumo's answer
+// mapped back to each agent's format, and the merge of Lumo's hooks into
 // ~/.cursor/hooks.json and ~/.gemini/settings.json. Pure functions, no I/O: the
 // relay and the installers call them.
 //
@@ -14,7 +14,7 @@ export type Agent = "cursor" | "gemini";
 export type Json = Record<string, unknown>;
 
 /** What the island gets: Claude Code's vocabulary plus the agent tag. */
-export interface CoucouEvent extends Json {
+export interface LumoEvent extends Json {
   agent: Agent;
   hook_event_name: string;
   session_id: string;
@@ -22,7 +22,7 @@ export interface CoucouEvent extends Json {
 }
 
 export interface Mapped {
-  event: CoucouEvent;
+  event: LumoEvent;
   /** The agent waits for an answer to this event (an approval). */
   waits: boolean;
 }
@@ -45,7 +45,7 @@ function parseObject(v: unknown): Json {
 
 // ---------------------------------------------------------------- Cursor
 
-/** Cursor hook events Coucou installs, in the order they are written. */
+/** Cursor hook events Lumo installs, in the order they are written. */
 export const CURSOR_EVENTS = [
   "sessionStart",
   "sessionEnd",
@@ -185,14 +185,14 @@ export interface AgentReply {
   stderr?: string;
 }
 
-const DENIED = "Denied from Coucou";
+const DENIED = "Denied from Lumo";
 const SILENT: AgentReply = { stdout: null, exit: 0 };
 
 /**
  * Silence is the safe answer: anything unrecognised prints nothing and exits 0,
- * so the agent asks in its own UI exactly as if Coucou were not installed.
+ * so the agent asks in its own UI exactly as if Lumo were not installed.
  * Never "allow" unless the island said so. `hookEvent` is the agent's own event
- * name (what it sent), not Coucou's.
+ * name (what it sent), not Lumo's.
  */
 export function answerFor(agent: Agent, hookEvent: string, answer: Answer): AgentReply {
   const a = answer.trim();
@@ -353,10 +353,10 @@ export function planChange(agent: Agent, current: string | null, command: string
   if (text.trim() !== "") {
     try {
       const parsed = JSON.parse(text);
-      if (!obj(parsed)) return { ok: false, error: "The file isn't a JSON object, so Coucou won't touch it." };
+      if (!obj(parsed)) return { ok: false, error: "The file isn't a JSON object, so Lumo won't touch it." };
       root = parsed as Json;
     } catch (e) {
-      return { ok: false, error: `The file isn't valid JSON (${(e as Error).message}), so Coucou won't touch it.` };
+      return { ok: false, error: `The file isn't valid JSON (${(e as Error).message}), so Lumo won't touch it.` };
     }
   }
   const next =

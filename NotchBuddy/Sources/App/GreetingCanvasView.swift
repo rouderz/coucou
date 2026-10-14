@@ -27,17 +27,17 @@ private enum GT {
 
 // MARK: - Geometry constants (640×150 reference space)
 
-private let GC0     = CGPoint(x: 320, y: 90)   // Mochi center
+private let GC0     = CGPoint(x: 320, y: 90)   // The character center
 private let GHB:    CGFloat = 58                // body height at full size
 private let GASP:   CGFloat = 1.34             // body width/height ratio
-private let GEAR_X: CGFloat = 40               // ear x from small island left edge (matches BotPlacement compact x=40)
+private let GEAR_X: CGFloat = IslandConst.compactEar / 2  // ear x from small island left edge (matches BotPlacement compact)
 private let GEAR_Y: CGFloat = 16               // ear y
 private let GEAR_HB:CGFloat = 17               // ear body height
 private let GCARD   = CGRect(x: 10, y: 36, width: 620, height: 104)
 private let GCARD_R:CGFloat = 20
 
-// Small island = compact mode size (matches our actual nw+160)
-private var GSMALL_W: CGFloat { IslandConst.notchWidth + 160 }
+// Small island = compact mode size (notch + two ears, #153)
+private var GSMALL_W: CGFloat { IslandConst.notchWidth + IslandConst.compactEar * 2 }
 private let GSMALL_H: CGFloat = IslandConst.notchHeight
 
 // MARK: - Easing (mirrors E = {...})
@@ -246,17 +246,15 @@ private func gRR(_ ctx: CGContext, _ x: CGFloat, _ y: CGFloat, _ w: CGFloat, _ h
     ctx.closePath()
 }
 
+/// The picked character's silhouette (Critter.outline), sampled by angle like the island's body.
 private func mochiPath(hw: CGFloat, hh: CGFloat) -> CGPath {
-    let n: CGFloat = 3.2
+    let critter = Critter.stored
     let path = CGMutablePath()
     let steps = 96
     for i in 0...steps {
         let a = CGFloat(i)/CGFloat(steps)*2 * .pi
-        let ca = cos(a), sa = sin(a)
-        let px = hw * (ca < 0 ? -1 : 1) * pow(abs(ca), 2/n)
-        let py = hh * (sa < 0 ? -1 : 1) * pow(abs(sa), 2/n)
-        if i == 0 { path.move(to: CGPoint(x: px, y: py)) }
-        else { path.addLine(to: CGPoint(x: px, y: py)) }
+        let pt = critter.outline(a: a, rx: hw, ry: hh, R: hw/1.14)
+        if i == 0 { path.move(to: pt) } else { path.addLine(to: pt) }
     }
     path.closeSubpath(); return path
 }
@@ -265,8 +263,9 @@ private func mochiPath(hw: CGFloat, hh: CGFloat) -> CGPath {
 private func whiteFill(_ ctx: CGContext, _ path: CGPath,
                         x0: CGFloat, y0: CGFloat, x1: CGFloat, y1: CGFloat) {
     let cs   = CGColorSpaceCreateDeviceRGB()
-    let c0   = CGColor(red: 251/255, green: 251/255, blue: 252/255, alpha: 1)
-    let c1   = CGColor(red: 231/255, green: 233/255, blue: 236/255, alpha: 1)
+    let palette = Critter.stored.palette
+    let c0   = palette.top
+    let c1   = palette.bottom
     guard let g = CGGradient(colorsSpace: cs, colors: [c0,c1] as CFArray, locations: [0,1]) else { return }
     ctx.saveGState()
     ctx.addPath(path); ctx.clip()
@@ -313,7 +312,50 @@ private func drawHandR(_ ctx: CGContext, hw: CGFloat, hh: CGFloat, p: GreetPose)
     ctx.restoreGState()
 }
 
-private func drawMochi(_ ctx: CGContext, p: GreetPose) {
+/// Lumo's four tentacles under its hem; the right one rises and waves hello (the greeting's
+/// "hand"), the others sway.
+private func drawTentacles(_ ctx: CGContext, hw: CGFloat, hh: CGFloat, p: GreetPose, t: Double) {
+    let critter = Critter.stored
+    let R = hw / 1.14
+    let y0 = critter.bottom(rx: hw, ry: hh, R: R) - R * 0.04
+    let raise = CGFloat(p.handR)
+    let waving = p.wave >= 0
+    ctx.saveGState()
+    ctx.setStrokeColor(critter.palette.accent)
+    ctx.setLineWidth(R * 0.07)
+    ctx.setLineCap(.round); ctx.setLineJoin(.round)
+    for i in 0..<4 {
+        let x0 = (CGFloat(i) - 1.5) / 1.5 * hw * 0.5
+        let len = R * 0.55
+        ctx.beginPath()
+        if i == 3 && raise > 0.01 {
+            // Swings from hanging down (π/2) to up and out (-0.7), and waggles while waving.
+            let wag: CGFloat = waving ? CGFloat(sin(p.wave * 2 * .pi * 2.5)) * 0.45 : 0
+            let base = gLerpF(.pi / 2, -0.7, raise) + wag * raise
+            let start = CGPoint(x: gLerpF(x0, hw * 0.9, raise), y: gLerpF(y0, y0 - hh * 0.18, raise))
+            ctx.move(to: start)
+            var pt = start
+            for k in 1...11 {
+                let f = CGFloat(k) / 11
+                // Curls a little toward the tip, like a wave of the hand.
+                let ang = base - f * 0.9 * raise - (waving ? CGFloat(sin(p.wave * 2 * .pi * 2.5 - Double(f) * 2)) * 0.35 * f : 0)
+                pt = CGPoint(x: pt.x + cos(ang) * len * 1.5 / 11, y: pt.y + sin(ang) * len * 1.5 / 11)
+                ctx.addLine(to: pt)
+            }
+        } else {
+            for k in 0...11 {
+                let f = CGFloat(k) / 11
+                let pt = CGPoint(x: x0 + CGFloat(sin(Double(k) * 0.7 + t * 2.5 + Double(i))) * R * 0.05 * f,
+                                 y: y0 + f * len)
+                if k == 0 { ctx.move(to: pt) } else { ctx.addLine(to: pt) }
+            }
+        }
+        ctx.strokePath()
+    }
+    ctx.restoreGState()
+}
+
+private func drawCharacter(_ ctx: CGContext, p: GreetPose, t: Double) {
     let hh = CGFloat(p.hb/2), hw = hh*GASP; guard hh > 0.4 else { return }
 
     // Halo (golden → blue) — soft diffuse aura, two-pass for smoothness
@@ -355,9 +397,13 @@ private func drawMochi(_ ctx: CGContext, p: GreetPose) {
     ctx.rotate(by: CGFloat(p.tilt))
     ctx.scaleBy(x: CGFloat(p.sx), y: CGFloat(p.sy))
 
-    // Hands behind body
-    drawHandL(ctx, hw: hw, hh: hh, p: p)
-    drawHandR(ctx, hw: hw, hh: hh, p: p)
+    // Hands behind body — Lumo has no hands: it waves a tentacle instead.
+    if Critter.stored == .lumo {
+        drawTentacles(ctx, hw: hw, hh: hh, p: p, t: t)
+    } else {
+        drawHandL(ctx, hw: hw, hh: hh, p: p)
+        drawHandR(ctx, hw: hw, hh: hh, p: p)
+    }
 
     // Body
     let mpath = mochiPath(hw: hw, hh: hh)
@@ -379,12 +425,13 @@ private func drawMochi(_ ctx: CGContext, p: GreetPose) {
     // Eyes (clipped to body)
     ctx.saveGState()
     ctx.addPath(mpath); ctx.clip()
-    ctx.setFillColor(gHex("#16171A"))
-    ctx.setStrokeColor(gHex("#16171A"))
+    let critter = Critter.stored
+    ctx.setFillColor(critter.palette.ink)
+    ctx.setStrokeColor(critter.palette.ink)
     let er = CGFloat(p.hb*0.06)
     let sp = CGFloat(p.hb*0.19)
     let lx = CGFloat(p.lookX)*hw*0.42
-    let ly = CGFloat(p.lookY)*hh*0.28 + hh*0.12 + CGFloat(p.eyeRoll)*hh*1.25
+    let ly = CGFloat(p.lookY)*hh*0.28 + hh*0.12 + CGFloat(p.eyeRoll)*hh*1.25 - critter.faceLift*hh
     for sd: CGFloat in [-1, 1] {
         ctx.saveGState()
         ctx.translateBy(x: sd*sp+lx, y: ly)
@@ -409,6 +456,14 @@ private func drawMochi(_ ctx: CGContext, p: GreetPose) {
         }
         ctx.restoreGState()
     }
+    // A smile under the eyes.
+    ctx.setLineWidth(er*0.8)
+    ctx.setLineCap(.round)
+    ctx.beginPath()
+    ctx.move(to: CGPoint(x: lx - er*1.5, y: ly + er*2.8))
+    ctx.addQuadCurve(to: CGPoint(x: lx + er*1.5, y: ly + er*2.8),
+                     control: CGPoint(x: lx, y: ly + er*(p.eye == .dot ? 4.2 : 4.8)))
+    ctx.strokePath()
     ctx.restoreGState()
 
     // Activity badge (top-left corner)
@@ -493,22 +548,14 @@ private func drawHeader(_ ctx: CGContext, alpha: Double) {
     ctx.restoreGState()
 }
 
-private let miniColors = ["#E86A6A","#3E86E0","#EFAE5A","#8C73F2"]
-
+/// The folded island's status dot (#153), where the greeting lands.
 private func drawMinis(_ ctx: CGContext, alpha: Double) {
     guard alpha > 0.01 else { return }
-    let cx = 320 + GSMALL_W/2 - 27
-    let cy: CGFloat = 16
-    let sp: CGFloat = 6
-    let offsets: [(CGFloat, CGFloat)] = [(-sp,-sp),(sp,-sp),(-sp,sp),(sp,sp)]
-    for (i,(dx,dy)) in offsets.enumerated() {
-        ctx.saveGState()
-        ctx.translateBy(x: cx+dx, y: cy+dy)
-        ctx.scaleBy(x: CGFloat(alpha), y: CGFloat(alpha))
-        ctx.setFillColor(gHex(miniColors[i]))
-        ctx.addPath(mochiPath(hw: 5.3, hh: 4)); ctx.fillPath()
-        ctx.restoreGState()
-    }
+    let r = 3.5 * CGFloat(alpha)
+    let cx = 320 + GSMALL_W/2 - IslandConst.compactEar/2
+    ctx.setFillColor(gHex("#6B7079"))
+    ctx.addEllipse(in: CGRect(x: cx - r, y: 16 - r, width: r*2, height: r*2))
+    ctx.fillPath()
 }
 
 // MARK: - Full draw function
@@ -539,7 +586,7 @@ private func drawGreeting(_ ctx: CGContext, size: CGSize, t: Double, tc: Double)
 
     // drawHeader: no icons during greeting
     drawMinis(ctx, alpha: p.minis)
-    drawMochi(ctx, p: p)
+    drawCharacter(ctx, p: p, t: t)
 }
 
 // MARK: - SwiftUI View

@@ -9,8 +9,22 @@ struct OverviewView: View {
     @State private var showingN8nDetail = false
 
     var agent: AgentTask? { state.focusTask }
+    /// Opened from an integration's own floating character: just that one, full width.
+    /// With the character rail (design C) the overview shows one thing, full width: the main
+    /// character's base, or the integration picked.
+    private var solo: Bool {
+        state.railShown || (state.soloTaskID != nil && state.soloTaskID == state.focusId)
+    }
 
     var body: some View {
+        if state.railShown && state.soloTaskID == nil && MainBaseView.showsClaude(state) {
+            MainBaseView(state: state)
+        } else {
+            cards
+        }
+    }
+
+    private var cards: some View {
         HStack(spacing: 10) {
             // Left card: title row + ticker below + ↗ button overlay
             ZStack(alignment: .topLeading) {
@@ -46,13 +60,13 @@ struct OverviewView: View {
                                 }
                             }
                             .padding(.top, 6)
-                            .padding(.leading, 108)
+                            .padding(.leading, botInset(108))
                             .padding(.trailing, 36)
 
                             TickerView(task: agent)
                                 .frame(height: 44)
                                 .padding(.top, 6)
-                                .padding(.leading, 108)
+                                .padding(.leading, botInset(108))
                                 .padding(.trailing, 12)
                         }
                         .frame(maxWidth: .infinity, alignment: .topLeading)
@@ -94,11 +108,14 @@ struct OverviewView: View {
                     .frame(maxWidth: .infinity, alignment: .trailing)
                 }
             }
-            .frame(width: 322)
+            .frame(width: solo ? nil : 322)
+            .frame(maxWidth: solo ? .infinity : nil)
 
-            // Right card: agent pills
-            CardBackground(wash: nil) {
-                AgentPillsView(state: state)
+            // Right card: agent pills (not when the island belongs to one integration, #155)
+            if !solo {
+                CardBackground(wash: nil) {
+                    AgentPillsView(state: state)
+                }
             }
         }
         .onChange(of: state.focusId) { _, _ in showingN8nDetail = false }
@@ -177,7 +194,7 @@ struct EmptyStateView: View {
                     state.view = .prompt
                 }
             }
-            .padding(.leading, 118)
+            .padding(.leading, botInset(118))
             .padding(.trailing, 18)
         }
     }
@@ -436,7 +453,7 @@ struct AgentPill: View {
                               ? Color(hex: task.color).opacity(0.18)
                               : Color(hex: "#0E0F11"))
                         // Hover glow on the static capsule only: shadowing the whole pill
-                        // re-rendered it off-screen on every mini-Mochi animation frame.
+                        // re-rendered it off-screen on every mini character animation frame.
                         .shadow(color: Color(hex: task.color).opacity(isHovered ? 0.35 : 0), radius: 10, x: 0, y: 2)
                     Capsule()
                         .stroke(Color(hex: task.color).opacity(isHovered ? 0.55 : 0.14), lineWidth: 1)

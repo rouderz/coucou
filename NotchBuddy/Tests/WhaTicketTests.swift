@@ -1,5 +1,5 @@
 import XCTest
-@testable import Coucou
+@testable import Lumo
 
 /// WhaTicket through the browser extension: auto-accept rules, what a check-in may carry, the host manifest.
 final class WhaTicketTests: XCTestCase {
@@ -56,7 +56,7 @@ final class WhaTicketTests: XCTestCase {
         XCTAssertTrue(WhaTicketRules.errorText("session").contains("expired"))
     }
 
-    /// Coucou for WhaTicket and Coucou for AliExpress share the host; no other extension may start it.
+    /// Lumo for WhaTicket and Lumo for AliExpress share the host; no other extension may start it.
     func testOnlyOurExtensionsMayStartTheHost() throws {
         let text = BrowserExtension.hostManifest(path: "/x/coucou-native-host")
         let json = try XCTUnwrap(JSONSerialization.jsonObject(with: Data(text.utf8)) as? [String: Any])
