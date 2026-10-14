@@ -8,7 +8,7 @@ let voiceLog = Logger(subsystem: "fr.louisraille.NotchBuddy", category: "voice")
 
 // MARK: - Push-to-talk session
 
-/// Hold the shortcut (or click the mic) → listen; let go → send what was said to Mochi's chat.
+/// Hold the shortcut (or click the mic) → listen; let go → send what was said to the character's chat.
 @MainActor
 enum VoiceSession {
     static func begin(_ state: AppState) {
@@ -185,7 +185,7 @@ final class VoiceInput {
     }
 }
 
-// MARK: - Text to speech (reads Mochi's answer while it's still being written)
+// MARK: - Text to speech (reads the character's answer while it's still being written)
 
 @MainActor
 final class VoiceOutput: NSObject, AVSpeechSynthesizerDelegate {

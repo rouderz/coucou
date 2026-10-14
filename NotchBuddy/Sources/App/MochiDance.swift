@@ -1,18 +1,18 @@
 import Foundation
 import CoreGraphics
 
-// MARK: - Mochi moves with the music (#117)
-// Pure logic: when Mochi may dance, the bob pose at a given time, and noticing track changes.
-// No I/O here, so it's all testable (MochiDanceTests). The Windows twin is
+// MARK: - the character moves with the music (#117)
+// Pure logic: when the character may dance, the bob pose at a given time, and noticing track changes.
+// No I/O here, so it's all testable (CharacterDanceTests). The Windows twin is
 // windows/src/core/dance.ts: keep the two in step.
 
-enum MochiDance {
+enum CharacterDance {
     /// Players don't expose the tempo and Lumo looks nothing up online: a fixed, easy beat.
     static let bpm: Double = 110
     /// Seconds per beat.
     static var beat: Double { 60 / bpm }
 
-    /// Offsets added to Mochi's body while dancing (fractions of R, scales, radians).
+    /// Offsets added to the character's body while dancing (fractions of R, scales, radians).
     struct Pose: Equatable, Sendable {
         var oy: CGFloat
         var sx: CGFloat
@@ -21,7 +21,7 @@ enum MochiDance {
         static let rest = Pose(oy: 0, sx: 1, sy: 1, tilt: 0)
     }
 
-    /// Only an idle Mochi dances: approvals, questions, work, errors… always win. Off with the
+    /// Only an idle the character dances: approvals, questions, work, errors… always win. Off with the
     /// setting, while nothing plays, in Do not disturb and with Reduce Motion.
     static func shouldDance(enabled: Bool, playing: Bool, doNotDisturb: Bool, reduceMotion: Bool,
                             state: BotState) -> Bool {
@@ -60,7 +60,7 @@ enum MochiDance {
 
         mutating func apply(_ s: NowPlayingState?) {
             playing = s?.state == .playing
-            let k = MochiDance.trackKey(s)
+            let k = CharacterDance.trackKey(s)
             if playing, let k, k != key { changes += 1 }
             key = k
         }

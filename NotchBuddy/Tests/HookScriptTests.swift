@@ -65,7 +65,7 @@ final class HookScriptTests: XCTestCase {
         XCTAssertEqual(got?["session_id"] as? String, "s1")
     }
 
-    func testMochisOwnChatOnlyForwardsApprovals() throws {
+    func testOwnChatOnlyForwardsApprovals() throws {
         let server = try FakeCoucou(path: socketPath, reply: #"{"ok":true}"#)
         _ = try exec(["hook_event_name": "PreToolUse", "tool_name": "Read"], fromChat: true)
         XCTAssertNil(server.received(timeout: 0.5), "chat activity must not reach the island")

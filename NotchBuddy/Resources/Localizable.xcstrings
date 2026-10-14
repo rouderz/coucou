@@ -882,36 +882,6 @@
         }
       }
     },
-    "Ask Mochi": {
-      "localizations": {
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Preguntar a Mochi"
-          }
-        }
-      }
-    },
-    "Ask Mochi about the file you're editing": {
-      "localizations": {
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Preguntar a Mochi por el archivo que editas"
-          }
-        }
-      }
-    },
-    "Ask Mochi why": {
-      "localizations": {
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Preguntar a Mochi por qué"
-          }
-        }
-      }
-    },
     "Ask a question": {
       "localizations": {
         "es": {
@@ -1478,16 +1448,6 @@
           "stringUnit": {
             "state": "translated",
             "value": "Comprobar ahora"
-          }
-        }
-      }
-    },
-    "Checked every minute. New items make Mochi peek out (only a badge in Do not disturb); the 🔔 in the island lists them. Opening or dismissing one marks it read on GitHub / Linear.": {
-      "localizations": {
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Se revisa cada minuto. Lo nuevo hace que Mochi se asome (solo una marca en No molestar); la 🔔 de la isla lo lista. Abrir o descartar algo lo marca como leído en GitHub / Linear."
           }
         }
       }
@@ -2178,16 +2138,6 @@
           "stringUnit": {
             "state": "translated",
             "value": "Continúa…"
-          }
-        }
-      }
-    },
-    "Conversations with Mochi are kept here so you can pick them up later.": {
-      "localizations": {
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Las conversaciones con Mochi se guardan aquí para retomarlas más tarde."
           }
         }
       }
@@ -3302,16 +3252,6 @@
         }
       }
     },
-    "Hey Mochi: start by voice, without the shortcut": {
-      "localizations": {
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Oye Mochi: empezar con la voz, sin el atajo"
-          }
-        }
-      }
-    },
     "Hide": {
       "localizations": {
         "es": {
@@ -3838,16 +3778,6 @@
           "stringUnit": {
             "state": "translated",
             "value": "Linear → Settings → Security & access → Personal API keys. Muestra tus issues abiertas y vincula cada sesión de Claude Code con la issue de su rama."
-          }
-        }
-      }
-    },
-    "Listening for “Hey Mochi” (or “Oye Mochi”) on this Mac only. macOS shows the orange microphone dot while it listens.": {
-      "localizations": {
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Escuchando “Oye Mochi” (o “Hey Mochi”) solo en este Mac. macOS muestra el punto naranja del micrófono mientras escucha."
           }
         }
       }
@@ -4388,76 +4318,6 @@
           "stringUnit": {
             "state": "translated",
             "value": "Falta el destinatario."
-          }
-        }
-      }
-    },
-    "Mochi can change files in this project. You approve every change in the island.": {
-      "localizations": {
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Mochi puede cambiar archivos de este proyecto. Apruebas cada cambio en la isla."
-          }
-        }
-      }
-    },
-    "Mochi can only read this project. Click to let it propose edits.": {
-      "localizations": {
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Mochi solo puede leer este proyecto. Haz clic para que pueda proponer cambios."
-          }
-        }
-      }
-    },
-    "Mochi can read and search that project but never edits it.": {
-      "localizations": {
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Mochi puede leer y buscar en ese proyecto, pero nunca lo edita."
-          }
-        }
-      }
-    },
-    "Mochi moves with the music": {
-      "localizations": {
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Mochi se mueve con la música"
-          }
-        }
-      }
-    },
-    "Mochi says it out loud": {
-      "localizations": {
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Mochi lo dice en voz alta"
-          }
-        }
-      }
-    },
-    "Mochi tells me when someone needs me": {
-      "localizations": {
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Mochi me avisa cuando alguien me necesita"
-          }
-        }
-      }
-    },
-    "Mochi's chat goes to %@ with your key. Files and the code you're on are sent as text; edits and web search stay with the Claude engines.": {
-      "localizations": {
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "El chat de Mochi va a %@ con tu clave. Los archivos y el código se envían como texto; la edición y la búsqueda web siguen siendo de los motores de Claude."
           }
         }
       }
@@ -5752,16 +5612,6 @@
         }
       }
     },
-    "Push-to-talk: hold to talk to Mochi": {
-      "localizations": {
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Pulsar para hablar: mantén pulsado para hablar con Mochi"
-          }
-        }
-      }
-    },
     "Queue": {
       "localizations": {
         "es": {
@@ -5838,16 +5688,6 @@
           "stringUnit": {
             "state": "translated",
             "value": "Leyó"
-          }
-        }
-      }
-    },
-    "Read Mochi's answers aloud": {
-      "localizations": {
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Leer en voz alta las respuestas de Mochi"
           }
         }
       }
@@ -6522,16 +6362,6 @@
         }
       }
     },
-    "Speech is transcribed on this Mac when it supports it. Mochi only listens while you hold the shortcut.": {
-      "localizations": {
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "La voz se transcribe en este Mac cuando lo admite. Mochi solo escucha mientras mantienes pulsado el atajo."
-          }
-        }
-      }
-    },
     "Speech recognition isn't available for %@ on this Mac.": {
       "localizations": {
         "es": {
@@ -6658,16 +6488,6 @@
           "stringUnit": {
             "state": "translated",
             "value": "Tomar el descanso"
-          }
-        }
-      }
-    },
-    "Talk to Mochi (or hold the push-to-talk shortcut)": {
-      "localizations": {
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Habla con Mochi (o mantén pulsado el atajo para hablar)"
           }
         }
       }
@@ -7132,16 +6952,6 @@
         }
       }
     },
-    "Turn off Hey Mochi during focus blocks": {
-      "localizations": {
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Apagar Oye Mochi durante los bloques de concentración"
-          }
-        }
-      }
-    },
     "Turn on the AliExpress pill first (Settings → Integrations), then open your AliExpress orders in Chrome or Edge.": {
       "localizations": {
         "es": {
@@ -7478,16 +7288,6 @@
           "stringUnit": {
             "state": "translated",
             "value": "¿Qué buscador usar?"
-          }
-        }
-      }
-    },
-    "While Music or Spotify plays, Mochi bobs along and puts on headphones when the song changes. Off in Do not disturb and with Reduce Motion.": {
-      "localizations": {
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Mientras suena Música o Spotify, Mochi se balancea al ritmo y se pone los auriculares cuando cambia la canción. Se desactiva en No molestar y con Reducir movimiento."
           }
         }
       }

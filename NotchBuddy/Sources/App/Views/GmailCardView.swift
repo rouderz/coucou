@@ -1,7 +1,7 @@
 import AppKit
 import SwiftUI
 
-/// Gmail on the overview card: the mails matching your search, with "Ask" to hand one to Mochi.
+/// Gmail on the overview card: the mails matching your search, with "Ask" to hand one to the character.
 struct GmailCardView: View {
     @ObservedObject private var appState = AppState.shared
     @State private var busy: String?

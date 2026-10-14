@@ -547,7 +547,7 @@ export function buildPrompt(
   };
 }
 
-/** Mochi reads the reply aloud (Settings → Voice); see src/core/voice.ts. */
+/** The character reads the reply aloud (Settings → Voice); see src/core/voice.ts. */
 let speakHook: (text: string) => void = () => {};
 export function setSpeaker(fn: (text: string) => void) {
   speakHook = fn;

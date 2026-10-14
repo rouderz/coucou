@@ -92,8 +92,8 @@ targets:
         NSAppTransportSecurity:
           NSAllowsLocalNetworking: true
         NSCalendarsFullAccessUsageDescription: "Do not disturb: Lumo stays quiet while you're in a calendar event."
-        NSMicrophoneUsageDescription: "Push-to-talk: Mochi listens only while you hold the shortcut."
-        NSSpeechRecognitionUsageDescription: "Push-to-talk: your voice is transcribed on this Mac to ask Mochi."
+        NSMicrophoneUsageDescription: "Push-to-talk: your character listens only while you hold the shortcut."
+        NSSpeechRecognitionUsageDescription: "Push-to-talk: your voice is transcribed on this Mac to ask your character."
     settings:
       base:
         PRODUCT_BUNDLE_IDENTIFIER: fr.louisraille.NotchBuddy
@@ -138,8 +138,8 @@ targets:
         NSAppTransportSecurity:
           NSAllowsLocalNetworking: true
         NSCalendarsFullAccessUsageDescription: "Do not disturb: Lumo stays quiet while you're in a calendar event."
-        NSMicrophoneUsageDescription: "Push-to-talk: Mochi listens only while you hold the shortcut."
-        NSSpeechRecognitionUsageDescription: "Push-to-talk: your voice is transcribed on this Mac to ask Mochi."
+        NSMicrophoneUsageDescription: "Push-to-talk: your character listens only while you hold the shortcut."
+        NSSpeechRecognitionUsageDescription: "Push-to-talk: your voice is transcribed on this Mac to ask your character."
     settings:
       base:
         PRODUCT_BUNDLE_IDENTIFIER: fr.louisraille.Coucou

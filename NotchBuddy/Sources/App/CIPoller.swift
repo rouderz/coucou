@@ -339,7 +339,7 @@ final class CIPoller {
 
     // MARK: Card actions (explicit clicks only)
 
-    /// "Ask Mochi why": the failed job's log tail as a text file, attached to a new chat.
+    /// "Ask why": the failed job's log tail as a text file, attached to a new chat.
     func askWhy(_ pr: CIPullRequest, _ run: CheckRun) async throws {
         guard let job = CICore.parseJobURL(run.htmlURL) else {
             throw CIGitHub.Failure(message: L("This check isn't a GitHub Actions job, so there's no log to fetch."))

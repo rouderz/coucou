@@ -128,7 +128,7 @@ function handleHook(island: Island, payload: HookPayload) {
     if (typeof p.file !== "string") return;
     State.editorContext = { ...p, at: Date.now() };
     if (name === "EditorAsk") {
-      // "Ask Mochi about this": a fresh chat with this code attached.
+      // "Ask Lumo about this": a fresh chat with this code attached.
       startNewChat();
       State.codeContext = p;
       island.alert("prompt");

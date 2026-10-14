@@ -1,7 +1,7 @@
 import Foundation
 import os
 
-/// One saved conversation with Mochi.
+/// One saved conversation with the character.
 struct SavedChat: Codable, Identifiable, Equatable {
     struct Message: Codable, Equatable {
         let user: Bool
@@ -20,7 +20,7 @@ struct SavedChat: Codable, Identifiable, Equatable {
     var contextLabel: String?
 }
 
-/// Mochi's chat history: kept in Application Support/NotchBuddy/chats.json, newest first.
+/// The character's chat history: kept in Application Support/NotchBuddy/chats.json, newest first.
 @MainActor
 final class ChatStore: ObservableObject {
     static let shared = ChatStore()
@@ -144,7 +144,7 @@ final class ChatStore: ObservableObject {
     }
 }
 
-/// Starting a fresh conversation, in one place (new chat button, ⌃⌥M, Ask Mochi…).
+/// Starting a fresh conversation, in one place (new chat button, ⌃⌥M, Ask Lumo…).
 @MainActor
 enum ChatSession {
     static func startNew(_ state: AppState) {

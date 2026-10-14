@@ -223,7 +223,7 @@ enum CICore {
     static let myOpenPRsPath =
         "search/issues?q=is%3Apr+is%3Aopen+author%3A%40me+archived%3Afalse&sort=updated&order=desc&per_page=\(maxPRs)"
     static func pullPath(_ repo: String, number: Int) -> String { "repos/\(repo)/pulls/\(number)" }
-    /// "Ask Mochi why" keeps this much of the failed job's log.
+    /// "Ask Lumo why" keeps this much of the failed job's log.
     static let logLines = 150
     static let logChars = 12_000
 
@@ -260,7 +260,7 @@ enum CICore {
         return "\(s / 3600)h " + String(format: "%02d", (s / 60) % 60) + "m"
     }
 
-    /// The file attached to Mochi's chat by "Ask Mochi why": what failed, where, and the log's end.
+    /// The file attached to the character's chat by "Ask Lumo why": what failed, where, and the log's end.
     static func logAttachment(pr: String, title: String, job: String, sha: String, url: String, tail: String) -> String {
         var lines = ["CI check failed: \(job)",
                      "Pull request: \(pr)" + (title.isEmpty ? "" : " · \(title)"),

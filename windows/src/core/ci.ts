@@ -200,7 +200,7 @@ export const MAX_PRS = 10;
 export const MY_OPEN_PRS_PATH =
   `search/issues?q=is%3Apr+is%3Aopen+author%3A%40me+archived%3Afalse&sort=updated&order=desc&per_page=${MAX_PRS}`;
 export const pullPath = (repo: string, number: number) => `repos/${repo}/pulls/${number}`;
-/** "Ask Mochi why" keeps this much of the failed job's log. */
+/** "Ask Lumo why" keeps this much of the failed job's log. */
 export const LOG_LINES = 150;
 export const LOG_CHARS = 12_000;
 
@@ -245,7 +245,7 @@ export function formatDuration(seconds: number | null): string {
   return `${Math.floor(s / 3600)}h ${pad(Math.floor(s / 60) % 60)}m`;
 }
 
-/** The file attached to Mochi's chat by "Ask Mochi why": what failed, where, and the log's end. */
+/** The file attached to the character's chat by "Ask Lumo why": what failed, where, and the log's end. */
 export function logAttachment(o: { pr: string; title: string; job: string; sha: string; url: string; tail: string }): string {
   return [
     `CI check failed: ${o.job}`,

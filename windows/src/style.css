@@ -365,7 +365,7 @@ body {
 }
 .cs-count { font: 600 10px var(--font); color: var(--ink-3, #b0b5be); font-variant-numeric: tabular-nums; }
 
-/* A mini Mochi: the slot is the body, the canvas is larger and overflows it so
+/* A mini character: the slot is the body, the canvas is larger and overflows it so
    hands, badges and particles are not cut off. */
 .mini {
   position: relative;

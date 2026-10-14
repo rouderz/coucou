@@ -75,7 +75,7 @@ struct BotCanvasView: View {
         .onChange(of: state.focus.phase) { _, _ in applyFocusLook() }
         .onChange(of: state.focus.paused) { _, _ in applyFocusLook() }
         .onChange(of: state.musicTrackChanges) { _, _ in
-            // New song (#117): headphones, only when Mochi is dancing and can be seen.
+            // New song (#117): headphones, only when the character is dancing and can be seen.
             if reacts && state.mochiDancing && state.mode != .hidden { engine.headphones() }
         }
         .onChange(of: state.view) { _, newView in
@@ -127,7 +127,7 @@ struct BotCanvasView: View {
         }
     }
 
-    /// Focus timer (#119): during a block Mochi looks concentrated (flat eyes) while nothing else
+    /// Focus timer (#119): during a block the character looks concentrated (flat eyes) while nothing else
     /// is going on; Claude Code states and emotes still show over it.
     private func applyFocusLook() {
         let f = state.focus

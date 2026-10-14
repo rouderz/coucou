@@ -1,5 +1,7 @@
 # Notch Buddy — spécification
 
+> **Note (Lumo).** Ce document est la spécification d’origine de Coucou (Louis Raillé). « Mochi » y désigne le personnage : dans Lumo, ce sont Lumo et son équipe (Bao, Pip, Nube, Tecla), et le prototype `notch-buddy.html` n’est plus dans le dépôt. Les références visuelles actuelles sont dans `design/captures/`.
+
 Toutes les mesures sont en points macOS. Les valeurs viennent de `reference/notch-buddy.html` (constantes `NW`, `NH`, `EW`, `VIEWS`, `STATES`, `EMOTES`, `PISTES`, `AGENTS`, classe `Bot`). En cas de doute, relire le code du prototype.
 
 ---

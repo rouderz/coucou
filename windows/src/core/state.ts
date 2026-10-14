@@ -184,13 +184,13 @@ export interface Settings {
   language: "system" | "en" | "es";
   /** "dark" (the original look), "light", "system" or a palette id (core/themes.ts). */
   theme: string;
-  /** Mochi reads its chat replies aloud. */
+  /** The character reads its chat replies aloud. */
   speakReplies: boolean;
   /** A small notch stays at the top when the island hides (like the Mac's). */
   idleNotch: boolean;
   /** The character (mochi/critters.ts): "bao", "pip", "nube", "lumo", "tecla" or "mochi". */
   critter: string;
-  /** "notch": the island at the top of the screen. "free": the character floats in its own
+  /** "notch": the island at the top of the screen. "free": The character floats in its own
    *  window you drag anywhere, and opens the island next to it. */
   placement: "notch" | "free";
   /** Where the free character was left (logical px, top-left of its window); null = default spot. */
@@ -245,7 +245,7 @@ export interface Settings {
   longBreakMin: number;
   blocksBeforeLong: number;
   focusShortcut: boolean;
-  /** Mochi moves with the music (#117); off by default. */
+  /** The character moves with the music (#117); off by default. */
   mochiDance: boolean;
 }
 
@@ -389,8 +389,8 @@ class AppState {
   lastActivity = performance.now();
 
   /**
-   * Mochi moves with the music (#117). Fed through setNowPlaying() — no music source exists on
-   * Windows / Linux yet (GSMTC / MPRIS are #107), so for now nothing calls it and Mochi never
+   * The character moves with the music (#117). Fed through setNowPlaying() — no music source exists on
+   * Windows / Linux yet (GSMTC / MPRIS are #107), so for now nothing calls it and the character never
    * dances here. `reduceMotion` follows `prefers-reduced-motion` (set by the island).
    */
   musicPlaying = false;
@@ -422,7 +422,7 @@ class AppState {
     return this.stateOverride ?? this.focusTask?.state ?? "idle";
   }
 
-  /** Mochi bobs to the music right now: setting on, something playing, idle, no DND, no reduced motion. */
+  /** The character bobs to the music right now: setting on, something playing, idle, no DND, no reduced motion. */
   get mochiDancing(): boolean {
     return shouldDance({
       enabled: this.settings.mochiDance === true,

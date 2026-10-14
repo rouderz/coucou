@@ -1,5 +1,5 @@
 // Codex / Gemini CLI chat engines (#108) on Windows/Linux: builds the conversation the CLI
-// gets on stdin (Rust adds Mochi's instructions and runs it: src-tauri/src/cli_chat.rs) and
+// gets on stdin (Rust adds the character's instructions and runs it: src-tauri/src/cli_chat.rs) and
 // reads its output with the tested parsers in chatEngines.ts.
 
 import type { ChatContext } from "../core/bridge";

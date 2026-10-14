@@ -97,11 +97,11 @@ ES = {
 "Set sender address in Settings.":"Configura el remitente en Ajustes.","Mail not available.":"Mail no está disponible.",
 "Email sent to %@.":"Correo enviado a %@.",
 "Edits on":"Edición activada","Read-only":"Solo lectura",
-"Mochi can change files in this project. You approve every change in the island.":"Mochi puede cambiar archivos de este proyecto. Apruebas cada cambio en la isla.",
-"Mochi can only read this project. Click to let it propose edits.":"Mochi solo puede leer este proyecto. Haz clic para que pueda proponer cambios.",
+
+
 "Stop reading aloud":"Dejar de leer en voz alta","Chat history":"Historial de chats","New chat":"Nuevo chat",
 "Ask me anything…":"Pregúntame lo que quieras…","Continue…":"Continúa…","Stop and send":"Parar y enviar",
-"Talk to Mochi (or hold the push-to-talk shortcut)":"Habla con Mochi (o mantén pulsado el atajo para hablar)",
+
 "Claude is reading %@…":"Claude está leyendo %@…","Claude is searching…":"Claude está buscando…",
 "Open":"Abrir","Copy":"Copiar","Close":"Cerrar",
 "Hooks installed":"Hooks instalados","Hooks not installed · install them in Settings":"Hooks sin instalar · instálalos en Ajustes",
@@ -115,13 +115,13 @@ ES = {
 "Hooks installed · usage shows after your next Claude message":"Hooks instalados · el uso aparece tras tu próximo mensaje a Claude",
 "Hooks installed · update them in Settings to see plan usage":"Hooks instalados · actualízalos en Ajustes para ver el uso del plan",
 "No saved chats yet":"Aún no hay chats guardados",
-"Conversations with Mochi are kept here so you can pick them up later.":"Las conversaciones con Mochi se guardan aquí para retomarlas más tarde.",
+
 "%lld saved · last %lld kept":"%lld guardados · se conservan los últimos %lld",
 "Clear all":"Borrar todo","Delete this chat":"Borrar este chat","Listening…":"Escuchando…","Transcribing…":"Transcribiendo…",
 "Lumo needs Accessibility permission to read the file you're editing. Settings → Hotkey → Grant access.":"Lumo necesita el permiso de Accesibilidad para leer el archivo que editas. Ajustes → Atajo → Dar acceso.",
 "new file":"archivo nuevo","+1 more edit":"+1 cambio más","+%lld more edits":"+%lld cambios más","diff truncated":"diff recortado",
 "Waiting for Claude…":"Esperando a Claude…","Done · 1 step":"Listo · 1 paso","Done · %lld steps":"Listo · %lld pasos","Working…":"Trabajando…",
-"Ask Mochi":"Preguntar a Mochi","Ask about this change in the chat":"Pregunta por este cambio en el chat",
+"Ask about this change in the chat":"Pregunta por este cambio en el chat",
 "Open the file in your editor":"Abre el archivo en tu editor","Back":"Volver",
 "Uploading %@":"Subiendo %@","%@ is ready.":"%@ está listo.","Ask a question about it":"Hacer una pregunta sobre él",
 # settings
@@ -151,14 +151,14 @@ ES = {
 "Close after":"Cerrar tras","s inactive":"s de inactividad","Hide after":"Ocultar tras","min without movement":"min sin movimiento",
 "Active pills":"Pastillas activas","Always active":"Siempre activa","%lld active · the island shows 4 at a time":"%lld activas · la isla muestra 4 a la vez","Rotate the rest":"Rotar las demás","Pin (always visible)":"Fijar (siempre visible)","Unpin":"Dejar de fijar","Off":"Desactivado","Every 10 s":"Cada 10 s","Every 30 s":"Cada 30 s","Every minute":"Cada minuto","Hotkey":"Atajo",
 "Show island with shortcut":"Mostrar la isla con un atajo","Shortcut":"Atajo","presses this → island opens":"al pulsarlo → se abre la isla",
-"Ask Mochi about the file you're editing":"Preguntar a Mochi por el archivo que editas","attaches the open file + selection":"adjunta el archivo abierto + la selección",
-"Mochi can read and search that project but never edits it.":"Mochi puede leer y buscar en ese proyecto, pero nunca lo edita.",
+"attaches the open file + selection":"adjunta el archivo abierto + la selección",
+
 "Accessibility access granted":"Acceso de Accesibilidad concedido","Accessibility access needed to read the open file":"Hace falta acceso de Accesibilidad para leer el archivo abierto",
 "Grant access…":"Dar acceso…","Check":"Comprobar","Approve from the keyboard: ⌥⏎ Allow · ⌥⌫ Deny":"Aprobar con el teclado: ⌥⏎ Permitir · ⌥⌫ Denegar",
 "Only active while Claude Code is waiting for you. High-risk requests need a click on Allow.":"Solo funciona mientras Claude Code te espera. Las peticiones de riesgo alto necesitan un clic en Permitir.",
-"Push-to-talk: hold to talk to Mochi":"Pulsar para hablar: mantén pulsado para hablar con Mochi","hold, speak, let go → sent":"mantén, habla, suelta → se envía",
-"Language":"Idioma","Read Mochi's answers aloud":"Leer en voz alta las respuestas de Mochi",
-"Speech is transcribed on this Mac when it supports it. Mochi only listens while you hold the shortcut.":"La voz se transcribe en este Mac cuando lo admite. Mochi solo escucha mientras mantienes pulsado el atajo.",
+"hold, speak, let go → sent":"mantén, habla, suelta → se envía",
+"Language":"Idioma",
+
 "Microphone and Speech Recognition allowed":"Micrófono y Reconocimiento de voz permitidos",
 "macOS asks for Microphone and Speech Recognition the first time":"macOS pide Micrófono y Reconocimiento de voz la primera vez",
 "Allow now…":"Permitir ahora…","Interface":"Interfaz","Restart Lumo to apply the new language.":"Reinicia Lumo para aplicar el nuevo idioma.",
@@ -244,10 +244,10 @@ ES = {
 "Inbox: nothing waiting for you":"Bandeja: nada pendiente","Inbox: %lld waiting for you":"Bandeja: %lld pendientes","Inbox":"Bandeja",
 "Mark all read":"Marcar todo leído","Mark as read":"Marcar como leído",
 "Nothing waiting for you. Review requests, mentions and assignments from GitHub and Linear show up here.":"Nada pendiente. Aquí aparecen las peticiones de review, menciones y asignaciones de GitHub y Linear.",
-"Mochi tells me when someone needs me":"Mochi me avisa cuando alguien me necesita","GitHub (through gh)":"GitHub (con gh)",
+"GitHub (through gh)":"GitHub (con gh)",
 "Reviews":"Reviews","Mentions":"Menciones","Assigned":"Asignaciones","Comments":"Comentarios","Other":"Otros",
-"Checked every minute. New items make Mochi peek out (only a badge in Do not disturb); the 🔔 in the island lists them. Opening or dismissing one marks it read on GitHub / Linear.":"Se revisa cada minuto. Lo nuevo hace que Mochi se asome (solo una marca en No molestar); la 🔔 de la isla lo lista. Abrir o descartar algo lo marca como leído en GitHub / Linear.",
-"%lld new notifications. Latest, %@":"%lld notificaciones nuevas. La última, %@","Mochi says it out loud":"Mochi lo dice en voz alta","Try it":"Probar",
+
+"%lld new notifications. Latest, %@":"%lld notificaciones nuevas. La última, %@","Try it":"Probar",
 "Payments, last 7 days":"Pagos, últimos 7 días","Last build: %@ · %@":"Último build: %@ · %@","Build took %@":"El build tardó %@",
 # other providers
 "Other provider":"Otro proveedor","Provider":"Proveedor","Invalid server address":"Dirección del servidor no válida",
@@ -261,7 +261,7 @@ ES = {
 "Server address. Leave empty to use the default shown in grey.":"Dirección del servidor. Déjala vacía para usar la de gris.",
 "API key":"Clave de API","API key (%@)":"Clave de API (%@)","Model (%@)":"Modelo (%@)","Pick":"Elegir","Loading…":"Cargando…","Load models":"Cargar modelos",
 "The server returned no models.":"El servidor no devolvió modelos.",
-"Mochi's chat goes to %@ with your key. Files and the code you're on are sent as text; edits and web search stay with the Claude engines.":"El chat de Mochi va a %@ con tu clave. Los archivos y el código se envían como texto; la edición y la búsqueda web siguen siendo de los motores de Claude.",
+
 "Runs on your Mac: nothing leaves it. Start %@ first, then Load models.":"Funciona en tu Mac: nada sale de él. Abre primero %@ y luego Cargar modelos.",
 # hook status
 # Codex CLI (#44)
@@ -280,8 +280,8 @@ ES = {
 "Needs Microphone and Speech Recognition (Allow now… above)":"Necesita Micrófono y Reconocimiento de voz (Permitir ahora… arriba)",
 "This Mac can't recognize speech on-device in this language, so it stays off":"Este Mac no puede reconocer voz en el propio equipo en este idioma, así que queda desactivado",
 "Paused: Do not disturb":"En pausa: No molestar","Paused: screen locked":"En pausa: pantalla bloqueada","Paused: on battery":"En pausa: con batería",
-"Hey Mochi: start by voice, without the shortcut":"Oye Mochi: empezar con la voz, sin el atajo","Only when the Mac is plugged in":"Solo con el Mac enchufado",
-"Listening for “Hey Mochi” (or “Oye Mochi”) on this Mac only. macOS shows the orange microphone dot while it listens.":"Escuchando “Oye Mochi” (o “Hey Mochi”) solo en este Mac. macOS muestra el punto naranja del micrófono mientras escucha.",
+"Only when the Mac is plugged in":"Solo con el Mac enchufado",
+
 # updates
 "Couldn't check for updates (%lld)":"No se pudo buscar actualizaciones (%lld)","Lumo %@ is available · Settings → Updates":"Lumo %@ está disponible · Ajustes → Actualizaciones",
 "Lumo %@ is available (you have %@)":"Lumo %@ está disponible (tienes la %@)","Lumo %@":"Lumo %@","up to date":"al día",
@@ -423,7 +423,7 @@ ES = {
 "Failing · %lld":"Fallando · %lld","Running · %lld":"En marcha · %lld","Your open PRs":"Tus PRs abiertos","Open PRs · %lld":"PRs abiertos · %lld",
 "No open pull requests.":"No hay pull requests abiertos.","Checks passed: %lld of %lld":"Comprobaciones pasadas: %lld de %lld",
 "No checks on this commit":"No hay comprobaciones en este commit",
-"Open log":"Abrir log","Ask Mochi why":"Preguntar a Mochi por qué","Re-run":"Relanzar","Re-running…":"Relanzando…",
+"Open log":"Abrir log","Re-run":"Relanzar","Re-running…":"Relanzando…",
 "Re-run failed jobs":"Relanzar los jobs fallidos",
 "queued":"en cola","skipped":"omitido","cancelled":"cancelado","neutral":"neutral",
 "The CI pill (Active pills) follows GitHub Actions on your open PRs with this same connection.":"La pastilla CI (Pastillas activas) sigue GitHub Actions en tus PRs abiertos con esta misma conexión.",
@@ -433,8 +433,8 @@ ES = {
 "Now: %@ (until %@)":"Ahora: %@ (hasta las %@)","%@ in %lld min":"%@ en %lld min","%@ in %lld h":"%@ en %lld h","%@ in %lld h %lld min":"%@ en %lld h %lld min",
 "Starting in 5 min · %@":"Empieza en 5 min · %@",
 # mochi dance (#117)
-"Mochi moves with the music":"Mochi se mueve con la música",
-"While Music or Spotify plays, Mochi bobs along and puts on headphones when the song changes. Off in Do not disturb and with Reduce Motion.":"Mientras suena Música o Spotify, Mochi se balancea al ritmo y se pone los auriculares cuando cambia la canción. Se desactiva en No molestar y con Reducir movimiento.",
+
+
 "Meeting pill and Do not disturb during meetings (read-only). Turning it on asks Google for one more permission.":"Pastilla de reunión y No molestar durante las reuniones (solo lectura). Al activarlo, Google pide un permiso más.",
 # time per issue (#114)
 "Time":"Tiempo","Day":"Día","Period":"Periodo","Total":"Total","Add":"Agregar",
@@ -467,7 +467,7 @@ ES = {
 "Paused: focus block":"En pausa: bloque de concentración",
 "Focus block: %lld min":"Bloque de concentración: %lld min","Break: %lld min":"Descanso: %lld min",
 "Long break: %lld min":"Descanso largo: %lld min","Long break after %lld blocks":"Descanso largo cada %lld bloques",
-"Turn off Hey Mochi during focus blocks":"Apagar Oye Mochi durante los bloques de concentración",
+
 "Shortcut ⌃⌥F: start, pause or resume a block":"Atajo ⌃⌥F: empezar, pausar o reanudar un bloque",
 "Do not disturb is on during each block and goes back to how it was at the end; approvals still reach the island, quietly. Start a block from the ⏱ in the island, the Claude Code card, the shortcut, or the chat: “focus 50 min on SHO-475”.":"No molestar se activa durante cada bloque y vuelve a como estaba al terminar; las aprobaciones siguen llegando a la isla, en silencio. Empieza un bloque desde el ⏱ de la isla, la tarjeta de Claude Code, el atajo o el chat: “enfoque 50 min en SHO-475”.",
 "AliExpress":"AliExpress","Invoice":"Factura","Reading…":"Leyendo…","✓ Saved":"✓ Guardado",

@@ -334,7 +334,7 @@ struct LiveSessionView: View {
         ZStack(alignment: .topLeading) {
             CardBackground<EmptyView>(wash: state.pendingApproval != nil ? CardBackground<EmptyView>.Wash.amber : nil)
             HStack(alignment: .top, spacing: 14) {
-                // Left: Mochi (drawn by BotPlacement above this spacer), project, steps
+                // Left: The character (drawn by BotPlacement above this spacer), project, steps
                 VStack(alignment: .leading, spacing: 0) {
                     Spacer().frame(height: 88)
                     Text(state.liveProject ?? "Session")
@@ -542,7 +542,7 @@ private struct CodePanel: View {
             ChipButton("Timeline", icon: "list.bullet.rectangle") { state.liveShowsTimeline = true }
                 .help("Everything Claude did in this session, with times")
             if let edit = state.liveEdit {
-                ChipButton("Ask \(botName())", icon: "bubble.left") { askMochi(about: edit) }
+                ChipButton("Ask \(botName())", icon: "bubble.left") { askCharacter(about: edit) }
                     .help("Ask about this change in the chat")
                 ChipButton("Open", icon: "pencil") {
                     if let editor = Editor.preferred(state.preferredEditor) {
@@ -563,7 +563,7 @@ private struct CodePanel: View {
     }
 
     /// Opens a fresh chat with the file and this change attached (read-only assistant).
-    private func askMochi(about edit: EditPreview) {
+    private func askCharacter(about edit: EditPreview) {
         let session = state.tasks.first { $0.id == "integration_claude" }?.sessionCwd
         let change = edit.lines.filter { $0.kind != .context }
             .map { ($0.kind == .removed ? "- " : "+ ") + $0.text }

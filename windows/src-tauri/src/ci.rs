@@ -16,7 +16,7 @@ use crate::{files, integrations};
 
 pub const ID: &str = "integration_ci";
 const API: &str = "https://api.github.com/";
-/// Only the end of a job log matters ("Ask Mochi why" keeps ~150 lines of it).
+/// Only the end of a job log matters ("Ask why" keeps ~150 lines of it).
 const LOG_TAIL_BYTES: usize = 1_000_000;
 const NOT_CONNECTED: &str = "Not connected to GitHub · sign in with gh or add a token in Settings";
 
@@ -149,7 +149,7 @@ pub async fn get(app: &AppHandle, path: &str) -> Result<Value, String> {
     Ok(body)
 }
 
-/// The end of a failed Actions job's log ("Ask Mochi why", on a click). GitHub answers with
+/// The end of a failed Actions job's log ("Ask why", on a click). GitHub answers with
 /// a redirect to short-lived storage; reqwest drops the Authorization header on the way.
 pub async fn job_log(app: &AppHandle, repo: &str, job_id: u64) -> Result<String, String> {
     if !repo_ok(repo) {

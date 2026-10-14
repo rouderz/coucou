@@ -2,7 +2,7 @@ import Foundation
 import CoreGraphics
 import SwiftUI
 
-// Easing, tweens, particles and per-state configuration for Mochi.
+// Easing, tweens, particles and per-state configuration for the character.
 
 // MARK: - Easing functions (same as prototype: E.out, E.inOut, E.back, E.lin)
 
@@ -73,9 +73,9 @@ enum BadgeType {
     case dot(CGColor)
 }
 
-// MARK: - Mochi track constants (from PISTES.mochi)
+// MARK: - Character track constants (from PISTES.mochi)
 
-enum MochiConst {
+enum BotConst {
     static let eyeW: CGFloat  = 0.25
     static let eyeH: CGFloat  = 0.27
     static let eyeSp: CGFloat = 0.37

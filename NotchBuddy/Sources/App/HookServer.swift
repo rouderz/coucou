@@ -28,7 +28,7 @@ final class HookServer: @unchecked Sendable {
     // No approval blocking state — notch is notification-only, user answers in VS Code
 
     private var pendingConnection: (any HookConnection)?   // held open while the user decides
-    /// The pending approval came from Mochi's own chat (Allow edits), not a terminal session.
+    /// The pending approval came from the character's own chat (Allow edits), not a terminal session.
     private var approvalFromChat = false
     private var activeSessionId: String? = nil  // current Claude Code session
 
@@ -287,7 +287,7 @@ final class HookServer: @unchecked Sendable {
             // Non-alert work events: reveal compact only, never force-expand
             NotificationCenter.default.post(name: .hookReveal, object: nil)
         }
-        // Already compact and non-alert: Mochi state update is enough, no expand
+        // Already compact and non-alert: The character state update is enough, no expand
     }
 
     // MARK: - Permission request (blocking — Claude Code waits for decision)
@@ -303,7 +303,7 @@ final class HookServer: @unchecked Sendable {
 
         let tool = payload["tool_name"] as? String ?? "Tool"
         let command = Self.approvalCommand(tool: tool, input: payload["tool_input"] as? [String: Any] ?? [:])
-        // Mochi's own chat asking to edit a file (Allow edits on): approve from the island,
+        // The character's own chat asking to edit a file (Allow edits on): approve from the island,
         // without touching the Claude Code session card.
         let fromChat = payload["coucou_internal"] as? Bool == true
         nbLog("PermissionRequest \(tool): \(command)\(fromChat ? " (chat)" : "")")

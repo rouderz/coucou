@@ -1,6 +1,6 @@
 import SwiftUI
 
-// Focus timer (#119): the ring around Mochi, the ⏱ in the island's top bar, the controls on the
+// Focus timer (#119): the ring around the character, the ⏱ in the island's top bar, the controls on the
 // Claude Code card, the end-of-block prompt and Settings → Focus. FocusTimer.swift runs the clock.
 //
 // Cost: nothing here owns a timer. The ring and the countdown only exist while a block or a break
@@ -43,10 +43,10 @@ struct FocusTimeText: View {
     }
 }
 
-// MARK: - Ring around Mochi
+// MARK: - Ring around the character
 
-/// What's left of the block, as a thin bar under Mochi (it empties as time passes). It used to be a
-/// ring around Mochi, but Mochi isn't round: the ring cut through its body.
+/// What's left of the block, as a thin bar under the character (it empties as time passes). It used to be a
+/// ring around the character, but the character isn't round: the ring cut through its body.
 struct FocusRing: View {
     @ObservedObject var state: AppState
     let diameter: CGFloat
@@ -63,7 +63,7 @@ struct FocusRing: View {
                         .frame(width: max(3, width * left))
                 }
                 .frame(width: width, height: 3)
-                // Under Mochi: the frame is Mochi-sized and centred on it, the bar sits at its bottom.
+                // Under the character: the frame is character-sized and centred on it, the bar sits at its bottom.
                 .frame(width: diameter, height: diameter * 0.74, alignment: .bottom)
             }
             .transition(.opacity)

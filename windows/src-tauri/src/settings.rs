@@ -59,7 +59,7 @@ pub struct Settings {
     #[serde(default = "yes")]
     pub phone_only_when_away: bool,
 
-    /// GitHub / Linear notifications in Mochi's inbox.
+    /// GitHub / Linear notifications in the character's inbox.
     #[serde(default = "yes")]
     pub inbox_enabled: bool,
     #[serde(default = "yes")]
@@ -88,7 +88,7 @@ pub struct Settings {
     #[serde(default = "default_theme")]
     pub theme: String,
 
-    /// Mochi reads its chat replies aloud.
+    /// The character reads its chat replies aloud.
     #[serde(default)]
     pub speak_replies: bool,
 
@@ -134,7 +134,7 @@ pub struct Settings {
     #[serde(default)]
     pub grounded_characters: Vec<String>,
 
-    /// Mochi moves with the music (#117). Off by default.
+    /// The character moves with the music (#117). Off by default.
     #[serde(default)]
     pub mochi_dance: bool,
 

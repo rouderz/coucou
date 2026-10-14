@@ -147,7 +147,7 @@ fn folder(engine: Engine) -> Result<PathBuf, String> {
     Ok(dir)
 }
 
-/// One turn: Mochi's instructions + the conversation on stdin, the CLI's output back.
+/// One turn: The character's instructions + the conversation on stdin, the CLI's output back.
 pub async fn run(engine: Engine, conversation: &str, model: &str) -> Result<CliRun, String> {
     if conversation.len() > MAX_PROMPT {
         return Err("The conversation is too long for this engine. Start a new chat.".into());

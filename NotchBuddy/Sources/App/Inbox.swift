@@ -123,7 +123,7 @@ enum LinearInbox {
 
 // MARK: - Store and poller
 
-/// Mochi's inbox: polls GitHub and Linear every minute and announces what's new.
+/// The character's inbox: polls GitHub and Linear every minute and announces what's new.
 @MainActor
 final class InboxStore: ObservableObject {
     static let shared = InboxStore()
@@ -184,7 +184,7 @@ final class InboxStore: ObservableObject {
         return count > 1 ? L("\(count) new notifications. Latest, \(line)") : line
     }
 
-    /// New since last time: Mochi peeks out with the newest one (badge only in Do not disturb).
+    /// New since last time: The character peeks out with the newest one (badge only in Do not disturb).
     private func announceNew() {
         let fresh = items.filter { !announced.contains($0.id) }
         announced.formUnion(items.map(\.id))
@@ -193,7 +193,7 @@ final class InboxStore: ObservableObject {
         guard !firstRun, let newest = fresh.first else { return }   // no burst at launch
         log.info("new: \(fresh.count) (\(newest.kind.rawValue, privacy: .public))")
         if DoNotDisturb.shared.isActive { return }
-        // Its own sound (not the approval one), a surprised Mochi, and optionally a spoken notice.
+        // Its own sound (not the approval one), a surprised the character, and optionally a spoken notice.
         SoundEngine.shared.play(newest.kind == .review || newest.kind == .mention ? "question" : "pop")
         NotificationCenter.default.post(name: .triggerEmote, object: BotEmote.surprised)
         NotificationCenter.default.post(name: .hookExpand, object: IslandView.inbox)

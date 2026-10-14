@@ -125,7 +125,7 @@ async function main() {
     return ali ? runAliCommand(ali) : null;
   });
 
-  // Mochi reads replies aloud (Settings → Voice), never in Do not disturb.
+  // The character reads replies aloud (Settings → Voice), never in Do not disturb.
   setSpeaker((text) => { if (!dndActive(State.settings.dndUntil)) speak(text); });
   setListening((await Bridge.voiceAvailable()) ?? false);
 

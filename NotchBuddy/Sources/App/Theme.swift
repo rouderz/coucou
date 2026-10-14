@@ -6,7 +6,7 @@ import SwiftUI
 // The island's views use a handful of neutral hex values (text, secondary text, card, …).
 // `Color(hex:)` swaps exactly those for the active theme's colour, so every view follows the
 // theme without touching each one. Brand colours (pills), status colours (red / amber / green)
-// and Mochi are never swapped. The island's black shell stays black: it has to blend with the
+// and the character are never swapped. The island's black shell stays black: it has to blend with the
 // hardware notch.
 // (Superseded: the whole island now takes the theme's background; only Dark keeps pure black.)
 

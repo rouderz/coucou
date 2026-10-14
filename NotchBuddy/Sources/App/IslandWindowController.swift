@@ -39,7 +39,7 @@ final class IslandWindowController: NSWindowController {
     private var highlightPanel: NSPanel? = nil
     private var highlightWindowPid: pid_t = 0
 
-    // Free placement (FreeBuddy.swift): the character floats on its own and opens the island next to it.
+    // Free placement (FreeBuddy.swift): The character floats on its own and opens the island next to it.
     let buddy = FreeBuddyController()
     private var freeMode = IslandPlacement.isFree
     private var placementObserver: NSObjectProtocol?
@@ -364,7 +364,7 @@ final class IslandWindowController: NSWindowController {
             }
         }
 
-        // Ghost Mochi follows cursor + window highlight during drag (60 Hz, no throttle)
+        // Ghost the character follows cursor + window highlight during drag (60 Hz, no throttle)
         if inAttachDrag {
             updateDragGhost()
             updateWindowHighlight()
@@ -734,7 +734,7 @@ final class IslandWindowController: NSWindowController {
             finishDrag()
         }
 
-        // Shortcut: ask Mochi about what's open in the frontmost app (assistant mode).
+        // Shortcut: ask the character about what's open in the frontmost app (assistant mode).
         // A system hot key: works without Accessibility and doesn't leak the keystroke.
         assistantHotKey = GlobalHotKey { [weak self] in self?.askAboutFrontmostApp() }
         registerAssistantHotKey()
@@ -749,7 +749,7 @@ final class IslandWindowController: NSWindowController {
             MainActor.assumeIsolated { self?.registerCaptureHotKey() }
         }
 
-        // The editor extension's "Ask Mochi": open the chat with its exact context (#58).
+        // The editor extension's "Ask Lumo": open the chat with its exact context (#58).
         NotificationCenter.default.addObserver(forName: .askWithEditorContext, object: nil, queue: .main) { [weak self] note in
             guard let context = note.userInfo?["context"] as? CodeContext else { return }
             MainActor.assumeIsolated {
@@ -802,7 +802,7 @@ final class IslandWindowController: NSWindowController {
         }
     }
 
-    // MARK: - Drag ghost window (Mochi follows cursor during drag)
+    // MARK: - Drag ghost window (the character follows cursor during drag)
 
     private func showDragGhost() {
         guard dragGhostPanel == nil else { return }
@@ -1152,7 +1152,7 @@ final class IslandWindowController: NSWindowController {
 
     // MARK: - Dizzy recovery (triggered by BotEngine.slap via .botDizzy)
 
-    /// Too many pokes: the character gets dizzy for a moment, right where it is — no
+    /// Too many pokes: The character gets dizzy for a moment, right where it is — no
     /// separate "confused" screen taking over the island.
     private func handleDizzy() {
         state.stateOverride = .dizzy
@@ -1307,7 +1307,7 @@ extension Notification.Name {
     case .compact:  return (nw + IslandConst.compactEar * 2, nh)
     case .expanded:
         let layout = IslandConst.viewLayouts[view]!
-        // Design C: the character rail and the main character's base need a little more room.
+        // Design C: The character rail and the main character's base need a little more room.
         if view != .prompt && AppState.shared.railWanted(for: view) {
             return (IslandConst.expandedWidth, max(layout.height, IslandConst.railHeight))
         }

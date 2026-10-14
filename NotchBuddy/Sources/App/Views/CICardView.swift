@@ -2,7 +2,7 @@ import AppKit
 import SwiftUI
 
 /// CI pill (#115) on the overview card: your open PRs with their latest check runs. A failed
-/// Actions job gets "Open log", "Ask Mochi why" (its log tail goes to the chat) and "Re-run".
+/// Actions job gets "Open log", "Ask why" (its log tail goes to the chat) and "Re-run".
 struct CICardView: View {
     @ObservedObject private var appState = AppState.shared
     @State private var busy: String?

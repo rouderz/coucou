@@ -1,5 +1,5 @@
 // Inbox events → island (macOS InboxStore.announceNew): the list behind the 🔔,
-// and Mochi peeking out with what's new (a badge only in Do not disturb).
+// and the character peeking out with what's new (a badge only in Do not disturb).
 
 import { onEvent } from "../core/bridge";
 import { Sound } from "../core/sound";

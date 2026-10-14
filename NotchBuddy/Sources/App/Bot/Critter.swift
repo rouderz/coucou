@@ -121,7 +121,7 @@ enum Critter: String, CaseIterable, Identifiable, Sendable {
     private func spow(_ v: CGFloat, _ e: CGFloat) -> CGFloat { v >= 0 ? pow(v, e) : -pow(-v, e) }
 
     /// Point on the outline in direction `a` (radians, y down: sin > 0 is the bottom half),
-    /// for a body of half-size rx × ry. Sampled by angle like Mochi's superellipse, so the
+    /// for a body of half-size rx × ry. Sampled by angle like the character's superellipse, so the
     /// upload morph can lerp every point to the mailbox.
     func outline(a: CGFloat, rx: CGFloat, ry: CGFloat, R: CGFloat) -> CGPoint {
         let ca = cos(a), sa = sin(a)
@@ -465,7 +465,7 @@ extension BotEngine {
 
     /// The mouth, under the eyes, following where the head looks. Fades out into the mailbox.
     func drawMouth(ctx: GraphicsContext, shape: EyeShape, R: CGFloat, rx: CGFloat, ry: CGFloat) {
-        var pitchNow = MochiConst.eyeP + pitch + roll
+        var pitchNow = BotConst.eyeP + pitch + roll
         pitchNow = ((pitchNow + .pi).truncatingRemainder(dividingBy: .pi * 2) + .pi * 2)
             .truncatingRemainder(dividingBy: .pi * 2) - .pi
         let cp = cos(pitchNow)

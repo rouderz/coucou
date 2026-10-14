@@ -1,4 +1,4 @@
-// The island: DOM shell, sizing animation, Mochi placement, mouse handling.
+// The island: DOM shell, sizing animation, the character placement, mouse handling.
 // Mirrors IslandRootView.swift + IslandWindowController.swift.
 
 import { showMode } from "../core/codeMode";
@@ -224,18 +224,18 @@ export class Island {
     this.views = buildViews(actions, () => this.animateGeometry(false));
     this.viewsEl = h("div", { id: "views" });
     for (const v of this.views.values()) this.viewsEl.append(v.el);
-    // Design C: the characters on the left of the views, once integrations have their own.
+    // Design C: The characters on the left of the views, once integrations have their own.
     this.rail = buildRail((id) => {
       Sound.play("blip");
       void this.pickCharacter(id);
     }, {
       settings: () => actions.openSettingsWindow(),
     });
-    // Design C: the characters run down the left, the header and the views sit beside them.
+    // Design C: The characters run down the left, the header and the views sit beside them.
     this.contentEl = h("div", { id: "content" }, this.rail.el,
       h("div", { id: "content-col" }, this.header.el, this.viewsEl));
 
-    // The drop sequence draws the card, the bar and its own Mochi. It sits under
+    // The drop sequence draws the card, the bar and its own the character. It sits under
     // the header, which stays visible on top of it exactly as on macOS.
     this.uploadCanvas = new UploadCanvas({
       ask: () => {
@@ -464,7 +464,7 @@ export class Island {
   }
 
   /**
-   * Mochi eats the file. Nothing here waits on the file system: the copy into
+   * The character eats the file. Nothing here waits on the file system: the copy into
    * the inbox runs in the background and swaps the path in when it lands, so a
    * slow disk can never stall the animation — same as FileDropHandler on macOS.
    */
@@ -505,7 +505,7 @@ export class Island {
 
   /**
    * Sounds and view changes hung off the canvas timeline: a `tick` every 10 %,
-   * the ✓ chime when the bar completes, then `choose` once Mochi has grown back.
+   * the ✓ chime when the bar completes, then `choose` once the character has grown back.
    */
   private stepSequence() {
     const since = UploadSeq.sinceDrop();
@@ -535,7 +535,7 @@ export class Island {
   private targetSize(): { w: number; h: number; r: number } {
     const size = islandSize(State.mode, State.view, State.chatHistory.length);
     const { w } = size;
-    // Design C: the character rail and the main character's base need a little more room.
+    // Design C: The character rail and the main character's base need a little more room.
     const h = railShown() && State.view !== "prompt" ? Math.max(size.h, RAIL_HEIGHT) : size.h;
     const r = State.mode === "expanded" ? EXPANDED_CORNER : ROUNDED_CORNER;
     return { w, h, r };
@@ -751,7 +751,7 @@ export class Island {
     this.engine.tgEs = 1;
   }
 
-  /** Too many pokes: the character gets dizzy for a moment, right where it is — no separate
+  /** Too many pokes: The character gets dizzy for a moment, right where it is — no separate
    *  "confused" screen taking over the island. */
   private handleDizzy() {
     State.stateOverride = "dizzy";
@@ -804,7 +804,7 @@ export class Island {
         this.greeting.draw(gctx);
       }
     } else {
-      // Kept running even while the drop canvas is up, so the island's own Mochi
+      // Kept running even while the drop canvas is up, so the island's own the character
       // is already in the right place the moment the canvas fades out.
       this.drawBot(dt);
     }
@@ -850,7 +850,7 @@ export class Island {
     this.botSize.target = p.diameter / 0.6;
 
     const greetingActive = State.mode === "expanded" && State.view === "greeting";
-    // The drop canvas draws its own Mochi; two of them would overlap.
+    // The drop canvas draws its own the character; two of them would overlap.
     // Free placement: the floating character sits on top of the island, so the overview
     // doesn't draw it a second time (alerts still do, with their expressions).
     // With the character rail, the characters are drawn there instead.
@@ -916,8 +916,8 @@ export class Island {
   }
 
   /**
-   * Focus timer (#119): what's left of the block as a thin ring around Mochi,
-   * shrinking clockwise. Drawn with Mochi, so only while the island is showing.
+   * Focus timer (#119): what's left of the block as a thin ring around the character,
+   * shrinking clockwise. Drawn with the character, so only while the island is showing.
    */
   private drawFocusRing(ctx: CanvasRenderingContext2D, w: number) {
     const f = State.focus;
@@ -941,7 +941,7 @@ export class Island {
     ctx.restore();
   }
 
-  /** During a block Mochi looks concentrated (flat eyes) while nothing else is going on. */
+  /** During a block the character looks concentrated (flat eyes) while nothing else is going on. */
   private applyFocusLook() {
     const f = State.focus;
     const on = f.phase === "focus" && !f.paused && State.effectiveState === "idle";

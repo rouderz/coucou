@@ -374,7 +374,7 @@ function drawTentacles(x: CanvasRenderingContext2D, hw: number, hh: number, p: P
   x.restore();
 }
 
-function drawMochi(x: CanvasRenderingContext2D, p: Pose, t: number) {
+function drawCharacter(x: CanvasRenderingContext2D, p: Pose, t: number) {
   const hh = p.hb / 2;
   const hw = hh * ASP;
   if (hh <= 0.4) return;
@@ -615,6 +615,6 @@ export class Greeting {
     }
 
     drawMinis(x, p.minis);
-    drawMochi(x, p, t);
+    drawCharacter(x, p, t);
   }
 }

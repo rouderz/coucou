@@ -2,7 +2,7 @@
 # Baseline measurements for issue #1 (compare against them after the F2 work).
 #
 #   bash scripts/measure-baseline.sh cpu [seconds]   Sample Coucou's CPU and memory (default 60 s)
-#   bash scripts/measure-baseline.sh heymochi [seconds]  Same as cpu, default 300 s (#112: Hey Mochi on, quiet room → target ≤ 2 %)
+#   bash scripts/measure-baseline.sh heymochi [seconds]  Same as cpu, default 300 s (#112: Hey Lumo on, quiet room → target ≤ 2 %)
 #   bash scripts/measure-baseline.sh tokens          Stream per-request token usage from the chat
 #
 # Suggested runs:

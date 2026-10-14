@@ -1,6 +1,6 @@
 // Push-to-talk (the macOS VoiceInput): one spoken question, turned into text by
 // the system's own speech recognition. Windows has it built in (WinRT); Linux
-// has none, so the button isn't offered there. Mochi reading replies aloud is
+// has none, so the button isn't offered there. The character reading replies aloud is
 // the page's own speechSynthesis (src/core/voice.ts).
 
 /// Listens until the user stops talking and returns what they said.

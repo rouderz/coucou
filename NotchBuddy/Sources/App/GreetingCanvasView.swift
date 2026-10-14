@@ -27,7 +27,7 @@ private enum GT {
 
 // MARK: - Geometry constants (640×150 reference space)
 
-private let GC0     = CGPoint(x: 320, y: 90)   // Mochi center
+private let GC0     = CGPoint(x: 320, y: 90)   // The character center
 private let GHB:    CGFloat = 58                // body height at full size
 private let GASP:   CGFloat = 1.34             // body width/height ratio
 private let GEAR_X: CGFloat = IslandConst.compactEar / 2  // ear x from small island left edge (matches BotPlacement compact)
@@ -355,7 +355,7 @@ private func drawTentacles(_ ctx: CGContext, hw: CGFloat, hh: CGFloat, p: GreetP
     ctx.restoreGState()
 }
 
-private func drawMochi(_ ctx: CGContext, p: GreetPose, t: Double) {
+private func drawCharacter(_ ctx: CGContext, p: GreetPose, t: Double) {
     let hh = CGFloat(p.hb/2), hw = hh*GASP; guard hh > 0.4 else { return }
 
     // Halo (golden → blue) — soft diffuse aura, two-pass for smoothness
@@ -586,7 +586,7 @@ private func drawGreeting(_ ctx: CGContext, size: CGSize, t: Double, tc: Double)
 
     // drawHeader: no icons during greeting
     drawMinis(ctx, alpha: p.minis)
-    drawMochi(ctx, p: p, t: t)
+    drawCharacter(ctx, p: p, t: t)
 }
 
 // MARK: - SwiftUI View

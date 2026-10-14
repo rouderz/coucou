@@ -1,6 +1,6 @@
-// Mochi's voice (the macOS VoiceOutput): reads chat replies aloud with the
+// The character's voice (the macOS VoiceOutput): reads chat replies aloud with the
 // system's own voices (speechSynthesis), in the interface language. Push-to-talk
-// lives in Rust (src-tauri/src/voice.rs). "Hey Mochi" (an always-listening mic
+// lives in Rust (src-tauri/src/voice.rs). "Hey Lumo" (an always-listening mic
 // with an on-device keyword detector) has no equivalent here.
 
 import { State } from "./state";

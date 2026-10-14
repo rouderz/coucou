@@ -453,7 +453,7 @@ struct AgentPill: View {
                               ? Color(hex: task.color).opacity(0.18)
                               : Color(hex: "#0E0F11"))
                         // Hover glow on the static capsule only: shadowing the whole pill
-                        // re-rendered it off-screen on every mini-Mochi animation frame.
+                        // re-rendered it off-screen on every mini character animation frame.
                         .shadow(color: Color(hex: task.color).opacity(isHovered ? 0.35 : 0), radius: 10, x: 0, y: 2)
                     Capsule()
                         .stroke(Color(hex: task.color).opacity(isHovered ? 0.55 : 0.14), lineWidth: 1)

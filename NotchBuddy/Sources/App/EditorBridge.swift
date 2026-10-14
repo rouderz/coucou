@@ -25,7 +25,7 @@ final class EditorBridge {
     private let freshness: TimeInterval = 15 * 60
 
     /// `EditorContext` (sent on every editor / selection change) and `EditorAsk` (the
-    /// extension's "Ask Mochi" command: opens the chat with this context).
+    /// extension's "Ask Lumo" command: opens the chat with this context).
     func handle(event: String, payload: [String: Any]) {
         guard let file = payload["file"] as? String, file.hasPrefix("/") else { return }
         let problems = (payload["diagnostics"] as? [[String: Any]] ?? []).prefix(20).map { d -> String in

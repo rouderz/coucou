@@ -39,13 +39,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Push-to-talk: Mochi listens only while you hold the shortcut."
+            "value": "Push-to-talk: your character listens only while you hold the shortcut."
           }
         },
         "es": {
           "stringUnit": {
             "state": "translated",
-            "value": "Pulsar para hablar: Mochi solo escucha mientras mantienes pulsado el atajo."
+            "value": "Pulsar para hablar: tu personaje solo escucha mientras mantienes pulsado el atajo."
           }
         }
       }
@@ -55,13 +55,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Push-to-talk: your voice is transcribed on this Mac to ask Mochi."
+            "value": "Push-to-talk: your voice is transcribed on this Mac to ask your character."
           }
         },
         "es": {
           "stringUnit": {
             "state": "translated",
-            "value": "Pulsar para hablar: tu voz se transcribe en este Mac para preguntar a Mochi."
+            "value": "Pulsar para hablar: tu voz se transcribe en este Mac para preguntar a tu personaje."
           }
         }
       }

@@ -1,6 +1,6 @@
 import SwiftUI
 
-// Mochi's chat: prompt, bubbles, history list, push-to-talk, search and results.
+// The character's chat: prompt, bubbles, history list, push-to-talk, search and results.
 
 // MARK: - Prompt (chat)
 
@@ -53,7 +53,7 @@ struct PromptView: View {
                     }
                     if let ctx = state.promptContext {
                         if state.chatMode != .code { ContextChip(context: ctx) }
-                        // Code context: let Mochi change files, each change approved in the island
+                        // Code context: let the character change files, each change approved in the island
                         if case .code = ctx, state.isCoding || ClaudeService.provider(for: state.chatEngine).capabilities.contains(.editsFiles) {
                             Button { state.chatAllowEdits.toggle() } label: {
                                 HStack(spacing: 4) {
@@ -671,7 +671,7 @@ struct ChatHistoryRow: View {
 
 // MARK: - Push-to-talk
 
-/// Replaces the text field while Mochi is listening: a pulsing dot and the live transcript.
+/// Replaces the text field while the character is listening: a pulsing dot and the live transcript.
 struct VoiceListeningLabel: View {
     let phase: VoicePhase
     let transcript: String

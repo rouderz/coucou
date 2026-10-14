@@ -111,7 +111,7 @@ struct IslandContainer: View {
 
             // Single BotPlacement — always alive in the view tree so spring animations
             // fire from the current position (e.g. choose at 60,101) when canvas deactivates.
-            // Hidden during upload canvas or greeting (both draw their own Mochi).
+            // Hidden during upload canvas or greeting (both draw their own the character).
             // Free placement: the floating character sits on top of the island, so the cards
             // don't draw it a second time (alerts still do, with their expressions).
             // With the character rail, the characters are drawn there instead.
@@ -331,7 +331,7 @@ struct BotPlacement: View {
                     .animation(.easeInOut(duration: 0.4), value: state.effectiveState)
             }
 
-            // Focus timer (#119): what's left of the block, as a thin ring around Mochi.
+            // Focus timer (#119): what's left of the block, as a thin ring around the character.
             if !isUploading {
                 FocusRing(state: state, diameter: diameter + (state.mode == .compact ? 6 : 12))
                     .position(x: cx, y: cy)
@@ -409,7 +409,7 @@ func botPosition(mode: IslandMode, view: IslandView, islandW: CGFloat, islandH: 
     case .expanded:
         let layout = IslandConst.viewLayouts[view]!
         let diameter = layout.botDiameter
-        // Uploading: Mochi dot rides the leading edge of the progress fill.
+        // Uploading: The character dot rides the leading edge of the progress fill.
         // Bar in island coords: left=36, width=526. cx = 36 + progress*526 (dot center at fill right edge).
         // cy comes from ViewLayout.botY (bar center in island coords).
         if view == .uploading {
@@ -489,7 +489,7 @@ struct IslandContentView: View {
     @ObservedObject var state: AppState
 
     var body: some View {
-        // Design C: the characters run down the left, the header and the views sit beside them.
+        // Design C: The characters run down the left, the header and the views sit beside them.
         HStack(alignment: .top, spacing: 8) {
             if state.railShown {
                 CharacterRail(state: state)

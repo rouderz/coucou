@@ -62,7 +62,7 @@ interface Particle {
   age: number; life: number; rot: number; size: number;
 }
 
-// ── Constants (MochiConst / PISTES.mochi) ─────────────────────────────────────
+// ── Constants (BotConst / PISTES.mochi) ─────────────────────────────────────
 
 const EYE_W = 0.25;
 const EYE_H = 0.27;
@@ -167,7 +167,7 @@ const FONT = `system-ui, "Segoe UI Variable Text", "Segoe UI", sans-serif`;
 
 export class BotEngine {
   isMini = false;
-  /** Solid body colour for mini bots / integration pills (null = Mochi gradient). */
+  /** Solid body colour for mini bots / integration pills (null = the character gradient). */
   bodyColor: RGB | null = null;
   /** The character the user picked (critters.ts). */
   critter: CritterId = DEFAULT_CRITTER;
@@ -222,7 +222,7 @@ export class BotEngine {
   private miniLookTarget = { x: 0, y: 0 };
   private miniLookNextTime = 0;
 
-  // Mochi moves with the music (#117). `dancing` is set every frame by the island;
+  // The character moves with the music (#117). `dancing` is set every frame by the island;
   // `danceAmt` eases the bob in and out; `dancePose` is added to the body when drawing.
   dancing = false;
   danceAmt = 0;
@@ -495,7 +495,7 @@ export class BotEngine {
     );
   }
 
-  /** Dance only for the main Mochi, only idle, never while it's a mailbox. */
+  /** Dance only for the main character, only idle, never while it's a mailbox. */
   private get danceWanted(): boolean {
     return this.dancing && !this.isMini && this.state === "idle" && this.morph < 0.05;
   }

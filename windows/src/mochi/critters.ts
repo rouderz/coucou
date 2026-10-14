@@ -68,7 +68,7 @@ export const PALETTES: Record<CritterId, CritterPalette> = {
   tecla: { top: hex("#5FBFA2"), bottom: hex("#3E957B"), ink: "#1F3D35", blush: [245, 158, 139], accent: "#A3ECD5", accent2: "#86DCC0" },
 };
 
-/** How far the eyes and blush sit above Mochi's, in units of ry (Lumo's face is up in its dome). */
+/** How far the eyes and blush sit above the character's, in units of ry (Lumo's face is up in its dome). */
 export function faceLift(c: CritterId): number {
   return c === "lumo" ? 0.3 : 0;
 }

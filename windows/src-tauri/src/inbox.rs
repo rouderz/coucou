@@ -1,4 +1,4 @@
-// Mochi's inbox (macOS Inbox.swift): GitHub notifications you're part of and
+// The character's inbox (macOS Inbox.swift): GitHub notifications you're part of and
 // Linear notifications — review requests, mentions, assignments, comments.
 // Polled every minute; what's new is announced once.
 

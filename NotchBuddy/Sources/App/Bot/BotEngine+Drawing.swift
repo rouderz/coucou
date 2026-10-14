@@ -137,13 +137,13 @@ extension BotEngine {
         }
     }
 
-    // MARK: - Draw hands behind body (called before draw() so hands appear under Mochi)
+    // MARK: - Draw hands behind body (called before draw() so hands appear under the character)
 
     func drawHandsBehind(context: GraphicsContext, size: CGSize) {
         guard hands > 0.01, !isMini else { return }
         let W = size.width, H = size.height
         let R = W * 0.3
-        // Only draw hands when Mochi is large enough to be meaningful (not compact/peek)
+        // Only draw hands when the character is large enough to be meaningful (not compact/peek)
         guard R > 14 else { return }
         let rx = R * 1.14
         let ry = R * 0.88
@@ -399,8 +399,8 @@ extension BotEngine {
         ctx.clip(to: path)
 
         for sd in [-1.0, 1.0] {
-            let eyeYaw   = CGFloat(sd) * MochiConst.eyeSp + yaw
-            var eyePitch = MochiConst.eyeP + pitch + roll
+            let eyeYaw   = CGFloat(sd) * BotConst.eyeSp + yaw
+            var eyePitch = BotConst.eyeP + pitch + roll
             // Wrap pitch for roll-through effect
             eyePitch = ((eyePitch + .pi).truncatingRemainder(dividingBy: .pi*2) + .pi*2).truncatingRemainder(dividingBy: .pi*2) - .pi
 
@@ -416,8 +416,8 @@ extension BotEngine {
 
             let eyeMult: CGFloat = isMini ? 1.9 : 1.0
             let aspect = critter.eyeAspect
-            let ew = R * MochiConst.eyeW * es * eyeMult * aspect.w
-            let eh = R * MochiConst.eyeH * es * eyeMult * aspect.h
+            let ew = R * BotConst.eyeW * es * eyeMult * aspect.w
+            let eh = R * BotConst.eyeH * es * eyeMult * aspect.h
 
             var eyeCtx = ctx
             eyeCtx.translateBy(x: ex, y: ey)
@@ -433,7 +433,7 @@ extension BotEngine {
     }
 
     func drawEyeShape(ctx: inout GraphicsContext, shape: EyeShape, w: CGFloat, h: CGFloat, open: CGFloat, sd: CGFloat, R: CGFloat) {
-        let ink = isMini ? Color(cgColor: MochiConst.miniInk) : Color(cgColor: palette.ink)
+        let ink = isMini ? Color(cgColor: BotConst.miniInk) : Color(cgColor: palette.ink)
         let now = CGFloat(CACurrentMediaTime())
 
         switch shape {

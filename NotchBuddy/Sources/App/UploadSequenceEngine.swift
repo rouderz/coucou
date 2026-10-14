@@ -425,7 +425,7 @@ final class UploadSequenceEngine {
             let baseGreen = f.progress * 0.50
             // Brief flash burst at completion
             let flashExtra = pt >= progEnd ? 0.20 * sin(.pi * usSeg(pt, progEnd, progEnd + 0.40)) : 0
-            // Fade out as Mochi grows back to choose position
+            // Fade out as the character grows back to choose position
             let fadeOut = 1.0 - usSeg(pt, growEnd, growEnd + 0.60)
             uploadGreen = (baseGreen + flashExtra) * fadeOut
         }

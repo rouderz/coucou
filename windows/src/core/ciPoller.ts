@@ -188,7 +188,7 @@ function announce(events: CIEvent[]) {
 
 // ── Card actions (explicit clicks only) ──────────────────────────────────────
 
-/** "Ask Mochi why": the failed job's log tail as a text file, ready to attach to the chat. */
+/** "Ask Lumo why": the failed job's log tail as a text file, ready to attach to the chat. */
 export async function ciLogFile(pr: CIPr, run: CheckRun): Promise<DroppedFile> {
   const job = parseJobUrl(run.htmlUrl);
   if (!job) throw new Error("This check isn't a GitHub Actions job, so there's no log to fetch.");

@@ -73,7 +73,7 @@ final class AppState: ObservableObject {
         didSet { UserDefaults.standard.set(preferredEditor, forKey: "preferredEditor") }
     }
 
-    // Mochi's chat may edit the attached project (each change approved in the island).
+    // The character's chat may edit the attached project (each change approved in the island).
     // Per conversation: reset when a new chat starts.
     @Published var chatAllowEdits: Bool = false
     /// A skill picked with "/" in the chat; its SKILL.md goes with the next question.
@@ -128,7 +128,7 @@ final class AppState: ObservableObject {
         if case .cli(let login) = githubConnection { return login }
         return nil
     }
-    // Pointer over the island — published on enter/leave only; drives Mochi's frame rate
+    // Pointer over the island — published on enter/leave only; drives the character's frame rate
     @Published var pointerInIsland: Bool = false
     var lastMouseMove: Date = .now
     var lastActivity: Date = .now
@@ -232,7 +232,7 @@ final class AppState: ObservableObject {
         didSet { UserDefaults.standard.set(greetThresholdSeconds, forKey: "greetThreshold") }
     }
 
-    // Hotkey to ask Mochi about the file open in the editor (default ⌃⌥M).
+    // Hotkey to ask the character about the file open in the editor (default ⌃⌥M).
     // Global monitors can't swallow keys, so the default is a combo editors don't use.
     @Published var assistantHotkeyEnabled: Bool = true {
         didSet {
@@ -286,7 +286,7 @@ final class AppState: ObservableObject {
         }
     }
 
-    // Push-to-talk: hold the shortcut (default ⌃⌥V), speak, let go → Mochi answers.
+    // Push-to-talk: hold the shortcut (default ⌃⌥V), speak, let go → the character answers.
     @Published var voiceEnabled: Bool = true {
         didSet {
             UserDefaults.standard.set(voiceEnabled, forKey: "voiceEnabled")
@@ -384,7 +384,7 @@ final class AppState: ObservableObject {
     @Published var voiceSpeakReplies: Bool = true {
         didSet { UserDefaults.standard.set(voiceSpeakReplies, forKey: "voiceSpeakReplies") }
     }
-    // "Hey Mochi" (#61): off by default; only on AC power unless changed
+    // "Hey Lumo" (#61): off by default; only on AC power unless changed
     @Published var wakeWordEnabled: Bool = false {
         didSet {
             UserDefaults.standard.set(wakeWordEnabled, forKey: "wakeWordEnabled")
@@ -586,7 +586,7 @@ final class AppState: ObservableObject {
     @Published var inboxLinear: Bool = true {
         didSet { UserDefaults.standard.set(inboxLinear, forKey: "inboxLinear") }
     }
-    /// Mochi says new inbox items out loud (push-to-talk voice and language).
+    /// The character says new inbox items out loud (push-to-talk voice and language).
     @Published var inboxSpeak: Bool = false {
         didSet { UserDefaults.standard.set(inboxSpeak, forKey: "inboxSpeak") }
     }
@@ -625,15 +625,15 @@ final class AppState: ObservableObject {
     var dndMeetingEnd: Date? = nil
     var dndSkippedMeetingEnd: Date? = nil
 
-    // Mochi moves with the music (#117). Off by default; Music / Spotify are only followed while on.
+    // The character moves with the music (#117). Off by default; Music / Spotify are only followed while on.
     @Published var mochiDance: Bool = false {
         didSet {
             UserDefaults.standard.set(mochiDance, forKey: "mochiDance")
             // Deferred, like dndDuringMeetings: this also runs while AppState.shared is being created.
-            if mochiDance != oldValue { DispatchQueue.main.async { MochiDanceController.shared.update() } }
+            if mochiDance != oldValue { DispatchQueue.main.async { DanceController.shared.update() } }
         }
     }
-    /// Set by MochiDanceController from the active player (no track details: that's #107's card).
+    /// Set by DanceController from the active player (no track details: that's #107's card).
     @Published var musicPlaying: Bool = false
     /// Goes up each time a new song starts playing (the headphones emote).
     @Published var musicTrackChanges: Int = 0
@@ -653,7 +653,7 @@ final class AppState: ObservableObject {
             focus.config = focusConfig.sanitized()
         }
     }
-    /// "Hey Mochi" stays off during focus blocks.
+    /// "Hey Lumo" stays off during focus blocks.
     @Published var focusMutesWakeWord: Bool = true {
         didSet { UserDefaults.standard.set(focusMutesWakeWord, forKey: "focusMutesWakeWord") }
     }
@@ -668,7 +668,7 @@ final class AppState: ObservableObject {
     @Published var focusIssue: String? = nil
     /// The end-of-block / end-of-break prompt on the note view.
     @Published var focusNote: FocusNote? = nil
-    /// A focus block is running and "Hey Mochi" should keep quiet.
+    /// A focus block is running and "Hey Lumo" should keep quiet.
     var focusSilencesWakeWord: Bool { focusMutesWakeWord && focus.phase == .focus && !focus.paused }
 
     // Claude Code sessions running at the same time (#24). The card shows the focused one.
@@ -811,10 +811,10 @@ final class AppState: ObservableObject {
         stateOverride ?? focusTask?.state ?? .idle
     }
 
-    /// Mochi bobs to the music right now (#117): setting on, something playing, idle, no Do not
+    /// The character bobs to the music right now (#117): setting on, something playing, idle, no Do not
     /// disturb, no Reduce Motion.
     var mochiDancing: Bool {
-        MochiDance.shouldDance(enabled: mochiDance, playing: musicPlaying,
+        CharacterDance.shouldDance(enabled: mochiDance, playing: musicPlaying,
                                doNotDisturb: DoNotDisturb.shared.isActive,
                                reduceMotion: reduceMotion, state: effectiveState)
     }

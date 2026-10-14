@@ -625,7 +625,7 @@ async fn ci_get(app: AppHandle, path: String) -> Result<serde_json::Value, Strin
     ci::get(&app, &path).await
 }
 
-/// The end of a failed job's log, for "Ask Mochi why" (on a click).
+/// The end of a failed job's log, for "Ask why" (on a click).
 #[tauri::command]
 async fn ci_job_log(app: AppHandle, repo: String, job_id: u64) -> Result<String, String> {
     ci::job_log(&app, &repo, job_id).await
@@ -1026,7 +1026,7 @@ fn create_settings_window(app: &AppHandle) {
                     let _ = hidden.hide();
                     buddy::leave_settings(&handle);
                 }
-                // Free placement: the character sits on Settings while it's open (#154).
+                // Free placement: The character sits on Settings while it's open (#154).
                 tauri::WindowEvent::Moved(_) | tauri::WindowEvent::Resized(_) | tauri::WindowEvent::Focused(true) => {
                     buddy::sit_on_settings(&handle);
                 }

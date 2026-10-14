@@ -19,7 +19,7 @@ struct ChatCapabilities: OptionSet, Sendable {
     static let needsKey    = ChatCapabilities(rawValue: 1 << 3)
 }
 
-/// What every chat backend does for Mochi: one user turn in, the answer streamed back.
+/// What every chat backend does for the character: one user turn in, the answer streamed back.
 /// Adapters: ClaudeCodeChat (subscription), AnthropicAPIChat, OpenAICompatibleChat.
 @MainActor
 protocol ChatProvider: AnyObject {

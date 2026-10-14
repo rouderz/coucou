@@ -50,7 +50,7 @@ export async function saveCurrent() {
   State.notify();
 }
 
-/** A fresh conversation (new chat button, a dropped file, Ask Mochi from the editor). */
+/** A fresh conversation (new chat button, a dropped file, Ask Lumo from the editor). */
 export function startNewChat() {
   State.chatHistory = [];
   State.currentChatId = null;
