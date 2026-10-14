@@ -26,10 +26,10 @@ Every release on the [Releases](https://github.com/rouderz/coucou/releases) page
 
 | | File | Notes |
 |---|---|---|
-| Windows 10/11 | `Coucou-<version>-Windows-setup.exe` | installs for the current user only, no admin prompt |
-| Debian, Ubuntu | `Coucou-<version>-Linux-<arch>.deb` | `x86_64` or `arm64` |
-| Fedora, openSUSE | `Coucou-<version>-Linux-<arch>.rpm` | |
-| Any other distribution | `Coucou-<version>-Linux-<arch>.AppImage` | `chmod +x`, then run it |
+| Windows 10/11 | `Lumo-<version>-Windows-setup.exe` | installs for the current user only, no admin prompt |
+| Debian, Ubuntu | `Lumo-<version>-Linux-<arch>.deb` | `x86_64` or `arm64` |
+| Fedora, openSUSE | `Lumo-<version>-Linux-<arch>.rpm` | |
+| Any other distribution | `Lumo-<version>-Linux-<arch>.AppImage` | `chmod +x`, then run it |
 
 The builds aren't code-signed yet (#39). On Windows, SmartScreen asks first:
 **More info → Run anyway**. Microsoft Defender has wrongly flagged unsigned
@@ -117,8 +117,8 @@ otherwise needs a real drag from Explorer to see. Neither page ships in the app.
 `npm run pack` leaves two files in `windows/release/`:
 
 ```
-Coucou-Windows-X.Y.Z-setup.exe    the versioned installer
-Coucou-Windows-setup.exe          the same file under the rolling name
+Lumo-Windows-X.Y.Z-setup.exe      the versioned installer
+Lumo-Windows-setup.exe            the same file under the rolling name
 ```
 
 Tests: `npm test` for the front-end logic, `cargo test` for the Rust side. Both

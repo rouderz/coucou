@@ -1230,6 +1230,16 @@ pub fn run() {
             integrations::start(handle.clone());
             inbox::start(handle.clone());
             apply_capture_shortcut(&handle, &loaded.capture_shortcut);
+            // "Open at login" is kept in the settings, but the system entry is per app name and
+            // path: after the rename to Lumo (or a move) it may point at the old app. Re-register.
+            if loaded.autostart {
+                let manager = handle.autolaunch();
+                if !manager.is_enabled().unwrap_or(false) {
+                    if let Err(err) = manager.enable() {
+                        eprintln!("[coucou] autostart: {err}");
+                    }
+                }
+            }
             Ok(())
         })
         .run(tauri::generate_context!())

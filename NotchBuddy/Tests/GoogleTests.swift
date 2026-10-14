@@ -1,5 +1,5 @@
 import XCTest
-@testable import Coucou
+@testable import Lumo
 
 /// Google: PKCE, the redirect, and reading mails.
 final class GoogleTests: XCTestCase {

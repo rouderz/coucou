@@ -1,5 +1,5 @@
 import XCTest
-@testable import Coucou
+@testable import Lumo
 
 /// AliExpress chat commands and check-in parsing; mirrors windows/src/core/aliexpressCommand.test.ts.
 final class AliExpressTests: XCTestCase {

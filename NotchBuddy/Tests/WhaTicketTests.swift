@@ -1,5 +1,5 @@
 import XCTest
-@testable import Coucou
+@testable import Lumo
 
 /// WhaTicket through the browser extension: auto-accept rules, what a check-in may carry, the host manifest.
 final class WhaTicketTests: XCTestCase {

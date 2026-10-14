@@ -1,5 +1,5 @@
 import XCTest
-@testable import Coucou
+@testable import Lumo
 
 /// The character moves with the music (#117): when it dances, the bob, and track changes. The same cases
 /// as windows/src/core/dance.test.ts.

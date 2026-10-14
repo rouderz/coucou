@@ -92,8 +92,8 @@ has the details for Windows and Linux.
 
 | | File | First launch (not code-signed yet) |
 |---|---|---|
-| macOS | `Coucou-<version>-macOS.dmg` — drag Lumo to Applications | System Settings → Privacy & Security → **Open Anyway** |
-| Windows | `Coucou-<version>-Windows-setup.exe` | SmartScreen → **More info → Run anyway** |
+| macOS | `Lumo-<version>-macOS.dmg` — drag Lumo to Applications | System Settings → Privacy & Security → **Open Anyway** |
+| Windows | `Lumo-<version>-Windows-setup.exe` | SmartScreen → **More info → Run anyway** |
 | Linux | `.deb`, `.rpm` or `.AppImage`, x86_64 and arm64 | — |
 
 Lumo for Mac checks for new releases itself (Settings → Updates). To try a build without releasing, run the
@@ -130,7 +130,7 @@ git clone https://github.com/rouderz/coucou.git
 cd coucou/NotchBuddy
 xcodegen
 xcodebuild -scheme NotchBuddy -configuration Debug build
-open "$(xcodebuild -scheme NotchBuddy -configuration Debug -showBuildSettings | awk '/ BUILT_PRODUCTS_DIR /{print $3}')/Coucou.app"
+open "$(xcodebuild -scheme NotchBuddy -configuration Debug -showBuildSettings | awk '/ BUILT_PRODUCTS_DIR /{print $3}')/Lumo.app"
 ```
 
 Run `xcodegen` again whenever files are added or after pulling — otherwise Xcode reports "cannot find … in scope" for the new files. Tests: `xcodebuild test -scheme NotchBuddy -destination 'platform=macOS'`.

@@ -1,5 +1,5 @@
 import XCTest
-@testable import Coucou
+@testable import Lumo
 
 /// Time per Linear issue (#114): hook events → time events, half-month periods, durations.
 final class TimeTrackerTests: XCTestCase {

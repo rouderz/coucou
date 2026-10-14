@@ -1,11 +1,11 @@
 #!/usr/bin/env bash
-# Publishes a new version of Coucou on rouderz/coucou.
+# Publishes a new version of Lumo on rouderz/coucou.
 #
 #   bash scripts/release.sh 0.2.0
 #
 # Sets the version for every platform (scripts/versions.sh), commits it on main, tags v0.2.0
 # and pushes. GitHub Actions (.github/workflows/release.yml) then builds macOS, Windows and
-# Linux and publishes them together as the release; Coucou for Mac's update check picks it up.
+# Linux and publishes them together as the release; Lumo for Mac's update check picks it up.
 # To build on this machine instead: bash scripts/build.sh
 set -euo pipefail
 
@@ -23,7 +23,7 @@ bash scripts/versions.sh set "$VERSION"
 git add NotchBuddy/project.yml windows/package.json windows/package-lock.json \
         windows/src-tauri/tauri.conf.json windows/Cargo.toml
 git diff --cached --quiet || git commit -m "Release $VERSION"
-git tag -a "v$VERSION" -m "Coucou $VERSION"
+git tag -a "v$VERSION" -m "Lumo $VERSION"
 git push origin main "v$VERSION"
 
 echo "✓ v$VERSION pushed. macOS, Windows and Linux builds appear in ~20 minutes at:"

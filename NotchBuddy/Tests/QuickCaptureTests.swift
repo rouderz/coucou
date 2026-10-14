@@ -1,5 +1,5 @@
 import XCTest
-@testable import Coucou
+@testable import Lumo
 
 /// Quick capture (#118): the line parser, the preview chip, the issueCreate input and the two-step Enter flow.
 /// Mirrors windows/src/core/capture.test.ts.

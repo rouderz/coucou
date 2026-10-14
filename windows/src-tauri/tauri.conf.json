@@ -1,6 +1,6 @@
 {
   "$schema": "https://schema.tauri.app/config/2",
-  "productName": "Coucou",
+  "productName": "Lumo",
   "version": "0.3.9",
   "identifier": "fr.louisraille.coucou",
   "build": {

@@ -148,7 +148,9 @@ final class Updates: ObservableObject {
         ditto.arguments = ["-x", "-k", zip.path, dir.path]
         try ditto.run()
         ditto.waitUntilExit()
-        let app = dir.appendingPathComponent("Coucou.app")
+        // Lumo.app; zips made for the first release after the rename hold Coucou.app (see make-dmg.sh).
+        let app = ["Lumo.app", "Coucou.app"].map { dir.appendingPathComponent($0) }
+            .first { FileManager.default.fileExists(atPath: $0.path) } ?? dir.appendingPathComponent("Lumo.app")
         guard ditto.terminationStatus == 0,
               let info = Bundle(url: app)?.infoDictionary,
               info["CFBundleIdentifier"] as? String == Bundle.main.bundleIdentifier,
@@ -161,19 +163,24 @@ final class Updates: ObservableObject {
     /// A small script waits for this process to quit, swaps the bundle (putting the old one
     /// back if anything fails) and opens the new one.
     nonisolated static func swapAndRelaunch(with newApp: URL) throws {
-        let target = Bundle.main.bundleURL.path
+        let current = Bundle.main.bundleURL.path
+        // An install still named Coucou.app (before the rename) becomes Lumo.app next to it.
+        let renamed = Bundle.main.bundleURL.lastPathComponent == "Coucou.app"
+            && !FileManager.default.fileExists(atPath: Bundle.main.bundleURL.deletingLastPathComponent().appendingPathComponent("Lumo.app").path)
+        let target = renamed ? Bundle.main.bundleURL.deletingLastPathComponent().appendingPathComponent("Lumo.app").path : current
         func q(_ s: String) -> String { "'" + s.replacingOccurrences(of: "'", with: "'\\''") + "'" }
         let script = """
         #!/bin/sh
         while kill -0 \(ProcessInfo.processInfo.processIdentifier) 2>/dev/null; do sleep 0.2; done
-        rm -rf \(q(target + ".old"))
-        if mv \(q(target)) \(q(target + ".old")) && /usr/bin/ditto \(q(newApp.path)) \(q(target)); then
-          rm -rf \(q(target + ".old"))
+        rm -rf \(q(current + ".old"))
+        APP=\(q(target))
+        if mv \(q(current)) \(q(current + ".old")) && /usr/bin/ditto \(q(newApp.path)) \(q(target)); then
+          rm -rf \(q(current + ".old"))
         else
-          rm -rf \(q(target)); mv \(q(target + ".old")) \(q(target))
+          rm -rf \(q(target)); mv \(q(current + ".old")) \(q(current)); APP=\(q(current))
         fi
-        /usr/bin/xattr -dr com.apple.quarantine \(q(target)) 2>/dev/null
-        /usr/bin/open \(q(target))
+        /usr/bin/xattr -dr com.apple.quarantine "$APP" 2>/dev/null
+        /usr/bin/open "$APP"
         rm -rf \(q(newApp.deletingLastPathComponent().path))
         """
         let file = FileManager.default.temporaryDirectory.appendingPathComponent("coucou-update-\(UUID().uuidString).sh")

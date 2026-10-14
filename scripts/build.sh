@@ -1,8 +1,8 @@
 #!/usr/bin/env bash
-# Builds Coucou for the system you run it on, into dist/:
-#   macOS   → dist/Coucou-<version>-macOS.dmg           (scripts/make-dmg.sh)
-#   Linux   → dist/Coucou-<version>-Linux-<arch>.deb / .rpm / .AppImage
-#   Windows → dist/Coucou-<version>-Windows-setup.exe   (run it from Git Bash)
+# Builds Lumo for the system you run it on, into dist/:
+#   macOS   → dist/Lumo-<version>-macOS.dmg           (scripts/make-dmg.sh)
+#   Linux   → dist/Lumo-<version>-Linux-<arch>.deb / .rpm / .AppImage
+#   Windows → dist/Lumo-<version>-Windows-setup.exe   (run it from Git Bash)
 #
 #   bash scripts/build.sh            the version in scripts/versions.sh
 #
@@ -23,22 +23,22 @@ tauri_build() {
 case "$(uname -s)" in
   Darwin)
     bash scripts/make-dmg.sh "$VERSION"
-    mv -f "dist/Coucou-$VERSION.dmg" "dist/Coucou-$VERSION-macOS.dmg"
-    echo "✓ dist/Coucou-$VERSION-macOS.dmg"
+    mv -f "dist/Lumo-$VERSION.dmg" "dist/Lumo-$VERSION-macOS.dmg"
+    echo "✓ dist/Lumo-$VERSION-macOS.dmg"
     ;;
   Linux)
     ARCH=$(uname -m); [ "$ARCH" = "aarch64" ] && ARCH=arm64
     tauri_build
     shopt -s nullglob
-    for f in windows/target/release/bundle/deb/*.deb; do cp "$f" "dist/Coucou-$VERSION-Linux-$ARCH.deb"; done
-    for f in windows/target/release/bundle/rpm/*.rpm; do cp "$f" "dist/Coucou-$VERSION-Linux-$ARCH.rpm"; done
-    for f in windows/target/release/bundle/appimage/*.AppImage; do cp "$f" "dist/Coucou-$VERSION-Linux-$ARCH.AppImage"; done
-    ls -1 dist/Coucou-"$VERSION"-Linux-* 2>/dev/null | sed 's/^/✓ /'
+    for f in windows/target/release/bundle/deb/*.deb; do cp "$f" "dist/Lumo-$VERSION-Linux-$ARCH.deb"; done
+    for f in windows/target/release/bundle/rpm/*.rpm; do cp "$f" "dist/Lumo-$VERSION-Linux-$ARCH.rpm"; done
+    for f in windows/target/release/bundle/appimage/*.AppImage; do cp "$f" "dist/Lumo-$VERSION-Linux-$ARCH.AppImage"; done
+    ls -1 dist/Lumo-"$VERSION"-Linux-* 2>/dev/null | sed 's/^/✓ /'
     ;;
   MINGW*|MSYS*|CYGWIN*)
     tauri_build
-    cp windows/target/release/bundle/nsis/*-setup.exe "dist/Coucou-$VERSION-Windows-setup.exe"
-    echo "✓ dist/Coucou-$VERSION-Windows-setup.exe"
+    cp windows/target/release/bundle/nsis/*-setup.exe "dist/Lumo-$VERSION-Windows-setup.exe"
+    echo "✓ dist/Lumo-$VERSION-Windows-setup.exe"
     ;;
   *)
     echo "✗ Unknown system $(uname -s)"; exit 1 ;;

@@ -4,7 +4,7 @@ name: Release
 #
 #   a tag like v0.3.0 (bash scripts/release.sh 0.3.0 makes it) → builds macOS
 #   (.dmg), Windows (setup .exe) and Linux (.deb, .rpm, .AppImage — x86_64 and
-#   arm64) and publishes them together as the GitHub release v0.3.0. Coucou for
+#   arm64) and publishes them together as the GitHub release v0.3.0. Lumo for
 #   Mac's update check reads these releases (it picks the .dmg).
 #
 #   Nothing builds on merges to main. To try a build without releasing, run this
@@ -82,17 +82,17 @@ jobs:
           L="${{ needs.version.outputs.label }}"
           bash scripts/make-dmg.sh "$V"
           mkdir -p out
-          mv "dist/Coucou-$V.dmg" "out/Coucou-$L-macOS.dmg"
-          mv "dist/Coucou-$V.zip" "out/Coucou-$L-macOS.zip"
+          mv "dist/Lumo-$V.dmg" "out/Lumo-$L-macOS.dmg"
+          mv "dist/Lumo-$V.zip" "out/Lumo-$L-macOS.zip"
           # Signed for the self-update (Ed25519, checked by the app against UpdateKey.swift).
           if [ -n "$MAC_UPDATE_KEY" ]; then
-            swift scripts/update-signature.swift sign "out/Coucou-$L-macOS.zip" > "out/Coucou-$L-macOS.zip.sig"
+            swift scripts/update-signature.swift sign "out/Lumo-$L-macOS.zip" > "out/Lumo-$L-macOS.zip.sig"
           else
             echo "::warning::MAC_UPDATE_KEY isn't set: no self-update for macOS (run scripts/updater-keys.sh)"
           fi
       - uses: actions/upload-artifact@v4
         with:
-          name: Coucou-macOS
+          name: Lumo-macOS
           path: out/*
           retention-days: 14
 
@@ -139,12 +139,12 @@ jobs:
           fi
           L="${{ needs.version.outputs.label }}"
           mkdir -p ../out
-          cp target/release/bundle/nsis/*-setup.exe "../out/Coucou-$L-Windows-setup.exe"
-          for f in target/release/bundle/nsis/*-setup.exe.sig; do [ -f "$f" ] && cp "$f" "../out/Coucou-$L-Windows-setup.exe.sig"; done
+          cp target/release/bundle/nsis/*-setup.exe "../out/Lumo-$L-Windows-setup.exe"
+          for f in target/release/bundle/nsis/*-setup.exe.sig; do [ -f "$f" ] && cp "$f" "../out/Lumo-$L-Windows-setup.exe.sig"; done
           ls -la ../out
       - uses: actions/upload-artifact@v4
         with:
-          name: Coucou-Windows
+          name: Lumo-Windows
           path: out/*
           retention-days: 14
 
@@ -201,14 +201,14 @@ jobs:
           L="${{ needs.version.outputs.label }}"
           mkdir -p ../out
           shopt -s nullglob
-          for f in target/release/bundle/deb/*.deb; do cp "$f" "../out/Coucou-$L-Linux-${{ matrix.arch }}.deb"; done
-          for f in target/release/bundle/rpm/*.rpm; do cp "$f" "../out/Coucou-$L-Linux-${{ matrix.arch }}.rpm"; done
-          for f in target/release/bundle/appimage/*.AppImage; do cp "$f" "../out/Coucou-$L-Linux-${{ matrix.arch }}.AppImage"; done
-          for f in target/release/bundle/appimage/*.AppImage.sig; do cp "$f" "../out/Coucou-$L-Linux-${{ matrix.arch }}.AppImage.sig"; done
+          for f in target/release/bundle/deb/*.deb; do cp "$f" "../out/Lumo-$L-Linux-${{ matrix.arch }}.deb"; done
+          for f in target/release/bundle/rpm/*.rpm; do cp "$f" "../out/Lumo-$L-Linux-${{ matrix.arch }}.rpm"; done
+          for f in target/release/bundle/appimage/*.AppImage; do cp "$f" "../out/Lumo-$L-Linux-${{ matrix.arch }}.AppImage"; done
+          for f in target/release/bundle/appimage/*.AppImage.sig; do cp "$f" "../out/Lumo-$L-Linux-${{ matrix.arch }}.AppImage.sig"; done
           ls -la ../out
       - uses: actions/upload-artifact@v4
         with:
-          name: Coucou-Linux-${{ matrix.arch }}
+          name: Lumo-Linux-${{ matrix.arch }}
           path: out/*
           retention-days: 14
 
@@ -240,11 +240,11 @@ jobs:
           for name, key in [("Windows-setup.exe", "windows-x86_64"),
                             ("Linux-x86_64.AppImage", "linux-x86_64"),
                             ("Linux-arm64.AppImage", "linux-aarch64")]:
-              sig = f"out/Coucou-{v}-{name}.sig"
+              sig = f"out/Lumo-{v}-{name}.sig"
               if os.path.exists(sig):
-                  platforms[key] = {"signature": open(sig).read().strip(), "url": f"{base}/Coucou-{v}-{name}"}
+                  platforms[key] = {"signature": open(sig).read().strip(), "url": f"{base}/Lumo-{v}-{name}"}
           if platforms:
-              json.dump({"version": v, "notes": f"Coucou {v}", "platforms": platforms,
+              json.dump({"version": v, "notes": f"Lumo {v}", "platforms": platforms,
                          "pub_date": datetime.datetime.now(datetime.timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")},
                         open("out/latest.json", "w"), indent=2)
           PY
@@ -254,12 +254,12 @@ jobs:
 
           | | |
           |---|---|
-          | **macOS** | \`Coucou-$V-macOS.dmg\` — open it and drag Coucou to Applications. The first time, macOS asks: System Settings → Privacy & Security → **Open Anyway**. |
-          | **Windows** | \`Coucou-$V-Windows-setup.exe\` — not code-signed yet: SmartScreen → **More info → Run anyway**. |
+          | **macOS** | \`Lumo-$V-macOS.dmg\` — open it and drag Lumo to Applications (it replaces Coucou if you had it). The first time, macOS asks: System Settings → Privacy & Security → **Open Anyway**. |
+          | **Windows** | \`Lumo-$V-Windows-setup.exe\` — not code-signed yet: SmartScreen → **More info → Run anyway**. |
           | **Linux** | \`.deb\` (Debian, Ubuntu), \`.rpm\` (Fedora, openSUSE) or \`.AppImage\` (anything else: \`chmod +x\`, then run it). x86_64 and arm64. |
 
           NOTES
           gh release view "v$V" >/dev/null 2>&1 || gh release create "v$V" \
-            --title "Coucou $V" --notes-file notes.md --generate-notes \
+            --title "Lumo $V" --notes-file notes.md --generate-notes \
             --notes-start-tag "$(git describe --tags --abbrev=0 "v$V^" 2>/dev/null || true)"
           gh release upload "v$V" out/* --clobber

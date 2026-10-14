@@ -42,7 +42,10 @@
           "libgtk-layer-shell0",
           "libayatana-appindicator3-1"
         ],
-        "section": "devel"
+        "section": "devel",
+        "conflicts": ["coucou"],
+        "replaces": ["coucou"],
+        "provides": ["coucou"]
       },
       "rpm": {
         "depends": [
@@ -50,7 +53,10 @@
           "gtk3",
           "gtk-layer-shell",
           "libayatana-appindicator-gtk3"
-        ]
+        ],
+        "conflicts": ["coucou"],
+        "obsoletes": ["coucou"],
+        "provides": ["coucou"]
       },
       "appimage": {
         "bundleMediaFramework": false

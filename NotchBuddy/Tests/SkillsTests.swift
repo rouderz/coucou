@@ -1,5 +1,5 @@
 import XCTest
-@testable import Coucou
+@testable import Lumo
 
 /// Skills (Settings → Skills and "/" in the chat): front matter, names, GitHub links, matching.
 final class SkillsTests: XCTestCase {

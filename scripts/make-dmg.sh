@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Builds Coucou (Release) and packages it as a drag-to-Applications DMG.
+# Builds Lumo (Release) and packages it as a drag-to-Applications DMG.
 #
 # Usage: bash scripts/make-dmg.sh [version]        e.g. bash scripts/make-dmg.sh 0.2.0
 #
@@ -16,14 +16,14 @@ VERSION="${1:-$(awk -F'"' '/CFBundleShortVersionString/ {print $2; exit}' projec
 BUILD="$(git -C "$ROOT" rev-list --count HEAD)"
 COMMIT="$(git -C "$ROOT" rev-parse --short HEAD)"
 OUT="$ROOT/dist"
-WORK="$(mktemp -d /tmp/coucou-dmg.XXXXXX)"
-APP="$WORK/build/Coucou.app"
-DMG="$OUT/Coucou-$VERSION.dmg"
+WORK="$(mktemp -d /tmp/lumo-dmg.XXXXXX)"
+APP="$WORK/build/Lumo.app"
+DMG="$OUT/Lumo-$VERSION.dmg"
 
 if [ -n "$(git -C "$ROOT" status --porcelain -- NotchBuddy)" ]; then
   echo "⚠️  Uncommitted changes in NotchBuddy/ will be included in this build."
 fi
-echo "▸ Coucou $VERSION (build $BUILD, $COMMIT)"
+echo "▸ Lumo $VERSION (build $BUILD, $COMMIT)"
 
 # ── 1. Release build, unsigned (signed below, after the version is stamped) ──
 xcodegen generate >/dev/null
@@ -50,12 +50,12 @@ else
 fi
 codesign --verify --strict "$APP"
 
-# ── 4. DMG: Coucou.app + a shortcut to /Applications ──
+# ── 4. DMG: Lumo.app + a shortcut to /Applications ──
 mkdir -p "$WORK/dmg" "$OUT"
 cp -R "$APP" "$WORK/dmg/"
 ln -s /Applications "$WORK/dmg/Applications"
 rm -f "$DMG"
-hdiutil create -volname "Coucou $VERSION" -srcfolder "$WORK/dmg" -fs HFS+ -format UDZO -ov "$DMG" >/dev/null
+hdiutil create -volname "Lumo $VERSION" -srcfolder "$WORK/dmg" -fs HFS+ -format UDZO -ov "$DMG" >/dev/null
 
 if [ -n "$IDENTITY" ]; then
   codesign --sign "$IDENTITY" --timestamp "$DMG"
@@ -67,9 +67,14 @@ if [ -n "$IDENTITY" ]; then
 fi
 
 # The app as a zip too: what the self-update downloads (signed by the release workflow).
-ZIP="$OUT/Coucou-$VERSION.zip"
+# Inside, the app is still named Coucou.app: apps from before the rename (0.3.9 and older) only
+# install a Coucou.app from the zip. Lumo's own updater accepts both and installs it as Lumo.app.
+# Once everyone is past the rename, zip "$APP" directly.
+ZIP="$OUT/Lumo-$VERSION.zip"
 rm -f "$ZIP"
-/usr/bin/ditto -c -k --keepParent "$APP" "$ZIP"
+mkdir -p "$WORK/zip"
+/usr/bin/ditto "$APP" "$WORK/zip/Coucou.app"
+/usr/bin/ditto -c -k --keepParent "$WORK/zip/Coucou.app" "$ZIP"
 
 rm -rf "$WORK"
 echo "✓ $DMG ($(du -h "$DMG" | cut -f1))"

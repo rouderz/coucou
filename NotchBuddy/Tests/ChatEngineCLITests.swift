@@ -1,5 +1,5 @@
 import XCTest
-@testable import Coucou
+@testable import Lumo
 
 /// Chat engines that run other agent CLIs (#108): invocation, output parsing, failures.
 /// The samples match the event types defined in the CLIs' own sources (codex-rs/exec/src/exec_events.rs,

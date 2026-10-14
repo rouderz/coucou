@@ -176,8 +176,8 @@ mod tests {
         let json = serde_json::json!({
             "tag_name": "v9.0.0", "html_url": "https://github.com/rouderz/coucou/releases/tag/v9.0.0",
             "assets": [
-                { "name": "Coucou-9.0.0-macOS.dmg", "browser_download_url": "https://x/mac" },
-                { "name": format!("Coucou-9.0.0{}", asset_suffix()), "browser_download_url": "https://x/mine" }
+                { "name": "Lumo-9.0.0-macOS.dmg", "browser_download_url": "https://x/mac" },
+                { "name": format!("Lumo-9.0.0{}", asset_suffix()), "browser_download_url": "https://x/mine" }
             ]
         });
         let info = parse_release(&json, "0.2.1").unwrap();

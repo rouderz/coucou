@@ -1,5 +1,5 @@
 import XCTest
-@testable import Coucou
+@testable import Lumo
 
 /// WhaTicket stats: the arrival / accept log and the numbers drawn from it.
 final class WhaTicketStatsTests: XCTestCase {

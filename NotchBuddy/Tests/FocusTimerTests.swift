@@ -1,5 +1,5 @@
 import XCTest
-@testable import Coucou
+@testable import Lumo
 
 /// Focus timer state machine (#119); mirrors windows/src/core/focus.test.ts.
 final class FocusTimerTests: XCTestCase {

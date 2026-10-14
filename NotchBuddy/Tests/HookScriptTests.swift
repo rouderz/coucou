@@ -1,5 +1,5 @@
 import XCTest
-@testable import Coucou
+@testable import Lumo
 
 /// Runs the real nb-hook script against a fake Lumo socket and checks what it tells Claude Code.
 final class HookScriptTests: XCTestCase {
