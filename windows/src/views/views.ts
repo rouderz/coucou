@@ -191,7 +191,7 @@ export function buildHeader(actions: ViewActions): ViewHost {
   // 🔔 Inbox: GitHub / Linear notifications that need you.
   const inboxCount = h("span", { class: "badge-count" });
   const inboxBtn = h("button", { title: "Inbox", class: "inbox-btn", onclick: () => go("inbox") }, svg(ICONS.bell, 13), inboxCount);
-  // ⬇ A newer Coucou is out.
+  // ⬇ A newer Lumo is out.
   const updateBtn = h("button", {
     class: "update-btn",
     onclick: async () => {
@@ -298,8 +298,8 @@ export function buildHeader(actions: ViewActions): ViewHost {
       updateBtn.classList.toggle("busy", !!u?.installing);
       updateBtn.title = !u ? ""
         : u.installing ? "Updating…"
-        : u.canInstall ? `Coucou ${u.latest} is out — install and restart`
-        : `Coucou ${u.latest} is out — download`;
+        : u.canInstall ? `Lumo ${u.latest} is out — install and restart`
+        : `Lumo ${u.latest} is out — download`;
     },
   };
 }
@@ -911,7 +911,7 @@ function buildQuestion(): ViewHost {
       const task = State.focusTask;
       title.textContent = task?.steps.at(-1) ?? "Claude needs an answer.";
       clear(row);
-      row.append(h("div", { class: "sub", text: "Answer in your terminal — Coucou can't reply for you yet." }));
+      row.append(h("div", { class: "sub", text: "Answer in your terminal — Lumo can't reply for you yet." }));
     },
   };
 }

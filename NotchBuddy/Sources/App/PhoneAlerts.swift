@@ -3,7 +3,7 @@ import CoreGraphics
 import os
 
 /// Phone alerts for approvals nobody answered (#31), through ntfy (https://ntfy.sh): free iOS /
-/// Android app, no account. Coucou posts to a random topic only you know; subscribe to it in the app.
+/// Android app, no account. Lumo posts to a random topic only you know; subscribe to it in the app.
 /// Sends the project and the command, so the topic acts as a password: keep it private.
 @MainActor
 final class PhoneAlerts {
@@ -43,7 +43,7 @@ final class PhoneAlerts {
     }
 
     func sendTest() {
-        send(title: L("Coucou is connected"), message: L("You'll get approvals here when you're away from the Mac."),
+        send(title: L("Lumo is connected"), message: L("You'll get approvals here when you're away from the Mac."),
              priority: "default", tags: "white_check_mark")
     }
 

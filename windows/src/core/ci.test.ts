@@ -99,7 +99,7 @@ test("pill: first poll is quiet, a new commit failing fires again, closed PRs ar
   const passed = sum(done("a", "success"));
   let r = nextPill(emptyMemory(), [pr("o/r#1", "s1", failed)], 0);
   assert.equal(r.pill.color, "failed");
-  assert.deepEqual(r.events, [], "already red when Coucou started: no event");
+  assert.deepEqual(r.events, [], "already red when Lumo started: no event");
   r = nextPill(r.memory, [pr("o/r#1", "s2", failed)], 1);
   assert.deepEqual(r.events.map((e) => e.kind), ["failed"], "new commit, red again");
   r = nextPill(r.memory, [], 2);

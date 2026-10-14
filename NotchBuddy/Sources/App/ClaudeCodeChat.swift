@@ -119,7 +119,7 @@ final class ClaudeCodeChat {
         }
         let dir = try projectDir ?? conversationDir()
         // Reading and searching the project is fine. Edits only when the user turned them on,
-        // and then every change goes through Coucou's approval (PermissionRequest hook → island).
+        // and then every change goes through Lumo's approval (PermissionRequest hook → island).
         // Running commands never.
         let canEdit = projectDir != nil && AppState.shared.chatAllowEdits
         // Code mode (#152): a whole folder, and commands too — each one approved in the island.
@@ -153,7 +153,7 @@ final class ClaudeCodeChat {
             "--allowedTools", allowed,
             "--disallowedTools", disallowed,
         ]
-        // Edits: unanswered prompts are denied, except what Coucou's PermissionRequest hook allows.
+        // Edits: unanswered prompts are denied, except what Lumo's PermissionRequest hook allows.
         args += canEdit ? ["--permission-mode", "default", "--permission-prompts", "none"]
                         : ["--permission-mode", "dontAsk"]
         args += [
@@ -175,7 +175,7 @@ final class ClaudeCodeChat {
         p.currentDirectoryURL = dir
         var env = ProcessInfo.processInfo.environment
         env["PATH"] = install.pathEnv
-        env["COUCOU_INTERNAL"] = "1"  // Coucou's own hook ignores this session.
+        env["COUCOU_INTERNAL"] = "1"  // Lumo's own hook ignores this session.
         p.environment = env
 
         let stdin = Pipe(), stdout = Pipe(), stderr = Pipe()

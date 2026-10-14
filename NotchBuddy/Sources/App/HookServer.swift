@@ -121,12 +121,12 @@ final class HookServer: @unchecked Sendable {
         switch name {
 
         case "EditorContext", "EditorAsk":
-            // Not a hook: the Coucou editor extension (#58).
+            // Not a hook: the Lumo editor extension (#58).
             EditorBridge.shared.handle(event: name, payload: payload)
             return
 
         case "StatusLine":
-            // Not a hook: Coucou's status line forwarding Claude Code's status data.
+            // Not a hook: Lumo's status line forwarding Claude Code's status data.
             var usage = PlanUsage()
             func window(_ any: Any?) -> PlanUsage.Window? {
                 guard let w = any as? [String: Any],
@@ -792,14 +792,14 @@ final class HookServer: @unchecked Sendable {
 
     // MARK: - nb-hook script installation
 
-    /// Claude Code status line command: forwards plan usage to Coucou, then shows the user's own line.
+    /// Claude Code status line command: forwards plan usage to Lumo, then shows the user's own line.
     static var statusLineScriptPath: String { supportDir.appendingPathComponent("coucou-statusline").path }
-    /// The status line command the user had before Coucou's, run after ours so it still shows.
+    /// The status line command the user had before Lumo's, run after ours so it still shows.
     static var previousStatusLinePath: URL { supportDir.appendingPathComponent("statusline-previous") }
 
     enum HookInstallState: Equatable { case notInstalled, needsUpdate, installed }
 
-    /// Whether Coucou's hooks are in ~/.claude/settings.json, and up to date.
+    /// Whether Lumo's hooks are in ~/.claude/settings.json, and up to date.
     static func installState() -> HookInstallState {
         let url = FileManager.default.homeDirectoryForCurrentUser.appendingPathComponent(".claude/settings.json")
         guard let data = try? Data(contentsOf: url),
@@ -814,7 +814,7 @@ final class HookServer: @unchecked Sendable {
         return hooksNeedUpdate() ? .needsUpdate : .installed
     }
 
-    /// Whether ~/.claude/settings.json uses Coucou's status line (needed for the plan usage bars).
+    /// Whether ~/.claude/settings.json uses Lumo's status line (needed for the plan usage bars).
     static func statusLineInstalled() -> Bool {
         let url = FileManager.default.homeDirectoryForCurrentUser.appendingPathComponent(".claude/settings.json")
         guard let data = try? Data(contentsOf: url),
@@ -848,7 +848,7 @@ final class HookServer: @unchecked Sendable {
 
     // MARK: - Outdated hook detection
 
-    /// Returns true if settings.json has a Coucou PermissionRequest hook with timeout < 120s.
+    /// Returns true if settings.json has a Lumo PermissionRequest hook with timeout < 120s.
     static func hooksNeedUpdate() -> Bool {
         let settingsURL = FileManager.default.homeDirectoryForCurrentUser
             .appendingPathComponent(".claude/settings.json")
@@ -940,7 +940,7 @@ final class HookServer: @unchecked Sendable {
         settings["hooks"] = hooks
 
         #if !APPSTORE
-        // Plan usage bars: Claude Code only gives rate limits to its status line, so Coucou's
+        // Plan usage bars: Claude Code only gives rate limits to its status line, so Lumo's
         // status line forwards them, then runs the user's previous status line (kept aside).
         var statusLine = settings["statusLine"] as? [String: Any] ?? [:]
         if let previous = statusLine["command"] as? String, !previous.contains("coucou-statusline") {
@@ -1094,8 +1094,8 @@ extension Notification.Name {
 
 private let nbHookScript = """
 #!/usr/bin/env python3
-# nb-hook — Coucou hook relay for Claude Code (and Codex CLI with --agent codex)
-# Reads JSON from stdin, forwards to Coucou via Unix socket, translates response.
+# nb-hook — Lumo hook relay for Claude Code (and Codex CLI with --agent codex)
+# Reads JSON from stdin, forwards to Lumo via Unix socket, translates response.
 import sys, json, os, socket
 
 def agent_name():
@@ -1105,7 +1105,7 @@ def agent_name():
     return ''
 
 def main():
-    # Coucou's own chat runs through Claude Code too: never report its activity,
+    # Lumo's own chat runs through Claude Code too: never report its activity,
     # only bring its file-edit approvals back to the island.
     internal = os.environ.get('COUCOU_INTERNAL') == '1'
     try:
@@ -1133,13 +1133,13 @@ def main():
         payload['cwd'] = os.getcwd()
 
     event = payload.get('hook_event_name', '')
-    # COUCOU_SOCKET lets the tests talk to a fake Coucou instead of the running app.
+    # COUCOU_SOCKET lets the tests talk to a fake Lumo instead of the running app.
     socket_path = os.environ.get('COUCOU_SOCKET') or os.path.expanduser(
         '~/Library/Application Support/NotchBuddy/nb.sock'
     )
 
     if event == 'PermissionRequest':
-        # Block and wait for Coucou's decision (Claude Code allows up to 120s)
+        # Block and wait for Lumo's decision (Claude Code allows up to 120s)
         try:
             s = socket.socket(socket.AF_UNIX, socket.SOCK_STREAM)
             s.settimeout(118)
@@ -1177,7 +1177,7 @@ def main():
                     sys.stdout.flush()
                     sys.exit(0)
                 elif decision == 'deny':
-                    out = {'hookSpecificOutput': {'hookEventName': 'PermissionRequest', 'decision': {'behavior': 'deny', 'message': 'Denied from Coucou'}}}
+                    out = {'hookSpecificOutput': {'hookEventName': 'PermissionRequest', 'decision': {'behavior': 'deny', 'message': 'Denied from Lumo'}}}
                     sys.stdout.write(json.dumps(out) + '\\n')
                     sys.stdout.flush()
                     sys.exit(0)
@@ -1202,13 +1202,13 @@ main()
 sys.exit(0)
 """
 
-// MARK: - Status line script (plan usage → Coucou)
+// MARK: - Status line script (plan usage → Lumo)
 
 private let statusLineScript = """
 #!/usr/bin/env python3
-# coucou-statusline: Claude Code status line for Coucou.
-# Forwards the status data (plan usage, context window) to the Coucou app, then prints
-# the user's own status line, if they had one before installing Coucou's hooks.
+# coucou-statusline: Claude Code status line for Lumo.
+# Forwards the status data (plan usage, context window) to the Lumo app, then prints
+# the user's own status line, if they had one before installing Lumo's hooks.
 import sys, json, os, socket, subprocess
 
 SUPPORT = os.path.expanduser('~/Library/Application Support/NotchBuddy')
@@ -1244,12 +1244,12 @@ main()
 
 private let nbHookScriptAppStore = """
 #!/usr/bin/env python3
-# nb-hook — Coucou (App Store) hook relay for Claude Code
+# nb-hook — Lumo (App Store) hook relay for Claude Code
 # Socket lives inside the sandboxed container; script runs outside the sandbox.
 import sys, json, os, socket
 
 def main():
-    # Coucou's own chat runs through Claude Code too: never report its activity,
+    # Lumo's own chat runs through Claude Code too: never report its activity,
     # only bring its file-edit approvals back to the island.
     internal = os.environ.get('COUCOU_INTERNAL') == '1'
     try:
@@ -1278,7 +1278,7 @@ def main():
     )
 
     if event == 'PermissionRequest':
-        # Block and wait for Coucou's decision (Claude Code allows up to 120s)
+        # Block and wait for Lumo's decision (Claude Code allows up to 120s)
         try:
             s = socket.socket(socket.AF_UNIX, socket.SOCK_STREAM)
             s.settimeout(118)
@@ -1313,7 +1313,7 @@ def main():
                     sys.stdout.flush()
                     sys.exit(0)
                 elif decision == 'deny':
-                    out = {'hookSpecificOutput': {'hookEventName': 'PermissionRequest', 'decision': {'behavior': 'deny', 'message': 'Denied from Coucou'}}}
+                    out = {'hookSpecificOutput': {'hookEventName': 'PermissionRequest', 'decision': {'behavior': 'deny', 'message': 'Denied from Lumo'}}}
                     sys.stdout.write(json.dumps(out) + '\\n')
                     sys.stdout.flush()
                     sys.exit(0)

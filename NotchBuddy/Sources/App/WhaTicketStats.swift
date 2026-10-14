@@ -14,7 +14,7 @@ import UniformTypeIdentifiers
 // the extension's check-ins.
 //
 //  - "arrived": a ticket id seen in the queue (pending) for the first time.
-//  - "accepted": an arrived ticket that moved into my open tickets, by a click in Coucou
+//  - "accepted": an arrived ticket that moved into my open tickets, by a click in Lumo
 //    ("click"), auto-accept ("auto") or anywhere else, e.g. the web app ("web"); `wait` = seconds
 //    between the arrival and the accept.
 //  - One arrival and one accept per ticket and day at most.
@@ -99,7 +99,7 @@ struct WhaTicketTracker: Sendable {
             changed = true
         }
         // Moved from the queue into my tickets, by any means: accepted elsewhere (a click or
-        // auto-accept in Coucou is logged as soon as the extension confirms it).
+        // auto-accept in Lumo is logged as soon as the extension confirms it).
         let waiting = Set(pending.map(\.id))
         for id in mine where !waiting.contains(id) {
             if accept(id, how: "web", now: now, day: day) { changed = true }

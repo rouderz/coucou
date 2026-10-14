@@ -38,7 +38,7 @@ struct IntegrationCardView: View {
         }
     }
 
-    /// Claude Code status line: whether Coucou's hooks are in ~/.claude/settings.json.
+    /// Claude Code status line: whether Lumo's hooks are in ~/.claude/settings.json.
     private var claudeHookStatus: (text: String, color: Color) {
         isConfigured
             ? (L("Hooks installed"), Color(hex: "#22C55E"))

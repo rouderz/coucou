@@ -147,7 +147,7 @@ final class OpenAICompatibleChat: ChatProvider {
         if let key { req.setValue("Bearer \(key)", forHTTPHeaderField: "Authorization") }
         if preset.id == "openrouter" {
             req.setValue("https://github.com/rouderz/coucou", forHTTPHeaderField: "HTTP-Referer")
-            req.setValue("Coucou", forHTTPHeaderField: "X-Title")
+            req.setValue("Lumo", forHTTPHeaderField: "X-Title")
         }
         req.httpBody = try JSONSerialization.data(withJSONObject: body)
 

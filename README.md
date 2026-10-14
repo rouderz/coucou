@@ -1,8 +1,8 @@
 <div align="center">
 
-<img src="NotchBuddy/Assets.xcassets/AppIcon.appiconset/icon_256x256.png" width="96" alt="Coucou icon">
+<img src="NotchBuddy/Assets.xcassets/AppIcon.appiconset/icon_256x256.png" width="96" alt="Lumo icon">
 
-# Coucou — rouderz fork
+# Lumo
 
 **A notch companion for Claude Code power users.** Watch every session, approve from the notch
 (or your phone), see the diff Claude is about to write, and chat or code with your own little character —
@@ -16,14 +16,16 @@ using your Claude Code subscription, no API key needed. On macOS, Windows and Li
 [![macOS build](https://github.com/rouderz/coucou/actions/workflows/build.yml/badge.svg)](https://github.com/rouderz/coucou/actions/workflows/build.yml)
 [![Windows and Linux build](https://github.com/rouderz/coucou/actions/workflows/desktop.yml/badge.svg)](https://github.com/rouderz/coucou/actions/workflows/desktop.yml)
 
-<img src="docs/media/demo.gif" width="760" alt="Coucou in action">
+<img src="docs/media/demo.gif" width="760" alt="Lumo in action">
 
 </div>
 
-> Fork of [Louis-CFM/coucou](https://github.com/Louis-CFM/coucou) by Louis Raillé. Mochi is gone:
-> this fork has its own characters (Bao, Pip, Nube, Lumo and Tecla, under CC BY 4.0). The name, the
-> icon and the sounds are still Louis Raillé's and are not covered by the MIT license — see
-> [License](#license-and-copyright). This fork is for personal use until it has its own name and icon.
+> **Lumo** started as a fork of [Coucou](https://github.com/Louis-CFM/coucou) by Louis Raillé and is now
+> its own app, by rouderz: its own name, its own characters (Lumo, Bao, Pip, Nube and Tecla, under CC BY 4.0)
+> and its own island. Coucou's name, icon and sounds stay Louis Raillé's and are not covered by the MIT
+> license — the icon and sounds still used here are being replaced; see [License](#license-and-copyright).
+> Internally the app keeps Coucou's identifiers (bundle id, data folders, installer file names) so
+> existing installs keep their settings, permissions and updates.
 
 ---
 
@@ -73,7 +75,7 @@ has the details for Windows and Linux.
 
 **Work apps**
 - **WhaTicket** — the WhatsApp ticket queue and your tickets in the island, Accept in one click, and optional auto-accept (by queue and hours). It works through a small Chrome / Edge extension ([`extensions/whaticket`](extensions/whaticket)) that uses the whaticket.com session you already have open — no token, no admin access. Set it up from Settings → WhaTicket. Stats there count the tickets that arrived and the ones you accepted (by click, auto-accept or elsewhere), with waits, per hour, day and queue, and CSV export — kept locally for a year, ticket ids and queues only.
-- **AliExpress** — your orders grouped by the box they ship in (same tracking number), with one PDF invoice per box and a CSV of every product for Excel or Google Sheets, saved to Downloads/Coucou/AliExpress. Its own small Chrome / Edge extension, Coucou for AliExpress ([`extensions/aliexpress`](extensions/aliexpress)), reads your own order pages with the session you already have open; Coucou never calls AliExpress. Set it up from Settings → AliExpress. The invoice is your own document: it cites the AliExpress order numbers and says it isn't issued by AliExpress. Buyer details for the invoice live in the Keychain / credential store (Settings → AliExpress).
+- **AliExpress** — your orders grouped by the box they ship in (same tracking number), with one PDF invoice per box and a CSV of every product for Excel or Google Sheets, saved to Downloads/Lumo/AliExpress. Its own small Chrome / Edge extension, Lumo for AliExpress ([`extensions/aliexpress`](extensions/aliexpress)), reads your own order pages with the session you already have open; Lumo never calls AliExpress. Set it up from Settings → AliExpress. The invoice is your own document: it cites the AliExpress order numbers and says it isn't issued by AliExpress. Buyer details for the invoice live in the Keychain / credential store (Settings → AliExpress).
 - **Gmail** — what matches your search (unread in the inbox by default); "Ask" hands a mail to the chat. Read-only, with your own Google Cloud OAuth client.
 
 **Everyday**
@@ -90,18 +92,18 @@ has the details for Windows and Linux.
 
 | | File | First launch (not code-signed yet) |
 |---|---|---|
-| macOS | `Coucou-<version>-macOS.dmg` — drag Coucou to Applications | System Settings → Privacy & Security → **Open Anyway** |
+| macOS | `Coucou-<version>-macOS.dmg` — drag Lumo to Applications | System Settings → Privacy & Security → **Open Anyway** |
 | Windows | `Coucou-<version>-Windows-setup.exe` | SmartScreen → **More info → Run anyway** |
 | Linux | `.deb`, `.rpm` or `.AppImage`, x86_64 and arm64 | — |
 
-Coucou for Mac checks for new releases itself (Settings → Updates). To try a build without releasing, run the
+Lumo for Mac checks for new releases itself (Settings → Updates). To try a build without releasing, run the
 [Release workflow](https://github.com/rouderz/coucou/actions/workflows/release.yml) by hand: the files stay on the run as artifacts.
 
 Builds aren't code-signed yet (#38, #39), hence the warnings on first launch.
 
-**Updates itself:** Coucou installs new versions by itself and restarts (Mac: Settings → Updates →
+**Updates itself:** Lumo installs new versions by itself and restarts (Mac: Settings → Updates →
 *Install and restart*; Windows and the Linux AppImage: the ⬇ in the island). Every download is checked
-against Coucou's signing key first. `.deb` / `.rpm` installs and copies the user can't write to fall back
+against Lumo's signing key first. `.deb` / `.rpm` installs and copies the user can't write to fall back
 to downloading the new package.
 
 ## Releasing
@@ -151,7 +153,7 @@ Menu bar icon (Mac) or tray icon (Windows, Linux) → **Settings…**
 
 | What | Why |
 |---|---|
-| **Claude Code Hooks → Install / Update hooks** | live sessions, approvals and plan usage. Coucou backs up `~/.claude/settings.json` and shows the diff first. |
+| **Claude Code Hooks → Install / Update hooks** | live sessions, approvals and plan usage. Lumo backs up `~/.claude/settings.json` and shows the diff first. |
 | **Chat → Engine** | *Claude Code (subscription)* needs nothing else; *Anthropic API key* goes to the Keychain. |
 | **Character** | pick the character, give integrations their own, choose notch or free placement. |
 | **Hotkey** | ⌃⌥M ask about the file · ⌃⌥V push-to-talk · ⌥⏎ / ⌥⌫ approvals. Grant Accessibility for ⌃⌥M (Mac). |
@@ -160,7 +162,7 @@ Menu bar icon (Mac) or tray icon (Windows, Linux) → **Settings…**
 | **Google** | Gmail and Drive: create a free "Desktop app" OAuth client in Google Cloud, paste it, Connect. |
 | **General → Idle notch** | Windows / Linux: the small notch left at the top when the island hides; turn it off to leave only an invisible strip. |
 
-If Coucou isn't running, the hook exits at once: **Claude Code is never blocked.**
+If Lumo isn't running, the hook exits at once: **Claude Code is never blocked.**
 
 ## Shortcuts
 
@@ -175,15 +177,15 @@ If Coucou isn't running, the hook exits at once: **Claude Code is never blocked.
 ## Privacy
 
 No telemetry, no account. Keys live in the macOS Keychain, the Windows Credential Manager or the Linux
-Secret Service (GNOME Keyring, KWallet) — never on disk. Coucou talks only to the services you configure, plus:
+Secret Service (GNOME Keyring, KWallet) — never on disk. Lumo talks only to the services you configure, plus:
 
 - Anthropic (`api.anthropic.com`) with your Claude Code login, to read plan usage;
 - your ntfy server, if you turn on phone alerts (it receives the project and the command — keep the topic private);
 - GitHub (`api.github.com`, `github.com`), to check for and download updates — turn it off in Settings → Updates;
 - GitHub again only when you paste a link to install a skill from it;
-- Google's APIs (Gmail, Drive), only if you connect them. WhaTicket and AliExpress are read by the browser extension in your own tab; Coucou itself never calls it.
+- Google's APIs (Gmail, Drive), only if you connect them. WhaTicket and AliExpress are read by the browser extension in your own tab; Lumo itself never calls it.
 
-The editor extension talks to Coucou over a local socket (named pipe on Windows) only.
+The editor extension talks to Lumo over a local socket (named pipe on Windows) only.
 
 ## How it works
 
@@ -197,13 +199,13 @@ The editor extension talks to Coucou over a local socket (named pipe on Windows)
 
 **Windows and Linux** (`windows/`)
 - **Island**: a transparent, always-on-top Tauri window at the top centre (a layer-shell surface on Wayland); the characters are drawn in Canvas 2D like on the Mac.
-- **Claude Code / Codex**: `coucou-hook` relays hook events over a named pipe (Windows) or a `0600` Unix socket (Linux), and exits at once if Coucou isn't there.
+- **Claude Code / Codex**: `coucou-hook` relays hook events over a named pipe (Windows) or a `0600` Unix socket (Linux), and exits at once if Lumo isn't there.
 - **Backend** in Rust (`windows/src-tauri/`), front end in TypeScript with no framework (`windows/src/`).
 - What differs between Windows and Linux lives in `windows/src-tauri/src/platform/`.
 
 ## License and copyright
 
-Coucou has three kinds of content, each with its own owner and terms:
+Lumo has three kinds of content, each with its own owner and terms:
 
 | What | Copyright | License | Details |
 |---|---|---|---|
@@ -217,7 +219,7 @@ libraries — Tauri and its plugins, the `windows` crate, GTK / WebKitGTK bindin
 under its own license (mostly MIT and/or Apache-2.0); their notices apply to the binaries you download.
 
 **Trademarks.** Claude and Claude Code are Anthropic's; GitHub, Linear, Gmail, Google Drive, WhaTicket,
-AliExpress, Proton VPN, Cloudflare WARP, Visual Studio Code and the other services Coucou connects to belong to
-their owners. Coucou is not affiliated with or endorsed by any of them.
+AliExpress, Proton VPN, Cloudflare WARP, Visual Studio Code and the other services Lumo connects to belong to
+their owners. Lumo is not affiliated with or endorsed by any of them.
 
 Original project: built by [Louis Raillé](https://louisraille.fr) with Claude Code. This fork: rouderz.

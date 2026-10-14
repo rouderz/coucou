@@ -42,7 +42,7 @@
         "coucou.shareContext": {
           "type": "boolean",
           "default": true,
-          "description": "Keep Coucou updated with the active file, cursor, selection and problems (stays on this computer, over a local socket or pipe)."
+          "description": "Keep Lumo updated with the active file, cursor, selection and problems (stays on this computer, over a local socket or pipe)."
         },
         "coucou.showStatusBar": {
           "type": "boolean",

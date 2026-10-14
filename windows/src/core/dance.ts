@@ -9,7 +9,7 @@
 import type { BotStateName } from "./layout";
 import type { NowPlayingState } from "./nowplaying";
 
-/** Players don't expose the tempo and Coucou looks nothing up online: a fixed, easy beat. */
+/** Players don't expose the tempo and Lumo looks nothing up online: a fixed, easy beat. */
 export const DANCE_BPM = 110;
 /** Seconds per beat. */
 export const BEAT = 60 / DANCE_BPM;

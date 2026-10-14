@@ -1,9 +1,9 @@
-// Coucou for WhaTicket — background service worker.
+// Lumo for WhaTicket — background service worker.
 //
 // While a whaticket.com tab is open, content.js hands us the page's own session
 // token every few seconds. We read the queue with it (the same calls the web app
-// makes, with the same permissions as you), send a summary to Coucou through
-// native messaging, and run what Coucou answers: "accept ticket X" is the same
+// makes, with the same permissions as you), send a summary to Lumo through
+// native messaging, and run what Lumo answers: "accept ticket X" is the same
 // POST /tickets/{id}/assign the Accept button sends.
 //
 // We never refresh or store the session ourselves: whaticket.com renews it in the
@@ -17,7 +17,7 @@ const API = "https://api.whaticket.com";
 // Every channel the web app lists in its inbox (it leaves out INTERNAL chats).
 const CHANNELS = ["FACEBOOK", "INSTAGRAM", "WHATSAPP", "WIDGET", "WABA", "WABA-COEX", "TIKTOK", "TELEGRAM", "SANDBOX"];
 const QUEUES_EVERY_MS = 10 * 60 * 1000;
-// Coucou shows a handful; this keeps one check-in well under native messaging's limits.
+// Lumo shows a handful; this keeps one check-in well under native messaging's limits.
 const MAX_TICKETS = 200;
 
 // ── Pure helpers (tested in background.test.js) ──────────────────────────────
@@ -55,7 +55,7 @@ function ticketsPath(status, usersIds = []) {
   return `/tickets?${p.toString()}`;
 }
 
-/** The few fields Coucou shows, from one ticket of the API. */
+/** The few fields Lumo shows, from one ticket of the API. */
 function ticketView(t, queues = []) {
   const contact = t.contact || {};
   const queueId = t.queueId == null ? null : String(t.queueId);
@@ -134,7 +134,7 @@ async function snapshot(token) {
 }
 
 /**
- * Runs Coucou's commands. Only tickets still waiting in the queue we just read are
+ * Runs Lumo's commands. Only tickets still waiting in the queue we just read are
  * accepted: a click can wait a few seconds, and by then a colleague may have it.
  */
 async function run(token, commands, pendingIds) {
@@ -155,9 +155,9 @@ async function run(token, commands, pendingIds) {
   return results;
 }
 
-// ── Coucou (native messaging) ─────────────────────────────────────────────────
+// ── Lumo (native messaging) ─────────────────────────────────────────────────
 
-function toCoucou(message) {
+function toLumo(message) {
   return new Promise((resolve) => {
     try {
       chrome.runtime.sendNativeMessage(HOST, message, (reply) => {
@@ -198,18 +198,18 @@ async function tick(token) {
     } catch (e) {
       data = { error: e instanceof SessionError ? "session" : String(e.message || e) };
     }
-    let reply = await toCoucou({ kind: "snapshot", ...data });
+    let reply = await toLumo({ kind: "snapshot", ...data });
     if (reply.unreachable) {
-      badge(false, "Coucou isn't answering: open Coucou and set up the browser extension in Settings → WhaTicket.");
+      badge(false, "Lumo isn't answering: open Lumo and set up the browser extension in Settings → WhaTicket.");
       return { interval: 30 };
     }
-    // Coucou's answer: tickets to accept now (a click, or auto-accept).
+    // Lumo's answer: tickets to accept now (a click, or auto-accept).
     const pendingIds = new Set((data.pending || []).map((t) => t.id));
     const results = await run(token, reply.commands, pendingIds);
-    if (results.length) reply = await toCoucou({ kind: "results", results });
+    if (results.length) reply = await toLumo({ kind: "results", results });
     badge(!data.error, data.error === "session"
       ? "whaticket.com needs you to sign in again (or use the tab once)."
-      : data.error ? `WhaTicket: ${data.error}` : "Connected to Coucou");
+      : data.error ? `WhaTicket: ${data.error}` : "Connected to Lumo");
     return { interval: Number(reply.interval) || 15 };
   } finally {
     busy = false;
@@ -219,7 +219,7 @@ async function tick(token) {
 // ── Learn mode (temporary) ────────────────────────────────────────────────────
 // Logs the writes the web app itself makes (method, path, JSON body; never the session
 // token) so the send-message call can be copied. Read it in chrome://extensions →
-// "Coucou for WhaTicket" → service worker → Console. Local only: nothing is sent anywhere.
+// "Lumo for WhaTicket" → service worker → Console. Local only: nothing is sent anywhere.
 if (typeof chrome !== "undefined" && chrome.webRequest && chrome.webRequest.onBeforeRequest) {
   chrome.webRequest.onBeforeRequest.addListener((d) => {
     if (d.method === "GET" || d.method === "OPTIONS" || d.url.includes("/assign")) return;

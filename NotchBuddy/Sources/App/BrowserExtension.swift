@@ -1,7 +1,7 @@
 import AppKit
 
-// Coucou's browser extensions (Chrome, Edge, Brave, Chromium, Arc): Coucou for WhaTicket and
-// Coucou for AliExpress, two separate extensions on one native-messaging host. Same as
+// Lumo's browser extensions (Chrome, Edge, Brave, Chromium, Arc): Lumo for WhaTicket and
+// Lumo for AliExpress, two separate extensions on one native-messaging host. Same as
 // windows/src-tauri/src/browser.rs.
 //
 // Setting it up puts three things in place:
@@ -14,7 +14,7 @@ import AppKit
 //
 // Not available in the App Store build: the sandbox can't write into other apps' folders.
 
-/// One of Coucou's browser extensions: its files ship in the app (Resources/<resources>) and are
+/// One of Lumo's browser extensions: its files ship in the app (Resources/<resources>) and are
 /// copied to ~/Library/Application Support/NotchBuddy/<dirName> for "Load unpacked".
 struct ChromeExtension: Sendable {
     let name: String
@@ -46,13 +46,13 @@ struct ChromeExtension: Sendable {
 enum BrowserExtension {
     static let host = "fr.louisraille.coucou"
 
-    /// Coucou for WhaTicket (extensions/whaticket).
+    /// Lumo for WhaTicket (extensions/whaticket).
     static let whaticket = ChromeExtension(
-        name: "Coucou for WhaTicket", id: "jcdddeeehgafiakcgaabpiocfdijekce", resources: "whaticket",
+        name: "Lumo for WhaTicket", id: "jcdddeeehgafiakcgaabpiocfdijekce", resources: "whaticket",
         dirName: "browser-extension", files: ["manifest.json", "background.js", "content.js"])
-    /// Coucou for AliExpress (extensions/aliexpress): a separate extension on the same host.
+    /// Lumo for AliExpress (extensions/aliexpress): a separate extension on the same host.
     static let aliexpress = ChromeExtension(
-        name: "Coucou for AliExpress", id: "fkdhifnmpmkjgkaacobdgohnnnlpgmil", resources: "aliexpress",
+        name: "Lumo for AliExpress", id: "fkdhifnmpmkjgkaacobdgohnnnlpgmil", resources: "aliexpress",
         dirName: "aliexpress-extension", files: ["manifest.json", "background.js", "content.js", "aliexpress-core.js"])
     static let all = [whaticket, aliexpress]
 
@@ -82,7 +82,7 @@ enum BrowserExtension {
     static func hostManifest(path: String) -> String {
         let body: [String: Any] = [
             "name": host,
-            "description": "Coucou — WhaTicket and AliExpress in the notch",
+            "description": "Lumo — WhaTicket and AliExpress in the notch",
             "path": path,
             "type": "stdio",
             "allowed_origins": all.map { "chrome-extension://\($0.id)/" },
@@ -132,7 +132,7 @@ enum BrowserExtension {
         try fm.createDirectory(at: ext.dir, withIntermediateDirectories: true)
         for file in ext.files {
             guard let data = ext.bundled(file) else {
-                throw Failure.message(L("This build of Coucou doesn't include the browser extension."))
+                throw Failure.message(L("This build of Lumo doesn't include the browser extension."))
             }
             try data.write(to: ext.dir.appendingPathComponent(file), options: .atomic)
         }
@@ -166,13 +166,13 @@ enum BrowserExtension {
     }
 }
 
-/// coucou-native-host: the browser's door into Coucou. Chrome / Edge start it with the extension's
+/// coucou-native-host: the browser's door into Lumo. Chrome / Edge start it with the extension's
 /// origin as the first argument and speak native messaging on stdin / stdout (a 4-byte native-endian
 /// length, then UTF-8 JSON). It forwards the one message to nb.sock as a `WhaTicketBrowser` event and
-/// hands Coucou's answer back — or says Coucou isn't running.
+/// hands Lumo's answer back — or says Lumo isn't running.
 private let nativeHostScript = """
 #!/usr/bin/env python3
-# coucou-native-host — native-messaging host for the Coucou browser extensions (WhaTicket, AliExpress).
+# coucou-native-host — native-messaging host for the Lumo browser extensions (WhaTicket, AliExpress).
 import sys, json, os, socket, struct
 
 MAX = 1 << 20
@@ -228,7 +228,7 @@ def main():
     except Exception:
         answer = None
     if not isinstance(answer, dict):
-        answer = {'unreachable': "Coucou isn't running"}
+        answer = {'unreachable': "Lumo isn't running"}
     write_message(answer)
 
 main()

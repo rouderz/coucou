@@ -3,9 +3,9 @@ import Foundation
 
 // Graphify (https://github.com/Graphify-Labs/graphify): a knowledge graph of each project.
 //
-// Coucou finds the `graphify` CLI, shows the state of each project's `graphify-out/`
+// Lumo finds the `graphify` CLI, shows the state of each project's `graphify-out/`
 // (none / fresh / stale against git) and runs Build / Update on a click. Rules:
-//   - Coucou never installs Python packages: it only shows the install command.
+//   - Lumo never installs Python packages: it only shows the install command.
 //   - Builds use `--code-only` (tree-sitter, local, no LLM, no network).
 //   - Nothing is written in a project except `graphify-out/`. No `--watch` process, no git hooks.
 // Same logic as windows/src/core/graphify.ts (pure functions, tested in GraphifyTests).
@@ -42,7 +42,7 @@ struct GraphifyStamp: Equatable, Sendable {
 enum GraphifyLogic {
     static let installCommand = "uv tool install graphifyy"
     static let outDir = "graphify-out"
-    /// Written by Coucou after a successful build, inside graphify-out/.
+    /// Written by Lumo after a successful build, inside graphify-out/.
     static let stampFile = ".coucou-build.json"
     /// Default size cap (characters) of a `graphify query` result attached to a chat.
     static let queryCap = 6000
@@ -90,7 +90,7 @@ enum GraphifyLogic {
         (7...64).contains(s.count) && s.allSatisfy { $0.isASCII && $0.isHexDigit }
     }
 
-    /// Coucou's own stamp file. Anything unexpected is nil (the graph then counts as unknown).
+    /// Lumo's own stamp file. Anything unexpected is nil (the graph then counts as unknown).
     static func parseStamp(_ text: String) -> GraphifyStamp? {
         guard let data = text.data(using: .utf8),
               let obj = try? JSONSerialization.jsonObject(with: data) as? [String: Any],

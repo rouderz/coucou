@@ -80,14 +80,14 @@ function claudeSection(status: HookStatus): HTMLElement {
       h("div", {
         class: "hint",
         text: status.outdated
-          ? "Coucou's hooks are installed but out of date. Update them to get every event and approvals that don't time out."
+          ? "Lumo's hooks are installed but out of date. Update them to get every event and approvals that don't time out."
           : status.installed
-          ? "Coucou is hooked into your Claude Code sessions. Tool calls, questions and permission requests show up in the island, and you can answer them there."
+          ? "Lumo is hooked into your Claude Code sessions. Tool calls, questions and permission requests show up in the island, and you can answer them there."
           : "Install the hooks to see your Claude Code sessions in the island and approve permissions without leaving what you are doing.",
       }),
       h("div", {
         class: "hint",
-        text: "The plan usage bars come from Claude Code's status line: the hooks add Coucou's, unless you already have your own (then it stays, and the bars stay empty).",
+        text: "The plan usage bars come from Claude Code's status line: the hooks add Lumo's, unless you already have your own (then it stays, and the bars stay empty).",
       }),
       h("div", { class: "row" },
         h("label", { text: "settings.json" }),
@@ -103,7 +103,7 @@ function claudeSection(status: HookStatus): HTMLElement {
     if (!status.hookReady) {
       body.append(h("div", {
         class: "notice warn",
-        text: "The relay (coucou-hook) is not in place yet. Restart Coucou; if it still fails, build it with `cargo build -p coucou-hook`.",
+        text: "The relay (coucou-hook) is not in place yet. Restart Lumo; if it still fails, build it with `cargo build -p coucou-hook`.",
       }));
     }
 
@@ -154,7 +154,7 @@ function claudeSection(status: HookStatus): HTMLElement {
         class: "hint",
         text: install
           ? "This is exactly what will change in your settings.json. Your own hooks are left untouched."
-          : "This removes Coucou's entries only. Your own hooks are left untouched.",
+          : "This removes Lumo's entries only. Your own hooks are left untouched.",
       }),
       renderDiff(preview.diff),
       h("div", { class: "row" },
@@ -207,8 +207,8 @@ function codexSection(initial: { found: boolean; installed: boolean; hooksPath: 
       text: !status.found
         ? "Codex CLI isn't set up here yet. Install it and run it once to follow its sessions and approve them from the island too."
         : status.installed
-        ? "Coucou's hooks are in Codex. Run /hooks in Codex once to review and trust them; its sessions then show up next to Claude Code's."
-        : "Coucou can follow Codex CLI sessions and approve them from the island. Codex is never blocked if Coucou isn't running.",
+        ? "Lumo's hooks are in Codex. Run /hooks in Codex once to review and trust them; its sessions then show up next to Claude Code's."
+        : "Lumo can follow Codex CLI sessions and approve them from the island. Codex is never blocked if Lumo isn't running.",
     }));
     if (status.found) {
       body.append(h("div", { class: "row" },
@@ -956,7 +956,7 @@ function googleSection(connected: boolean, hasClient: boolean): HTMLElement {
   draw();
   return h("section", {},
     h("h2", {}, h("i", { class: "dot", style: "background:#EA4335" }), h("span", { text: "Google" })),
-    h("div", { class: "hint", text: "Gmail in the island and your Drive files in the chat (type @ and a file name). Read-only: Coucou never sends mail or changes files." }),
+    h("div", { class: "hint", text: "Gmail in the island and your Drive files in the chat (type @ and a file name). Read-only: Lumo never sends mail or changes files." }),
     h("div", { class: "hint", text: "One-time setup, free: in console.cloud.google.com create a project, turn on the Gmail API and the Google Drive API, set up the OAuth consent screen (External, add yourself as a test user, then Publish it so the sign-in doesn't expire every 7 days), and create an OAuth client ID of type \"Desktop app\". Paste its ID and secret here." }),
     clientRow("google-client-id", "Client ID", hasClient ? "••••••••  (stored)" : "….apps.googleusercontent.com", false),
     clientRow("google-client-secret", "Client secret", hasClient ? "••••••••  (stored)" : "GOCSPX-…", true),
@@ -971,7 +971,7 @@ function googleSection(connected: boolean, hasClient: boolean): HTMLElement {
 // ── AliExpress (packages and invoices) ────────────────────────────────────────
 
 function aliexpressSection(ext: BrowserStatus | null): HTMLElement {
-  // Coucou for AliExpress: its own browser extension, on the same native-messaging host.
+  // Lumo for AliExpress: its own browser extension, on the same native-messaging host.
   const extStatus = h("div", { class: "hint" });
   const install = h("button", { text: "Set up browser extension" }) as HTMLButtonElement;
   const reveal = h("button", { text: "Show folder" }) as HTMLButtonElement;
@@ -1023,7 +1023,7 @@ function aliexpressSection(ext: BrowserStatus | null): HTMLElement {
   } });
   return h("section", {},
     h("h2", {}, h("i", { class: "dot", style: "background:#FF4747" }), h("span", { text: "AliExpress" })),
-    h("div", { class: "hint", text: "Coucou groups your AliExpress orders by the box they ship in (same tracking number) and makes one invoice per box — PDF to your Downloads/Coucou/AliExpress folder — plus a CSV of every product for Excel or Google Sheets. It reads your own order pages through its own small Chrome / Edge extension, Coucou for AliExpress, with the session you already have open." }),
+    h("div", { class: "hint", text: "Lumo groups your AliExpress orders by the box they ship in (same tracking number) and makes one invoice per box — PDF to your Downloads/Lumo/AliExpress folder — plus a CSV of every product for Excel or Google Sheets. It reads your own order pages through its own small Chrome / Edge extension, Lumo for AliExpress, with the session you already have open." }),
     h("div", { class: "row" }, install, reveal),
     extStatus,
     h("ol", { class: "hint", style: "margin:4px 0 0 18px;padding:0;line-height:1.6" },
@@ -1108,7 +1108,7 @@ function whaticketSection(browser: BrowserStatus | null): HTMLElement {
 
   return h("section", {},
     h("h2", {}, h("i", { class: "dot", style: "background:#25D366" }), h("span", { text: "WhaTicket" })),
-    h("div", { class: "hint", text: "Coucou reads your whaticket.com queue through a small Chrome / Edge extension that uses the session you already have open — no token, no password, and it never signs you out." }),
+    h("div", { class: "hint", text: "Lumo reads your whaticket.com queue through a small Chrome / Edge extension that uses the session you already have open — no token, no password, and it never signs you out." }),
     h("div", { class: "row" }, install, reveal),
     status,
     h("ol", { class: "hint", style: "margin:4px 0 0 18px;padding:0;line-height:1.6" },
@@ -1124,7 +1124,7 @@ function whaticketSection(browser: BrowserStatus | null): HTMLElement {
     ),
     queues,
     h("div", { class: "row" }, h("label", { text: "Only between" }), hours),
-    h("div", { class: "hint", text: "Only while your whaticket.com tab is open. Never during Do not disturb, never group chats, never tickets an AI agent is handling. Coucou only assigns the ticket — it never writes to the customer." }),
+    h("div", { class: "hint", text: "Only while your whaticket.com tab is open. Never during Do not disturb, never group chats, never tickets an AI agent is handling. Lumo only assigns the ticket — it never writes to the customer." }),
     whaticketStatsBlock(),
   );
 }
@@ -1186,7 +1186,7 @@ function whaticketStatsBlock(): HTMLElement {
         stat("Average wait", duration(s.averageWait)),
         stat("Median wait", duration(s.medianWait)),
       ),
-      h("div", { class: "hint", text: `From Coucou ${s.click} · Auto-accepted ${s.auto} · Elsewhere ${s.web}` }),
+      h("div", { class: "hint", text: `From Lumo ${s.click} · Auto-accepted ${s.auto} · Elsewhere ${s.web}` }),
     );
     if (s.backlog > 0) {
       body.append(h("div", { class: "hint", text: `${s.backlog} were already waiting when the tab opened (not in the per-hour chart or the waits).` }));
@@ -1385,10 +1385,10 @@ function skillsSection(targets: { id: string; label: string }[]): HTMLElement {
           h("div", { class: "hint", text: `${sk.files.length} files: ${files}` }),
           h("div", { class: "hint" }, h("span", { text: "Installs to " }), h("span", { class: "path", text: sk.dest })),
           sk.hasScripts
-            ? h("div", { class: "notice warn", text: "It has scripts. Coucou never runs them, but Claude may when it uses the skill — read them first." })
+            ? h("div", { class: "notice warn", text: "It has scripts. Lumo never runs them, but Claude may when it uses the skill — read them first." })
             : h("span", {}),
           sk.exists
-            ? h("div", { class: "notice warn", text: "A skill with this name is already there; installing replaces it (the old one is kept in Coucou's trash)." })
+            ? h("div", { class: "notice warn", text: "A skill with this name is already there; installing replaces it (the old one is kept in Lumo's trash)." })
             : h("span", {}),
         ),
       ));
@@ -1538,7 +1538,7 @@ function updatesSection(): HTMLElement {
       const info = await Bridge.checkUpdate();
       url = info.url;
       canInstall = info.newer ? (await Bridge.updateCanInstall()) ?? false : false;
-      status.textContent = info.newer ? `Coucou ${info.latest} is out (you have ${info.current}).` : `You're up to date (${info.current}).`;
+      status.textContent = info.newer ? `Lumo ${info.latest} is out (you have ${info.current}).` : `You're up to date (${info.current}).`;
       link.textContent = canInstall ? "Install and restart" : "Download";
       link.style.display = info.newer ? "" : "none";
     } catch (err) {
@@ -1928,7 +1928,7 @@ async function main() {
     tabBar.append(b);
   }
   root.append(
-    h("h1", {}, h("span", { text: "Coucou" }), h("span", { class: "version", text: version })),
+    h("h1", {}, h("span", { text: "Lumo" }), h("span", { class: "version", text: version })),
     tabBar,
     ...pages.flatMap(([, , sections]) => sections),
     h("div", {

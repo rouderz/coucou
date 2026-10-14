@@ -1,4 +1,4 @@
-// Coucou for Windows — app wiring and the commands the island calls.
+// Lumo for Windows — app wiring and the commands the island calls.
 
 mod claude;
 mod alerts;
@@ -563,7 +563,7 @@ fn browser_reveal() {
     browser::reveal(&browser::WHATICKET);
 }
 
-/// Coucou for AliExpress: its own extension, on the same native-messaging host.
+/// Lumo for AliExpress: its own extension, on the same native-messaging host.
 #[tauri::command]
 fn aliexpress_extension_install() -> Result<browser::Status, String> {
     browser::install(&browser::ALIEXPRESS)
@@ -797,7 +797,7 @@ async fn phone_alert(
 
 #[tauri::command]
 async fn phone_test(server: String, topic: String) -> Result<(), String> {
-    alerts::send(&server, &topic, "Coucou is connected",
+    alerts::send(&server, &topic, "Lumo is connected",
         "You'll get approvals here when you're away from the computer.", "default", "white_check_mark").await
 }
 
@@ -1008,7 +1008,7 @@ fn create_settings_window(app: &AppHandle) {
     let url = settings_page_url(app);
     match WebviewWindowBuilder::new(app, "settings", url)
         .additional_browser_args(BROWSER_ARGS)
-        .title("Settings — Coucou")
+        .title("Settings — Lumo")
         .inner_size(560.0, 680.0)
         .min_inner_size(460.0, 480.0)
         .resizable(true)
@@ -1223,7 +1223,7 @@ pub fn run() {
             island::spawn_topmost_keeper(handle.clone());
             buddy::sync(&handle);
 
-            log::line(format!("--- Coucou {} started ---", env!("CARGO_PKG_VERSION")));
+            log::line(format!("--- Lumo {} started ---", env!("CARGO_PKG_VERSION")));
             hooks::ensure_hook_exe(&handle);
             secrets::forget_retired();
             pipe::start(handle.clone());
@@ -1233,5 +1233,5 @@ pub fn run() {
             Ok(())
         })
         .run(tauri::generate_context!())
-        .expect("error while running Coucou");
+        .expect("error while running Lumo");
 }

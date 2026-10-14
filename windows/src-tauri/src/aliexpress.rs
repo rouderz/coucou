@@ -1,11 +1,11 @@
 // AliExpress: your orders grouped by the box they ship in, and one invoice per box.
 // Same behaviour as NotchBuddy/Sources/App/AliExpress.swift.
 //
-// Coucou for AliExpress, its own browser extension (extensions/aliexpress), reads your own AliExpress
+// Lumo for AliExpress, its own browser extension (extensions/aliexpress), reads your own AliExpress
 // order pages, groups the orders by tracking number and checks in here (kind "aliexpress").
-// Coucou shows the packages and answers with what to do — make a package's invoice, export a
-// CSV, refresh — which the extension does in the browser (files in Downloads/Coucou/AliExpress).
-// Coucou makes no AliExpress requests and keeps no AliExpress credentials; the buyer details for
+// Lumo shows the packages and answers with what to do — make a package's invoice, export a
+// CSV, refresh — which the extension does in the browser (files in Downloads/Lumo/AliExpress).
+// Lumo makes no AliExpress requests and keeps no AliExpress credentials; the buyer details for
 // the invoices are the user's own, in the credential store ("aliexpress-buyer").
 
 use std::collections::HashSet;

@@ -1,7 +1,7 @@
 import AppKit
 import os
 
-/// What the Coucou editor extension (VS Code, Cursor, Windsurf, VSCodium…) last reported (#58).
+/// What the Lumo editor extension (VS Code, Cursor, Windsurf, VSCodium…) last reported (#58).
 struct EditorReport: Sendable {
     let appName: String          // vscode.env.appName: "Visual Studio Code", "Cursor"…
     let file: String
@@ -13,7 +13,7 @@ struct EditorReport: Sendable {
     let receivedAt: Date
 }
 
-/// Receives `EditorContext` / `EditorAsk` messages from the extension over Coucou's socket and
+/// Receives `EditorContext` / `EditorAsk` messages from the extension over Lumo's socket and
 /// turns them into the chat's code context. More precise than Accessibility: exact file, cursor,
 /// selection and the editor's diagnostics.
 @MainActor

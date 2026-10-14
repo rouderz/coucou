@@ -352,7 +352,7 @@ enum CharacterChat {
     /// What the integration shows right now, as the chat's context file.
     private static func attachContext(_ task: AgentTask, state: AppState) {
         let critter = state.critter(for: task.id)
-        var lines = ["You are \(critter.displayName), the character in charge of \(task.name) in Coucou.",
+        var lines = ["You are \(critter.displayName), the character in charge of \(task.name) in Lumo.",
                      "Answer questions about \(task.name) using what it shows right now:"]
         lines += task.steps.isEmpty ? ["(nothing to show yet)"] : task.steps.map { "- \($0)" }
         let dir = FileManager.default.temporaryDirectory.appendingPathComponent("Coucou", isDirectory: true)

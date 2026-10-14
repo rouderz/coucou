@@ -1,8 +1,8 @@
 <div align="center">
 
-<img src="src-tauri/icons/128x128.png" width="96" alt="Coucou icon">
+<img src="src-tauri/icons/128x128.png" width="96" alt="Lumo icon">
 
-# Coucou for Windows and Linux
+# Lumo for Windows and Linux
 
 **Your character doesn't get a notch on a PC — so it brings its own, at the top of your screen.**
 
@@ -37,7 +37,7 @@ builds before (`Trojan:Win32/Wacatac.H!ml`, a machine-learning false positive);
 if that happens, [build it yourself](#build-it-yourself) — it takes a few minutes.
 
 **Updates:** when a new version is out, a ⬇ appears in the island. Click it and
-Coucou downloads the update, checks its signature, installs it and restarts.
+Lumo downloads the update, checks its signature, installs it and restarts.
 The Windows installer and the AppImage update themselves; `.deb` and `.rpm`
 installs (owned by the package manager) open the download instead. Turn the
 check off in Settings → Updates.
@@ -66,7 +66,7 @@ island with **Deny / Allow**, a finished session shows what it did, and
 your integrations sit in the coloured pills next to the character.
 
 When the island hides, a small notch stays at the top centre, like the Mac's, so
-Coucou never seems gone. Coucou also keeps itself above other always-on-top
+Lumo never seems gone. Lumo also keeps itself above other always-on-top
 windows (the taskbar, full-screen apps). Don't want the notch? **Settings →
 General → Idle notch** leaves only an invisible strip at the top edge.
 
@@ -77,13 +77,13 @@ General → Idle notch** leaves only an invisible strip at the top edge.
 Open **Settings… → Claude Code → Install hooks…**. You get the exact diff of what
 will change in `%USERPROFILE%\.claude\settings.json`, the path of the dated backup
 that will be taken, and nothing is written until you click. Your own hooks are
-never touched, and uninstalling removes only Coucou's entries.
+never touched, and uninstalling removes only Lumo's entries.
 
 The relay is a tiny executable, `coucou-hook.exe`, copied to
-`%LOCALAPPDATA%\Coucou\bin\` at launch. It is given 300 ms to reach Coucou and
+`%LOCALAPPDATA%\Coucou\bin\` at launch. It is given 300 ms to reach Lumo and
 exits cleanly if the app is closed, slow or crashed — **a Claude Code session is
-never blocked or slowed down by Coucou.** If nobody answers a permission request
-in time, Coucou stays quiet and Claude Code asks in the terminal as usual.
+never blocked or slowed down by Lumo.** If nobody answers a permission request
+in time, Lumo stays quiet and Claude Code asks in the terminal as usual.
 
 It works from any terminal — Windows Terminal, PowerShell, VS Code, Git Bash.
 
@@ -96,7 +96,7 @@ it at). Keys live in the **Windows Credential Manager** or the Linux **Secret
 Service** (GNOME Keyring, KWallet), never on disk and never in the interface —
 the island can only ask whether a key exists. Same for every integration key.
 
-No telemetry. The only network requests Coucou makes are to the services you
+No telemetry. The only network requests Lumo makes are to the services you
 configure yourself, and to GitHub to check for updates (Settings → Updates).
 
 ## Build it yourself
@@ -187,7 +187,7 @@ What changes:
 **Wayland** gives apps neither a global cursor nor a say in where windows go, so
 there the island is a *layer-shell* surface anchored to the top edge (KDE Plasma,
 Sway, Hyprland, and other wlroots compositors), and the page tracks the pointer
-itself. GNOME has no layer-shell: on GNOME Coucou runs through XWayland
+itself. GNOME has no layer-shell: on GNOME Lumo runs through XWayland
 (`GDK_BACKEND=x11`) automatically. Set `GDK_BACKEND` yourself to override.
 
 To build it:
@@ -235,7 +235,7 @@ npx tauri build         # .deb, .rpm and .AppImage in target/release/bundle/
 
 ## License
 
-The code is [MIT](../LICENSE). The name Coucou, the Mochi character, the icons
+The code is [MIT](../LICENSE). The name Lumo, the Mochi character, the icons
 (including the ones `scripts/gen-icons.mjs` draws) and the sounds are Louis
 Raillé's and are not covered by it — see [LICENSE-ASSETS.md](../LICENSE-ASSETS.md).
 The characters (Bao, Pip, Nube, Lumo, Tecla) are under CC BY 4.0 — see

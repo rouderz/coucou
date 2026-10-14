@@ -166,7 +166,7 @@ async fn fetch_github() -> Option<Vec<InboxItem>> {
         .get("https://api.github.com/notifications?participating=true&per_page=30")
         .header("Authorization", format!("Bearer {token}"))
         .header("Accept", "application/vnd.github+json")
-        .header("User-Agent", "Coucou")
+        .header("User-Agent", "Lumo")
         .send()
         .await
         .ok()?;
@@ -252,7 +252,7 @@ pub async fn dismiss(app: AppHandle, id: String) {
                     .patch(format!("https://api.github.com/notifications/threads/{}", item.remote_id))
                     .header("Authorization", format!("Bearer {token}"))
                     .header("Accept", "application/vnd.github+json")
-                    .header("User-Agent", "Coucou")
+                    .header("User-Agent", "Lumo")
                     .send()
                     .await;
             }

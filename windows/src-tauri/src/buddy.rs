@@ -82,7 +82,7 @@ fn page_url(app: &AppHandle) -> WebviewUrl {
 fn create_one(app: &AppHandle, label: &str, browser_args: &str) {
     match WebviewWindowBuilder::new(app, label, page_url(app))
         .additional_browser_args(browser_args)
-        .title("Coucou")
+        .title("Lumo")
         .inner_size(W, H)
         .resizable(false)
         .decorations(false)

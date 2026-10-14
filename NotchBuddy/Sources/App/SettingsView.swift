@@ -244,7 +244,7 @@ struct SettingsView: View {
                                         .buttonStyle(.bordered)
                                 }
                             } else {
-                                Text("Choose your ~/.claude folder so Coucou can add its hooks.")
+                                Text("Choose your ~/.claude folder so Lumo can add its hooks.")
                                     .font(.system(size: 12))
                                     .foregroundColor(.secondary)
                                 Button("Choose .claude folder…") { chooseClaudeFolder() }
@@ -273,7 +273,7 @@ struct SettingsView: View {
                             #endif
 
                             if showDiff {
-                                Text("Coucou will write this to ~/.claude/settings.json (your current file is backed up first). Review it, then confirm.")
+                                Text("Lumo will write this to ~/.claude/settings.json (your current file is backed up first). Review it, then confirm.")
                                     .font(.system(size: 11))
                                     .foregroundColor(.secondary)
                                     .fixedSize(horizontal: false, vertical: true)
@@ -721,7 +721,7 @@ struct SettingsView: View {
                 if tab == .claude {
                     GroupBox("Auto-approve (Claude Code)") {
                         VStack(alignment: .leading, spacing: 8) {
-                            Text("Coucou can answer Allow for you, per project. High-risk requests always ask. Auto-allowed steps show in the session timeline.")
+                            Text("Lumo can answer Allow for you, per project. High-risk requests always ask. Auto-allowed steps show in the session timeline.")
                                 .font(.system(size: 11))
                                 .foregroundColor(.secondary)
                                 .fixedSize(horizontal: false, vertical: true)
@@ -848,7 +848,7 @@ struct SettingsView: View {
                                 HStack(spacing: 6) {
                                     Circle().fill(calendarAllowed ? Color.green : Color.orange).frame(width: 7, height: 7)
                                     Text(calendarAllowed ? "Calendar access granted"
-                                                         : "Coucou needs access to your calendars to see when you're in a meeting")
+                                                         : "Lumo needs access to your calendars to see when you're in a meeting")
                                         .font(.system(size: 11))
                                     Spacer()
                                     if !calendarAllowed {
@@ -891,7 +891,7 @@ struct SettingsView: View {
                             .onChange(of: language) { _, value in value.apply() }
                             if language != AppLanguage.atLaunch {
                                 HStack {
-                                    Text("Restart Coucou to apply the new language.")
+                                    Text("Restart Lumo to apply the new language.")
                                         .font(.system(size: 11))
                                         .foregroundColor(.secondary)
                                     Spacer()
@@ -1037,7 +1037,7 @@ struct SettingsView: View {
     #if APPSTORE
     private func chooseClaudeFolder() {
         let panel = NSOpenPanel()
-        panel.message = L("Choose your .claude folder so Coucou can add its hooks")
+        panel.message = L("Choose your .claude folder so Lumo can add its hooks")
         panel.prompt = "Choose"
         panel.canChooseFiles = false
         panel.canChooseDirectories = true
@@ -1444,7 +1444,7 @@ struct CodexHooksSection: View {
                          ? "Run /hooks in Codex once to review and trust them. Codex sessions then show up next to Claude Code's."
                          : status == .unavailable
                          ? "Install Codex CLI and run it once to see its sessions and approvals here too."
-                         : "Coucou can follow Codex CLI sessions and approve them from the island. Codex is never blocked if Coucou isn't running.")
+                         : "Lumo can follow Codex CLI sessions and approve them from the island. Codex is never blocked if Lumo isn't running.")
                         .font(.system(size: 11))
                         .foregroundColor(.secondary)
                         .fixedSize(horizontal: false, vertical: true)
@@ -1492,10 +1492,10 @@ struct HookStatusRow: View {
                      : "Hooks not installed")
                     .font(.system(size: 12.5, weight: .semibold))
                 Text(status == .installed
-                     ? "Claude Code sessions, approvals and plan usage are connected to Coucou."
+                     ? "Claude Code sessions, approvals and plan usage are connected to Lumo."
                      : status == .needsUpdate
                      ? "Update them to get the latest: approvals that don't time out, plan usage bars."
-                     : "Install them so Coucou sees your Claude Code sessions and can approve from the island. Claude Code is never blocked if Coucou isn't running.")
+                     : "Install them so Lumo sees your Claude Code sessions and can approve from the island. Claude Code is never blocked if Lumo isn't running.")
                     .font(.system(size: 11))
                     .foregroundColor(.secondary)
                     .fixedSize(horizontal: false, vertical: true)

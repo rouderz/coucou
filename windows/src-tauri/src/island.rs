@@ -343,7 +343,7 @@ pub fn apply_input_region(app: &AppHandle, gate: &PollGate) {
 }
 
 /// Other always-on-top windows (and some full-screen apps) can push the island
-/// under them, after which nothing reaches the wake strip and Coucou looks gone.
+/// under them, after which nothing reaches the wake strip and Lumo looks gone.
 /// Re-assert our place every couple of seconds: one cheap call, no polling of the
 /// cursor, so a hidden island still costs nothing.
 pub fn spawn_topmost_keeper(app: AppHandle) {

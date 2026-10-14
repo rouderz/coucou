@@ -64,7 +64,7 @@ targets:
       - path: ../extensions/whaticket
         buildPhase: resources
         type: folder
-      # Coucou for AliExpress, its own extension, copied out by Settings → AliExpress.
+      # Lumo for AliExpress, its own extension, copied out by Settings → AliExpress.
       - path: ../extensions/aliexpress
         buildPhase: resources
         type: folder
@@ -75,8 +75,8 @@ targets:
     info:
       path: Resources/Info.plist
       properties:
-        CFBundleName: Coucou
-        CFBundleDisplayName: Coucou
+        CFBundleName: Lumo
+        CFBundleDisplayName: Lumo
         CFBundleIdentifier: fr.louisraille.NotchBuddy
         CFBundleVersion: "2"
         CFBundleShortVersionString: "0.3.9"
@@ -90,7 +90,7 @@ targets:
         NSAccessibilityUsageDescription: "To read the active window and the file you're editing, and attach them as context."
         NSAppTransportSecurity:
           NSAllowsLocalNetworking: true
-        NSCalendarsFullAccessUsageDescription: "Do not disturb: Coucou stays quiet while you're in a calendar event."
+        NSCalendarsFullAccessUsageDescription: "Do not disturb: Lumo stays quiet while you're in a calendar event."
         NSMicrophoneUsageDescription: "Push-to-talk: Mochi listens only while you hold the shortcut."
         NSSpeechRecognitionUsageDescription: "Push-to-talk: your voice is transcribed on this Mac to ask Mochi."
     settings:
@@ -120,8 +120,8 @@ targets:
     info:
       path: Resources/InfoAppStore.plist
       properties:
-        CFBundleName: Coucou
-        CFBundleDisplayName: Coucou
+        CFBundleName: Lumo
+        CFBundleDisplayName: Lumo
         CFBundleIdentifier: fr.louisraille.Coucou
         CFBundleVersion: "2"
         CFBundleShortVersionString: "1.0"
@@ -135,7 +135,7 @@ targets:
         ITSAppUsesNonExemptEncryption: NO
         NSAppTransportSecurity:
           NSAllowsLocalNetworking: true
-        NSCalendarsFullAccessUsageDescription: "Do not disturb: Coucou stays quiet while you're in a calendar event."
+        NSCalendarsFullAccessUsageDescription: "Do not disturb: Lumo stays quiet while you're in a calendar event."
         NSMicrophoneUsageDescription: "Push-to-talk: Mochi listens only while you hold the shortcut."
         NSSpeechRecognitionUsageDescription: "Push-to-talk: your voice is transcribed on this Mac to ask Mochi."
     settings:
@@ -162,7 +162,7 @@ targets:
       base:
         PRODUCT_BUNDLE_IDENTIFIER: fr.louisraille.NotchBuddyTests
         GENERATE_INFOPLIST_FILE: YES
-        # The app's product is "Coucou", not the target name
+        # The app's product is "Lumo", not the target name
         TEST_HOST: "$(BUILT_PRODUCTS_DIR)/Coucou.app/Contents/MacOS/Coucou"
         BUNDLE_LOADER: "$(TEST_HOST)"
         MACOSX_DEPLOYMENT_TARGET: "15.0"

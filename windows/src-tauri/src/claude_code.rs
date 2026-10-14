@@ -320,7 +320,7 @@ async fn run_turn(
     let mut cmd = tokio::process::Command::new(program);
     cmd.args(args)
         .current_dir(dir)
-        // Coucou's own relay ignores this session (it is the chat, not your work) except
+        // Lumo's own relay ignores this session (it is the chat, not your work) except
         // for its approvals, which come to the island (Code mode, #152).
         .env("COUCOU_INTERNAL", "1")
         .stdin(Stdio::piped())

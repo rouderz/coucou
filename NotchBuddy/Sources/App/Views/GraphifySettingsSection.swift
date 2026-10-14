@@ -3,7 +3,7 @@ import AppKit
 import SwiftUI
 
 /// Settings → Graphify: is the CLI there, and the knowledge graph of each project Claude Code ran in.
-/// Coucou never installs graphify: it shows the command to run.
+/// Lumo never installs graphify: it shows the command to run.
 struct GraphifySettingsSection: View {
     @ObservedObject private var store = GraphifyStore.shared
 
@@ -21,7 +21,7 @@ struct GraphifySettingsSection: View {
 
             if case .missing = store.cli {
                 VStack(alignment: .leading, spacing: 4) {
-                    Text("Coucou doesn't install it. Run this in a terminal, then press Refresh:")
+                    Text("Lumo doesn't install it. Run this in a terminal, then press Refresh:")
                         .font(.system(size: 11)).foregroundColor(.secondary)
                     HStack {
                         Text(verbatim: GraphifyLogic.installCommand)

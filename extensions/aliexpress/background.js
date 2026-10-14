@@ -1,12 +1,12 @@
-// Coucou for AliExpress — the background service worker.
+// Lumo for AliExpress — the background service worker.
 //
 // Keeps the orders read from your AliExpress pages in this browser (chrome.storage.local), reads
 // the pages still missing (an order's detail, its tracking) in one minimised window of its own,
-// and tells Coucou about the packages through native messaging. Coucou answers with what to do:
+// and tells Lumo about the packages through native messaging. Lumo answers with what to do:
 // make a package's invoice (PDF), export everything (CSV for Excel / Sheets), or refresh. Files go
-// to your Downloads folder, under Coucou/AliExpress.
+// to your Downloads folder, under Lumo/AliExpress.
 //
-// A separate extension from Coucou for WhaTicket (extensions/whaticket); both talk to the same
+// A separate extension from Lumo for WhaTicket (extensions/whaticket); both talk to the same
 // native-messaging host, which lets either extension id in.
 
 "use strict";
@@ -15,7 +15,7 @@ if (typeof importScripts === "function") importScripts("aliexpress-core.js");
 
 const HOST = "fr.louisraille.coucou";
 
-function toCoucou(message) {
+function toLumo(message) {
   return new Promise((resolve) => {
     try {
       chrome.runtime.sendNativeMessage(HOST, message, (reply) => {
@@ -40,7 +40,7 @@ function badge(ok, title) {
 
 (function () {
   if (typeof chrome === "undefined" || !chrome.runtime || !chrome.storage) return;
-  const A = self.CoucouAli;
+  const A = self.LumoAli;
   const ORIGIN = "https://www.aliexpress.com/";
   const KEY = "aliexpress";
 
@@ -63,7 +63,7 @@ function badge(ok, title) {
       : `${ORIGIN}p/tracking/index.html?tradeOrderId=${f.id}`;
   }
 
-  /** Reads the pages Coucou still needs, one at a time, in a minimised window closed at the end. */
+  /** Reads the pages Lumo still needs, one at a time, in a minimised window closed at the end. */
   async function fetchMissing() {
     if (fetching) return;
     fetching = true;
@@ -98,7 +98,7 @@ function badge(ok, title) {
     } finally {
       if (win) chrome.windows.remove(win.id).catch(() => {});
       fetching = false;
-      tellCoucou();
+      tellLumo();
     }
   }
 
@@ -112,17 +112,17 @@ function badge(ok, title) {
     await save(state);
     if (waiting && waiting.tabId === tabId) waiting.resolve(true);
     if (page === "list") fetchMissing();
-    tellCoucou();
+    tellLumo();
   }
 
-  // ── Coucou ────────────────────────────────────────────────────────────────
+  // ── Lumo ────────────────────────────────────────────────────────────────
 
   let nextCheckAt = 0;
 
-  async function tellCoucou() {
+  async function tellLumo() {
     const state = await load();
     const packages = A.packagesOf(state.orders);
-    const reply = await toCoucou({
+    const reply = await toLumo({
       kind: "aliexpress",
       orders: Object.keys(state.orders).length,
       packages: A.summary(packages, state.orders),
@@ -130,10 +130,10 @@ function badge(ok, title) {
       files: state.files.slice(-10),
     });
     if (reply.unreachable) {
-      badge(false, "Coucou for AliExpress — Coucou isn't running or isn't set up (Settings → AliExpress)");
+      badge(false, "Lumo for AliExpress — Lumo isn't running or isn't set up (Settings → AliExpress)");
       return;
     }
-    badge(true, `Coucou for AliExpress — ${packages.length} packages`);
+    badge(true, `Lumo for AliExpress — ${packages.length} packages`);
     nextCheckAt = Date.now() + (Number(reply.interval) || 60) * 1000;
     for (const cmd of reply.commands || []) await runCommand(cmd);
   }
@@ -155,11 +155,11 @@ function badge(ok, title) {
       const bytes = A.invoicePdf(inv, {
         buyer: cmd.buyer || {}, number, date, lang: cmd.lang === "es" ? "es" : "en", images: await pictures(inv.lines),
       });
-      const name = `Coucou/AliExpress/${cmd.lang === "es" ? "Factura" : "Invoice"} ${number} ${safe(pkg.tracking)}.pdf`;
+      const name = `Lumo/AliExpress/${cmd.lang === "es" ? "Factura" : "Invoice"} ${number} ${safe(pkg.tracking)}.pdf`;
       await download(state, name, bytes, "application/pdf", { tracking: pkg.tracking, number });
     } else if (cmd.op === "csv") {
       const bytes = new TextEncoder().encode("﻿" + A.csv(packages, state.orders)); // BOM: Excel reads UTF-8
-      await download(state, `Coucou/AliExpress/aliexpress-${date}.csv`, bytes, "text/csv", { csv: true });
+      await download(state, `Lumo/AliExpress/aliexpress-${date}.csv`, bytes, "text/csv", { csv: true });
     }
     await save(state);
   }
@@ -215,7 +215,7 @@ function badge(ok, title) {
     let bin = "";
     for (let i = 0; i < bytes.length; i += 0x8000) bin += String.fromCharCode(...bytes.subarray(i, i + 0x8000));
     const id = await chrome.downloads.download({ url: `data:${mime};base64,${btoa(bin)}`, filename, saveAs: false, conflictAction: "overwrite" });
-    // Where it landed (Coucou shows it and opens it).
+    // Where it landed (Lumo shows it and opens it).
     await new Promise((r) => setTimeout(r, 800));
     const [item] = await chrome.downloads.search({ id });
     state.files.push({ ...meta, path: item ? item.filename : filename, at: Date.now() });
@@ -231,10 +231,10 @@ function badge(ok, title) {
     return false;
   });
 
-  // Coucou's buttons (invoice, export, refresh) are picked up at the next check-in.
+  // Lumo's buttons (invoice, export, refresh) are picked up at the next check-in.
   chrome.alarms.create("coucou-aliexpress", { periodInMinutes: 0.5 });
   chrome.alarms.onAlarm.addListener((alarm) => {
     if (alarm.name !== "coucou-aliexpress" || Date.now() < nextCheckAt) return;
-    load().then((s) => { if (Object.keys(s.orders).length) tellCoucou(); });
+    load().then((s) => { if (Object.keys(s.orders).length) tellLumo(); });
   });
 })();

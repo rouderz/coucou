@@ -458,14 +458,14 @@ function aliexpressCard(): HTMLElement {
       text: "↓ " + file.split(/[\\/]/).pop(), onclick: (e: Event) => { e.stopPropagation(); void Bridge.revealDownload(file); } }));
   }
   rows.append(tools);
-  if (!packages.length) rows.append(h("div", { class: "int-empty", text: "Open your AliExpress orders in Chrome or Edge once: Coucou reads them from there." }));
+  if (!packages.length) rows.append(h("div", { class: "int-empty", text: "Open your AliExpress orders in Chrome or Edge once: Lumo reads them from there." }));
   const sorted = [...packages].sort((a, b) => Number(delivered(a.status)) - Number(delivered(b.status)));
   for (const p of sorted.slice(0, 12)) {
     const tracking = String(p.tracking);
     const orders = Array.isArray(p.orders) ? p.orders.length : 0;
     const money = `${p.currency === "USD" || !p.currency ? "$" : `${p.currency} `}${Number(p.total ?? 0).toFixed(2)}`;
     const invoice = h("button", { class: "int-mini", text: busy.has(tracking) ? "…" : "Invoice",
-      title: "Make the invoice of this box (PDF in Downloads/Coucou/AliExpress)" }) as HTMLButtonElement;
+      title: "Make the invoice of this box (PDF in Downloads/Lumo/AliExpress)" }) as HTMLButtonElement;
     invoice.disabled = busy.has(tracking);
     invoice.addEventListener("click", async (e) => {
       e.stopPropagation();

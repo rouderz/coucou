@@ -71,13 +71,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Do not disturb: Coucou stays quiet while you're in a calendar event."
+            "value": "Do not disturb: Lumo stays quiet while you're in a calendar event."
           }
         },
         "es": {
           "stringUnit": {
             "state": "translated",
-            "value": "No molestar: Coucou se queda en silencio mientras estás en un evento del calendario."
+            "value": "No molestar: Lumo se queda en silencio mientras estás en un evento del calendario."
           }
         }
       }

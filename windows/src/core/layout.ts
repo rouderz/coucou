@@ -126,7 +126,7 @@ export function islandSize(
   switch (mode) {
     case "hidden":
       // No notch to hide inside on a PC. By default a small notch stays at the
-      // top centre, like the Mac's, so Coucou never seems gone; without it the
+      // top centre, like the Mac's, so Lumo never seems gone; without it the
       // island retracts into the top edge and only the wake strip remains.
       return IDLE.notch ? { w: IDLE_NOTCH_W, h: IDLE_NOTCH_H } : { w: NOTCH_W, h: 0 };
     case "compact":

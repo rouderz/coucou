@@ -48,7 +48,7 @@ let pendingTimeout: number | null = null;
 const queueTimers = new Map<string, number>();
 
 interface HookPayload {
-  /** Coucou's own chat (Code mode, #152) asking to edit or run something. */
+  /** Lumo's own chat (Code mode, #152) asking to edit or run something. */
   coucou_internal?: boolean;
   hook_event_name?: string;
   request_id?: string;
@@ -369,7 +369,7 @@ function show(island: Island, approval: ApprovalInfo) {
       approval.risk === "high",
     );
   }, PHONE_DELAY_MS);
-  // Coucou answers within 108 s or not at all; after that the terminal has
+  // Lumo answers within 108 s or not at all; after that the terminal has
   // taken over and the card would be lying.
   pendingTimeout = window.setTimeout(() => {
     pendingTimeout = null;

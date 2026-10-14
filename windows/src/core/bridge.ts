@@ -147,7 +147,7 @@ export const Bridge = {
   browserInstall: () => callOrThrow<BrowserStatus>("browser_install"),
   browserStatus: () => call<BrowserStatus>("browser_status"),
   browserReveal: () => call<void>("browser_reveal"),
-  /** Coucou for AliExpress: its own extension, same host. */
+  /** Lumo for AliExpress: its own extension, same host. */
   aliexpressExtensionInstall: () => callOrThrow<BrowserStatus>("aliexpress_extension_install"),
   aliexpressExtensionStatus: () => call<BrowserStatus>("aliexpress_extension_status"),
   aliexpressExtensionReveal: () => call<void>("aliexpress_extension_reveal"),
@@ -326,7 +326,7 @@ export interface HookPreview {
 
 /** Same as `call`, but surfaces the error so the UI can show what went wrong. */
 async function callOrThrow<T>(cmd: string, args?: Record<string, unknown>): Promise<T> {
-  if (!IS_TAURI) throw new Error("not running inside Coucou");
+  if (!IS_TAURI) throw new Error("not running inside Lumo");
   return invoke<T>(cmd, args);
 }
 

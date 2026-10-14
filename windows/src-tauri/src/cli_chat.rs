@@ -3,7 +3,7 @@
 // page builds the conversation and reads the output (src/claude/chatEngines.ts).
 //
 // Like the Claude Code engine it never reads the CLI's credentials, runs in an empty
-// folder of Coucou's own (never a project), and sets COUCOU_INTERNAL=1 so the chat's
+// folder of Lumo's own (never a project), and sets COUCOU_INTERNAL=1 so the chat's
 // hooks never reach the island. Codex runs in its read-only sandbox; Gemini keeps its
 // default approval mode (no edit-capable mode is asked for).
 //

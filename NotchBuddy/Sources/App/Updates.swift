@@ -73,7 +73,7 @@ final class Updates: ObservableObject {
                 latest = release
                 if announce, !wasKnown, available != nil, !DoNotDisturb.shared.isActive {
                     log.info("update available: \(release.version, privacy: .public)")
-                    AppState.shared.noteMessage = L("Coucou \(release.version) is available · Settings → Updates")
+                    AppState.shared.noteMessage = L("Lumo \(release.version) is available · Settings → Updates")
                     NotificationCenter.default.post(name: .hookExpand, object: IslandView.note)
                 }
             } catch {
@@ -105,7 +105,7 @@ final class Updates: ObservableObject {
         return key.isValidSignature(sig, for: data)
     }
 
-    /// Download → check the signature → unzip → check it's Coucou, that version → swap and relaunch.
+    /// Download → check the signature → unzip → check it's Lumo, that version → swap and relaunch.
     func installAndRestart() {
         guard installStep == nil, let release = available, canInstall,
               let zipURL = release.zipURL.flatMap(URL.init(string:)),
@@ -120,7 +120,7 @@ final class Updates: ObservableObject {
                 let zip = try Data(contentsOf: zipFile)
                 guard Self.signatureIsValid(String(decoding: sigData, as: UTF8.self), for: zip,
                                             publicKey: UpdateKey.macPublicKey) else {
-                    throw UpdateError(L("The download isn't signed by Coucou's key. Nothing was installed."))
+                    throw UpdateError(L("The download isn't signed by Lumo's key. Nothing was installed."))
                 }
                 let newApp = try Self.unzip(zipFile, expecting: release.version)
                 installStep = L("Restarting…")
@@ -139,7 +139,7 @@ final class Updates: ObservableObject {
         init(_ message: String) { self.message = message }
     }
 
-    /// Unzips into a fresh temporary folder and checks the app inside is Coucou at `version`.
+    /// Unzips into a fresh temporary folder and checks the app inside is Lumo at `version`.
     nonisolated static func unzip(_ zip: URL, expecting version: String) throws -> URL {
         let dir = FileManager.default.temporaryDirectory.appendingPathComponent("coucou-update-\(UUID().uuidString)")
         try FileManager.default.createDirectory(at: dir, withIntermediateDirectories: true)
@@ -153,7 +153,7 @@ final class Updates: ObservableObject {
               let info = Bundle(url: app)?.infoDictionary,
               info["CFBundleIdentifier"] as? String == Bundle.main.bundleIdentifier,
               info["CFBundleShortVersionString"] as? String == version else {
-            throw UpdateError(L("The downloaded app isn't the expected Coucou version. Nothing was installed."))
+            throw UpdateError(L("The downloaded app isn't the expected Lumo version. Nothing was installed."))
         }
         return app
     }
@@ -181,7 +181,7 @@ final class Updates: ObservableObject {
         let sh = Process()
         sh.executableURL = URL(fileURLWithPath: "/bin/sh")
         sh.arguments = [file.path]
-        try sh.run()   // outlives us: launchd adopts it when Coucou quits
+        try sh.run()   // outlives us: launchd adopts it when Lumo quits
     }
 
     func download() {
@@ -230,10 +230,10 @@ struct UpdatesSection: View {
             HStack(spacing: 8) {
                 Circle().fill(updates.available != nil ? Color.orange : Color.green).frame(width: 8, height: 8)
                 if let new = updates.available {
-                    Text("Coucou \(new.version) is available (you have \(Updates.currentVersion))")
+                    Text("Lumo \(new.version) is available (you have \(Updates.currentVersion))")
                         .font(.system(size: 12.5, weight: .semibold))
                 } else {
-                    Text("Coucou \(Updates.currentVersion)")
+                    Text("Lumo \(Updates.currentVersion)")
                         .font(.system(size: 12.5, weight: .semibold))
                     Text(updates.lastCheck == nil ? "" : L("up to date"))
                         .font(.system(size: 11)).foregroundColor(.secondary)
@@ -257,14 +257,14 @@ struct UpdatesSection: View {
                         Button(updates.installStep ?? L("Install and restart")) { updates.installAndRestart() }
                             .buttonStyle(.borderedProminent)
                             .disabled(updates.installStep != nil)
-                        Text("Coucou updates itself and opens again in a few seconds.")
+                        Text("Lumo updates itself and opens again in a few seconds.")
                             .font(.system(size: 11)).foregroundColor(.secondary)
                     }
                 } else {
                     HStack {
                         Button(new.dmgURL != nil ? "Download the DMG" : "Open the release page") { updates.download() }
                             .buttonStyle(.borderedProminent)
-                        Text("Open it and drag Coucou to Applications, replacing this one.")
+                        Text("Open it and drag Lumo to Applications, replacing this one.")
                             .font(.system(size: 11)).foregroundColor(.secondary)
                     }
                 }

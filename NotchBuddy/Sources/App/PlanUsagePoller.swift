@@ -6,7 +6,7 @@ import os
 ///
 /// Works with no Claude Code session open and for Mochi's own chat. The token is read with
 /// `/usr/bin/security`, so macOS asks once ("Always Allow") instead of after every Debug build.
-/// The token is never refreshed or stored by Coucou: when it expires, the next `claude` run renews it.
+/// The token is never refreshed or stored by Lumo: when it expires, the next `claude` run renews it.
 final class PlanUsagePoller: @unchecked Sendable {
     static let shared = PlanUsagePoller()
     private var timer: DispatchSourceTimer?

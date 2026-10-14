@@ -13,7 +13,7 @@
 //
 // Adding: a folder, a .zip / .skill file or a GitHub URL is staged first, shown to the
 // user (name, description, files, whether it has scripts), and copied only on a click.
-// Coucou never runs a skill's scripts.
+// Lumo never runs a skill's scripts.
 
 use std::collections::HashSet;
 use std::path::{Path, PathBuf};
@@ -423,7 +423,7 @@ fn checked_skill_dir(dir: &str) -> Result<PathBuf, String> {
     if ok && canon.join("SKILL.md").is_file() {
         Ok(canon)
     } else {
-        Err("Not a skill Coucou knows about.".into())
+        Err("Not a skill Lumo knows about.".into())
     }
 }
 
@@ -576,7 +576,7 @@ async fn download(url: &str, to: &Path) -> Result<(), String> {
         .build()
         .map_err(|e| e.to_string())?
         .get(url)
-        .header("User-Agent", "Coucou")
+        .header("User-Agent", "Lumo")
         .send()
         .await
         .map_err(|_| "Can't reach GitHub".to_string())?;
@@ -678,7 +678,7 @@ pub async fn preview(source: &str, target: &str) -> Result<Preview, String> {
 }
 
 /// Installs what `preview` staged. An existing skill is replaced only with `replace`
-/// (the old folder goes to Coucou's own trash, not away).
+/// (the old folder goes to Lumo's own trash, not away).
 pub fn install(token: &str, replace: bool) -> Result<Vec<String>, String> {
     let stage = token_dir(token)?;
     let manifest: Vec<Value> = std::fs::read(stage.join("manifest.json"))

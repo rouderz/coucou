@@ -1,12 +1,12 @@
-// Coucou editor extension: sends the active editor's context to Coucou over its local
+// Lumo editor extension: sends the active editor's context to Lumo over its local
 // connection — nothing leaves the computer:
 //   macOS    ~/Library/Application Support/NotchBuddy/nb.sock
 //   Windows  \\.\pipe\coucou-<your SID>
 //   Linux    $XDG_RUNTIME_DIR/coucou.sock (or /tmp/coucou-<uid>/coucou.sock)
 //
-//   EditorContext  on editor / selection / diagnostics changes (debounced) — Coucou keeps the
+//   EditorContext  on editor / selection / diagnostics changes (debounced) — Lumo keeps the
 //                  latest one and uses it when you press ⌃⌥M or drop your character on the window.
-//   EditorAsk      "Ask Lumo about this" — Coucou opens its chat with this context attached.
+//   EditorAsk      "Ask Lumo about this" — Lumo opens its chat with this context attached.
 'use strict';
 const vscode = require('vscode');
 const net = require('net');
@@ -17,7 +17,7 @@ const { execFileSync } = require('child_process');
 
 let socketCache = null;
 
-/** Where Coucou listens on this system (same names as the app and its hook relay). */
+/** Where Lumo listens on this system (same names as the app and its hook relay). */
 function socketPath() {
   if (socketCache) return socketCache;
   if (process.platform === 'darwin') {
@@ -51,7 +51,7 @@ function send(event, payload) {
       client.end(JSON.stringify({ hook_event_name: event, ...payload }) + '\n');
       resolve(true);
     });
-    client.on('error', () => resolve(false));   // Coucou isn't running: nothing to do
+    client.on('error', () => resolve(false));   // Lumo isn't running: nothing to do
     client.on('timeout', () => { client.destroy(); resolve(false); });
   });
 }
@@ -105,11 +105,11 @@ function schedule() {
 async function ask() {
   const ctx = currentContext();
   if (!ctx) {
-    vscode.window.showInformationMessage('Coucou: open a file first.');
+    vscode.window.showInformationMessage('Lumo: open a file first.');
     return;
   }
   const ok = await send('EditorAsk', ctx);
-  if (!ok) vscode.window.showWarningMessage('Coucou isn\'t running. Open Coucou and try again.');
+  if (!ok) vscode.window.showWarningMessage('Lumo isn\'t running. Open Lumo and try again.');
 }
 
 function updateStatusBar() {

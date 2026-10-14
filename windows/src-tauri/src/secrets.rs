@@ -6,7 +6,7 @@ use keyring::Entry;
 
 const SERVICE: &str = "fr.louisraille.coucou";
 
-/// Every key Coucou may store. Anything outside this list is refused.
+/// Every key Lumo may store. Anything outside this list is refused.
 pub const KNOWN_KEYS: &[&str] = &[
     "anthropic-api-key",
     "n8n-url",
@@ -58,7 +58,7 @@ pub fn clear(key: &str) -> Result<(), String> {
     }
 }
 
-/// The WhaTicket credentials earlier builds stored. Coucou no longer signs in to
+/// The WhaTicket credentials earlier builds stored. Lumo no longer signs in to
 /// WhaTicket (the browser extension uses the tab's own session), so they go.
 const RETIRED_KEYS: &[&str] = &[
     "whaticket-url",

@@ -3,12 +3,12 @@ import os
 
 // AliExpress: your orders grouped by the box they ship in, and one invoice per box.
 //
-// Coucou for AliExpress, its own browser extension (extensions/aliexpress), reads your own
+// Lumo for AliExpress, its own browser extension (extensions/aliexpress), reads your own
 // AliExpress order pages in Chrome / Edge, groups the orders by tracking number and checks in here
-// through native messaging (kind "aliexpress"). Coucou shows the packages and answers with what to
-// do — make a package's invoice, export a CSV, refresh — which the extension does in the browser, saving the files to Downloads/Coucou/AliExpress.
+// through native messaging (kind "aliexpress"). Lumo shows the packages and answers with what to
+// do — make a package's invoice, export a CSV, refresh — which the extension does in the browser, saving the files to Downloads/Lumo/AliExpress.
 //
-// Coucou makes no AliExpress requests of its own and stores no AliExpress credentials. The buyer
+// Lumo makes no AliExpress requests of its own and stores no AliExpress credentials. The buyer
 // details printed on the invoices are the user's own, kept in the Keychain.
 
 struct AliPackage: Identifiable, Equatable, Sendable {
@@ -209,7 +209,7 @@ extension AliExpressBridge {
         }
         guard state.aliLoaded else {
             sync()
-            return L("Open your AliExpress orders in Chrome or Edge once: Coucou reads them from there.")
+            return L("Open your AliExpress orders in Chrome or Edge once: Lumo reads them from there.")
         }
         switch command.op {
         case .sync:
@@ -220,16 +220,16 @@ extension AliExpressBridge {
             guard !state.aliPackages.isEmpty else { return L("No packages with a tracking number yet.") }
             state.aliPackages.forEach { makeInvoice($0.tracking) }
             exportCSV()
-            return L("Making \(state.aliPackages.count) invoices (one per package) and the CSV. They go to Downloads/Coucou/AliExpress.")
+            return L("Making \(state.aliPackages.count) invoices (one per package) and the CSV. They go to Downloads/Lumo/AliExpress.")
         case .invoice:
             guard let t = command.tracking, state.aliPackages.contains(where: { $0.tracking == t }) else {
                 return L("I don't see that tracking number among your packages.")
             }
             makeInvoice(t)
-            return L("Making the invoice of \(t). It goes to Downloads/Coucou/AliExpress.")
+            return L("Making the invoice of \(t). It goes to Downloads/Lumo/AliExpress.")
         case .csv:
             exportCSV()
-            return L("Exporting the CSV to Downloads/Coucou/AliExpress.")
+            return L("Exporting the CSV to Downloads/Lumo/AliExpress.")
         }
     }
 }

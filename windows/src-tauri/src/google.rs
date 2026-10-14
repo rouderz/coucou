@@ -1,13 +1,13 @@
 // Google Workspace: Gmail in the island, Google Drive files in the chat.
 //
 // Sign-in is OAuth 2.0 for desktop apps with the user's own Google Cloud client
-// (Gmail scopes are "restricted": a client shipped inside Coucou would need Google's
+// (Gmail scopes are "restricted": a client shipped inside Lumo would need Google's
 // verification). The system browser opens Google's consent page, Google redirects to
-// http://127.0.0.1:<port> where Coucou listens for that one request, and the code is
+// http://127.0.0.1:<port> where Lumo listens for that one request, and the code is
 // exchanged with PKCE (S256). The refresh token goes to the Credential Manager /
 // Secret Service; access tokens stay in memory.
 //
-// Read-only scopes: gmail.readonly and drive.readonly. Coucou never sends a mail or
+// Read-only scopes: gmail.readonly and drive.readonly. Lumo never sends a mail or
 // changes a file. Only Google's APIs are contacted.
 
 use std::sync::Mutex;
@@ -325,9 +325,9 @@ pub async fn connect() -> Result<String, String> {
             }
             let ok = error.is_none() && got_state.as_deref() == Some(state.as_str());
             let body = if ok {
-                "<html><body style='font-family:system-ui;padding:40px'><h2>Coucou is connected to Google.</h2>You can close this tab.</body></html>"
+                "<html><body style='font-family:system-ui;padding:40px'><h2>Lumo is connected to Google.</h2>You can close this tab.</body></html>"
             } else {
-                "<html><body style='font-family:system-ui;padding:40px'><h2>Google sign-in didn't finish.</h2>Go back to Coucou and try again.</body></html>"
+                "<html><body style='font-family:system-ui;padding:40px'><h2>Google sign-in didn't finish.</h2>Go back to Lumo and try again.</body></html>"
             };
             let reply = format!(
                 "HTTP/1.1 200 OK\r\nContent-Type: text/html; charset=utf-8\r\nContent-Length: {}\r\nConnection: close\r\n\r\n{body}",
@@ -430,7 +430,7 @@ async fn get(url: &str) -> Result<reqwest::Response, String> {
         200 => Ok(response),
         401 => {
             *ACCESS.lock().unwrap() = None;
-            Err("Google signed Coucou out — connect again in Settings".into())
+            Err("Google signed Lumo out — connect again in Settings".into())
         }
         403 => Err("Google refused (403): is the Gmail / Drive API turned on in your Google Cloud project?".into()),
         code => Err(format!("Google error {code}")),
@@ -579,7 +579,7 @@ pub async fn drive_to_file(id: &str, name: &str, mime: &str) -> Result<files::Dr
     let (url, ext) = match export_type(mime) {
         Some((to, ext)) => (format!("https://www.googleapis.com/drive/v3/files/{id}/export?mimeType={}", urlencode(to)), Some(ext)),
         None if mime.starts_with("application/vnd.google-apps") => {
-            return Err("Coucou can read Docs, Sheets, Slides and ordinary files — not this kind.".into())
+            return Err("Lumo can read Docs, Sheets, Slides and ordinary files — not this kind.".into())
         }
         None => (format!("https://www.googleapis.com/drive/v3/files/{id}?alt=media"), None),
     };

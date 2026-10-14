@@ -86,14 +86,14 @@ enum CodexPatch {
 }
 
 #if !APPSTORE
-/// Installs Coucou's hooks in ~/.codex/hooks.json (Codex asks the user to trust them with /hooks).
+/// Installs Lumo's hooks in ~/.codex/hooks.json (Codex asks the user to trust them with /hooks).
 enum CodexHooks {
     enum State: Equatable { case noCodex, notInstalled, installed }
 
     static var codexDir: URL { FileManager.default.homeDirectoryForCurrentUser.appendingPathComponent(".codex") }
     static var hooksURL: URL { codexDir.appendingPathComponent("hooks.json") }
 
-    /// Codex events Coucou listens to, with their timeouts (seconds).
+    /// Codex events Lumo listens to, with their timeouts (seconds).
     static let events: [(String, Int)] = [
         ("SessionStart", 10), ("SessionEnd", 10),
         ("UserPromptSubmit", 10),
@@ -115,21 +115,21 @@ enum CodexHooks {
         return hooks.values.contains { isOurs($0) } ? .installed : .notInstalled
     }
 
-    /// hooks.json with Coucou's hooks added (the user's own hooks are kept).
+    /// hooks.json with Lumo's hooks added (the user's own hooks are kept).
     static func installed(into root: [String: Any], command: String) -> [String: Any] {
         var root = root
         var hooks = root["hooks"] as? [String: Any] ?? [:]
         for (event, timeout) in events {
             var groups = (hooks[event] as? [[String: Any]] ?? []).filter { !isOurs([$0]) }
             groups.append(["hooks": [["type": "command", "command": command, "timeout": timeout,
-                                      "statusMessage": "Coucou"]]])
+                                      "statusMessage": "Lumo"]]])
             hooks[event] = groups
         }
         root["hooks"] = hooks
         return root
     }
 
-    /// hooks.json without Coucou's hooks.
+    /// hooks.json without Lumo's hooks.
     static func uninstalled(from root: [String: Any]) -> [String: Any] {
         var root = root
         var hooks = root["hooks"] as? [String: Any] ?? [:]

@@ -39,7 +39,7 @@ enum AppLanguage: String, CaseIterable, Identifiable {
         }
     }
 
-    /// Relaunches Coucou so the new language takes effect.
+    /// Relaunches Lumo so the new language takes effect.
     @MainActor
     static func relaunch() {
         let config = NSWorkspace.OpenConfiguration()

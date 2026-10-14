@@ -168,7 +168,7 @@ function runAliCommand(command: ReturnType<typeof parseAliCommand> & object): st
   const packages = (Array.isArray(data.packages) ? data.packages : []) as Record<string, unknown>[];
   if (!data.seenAt) {
     void Bridge.aliexpressSync();
-    return t("Open your AliExpress orders in Chrome or Edge once: Coucou reads them from there.");
+    return t("Open your AliExpress orders in Chrome or Edge once: Lumo reads them from there.");
   }
   const lang = State.settings.language === "es" || (State.settings.language !== "en" && navigator.language.startsWith("es")) ? "es" : "en";
   const trackings = packages.map((p) => String(p.tracking ?? "")).filter(Boolean);
@@ -182,13 +182,13 @@ function runAliCommand(command: ReturnType<typeof parseAliCommand> & object): st
       if (!trackings.length) return t("No packages with a tracking number yet.");
       for (const tr of trackings) void Bridge.aliexpressInvoice(tr, lang).catch(() => {});
       void Bridge.aliexpressCsv();
-      return t(`Making ${trackings.length} invoices (one per package) and the CSV. They go to Downloads/Coucou/AliExpress.`);
+      return t(`Making ${trackings.length} invoices (one per package) and the CSV. They go to Downloads/Lumo/AliExpress.`);
     case "invoice":
       if (!command.tracking || !trackings.includes(command.tracking)) return t("I don't see that tracking number among your packages.");
       void Bridge.aliexpressInvoice(command.tracking, lang).catch(() => {});
-      return t(`Making the invoice of ${command.tracking}. It goes to Downloads/Coucou/AliExpress.`);
+      return t(`Making the invoice of ${command.tracking}. It goes to Downloads/Lumo/AliExpress.`);
     case "csv":
       void Bridge.aliexpressCsv();
-      return t("Exporting the CSV to Downloads/Coucou/AliExpress.");
+      return t("Exporting the CSV to Downloads/Lumo/AliExpress.");
   }
 }

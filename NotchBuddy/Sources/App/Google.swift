@@ -8,10 +8,10 @@ import Security
 // windows/src-tauri/src/google.rs.
 //
 // OAuth 2.0 for desktop apps with the user's own Google Cloud client (Gmail scopes are
-// "restricted", so a client shipped inside Coucou would need Google's verification): the
-// browser opens Google's consent page, Google redirects to http://127.0.0.1:<port> where Coucou
+// "restricted", so a client shipped inside Lumo would need Google's verification): the
+// browser opens Google's consent page, Google redirects to http://127.0.0.1:<port> where Lumo
 // waits for that one request, and the code is exchanged with PKCE (S256). The refresh token is
-// kept in the Keychain; access tokens only in memory. Read-only scopes: Coucou never sends
+// kept in the Keychain; access tokens only in memory. Read-only scopes: Lumo never sends
 // mail or changes a file, and only talks to Google's APIs.
 
 struct GmailMessage: Identifiable, Equatable, Sendable {
@@ -177,8 +177,8 @@ enum LoopbackServer {
             }
             let ok = parsed.error == nil && parsed.state == expectedState
             let body = ok
-                ? "<html><body style='font-family:-apple-system;padding:40px'><h2>Coucou is connected to Google.</h2>You can close this tab.</body></html>"
-                : "<html><body style='font-family:-apple-system;padding:40px'><h2>Google sign-in didn't finish.</h2>Go back to Coucou and try again.</body></html>"
+                ? "<html><body style='font-family:-apple-system;padding:40px'><h2>Lumo is connected to Google.</h2>You can close this tab.</body></html>"
+                : "<html><body style='font-family:-apple-system;padding:40px'><h2>Google sign-in didn't finish.</h2>Go back to Lumo and try again.</body></html>"
             let reply = "HTTP/1.1 200 OK\r\nContent-Type: text/html; charset=utf-8\r\nContent-Length: \(body.utf8.count)\r\nConnection: close\r\n\r\n\(body)"
             _ = reply.withCString { write(client, $0, strlen($0)) }
             close(client)
@@ -308,7 +308,7 @@ enum GoogleAPI {
         case 200: return data
         case 401:
             accessToken = nil
-            throw Failure.message(L("Google signed Coucou out — connect again in Settings"))
+            throw Failure.message(L("Google signed Lumo out — connect again in Settings"))
         case 403: throw Failure.message(L("Google refused (403): is the Gmail / Drive API turned on in your Google Cloud project?"))
         case let code: throw Failure.message(L("Google error \(code)"))
         }
@@ -376,7 +376,7 @@ enum GoogleAPI {
             return try save(data, name: file.name, ext: export.1)
         }
         guard !file.mimeType.hasPrefix("application/vnd.google-apps") else {
-            throw Failure.message(L("Coucou can read Docs, Sheets, Slides and ordinary files — not this kind."))
+            throw Failure.message(L("Lumo can read Docs, Sheets, Slides and ordinary files — not this kind."))
         }
         let data = try await get("https://www.googleapis.com/drive/v3/files/\(file.id)?alt=media")
         let ext = (file.name as NSString).pathExtension

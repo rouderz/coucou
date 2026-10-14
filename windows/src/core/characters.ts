@@ -115,7 +115,7 @@ export async function openCharacterChat(taskId: string) {
     State.promptContext = null;
     State.droppedFile = null;
     const lines = [
-      `You are ${characterName(taskId)}, the character in charge of ${task.name} in Coucou.`,
+      `You are ${characterName(taskId)}, the character in charge of ${task.name} in Lumo.`,
       `Answer questions about ${task.name} using what it shows right now:`,
       ...(task.steps.length ? task.steps.map((s) => `- ${s}`) : ["(nothing to show yet)"]),
     ];

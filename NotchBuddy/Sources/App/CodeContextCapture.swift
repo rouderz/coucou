@@ -11,7 +11,7 @@ struct CodeContext: Equatable, Sendable, Codable {
     let project: String
     /// Selected text, when the editor exposes it (trimmed to a sane size).
     let selection: String?
-    /// From the Coucou editor extension (#58): the cursor line and the file's problems.
+    /// From the Lumo editor extension (#58): the cursor line and the file's problems.
     var cursorLine: Int? = nil
     var problems: [String]? = nil
 

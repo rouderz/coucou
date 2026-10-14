@@ -3,7 +3,7 @@
 // events and the interval (30 s while a check runs, 5 min otherwise, 4x slower with the
 // island hidden, longer after errors); Rust (ci.rs) only makes the GitHub calls with the
 // user's token or gh session, keeps ETags, and refuses anything else. No call while the
-// pill is off or Coucou is paused. Logs and re-runs only follow a click.
+// pill is off or Lumo is paused. Logs and re-runs only follow a click.
 
 import { Bridge, type DroppedFile } from "./bridge";
 import { Sound } from "./sound";

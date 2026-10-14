@@ -80,7 +80,7 @@ test("timeline: records and copies as markdown", () => {
   const md = markdown("s1", "app");
   assert.ok(md.startsWith("## app — session timeline"));
   assert.ok(md.includes("`09:05:07` 💬 **fix the bug**"));
-  assert.ok(md.includes("Allowed from Coucou: Bash · rm -rf dist"));
+  assert.ok(md.includes("Allowed from Lumo: Bash · rm -rf dist"));
   assert.equal(summary("s1"), "1 tool call · 1 approval · 1 auto");
 });
 

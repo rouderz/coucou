@@ -109,7 +109,7 @@ test("answers: Cursor permission, Gemini decision, silence otherwise", () => {
   const g = (a: string, ev = "BeforeTool") => answerFor("gemini", ev, a);
   assert.deepEqual(JSON.parse(g("allow").stdout!), { decision: "allow" });
   assert.deepEqual(JSON.parse(g("always").stdout!), { decision: "allow" });
-  assert.deepEqual(JSON.parse(g("deny").stdout!), { decision: "deny", reason: "Denied from Coucou" });
+  assert.deepEqual(JSON.parse(g("deny").stdout!), { decision: "deny", reason: "Denied from Lumo" });
   assert.equal(g("ask").stdout, null, "Gemini has no ask: stay silent");
   assert.equal(g("allow", "AfterTool").stdout, null);
   assert.equal(g("").stdout, null);

@@ -452,12 +452,12 @@
         }
       }
     },
-    "A skill with this name is already there; installing replaces it (the old one is kept in Coucou's trash).": {
+    "A skill with this name is already there; installing replaces it (the old one is kept in Lumo's trash).": {
       "localizations": {
         "es": {
           "stringUnit": {
             "state": "translated",
-            "value": "Ya hay una skill con este nombre; instalar la reemplaza (la anterior se guarda en la papelera de Coucou)."
+            "value": "Ya hay una skill con este nombre; instalar la reemplaza (la anterior se guarda en la papelera de Lumo)."
           }
         }
       }
@@ -882,32 +882,32 @@
         }
       }
     },
-    "Ask %@": {
+    "Ask Mochi": {
       "localizations": {
         "es": {
           "stringUnit": {
             "state": "translated",
-            "value": "Preguntar a %@"
+            "value": "Preguntar a Mochi"
           }
         }
       }
     },
-    "Ask %@ about the file you're editing": {
+    "Ask Mochi about the file you're editing": {
       "localizations": {
         "es": {
           "stringUnit": {
             "state": "translated",
-            "value": "Preguntar a %@ por el archivo que editas"
+            "value": "Preguntar a Mochi por el archivo que editas"
           }
         }
       }
     },
-    "Ask %@ why": {
+    "Ask Mochi why": {
       "localizations": {
         "es": {
           "stringUnit": {
             "state": "translated",
-            "value": "Preguntar a %@ por qué"
+            "value": "Preguntar a Mochi por qué"
           }
         }
       }
@@ -1412,16 +1412,6 @@
         }
       }
     },
-    "Code": {
-      "localizations": {
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Código"
-          }
-        }
-      }
-    },
     "Chat answer": {
       "localizations": {
         "es": {
@@ -1492,12 +1482,12 @@
         }
       }
     },
-    "Checked every minute. New items make %@ peek out (only a badge in Do not disturb); the 🔔 in the island lists them. Opening or dismissing one marks it read on GitHub / Linear.": {
+    "Checked every minute. New items make Mochi peek out (only a badge in Do not disturb); the 🔔 in the island lists them. Opening or dismissing one marks it read on GitHub / Linear.": {
       "localizations": {
         "es": {
           "stringUnit": {
             "state": "translated",
-            "value": "Se revisa cada minuto. Lo nuevo hace que %@ se asome (solo una marca en No molestar); la 🔔 de la isla lo lista. Abrir o descartar algo lo marca como leído en GitHub / Linear."
+            "value": "Se revisa cada minuto. Lo nuevo hace que Mochi se asome (solo una marca en No molestar); la 🔔 de la isla lo lista. Abrir o descartar algo lo marca como leído en GitHub / Linear."
           }
         }
       }
@@ -1582,22 +1572,22 @@
         }
       }
     },
-    "Choose your .claude folder so Coucou can add its hooks": {
+    "Choose your .claude folder so Lumo can add its hooks": {
       "localizations": {
         "es": {
           "stringUnit": {
             "state": "translated",
-            "value": "Elige tu carpeta .claude para que Coucou añada sus hooks"
+            "value": "Elige tu carpeta .claude para que Lumo añada sus hooks"
           }
         }
       }
     },
-    "Choose your ~/.claude folder so Coucou can add its hooks.": {
+    "Choose your ~/.claude folder so Lumo can add its hooks.": {
       "localizations": {
         "es": {
           "stringUnit": {
             "state": "translated",
-            "value": "Elige tu carpeta ~/.claude para que Coucou añada sus hooks."
+            "value": "Elige tu carpeta ~/.claude para que Lumo añada sus hooks."
           }
         }
       }
@@ -1682,12 +1672,12 @@
         }
       }
     },
-    "Claude Code sessions, approvals and plan usage are connected to Coucou.": {
+    "Claude Code sessions, approvals and plan usage are connected to Lumo.": {
       "localizations": {
         "es": {
           "stringUnit": {
             "state": "translated",
-            "value": "Las sesiones de Claude Code, las aprobaciones y el uso del plan están conectados a Coucou."
+            "value": "Las sesiones de Claude Code, las aprobaciones y el uso del plan están conectados a Lumo."
           }
         }
       }
@@ -2192,12 +2182,12 @@
         }
       }
     },
-    "Conversations with %@ are kept here so you can pick them up later.": {
+    "Conversations with Mochi are kept here so you can pick them up later.": {
       "localizations": {
         "es": {
           "stringUnit": {
             "state": "translated",
-            "value": "Las conversaciones con %@ se guardan aquí para retomarlas más tarde."
+            "value": "Las conversaciones con Mochi se guardan aquí para retomarlas más tarde."
           }
         }
       }
@@ -2258,166 +2248,6 @@
           "stringUnit": {
             "state": "translated",
             "value": "Copiar identificador"
-          }
-        }
-      }
-    },
-    "Coucou %@": {
-      "localizations": {
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Coucou %@"
-          }
-        }
-      }
-    },
-    "Coucou %@ is available (you have %@)": {
-      "localizations": {
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Coucou %@ está disponible (tienes la %@)"
-          }
-        }
-      }
-    },
-    "Coucou %@ is available · Settings → Updates": {
-      "localizations": {
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Coucou %@ está disponible · Ajustes → Actualizaciones"
-          }
-        }
-      }
-    },
-    "Coucou can answer Allow for you, per project. High-risk requests always ask. Auto-allowed steps show in the session timeline.": {
-      "localizations": {
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Coucou puede responder Permitir por ti, por proyecto. Las peticiones de riesgo alto siempre preguntan. Lo permitido automáticamente aparece en la cronología."
-          }
-        }
-      }
-    },
-    "Coucou can follow Codex CLI sessions and approve them from the island. Codex is never blocked if Coucou isn't running.": {
-      "localizations": {
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Coucou puede seguir las sesiones de Codex CLI y aprobarlas desde la isla. Codex nunca se bloquea si Coucou no está abierto."
-          }
-        }
-      }
-    },
-    "Coucou can read Docs, Sheets, Slides and ordinary files — not this kind.": {
-      "localizations": {
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Coucou puede leer Documentos, Hojas, Presentaciones y archivos normales, pero no este tipo."
-          }
-        }
-      }
-    },
-    "Coucou doesn't install it. Run this in a terminal, then press Refresh:": {
-      "localizations": {
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Coucou no lo instala. Ejecuta esto en una terminal y pulsa Actualizar:"
-          }
-        }
-      }
-    },
-    "Coucou groups your AliExpress orders by the box they ship in (same tracking number) and makes one invoice per box — PDF to your Downloads/Coucou/AliExpress folder — plus a CSV of every product for Excel or Google Sheets. It reads your own order pages through its own small Chrome / Edge extension, Coucou for AliExpress, with the session you already have open.": {
-      "localizations": {
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Coucou agrupa tus pedidos de AliExpress por la caja en que llegan (mismo número de seguimiento) y hace una factura por caja —PDF en tu carpeta Descargas/Coucou/AliExpress— y un CSV con todos los productos para Excel o Google Sheets. Lee tus propias páginas de pedidos con su propia extensión de Chrome / Edge, Coucou for AliExpress, usando la sesión que ya tienes abierta."
-          }
-        }
-      }
-    },
-    "Coucou is connected": {
-      "localizations": {
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Coucou está conectado"
-          }
-        }
-      }
-    },
-    "Coucou needs Accessibility permission to read the file you're editing. Settings → Hotkey → Grant access.": {
-      "localizations": {
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Coucou necesita el permiso de Accesibilidad para leer el archivo que editas. Ajustes → Atajo → Dar acceso."
-          }
-        }
-      }
-    },
-    "Coucou needs Speech Recognition for push-to-talk. System Settings → Privacy & Security → Speech Recognition.": {
-      "localizations": {
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Coucou necesita Reconocimiento de voz para hablar. Ajustes del Sistema → Privacidad y seguridad → Reconocimiento de voz."
-          }
-        }
-      }
-    },
-    "Coucou needs access to your calendars to see when you're in a meeting": {
-      "localizations": {
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Coucou necesita acceso a tus calendarios para saber cuándo estás en una reunión"
-          }
-        }
-      }
-    },
-    "Coucou needs the microphone for push-to-talk. System Settings → Privacy & Security → Microphone.": {
-      "localizations": {
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Coucou necesita el micrófono para hablar. Ajustes del Sistema → Privacidad y seguridad → Micrófono."
-          }
-        }
-      }
-    },
-    "Coucou reads your whaticket.com queue through a small Chrome / Edge extension that uses the session you already have open — no token, no password, and it never signs you out.": {
-      "localizations": {
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Coucou lee tu cola de whaticket.com con una pequeña extensión de Chrome / Edge que usa la sesión que ya tienes abierta: sin token, sin contraseña, y nunca te cierra la sesión."
-          }
-        }
-      }
-    },
-    "Coucou updates itself and opens again in a few seconds.": {
-      "localizations": {
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Coucou se actualiza solo y se vuelve a abrir en unos segundos."
-          }
-        }
-      }
-    },
-    "Coucou will write this to ~/.claude/settings.json (your current file is backed up first). Review it, then confirm.": {
-      "localizations": {
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Coucou escribirá esto en ~/.claude/settings.json (antes guarda una copia del archivo actual). Revísalo y confirma."
           }
         }
       }
@@ -2942,12 +2772,12 @@
         }
       }
     },
-    "Exporting the CSV to Downloads/Coucou/AliExpress.": {
+    "Exporting the CSV to Downloads/Lumo/AliExpress.": {
       "localizations": {
         "es": {
           "stringUnit": {
             "state": "translated",
-            "value": "Exportando el CSV a Descargas/Coucou/AliExpress."
+            "value": "Exportando el CSV a Descargas/Lumo/AliExpress."
           }
         }
       }
@@ -3132,12 +2962,12 @@
         }
       }
     },
-    "From Coucou %lld · Auto-accepted %lld · Elsewhere %lld": {
+    "From Lumo %lld · Auto-accepted %lld · Elsewhere %lld": {
       "localizations": {
         "es": {
           "stringUnit": {
             "state": "translated",
-            "value": "Desde Coucou %lld · Auto-aceptados %lld · En otro lugar %lld"
+            "value": "Desde Lumo %lld · Auto-aceptados %lld · En otro lugar %lld"
           }
         }
       }
@@ -3312,12 +3142,12 @@
         }
       }
     },
-    "Gmail in the island and your Drive files in the chat (type @ and a file name). Read-only: Coucou never sends mail or changes files.": {
+    "Gmail in the island and your Drive files in the chat (type @ and a file name). Read-only: Lumo never sends mail or changes files.": {
       "localizations": {
         "es": {
           "stringUnit": {
             "state": "translated",
-            "value": "Gmail en la isla y tus archivos de Drive en el chat (escribe @ y el nombre de un archivo). Solo lectura: Coucou nunca envía correos ni cambia archivos."
+            "value": "Gmail en la isla y tus archivos de Drive en el chat (escribe @ y el nombre de un archivo). Solo lectura: Lumo nunca envía correos ni cambia archivos."
           }
         }
       }
@@ -3412,12 +3242,12 @@
         }
       }
     },
-    "Google signed Coucou out — connect again in Settings": {
+    "Google signed Lumo out — connect again in Settings": {
       "localizations": {
         "es": {
           "stringUnit": {
             "state": "translated",
-            "value": "Google cerró la sesión de Coucou: vuelve a conectar en Ajustes"
+            "value": "Google cerró la sesión de Lumo: vuelve a conectar en Ajustes"
           }
         }
       }
@@ -3472,12 +3302,12 @@
         }
       }
     },
-    "Hey %@: start by voice, without the shortcut": {
+    "Hey Mochi: start by voice, without the shortcut": {
       "localizations": {
         "es": {
           "stringUnit": {
             "state": "translated",
-            "value": "Oye %@: empezar con la voz, sin el atajo"
+            "value": "Oye Mochi: empezar con la voz, sin el atajo"
           }
         }
       }
@@ -3732,12 +3562,12 @@
         }
       }
     },
-    "Install them so Coucou sees your Claude Code sessions and can approve from the island. Claude Code is never blocked if Coucou isn't running.": {
+    "Install them so Lumo sees your Claude Code sessions and can approve from the island. Claude Code is never blocked if Lumo isn't running.": {
       "localizations": {
         "es": {
           "stringUnit": {
             "state": "translated",
-            "value": "Instálalos para que Coucou vea tus sesiones de Claude Code y puedas aprobar desde la isla. Claude Code nunca se bloquea si Coucou no está abierto."
+            "value": "Instálalos para que Lumo vea tus sesiones de Claude Code y puedas aprobar desde la isla. Claude Code nunca se bloquea si Lumo no está abierto."
           }
         }
       }
@@ -3882,12 +3712,12 @@
         }
       }
     },
-    "It has scripts. Coucou never runs them, but Claude may when it uses the skill — read them first.": {
+    "It has scripts. Lumo never runs them, but Claude may when it uses the skill — read them first.": {
       "localizations": {
         "es": {
           "stringUnit": {
             "state": "translated",
-            "value": "Tiene scripts. Coucou nunca los ejecuta, pero Claude puede hacerlo al usar la skill: revísalos antes."
+            "value": "Tiene scripts. Lumo nunca los ejecuta, pero Claude puede hacerlo al usar la skill: revísalos antes."
           }
         }
       }
@@ -4012,12 +3842,12 @@
         }
       }
     },
-    "Listening for “Hey %@” (or “Oye %@”) on this Mac only. macOS shows the orange microphone dot while it listens.": {
+    "Listening for “Hey Mochi” (or “Oye Mochi”) on this Mac only. macOS shows the orange microphone dot while it listens.": {
       "localizations": {
         "es": {
           "stringUnit": {
             "state": "translated",
-            "value": "Escuchando “Oye %@” (o “Hey %@”) solo en este Mac. macOS muestra el punto naranja del micrófono mientras escucha."
+            "value": "Escuchando “Oye Mochi” (o “Hey Mochi”) solo en este Mac. macOS muestra el punto naranja del micrófono mientras escucha."
           }
         }
       }
@@ -4192,6 +4022,166 @@
         }
       }
     },
+    "Lumo %@": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Lumo %@"
+          }
+        }
+      }
+    },
+    "Lumo %@ is available (you have %@)": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Lumo %@ está disponible (tienes la %@)"
+          }
+        }
+      }
+    },
+    "Lumo %@ is available · Settings → Updates": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Lumo %@ está disponible · Ajustes → Actualizaciones"
+          }
+        }
+      }
+    },
+    "Lumo can answer Allow for you, per project. High-risk requests always ask. Auto-allowed steps show in the session timeline.": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Lumo puede responder Permitir por ti, por proyecto. Las peticiones de riesgo alto siempre preguntan. Lo permitido automáticamente aparece en la cronología."
+          }
+        }
+      }
+    },
+    "Lumo can follow Codex CLI sessions and approve them from the island. Codex is never blocked if Lumo isn't running.": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Lumo puede seguir las sesiones de Codex CLI y aprobarlas desde la isla. Codex nunca se bloquea si Lumo no está abierto."
+          }
+        }
+      }
+    },
+    "Lumo can read Docs, Sheets, Slides and ordinary files — not this kind.": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Lumo puede leer Documentos, Hojas, Presentaciones y archivos normales, pero no este tipo."
+          }
+        }
+      }
+    },
+    "Lumo doesn't install it. Run this in a terminal, then press Refresh:": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Lumo no lo instala. Ejecuta esto en una terminal y pulsa Actualizar:"
+          }
+        }
+      }
+    },
+    "Lumo groups your AliExpress orders by the box they ship in (same tracking number) and makes one invoice per box — PDF to your Downloads/Lumo/AliExpress folder — plus a CSV of every product for Excel or Google Sheets. It reads your own order pages through its own small Chrome / Edge extension, Lumo for AliExpress, with the session you already have open.": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Lumo agrupa tus pedidos de AliExpress por la caja en que llegan (mismo número de seguimiento) y hace una factura por caja —PDF en tu carpeta Descargas/Lumo/AliExpress— y un CSV con todos los productos para Excel o Google Sheets. Lee tus propias páginas de pedidos con su propia extensión de Chrome / Edge, Lumo for AliExpress, usando la sesión que ya tienes abierta."
+          }
+        }
+      }
+    },
+    "Lumo is connected": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Lumo está conectado"
+          }
+        }
+      }
+    },
+    "Lumo needs Accessibility permission to read the file you're editing. Settings → Hotkey → Grant access.": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Lumo necesita el permiso de Accesibilidad para leer el archivo que editas. Ajustes → Atajo → Dar acceso."
+          }
+        }
+      }
+    },
+    "Lumo needs Speech Recognition for push-to-talk. System Settings → Privacy & Security → Speech Recognition.": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Lumo necesita Reconocimiento de voz para hablar. Ajustes del Sistema → Privacidad y seguridad → Reconocimiento de voz."
+          }
+        }
+      }
+    },
+    "Lumo needs access to your calendars to see when you're in a meeting": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Lumo necesita acceso a tus calendarios para saber cuándo estás en una reunión"
+          }
+        }
+      }
+    },
+    "Lumo needs the microphone for push-to-talk. System Settings → Privacy & Security → Microphone.": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Lumo necesita el micrófono para hablar. Ajustes del Sistema → Privacidad y seguridad → Micrófono."
+          }
+        }
+      }
+    },
+    "Lumo reads your whaticket.com queue through a small Chrome / Edge extension that uses the session you already have open — no token, no password, and it never signs you out.": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Lumo lee tu cola de whaticket.com con una pequeña extensión de Chrome / Edge que usa la sesión que ya tienes abierta: sin token, sin contraseña, y nunca te cierra la sesión."
+          }
+        }
+      }
+    },
+    "Lumo updates itself and opens again in a few seconds.": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Lumo se actualiza solo y se vuelve a abrir en unos segundos."
+          }
+        }
+      }
+    },
+    "Lumo will write this to ~/.claude/settings.json (your current file is backed up first). Review it, then confirm.": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Lumo escribirá esto en ~/.claude/settings.json (antes guarda una copia del archivo actual). Revísalo y confirma."
+          }
+        }
+      }
+    },
     "Mail not available.": {
       "localizations": {
         "es": {
@@ -4212,12 +4202,12 @@
         }
       }
     },
-    "Make the invoice of this box (PDF in Downloads/Coucou/AliExpress)": {
+    "Make the invoice of this box (PDF in Downloads/Lumo/AliExpress)": {
       "localizations": {
         "es": {
           "stringUnit": {
             "state": "translated",
-            "value": "Hacer la factura de esta caja (PDF en Descargas/Coucou/AliExpress)"
+            "value": "Hacer la factura de esta caja (PDF en Descargas/Lumo/AliExpress)"
           }
         }
       }
@@ -4232,22 +4222,22 @@
         }
       }
     },
-    "Making %lld invoices (one per package) and the CSV. They go to Downloads/Coucou/AliExpress.": {
+    "Making %lld invoices (one per package) and the CSV. They go to Downloads/Lumo/AliExpress.": {
       "localizations": {
         "es": {
           "stringUnit": {
             "state": "translated",
-            "value": "Haciendo %lld facturas (una por paquete) y el CSV. Van a Descargas/Coucou/AliExpress."
+            "value": "Haciendo %lld facturas (una por paquete) y el CSV. Van a Descargas/Lumo/AliExpress."
           }
         }
       }
     },
-    "Making the invoice of %@. It goes to Downloads/Coucou/AliExpress.": {
+    "Making the invoice of %@. It goes to Downloads/Lumo/AliExpress.": {
       "localizations": {
         "es": {
           "stringUnit": {
             "state": "translated",
-            "value": "Haciendo la factura de %@. Va a Descargas/Coucou/AliExpress."
+            "value": "Haciendo la factura de %@. Va a Descargas/Lumo/AliExpress."
           }
         }
       }
@@ -4402,72 +4392,72 @@
         }
       }
     },
-    "%@ can change files in this project. You approve every change in the island.": {
+    "Mochi can change files in this project. You approve every change in the island.": {
       "localizations": {
         "es": {
           "stringUnit": {
             "state": "translated",
-            "value": "%@ puede cambiar archivos de este proyecto. Apruebas cada cambio en la isla."
+            "value": "Mochi puede cambiar archivos de este proyecto. Apruebas cada cambio en la isla."
           }
         }
       }
     },
-    "%@ can only read this project. Click to let it propose edits.": {
+    "Mochi can only read this project. Click to let it propose edits.": {
       "localizations": {
         "es": {
           "stringUnit": {
             "state": "translated",
-            "value": "%@ solo puede leer este proyecto. Haz clic para que pueda proponer cambios."
+            "value": "Mochi solo puede leer este proyecto. Haz clic para que pueda proponer cambios."
           }
         }
       }
     },
-    "%@ can read and search that project but never edits it.": {
+    "Mochi can read and search that project but never edits it.": {
       "localizations": {
         "es": {
           "stringUnit": {
             "state": "translated",
-            "value": "%@ puede leer y buscar en ese proyecto, pero nunca lo edita."
+            "value": "Mochi puede leer y buscar en ese proyecto, pero nunca lo edita."
           }
         }
       }
     },
-    "%@ moves with the music": {
+    "Mochi moves with the music": {
       "localizations": {
         "es": {
           "stringUnit": {
             "state": "translated",
-            "value": "%@ se mueve con la música"
+            "value": "Mochi se mueve con la música"
           }
         }
       }
     },
-    "%@ says it out loud": {
+    "Mochi says it out loud": {
       "localizations": {
         "es": {
           "stringUnit": {
             "state": "translated",
-            "value": "%@ lo dice en voz alta"
+            "value": "Mochi lo dice en voz alta"
           }
         }
       }
     },
-    "%@ tells me when someone needs me": {
+    "Mochi tells me when someone needs me": {
       "localizations": {
         "es": {
           "stringUnit": {
             "state": "translated",
-            "value": "%@ me avisa cuando alguien me necesita"
+            "value": "Mochi me avisa cuando alguien me necesita"
           }
         }
       }
     },
-    "%@'s chat goes to %@ with your key. Files and the code you're on are sent as text; edits and web search stay with the Claude engines.": {
+    "Mochi's chat goes to %@ with your key. Files and the code you're on are sent as text; edits and web search stay with the Claude engines.": {
       "localizations": {
         "es": {
           "stringUnit": {
             "state": "translated",
-            "value": "El chat de %1$@ va a %2$@ con tu clave. Los archivos y el código se envían como texto; la edición y la búsqueda web siguen siendo de los motores de Claude."
+            "value": "El chat de Mochi va a %@ con tu clave. Los archivos y el código se envían como texto; la edición y la búsqueda web siguen siendo de los motores de Claude."
           }
         }
       }
@@ -5172,12 +5162,12 @@
         }
       }
     },
-    "Only while your whaticket.com tab is open. Never during Do not disturb, never group chats, never tickets an AI agent is handling. Coucou only assigns the ticket — it never writes to the customer.": {
+    "Only while your whaticket.com tab is open. Never during Do not disturb, never group chats, never tickets an AI agent is handling. Lumo only assigns the ticket — it never writes to the customer.": {
       "localizations": {
         "es": {
           "stringUnit": {
             "state": "translated",
-            "value": "Solo mientras tu pestaña de whaticket.com esté abierta. Nunca en No molestar, nunca chats de grupo, nunca tickets que atiende un agente de IA. Coucou solo se asigna el ticket: nunca le escribe al cliente."
+            "value": "Solo mientras tu pestaña de whaticket.com esté abierta. Nunca en No molestar, nunca chats de grupo, nunca tickets que atiende un agente de IA. Lumo solo se asigna el ticket: nunca le escribe al cliente."
           }
         }
       }
@@ -5272,12 +5262,12 @@
         }
       }
     },
-    "Open it and drag Coucou to Applications, replacing this one.": {
+    "Open it and drag Lumo to Applications, replacing this one.": {
       "localizations": {
         "es": {
           "stringUnit": {
             "state": "translated",
-            "value": "Ábrelo y arrastra Coucou a Aplicaciones, reemplazando esta."
+            "value": "Ábrelo y arrastra Lumo a Aplicaciones, reemplazando esta."
           }
         }
       }
@@ -5342,12 +5332,12 @@
         }
       }
     },
-    "Open whaticket.com in Chrome or Edge (with the Coucou extension) to accept from here.": {
+    "Open whaticket.com in Chrome or Edge (with the Lumo extension) to accept from here.": {
       "localizations": {
         "es": {
           "stringUnit": {
             "state": "translated",
-            "value": "Abre whaticket.com en Chrome o Edge (con la extensión de Coucou) para aceptar desde aquí."
+            "value": "Abre whaticket.com en Chrome o Edge (con la extensión de Lumo) para aceptar desde aquí."
           }
         }
       }
@@ -5362,12 +5352,12 @@
         }
       }
     },
-    "Open your AliExpress orders in Chrome or Edge once: Coucou reads them from there.": {
+    "Open your AliExpress orders in Chrome or Edge once: Lumo reads them from there.": {
       "localizations": {
         "es": {
           "stringUnit": {
             "state": "translated",
-            "value": "Abre tus pedidos de AliExpress en Chrome o Edge una vez: Coucou los lee desde ahí."
+            "value": "Abre tus pedidos de AliExpress en Chrome o Edge una vez: Lumo los lee desde ahí."
           }
         }
       }
@@ -5762,12 +5752,12 @@
         }
       }
     },
-    "Push-to-talk: hold to talk to %@": {
+    "Push-to-talk: hold to talk to Mochi": {
       "localizations": {
         "es": {
           "stringUnit": {
             "state": "translated",
-            "value": "Pulsar para hablar: mantén pulsado para hablar con %@"
+            "value": "Pulsar para hablar: mantén pulsado para hablar con Mochi"
           }
         }
       }
@@ -5852,12 +5842,12 @@
         }
       }
     },
-    "Read %@'s answers aloud": {
+    "Read Mochi's answers aloud": {
       "localizations": {
         "es": {
           "stringUnit": {
             "state": "translated",
-            "value": "Leer en voz alta las respuestas de %@"
+            "value": "Leer en voz alta las respuestas de Mochi"
           }
         }
       }
@@ -6012,12 +6002,12 @@
         }
       }
     },
-    "Restart Coucou to apply the new language.": {
+    "Restart Lumo to apply the new language.": {
       "localizations": {
         "es": {
           "stringUnit": {
             "state": "translated",
-            "value": "Reinicia Coucou para aplicar el nuevo idioma."
+            "value": "Reinicia Lumo para aplicar el nuevo idioma."
           }
         }
       }
@@ -6532,12 +6522,12 @@
         }
       }
     },
-    "Speech is transcribed on this Mac when it supports it. %@ only listens while you hold the shortcut.": {
+    "Speech is transcribed on this Mac when it supports it. Mochi only listens while you hold the shortcut.": {
       "localizations": {
         "es": {
           "stringUnit": {
             "state": "translated",
-            "value": "La voz se transcribe en este Mac cuando lo admite. %@ solo escucha mientras mantienes pulsado el atajo."
+            "value": "La voz se transcribe en este Mac cuando lo admite. Mochi solo escucha mientras mantienes pulsado el atajo."
           }
         }
       }
@@ -6672,12 +6662,12 @@
         }
       }
     },
-    "Talk to %@ (or hold the push-to-talk shortcut)": {
+    "Talk to Mochi (or hold the push-to-talk shortcut)": {
       "localizations": {
         "es": {
           "stringUnit": {
             "state": "translated",
-            "value": "Habla con %@ (o mantén pulsado el atajo para hablar)"
+            "value": "Habla con Mochi (o mantén pulsado el atajo para hablar)"
           }
         }
       }
@@ -6792,22 +6782,22 @@
         }
       }
     },
-    "The download isn't signed by Coucou's key. Nothing was installed.": {
+    "The download isn't signed by Lumo's key. Nothing was installed.": {
       "localizations": {
         "es": {
           "stringUnit": {
             "state": "translated",
-            "value": "La descarga no está firmada con la clave de Coucou. No se instaló nada."
+            "value": "La descarga no está firmada con la clave de Lumo. No se instaló nada."
           }
         }
       }
     },
-    "The downloaded app isn't the expected Coucou version. Nothing was installed.": {
+    "The downloaded app isn't the expected Lumo version. Nothing was installed.": {
       "localizations": {
         "es": {
           "stringUnit": {
             "state": "translated",
-            "value": "La app descargada no es la versión esperada de Coucou. No se instaló nada."
+            "value": "La app descargada no es la versión esperada de Lumo. No se instaló nada."
           }
         }
       }
@@ -6912,12 +6902,12 @@
         }
       }
     },
-    "This build of Coucou doesn't include the browser extension.": {
+    "This build of Lumo doesn't include the browser extension.": {
       "localizations": {
         "es": {
           "stringUnit": {
             "state": "translated",
-            "value": "Esta versión de Coucou no incluye la extensión del navegador."
+            "value": "Esta versión de Lumo no incluye la extensión del navegador."
           }
         }
       }
@@ -7142,12 +7132,12 @@
         }
       }
     },
-    "Turn off Hey %@ during focus blocks": {
+    "Turn off Hey Mochi during focus blocks": {
       "localizations": {
         "es": {
           "stringUnit": {
             "state": "translated",
-            "value": "Apagar Oye %@ durante los bloques de concentración"
+            "value": "Apagar Oye Mochi durante los bloques de concentración"
           }
         }
       }
@@ -7492,12 +7482,12 @@
         }
       }
     },
-    "While Music or Spotify plays, %@ bobs along and puts on headphones when the song changes. Off in Do not disturb and with Reduce Motion.": {
+    "While Music or Spotify plays, Mochi bobs along and puts on headphones when the song changes. Off in Do not disturb and with Reduce Motion.": {
       "localizations": {
         "es": {
           "stringUnit": {
             "state": "translated",
-            "value": "Mientras suena Música o Spotify, %@ se balancea al ritmo y se pone los auriculares cuando cambia la canción. Se desactiva en No molestar y con Reducir movimiento."
+            "value": "Mientras suena Música o Spotify, Mochi se balancea al ritmo y se pone los auriculares cuando cambia la canción. Se desactiva en No molestar y con Reducir movimiento."
           }
         }
       }
@@ -8468,776 +8458,6 @@
           "stringUnit": {
             "state": "translated",
             "value": "❌ Error al escribir: %@"
-          }
-        }
-      }
-    },
-    "Character": {
-      "localizations": {
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Personaje"
-          }
-        }
-      }
-    },
-    "Who handles what": {
-      "localizations": {
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Quién se encarga de qué"
-          }
-        }
-      }
-    },
-    "An integration with its own character shows it in its pill and, in free placement, floats on its own: click it to open just that integration.": {
-      "localizations": {
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Una integración con personaje propio lo muestra en su píldora y, en modo libre, flota por su cuenta: haz clic en él para abrir solo esa integración."
-          }
-        }
-      }
-    },
-    "Same as %@": {
-      "localizations": {
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Igual que %@"
-          }
-        }
-      }
-    },
-    "Reset positions": {
-      "localizations": {
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Restablecer posiciones"
-          }
-        }
-      }
-    },
-    "Where it lives": {
-      "localizations": {
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Dónde vive"
-          }
-        }
-      }
-    },
-    "In the notch": {
-      "localizations": {
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "En el notch"
-          }
-        }
-      }
-    },
-    "Free on the desktop": {
-      "localizations": {
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Libre en el escritorio"
-          }
-        }
-      }
-    },
-    "Drag the character anywhere. Click it to open the island next to it, right-click for options.": {
-      "localizations": {
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Arrastra el personaje a donde quieras. Haz clic para abrir la isla junto a él y clic derecho para ver opciones."
-          }
-        }
-      }
-    },
-    "The interface calls it by its name: “Ask %@”, “Hey %@”.": {
-      "localizations": {
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "La interfaz lo llama por su nombre: “Pregúntale a %@”, “Oye %@”."
-          }
-        }
-      }
-    },
-    "A steamed bun that steams while it works": {
-      "localizations": {
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Un panecillo al vapor que echa vapor mientras trabaja"
-          }
-        }
-      }
-    },
-    "A bean with a sprout that tells how things go": {
-      "localizations": {
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Un frijol con un brote que cuenta cómo va todo"
-          }
-        }
-      }
-    },
-    "A little cloud: rain on errors, sun when done": {
-      "localizations": {
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Una nubecita: llueve si hay errores, sale el sol al terminar"
-          }
-        }
-      }
-    },
-    "A glowing jellyfish that wiggles while it works": {
-      "localizations": {
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Una medusa que brilla y se agita mientras trabaja"
-          }
-        }
-      }
-    },
-    "A keycap that presses itself while it types": {
-      "localizations": {
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Una tecla que se pulsa sola mientras escribe"
-          }
-        }
-      }
-    },
-    "Back to the notch": {
-      "localizations": {
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Volver al notch"
-          }
-        }
-      }
-    },
-    "Its own colours": {
-      "localizations": {
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Sus propios colores"
-          }
-        }
-      }
-    },
-    "Code here": {
-      "localizations": {
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Programar aquí"
-          }
-        }
-      }
-    },
-    "The folder Claude Code works in": {
-      "localizations": {
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "La carpeta en la que trabaja Claude Code"
-          }
-        }
-      }
-    },
-    "Choose a folder": {
-      "localizations": {
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Elegir una carpeta"
-          }
-        }
-      }
-    },
-    "Other folder…": {
-      "localizations": {
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Otra carpeta…"
-          }
-        }
-      }
-    },
-    "Edits & commands": {
-      "localizations": {
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Ediciones y comandos"
-          }
-        }
-      }
-    },
-    "What should we build? (/ skills)": {
-      "localizations": {
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "¿Qué construimos? (/ habilidades)"
-          }
-        }
-      }
-    },
-    "Choose a folder first ↑": {
-      "localizations": {
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Primero elige una carpeta ↑"
-          }
-        }
-      }
-    },
-    "Home": {
-      "localizations": {
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Inicio"
-          }
-        }
-      }
-    },
-    "Ask %@ about %@…": {
-      "localizations": {
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Pregúntale a %@ por %@…"
-          }
-        }
-      }
-    },
-    "An integration with its own character gets its place in the island's character rail, with its own chat about it; in free placement it also floats on its own.": {
-      "localizations": {
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Una integración con su propio personaje tiene su lugar en el riel de personajes de la isla, con su propio chat sobre ella; en modo libre también flota por su cuenta."
-          }
-        }
-      }
-    },
-    "Show every character": {
-      "localizations": {
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Mostrar todos los personajes"
-          }
-        }
-      }
-    },
-    "Floating characters": {
-      "localizations": {
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Personajes flotantes"
-          }
-        }
-      }
-    },
-    "All of them": {
-      "localizations": {
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Todos"
-          }
-        }
-      }
-    },
-    "Just %@ (the others in the island)": {
-      "localizations": {
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Solo %@ (los demás en la isla)"
-          }
-        }
-      }
-    },
-    "Characters": {
-      "localizations": {
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Personajes"
-          }
-        }
-      }
-    },
-    "Main character": {
-      "localizations": {
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Personaje principal"
-          }
-        }
-      }
-    },
-    "It handles Claude Code — Chat and Code — and every integration without a character of its own. The interface calls it by its name: “Ask %@”, “Hey %@”.": {
-      "localizations": {
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Se encarga de Claude Code —Chat y Code— y de cada integración sin personaje propio. La interfaz lo llama por su nombre: “Pregúntale a %@”, “Oye %@”."
-          }
-        }
-      }
-    },
-    "Your team": {
-      "localizations": {
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Tu equipo"
-          }
-        }
-      }
-    },
-    "Give an integration its own character: it gets its own place in the island's rail, its own base and its own chat about what it handles. The same character can work for several integrations; each one is separate, in a colour of its own.": {
-      "localizations": {
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Dale a una integración su propio personaje: tendrá su lugar en el riel de la isla, su propia base y su propio chat sobre lo que lleva. El mismo personaje puede trabajar para varias integraciones; cada uno va por separado, con su propio color."
-          }
-        }
-      }
-    },
-    "Turn on an integration (Integrations tab) to give it a character.": {
-      "localizations": {
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Activa una integración (pestaña Integraciones) para darle un personaje."
-          }
-        }
-      }
-    },
-    "On the desktop": {
-      "localizations": {
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "En el escritorio"
-          }
-        }
-      }
-    },
-    "Where they live": {
-      "localizations": {
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Dónde viven"
-          }
-        }
-      }
-    },
-    "Drag a character anywhere. Click it to open the island next to it, right-click for options.": {
-      "localizations": {
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Arrastra un personaje a donde quieras. Haz clic para abrir la isla a su lado y clic derecho para ver opciones."
-          }
-        }
-      }
-    },
-    "its own character": {
-      "localizations": {
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "su propio personaje"
-          }
-        }
-      }
-    },
-    "Handled by %@": {
-      "localizations": {
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Lo lleva %@"
-          }
-        }
-      }
-    },
-    "Own character": {
-      "localizations": {
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Personaje propio"
-          }
-        }
-      }
-    },
-    "Colour": {
-      "localizations": {
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Color"
-          }
-        }
-      }
-    },
-    "automatic, to tell it apart": {
-      "localizations": {
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "automático, para distinguirlo"
-          }
-        }
-      }
-    },
-    "Floats on the desktop": {
-      "localizations": {
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Flota en el escritorio"
-          }
-        }
-      }
-    },
-    "Which characters float: Settings → Characters.": {
-      "localizations": {
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Qué personajes flotan: Ajustes → Personajes."
-          }
-        }
-      }
-    },
-    "Mail": {
-      "localizations": {
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Correos"
-          }
-        }
-      }
-    },
-    "Tickets": {
-      "localizations": {
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Tickets"
-          }
-        }
-      }
-    },
-    "Orders": {
-      "localizations": {
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Pedidos"
-          }
-        }
-      }
-    },
-    "PRs": {
-      "localizations": {
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "PRs"
-          }
-        }
-      }
-    },
-    "Issues": {
-      "localizations": {
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Issues"
-          }
-        }
-      }
-    },
-    "Calendar": {
-      "localizations": {
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Calendario"
-          }
-        }
-      }
-    },
-    "No session right now — start one in your terminal": {
-      "localizations": {
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Ninguna sesión ahora — inicia una en tu terminal"
-          }
-        }
-      }
-    },
-    "Inbox · %lld": {
-      "localizations": {
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Bandeja · %lld"
-          }
-        }
-      }
-    },
-    "Mute": {
-      "localizations": {
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Silenciar"
-          }
-        }
-      }
-    },
-    "Sound on": {
-      "localizations": {
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Activar sonido"
-          }
-        }
-      }
-    },
-    "Settings": {
-      "localizations": {
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Ajustes"
-          }
-        }
-      }
-    },
-    "Approve": {
-      "localizations": {
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Aprobar"
-          }
-        }
-      }
-    },
-    "Start": {
-      "localizations": {
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Empezar"
-          }
-        }
-      }
-    },
-    "Ready in %@": {
-      "localizations": {
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Lista en %@"
-          }
-        }
-      }
-    },
-    "Pick a folder and it starts working": {
-      "localizations": {
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Elige una carpeta y se pone a trabajar"
-          }
-        }
-      }
-    },
-    "Add a folder": {
-      "localizations": {
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Agregar carpeta"
-          }
-        }
-      }
-    },
-    "Folders Claude Code keeps at hand": {
-      "localizations": {
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Carpetas que Claude Code tiene a mano"
-          }
-        }
-      }
-    },
-    "Remove from the list": {
-      "localizations": {
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Quitar de la lista"
-          }
-        }
-      }
-    },
-    "Drop a file": {
-      "localizations": {
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Soltar un archivo"
-          }
-        }
-      }
-    },
-    "Connected — click to disconnect": {
-      "localizations": {
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Conectada — clic para desconectar"
-          }
-        }
-      }
-    },
-    "Disconnected — click to connect": {
-      "localizations": {
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Desconectada — clic para conectar"
-          }
-        }
-      }
-    },
-    "on": {
-      "localizations": {
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "activa"
-          }
-        }
-      }
-    },
-    "Open Proton VPN": {
-      "localizations": {
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Abrir Proton VPN"
-          }
-        }
-      }
-    },
-    "Get Proton VPN — free plan": {
-      "localizations": {
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Obtener Proton VPN — plan gratis"
-          }
-        }
-      }
-    },
-    "Get Cloudflare WARP — free": {
-      "localizations": {
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Obtener Cloudflare WARP — gratis"
-          }
-        }
-      }
-    },
-    "Avg wait": {
-      "localizations": {
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Espera media"
-          }
-        }
-      }
-    },
-    "%lld:00 · ↓%lld ✓%lld": {
-      "localizations": {
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "%lld:00 · ↓%lld ✓%lld"
-          }
-        }
-      }
-    },
-    "Sign in with the GitHub CLI (gh auth login) or add a token in Settings.": {
-      "localizations": {
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Inicia sesión con GitHub CLI (gh auth login) o agrega un token en Ajustes."
-          }
-        }
-      }
-    },
-    "Couldn't read the repositories.": {
-      "localizations": {
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "No se pudieron leer los repositorios."
-          }
-        }
-      }
-    },
-    "No tickets yet today": {
-      "localizations": {
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Todavía no hay tickets hoy"
           }
         }
       }

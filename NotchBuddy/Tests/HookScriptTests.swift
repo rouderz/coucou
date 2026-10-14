@@ -1,7 +1,7 @@
 import XCTest
 @testable import Coucou
 
-/// Runs the real nb-hook script against a fake Coucou socket and checks what it tells Claude Code.
+/// Runs the real nb-hook script against a fake Lumo socket and checks what it tells Claude Code.
 final class HookScriptTests: XCTestCase {
     private var dir: URL!
     private var script: URL!
@@ -152,7 +152,7 @@ private final class Got: @unchecked Sendable {
     var value: [String: Any]? { lock.withLock { stored } }
 }
 
-/// A one-shot Unix socket server standing in for Coucou: reads one line, answers `reply`.
+/// A one-shot Unix socket server standing in for Lumo: reads one line, answers `reply`.
 private final class FakeCoucou: @unchecked Sendable {
     private let fd: Int32
     private let lock = NSLock()

@@ -7,7 +7,7 @@ import CoreGraphics
 // windows/src/core/dance.ts: keep the two in step.
 
 enum MochiDance {
-    /// Players don't expose the tempo and Coucou looks nothing up online: a fixed, easy beat.
+    /// Players don't expose the tempo and Lumo looks nothing up online: a fixed, easy beat.
     static let bpm: Double = 110
     /// Seconds per beat.
     static var beat: Double { 60 / bpm }

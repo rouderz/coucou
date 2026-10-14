@@ -44,7 +44,7 @@ export interface ApprovalInfo {
   agent: string;
   /** The change an edit would make, shown as a diff in the review card. */
   preview: EditPreview | null;
-  /** Asked by Coucou's own chat (Code mode, #152): no session card, back to the chat after. */
+  /** Asked by Lumo's own chat (Code mode, #152): no session card, back to the chat after. */
   fromChat?: boolean;
 }
 

@@ -118,7 +118,7 @@ final class ChatStore: ObservableObject {
         }
     }
 
-    /// Only folders Coucou created for plain chats — never the user's project.
+    /// Only folders Lumo created for plain chats — never the user's project.
     private func removeWorkDir(of chat: SavedChat) {
         guard let dir = chat.workDir, dir.hasPrefix(Self.workDirsRoot.path + "/") else { return }
         try? FileManager.default.removeItem(atPath: dir)
