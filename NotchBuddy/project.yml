@@ -80,7 +80,7 @@ targets:
         NSHumanReadableCopyright: "© 2026 Wolfgang Welcomez (rouderz). Based on Coucou © 2026 Louis Raillé (MIT)."
         CFBundleIdentifier: fr.louisraille.NotchBuddy
         CFBundleVersion: "2"
-        CFBundleShortVersionString: "0.3.9"
+        CFBundleShortVersionString: "1.0.0"
         CFBundlePackageType: APPL
         CFBundleDevelopmentRegion: en
         CFBundleLocalizations: [en, es]
