@@ -17,7 +17,7 @@ State.tasks = [
   { id: "integration_github", name: "GitHub", color: "#E3807A", state: "idle", steps: ["CI green"], stepIndex: 0, source: "integration", isIntegration: true },
 ];
 State.sessions = [
-  { id: "a", agent: "claude", project: "coucou", cwd: "~/code/coucou", state: "working", steps: ["editing IslandRootView.swift"], updatedAt: 2, unseen: false },
+  { id: "a", agent: "claude", project: "lumo", cwd: "~/code/lumo", state: "working", steps: ["editing IslandRootView.swift"], updatedAt: 2, unseen: false },
   { id: "b", agent: "claude", project: "shopit-api", cwd: "~/code/shopit", state: "approval", steps: ["wants to run npm test"], updatedAt: 1, unseen: false },
 ];
 State.pendingApproval = { id: "x" };
@@ -26,7 +26,7 @@ State.settings.critterAssignments = { integration_gmail: "pip", integration_what
 const rnow = Date.now();
 State.integrations = {
   integration_github: { loaded: true, configured: true, error: null, data: { totalRepos: 13, totalStars: 1, repos: [
-    { name: "coucou", fullName: "rouderz/coucou", url: "", language: "Swift", stars: 0, pushedAt: new Date(rnow - 4 * 60000).toISOString(), private: false },
+    { name: "lumo", fullName: "rouderz/lumo", url: "", language: "Swift", stars: 0, pushedAt: new Date(rnow - 4 * 60000).toISOString(), private: false },
     { name: "ioet-hub-backend", fullName: "x/y", url: "", language: "Python", stars: 0, pushedAt: new Date(rnow - 2 * 3600000).toISOString(), private: true },
     { name: "ioet-hub-frontend", fullName: "x/y", url: "", language: "TypeScript", stars: 0, pushedAt: new Date(rnow - 7 * 3600000).toISOString(), private: true },
     { name: "infra-terraform", fullName: "x/y", url: "", language: "HCL", stars: 1, pushedAt: new Date(rnow - 10 * 3600000).toISOString(), private: true },
@@ -35,7 +35,7 @@ State.integrations = {
   ] } },
   integration_whaticket: { loaded: true, configured: true, error: null, data: { pending: [], mine: [], pendingCount: 0, mineCount: 0, autoAccept: true, seenAt: rnow, today: { arrived: 0, accepted: 0 } } },
 };
-State.settings.codeFolders = ["/home/me/code/coucou", "/home/me/code/shopit"]; State.settings.codeFolder = "/home/me/code/coucou";
+State.settings.codeFolders = ["/home/me/code/lumo", "/home/me/code/shopit"]; State.settings.codeFolder = "/home/me/code/lumo";
 State.focusId = "integration_claude";
 const noop = () => {};
 const actions = new Proxy({}, { get: () => noop });

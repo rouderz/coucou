@@ -1,11 +1,11 @@
-# Coucou — guide for AI coding agents
+# Lumo — guide for AI coding agents
 
-Coucou is a native macOS app: Mochi, a small animated character living in the MacBook notch, shows Claude Code sessions and a few integrations, and lets the user approve, answer, chat and drop files from the notch.
+Lumo (started as a fork of Coucou by Louis Raillé) is a native macOS app, with a Windows / Linux port in `windows/`: Lumo and its team of characters live in the MacBook notch, show Claude Code sessions and a few integrations, and let the user approve, answer, chat and drop files from the notch.
 
 ## Where things are
-- `NotchBuddy/Sources/App/` — all Swift code. `NotchBuddy/Resources/sounds/` — the 28 WAV sounds. `NotchBuddy/project.yml` — XcodeGen project (never edit the `.xcodeproj` by hand).
+- `NotchBuddy/Sources/App/` — all Swift code. `NotchBuddy/Resources/sounds/` — the 28 WAV sounds (made by `scripts/gen-sounds.py`). `NotchBuddy/project.yml` — XcodeGen project (never edit the `.xcodeproj` by hand).
 - `docs/SPEC.md`, `docs/INTEGRATIONS.md` — behaviour, views, states, integrations (in French).
-- `design/prototype/notch-buddy.html` — original prototype, the visual source of truth. `design/captures/` — target screenshots.
+- `design/captures/` — target screenshots, rendered from the code by the pages in `windows/dev/` (see `design/README.md`). Icons: `windows/dev/icon.html` + `npm run icons`.
 - `docs/*.html` — the GitHub Pages site (privacy, terms, support, legal notice).
 
 ## Build
@@ -22,4 +22,5 @@ cd NotchBuddy && xcodegen && xcodebuild -scheme NotchBuddy -configuration Debug 
 - Never send an email or approve a Claude Code permission without an explicit click.
 - Performance: 0 % CPU when the island is hidden.
 - Keep the bundle identifier `fr.louisraille.NotchBuddy` (Keychain items, preferences and permissions depend on it).
-- Visual changes must match the prototype and the screenshots in `design/captures/`.
+- Visual changes must match the screenshots in `design/captures/` (or update them in the same change).
+- Don't bring back Coucou's or Mochi's name, icon, sounds or artwork: they are Louis Raillé's (see `LICENSE-ASSETS.md`).

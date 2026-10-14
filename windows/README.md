@@ -16,7 +16,7 @@ Approve Claude Code permissions, watch your session work, drop a file, chat with
 
 </div>
 
-<img src="screenshots/greeting.png" width="640" alt="The character waving hello at launch">
+<img src="screenshots/greeting.png" width="640" alt="Lumo waving a tentacle at launch">
 
 ---
 
@@ -44,11 +44,10 @@ check off in Settings → Updates.
 
 ## Using it
 
-<img src="screenshots/compact.png" width="292" alt="The compact island, with the integration pills as mini characters">
-<img src="screenshots/overview.png" width="640" alt="The overview: the focused integration on the left, the other pills on the right">
-<img src="screenshots/approval.png" width="640" alt="A Claude Code permission request, with Deny and Allow">
-<img src="screenshots/chat.png" width="640" alt="Chatting with Claude from the island">
-<img src="screenshots/drop.png" width="640" alt="The character turned into a box, waiting for a file">
+<img src="screenshots/overview.png" width="640" alt="The main base: Claude Code sessions with Approve, plan usage, folders and chips, with the character rail on the left">
+<img src="screenshots/github.png" width="640" alt="GitHub's character with your latest repositories">
+<img src="screenshots/chat.png" width="640" alt="Asking Gmail's character about your mail">
+<img src="screenshots/drop.png" width="640" alt="Lumo holding a dropped file">
 
 | What you do | What happens |
 |---|---|
@@ -71,8 +70,6 @@ windows (the taskbar, full-screen apps). Don't want the notch? **Settings →
 General → Idle notch** leaves only an invisible strip at the top edge.
 
 ## Claude Code
-
-<img src="screenshots/settings.png" width="562" alt="The settings window">
 
 Open **Settings… → Claude Code → Install hooks…**. You get the exact diff of what
 will change in `%USERPROFILE%\.claude\settings.json`, the path of the dated backup
@@ -235,11 +232,11 @@ npx tauri build         # .deb, .rpm and .AppImage in target/release/bundle/
 
 ## License
 
-The code is [MIT](../LICENSE). The name Lumo, the Mochi character, the icons
-(including the ones `scripts/gen-icons.mjs` draws) and the sounds are Louis
-Raillé's and are not covered by it — see [LICENSE-ASSETS.md](../LICENSE-ASSETS.md).
-The characters (Bao, Pip, Nube, Lumo, Tecla) are under CC BY 4.0 — see
-[LICENSE-CHARACTERS.md](../LICENSE-CHARACTERS.md).
+The code is [MIT](../LICENSE) (© Louis Raillé for the original Coucou code, © Wolfgang Welcomez /
+rouderz for Lumo's changes). The characters (Lumo, Bao, Pip, Nube, Tecla) are under CC BY 4.0 — see
+[LICENSE-CHARACTERS.md](../LICENSE-CHARACTERS.md). The name Lumo, its icons (drawn by
+`dev/icon.html`), its sounds and its media are Wolfgang Welcomez's, all rights reserved — see
+[LICENSE-ASSETS.md](../LICENSE-ASSETS.md).
 The builds include open-source libraries (Tauri and its plugins, the `windows`
 crate, GTK / WebKitGTK bindings and the rest of [`Cargo.lock`](Cargo.lock) and
 [`package-lock.json`](package-lock.json)), each under its own license.
