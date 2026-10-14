@@ -273,6 +273,17 @@ struct UpdatesSection: View {
                 Text(error).font(.system(size: 11)).foregroundColor(.orange)
             }
             Toggle("Check for updates automatically (every 6 hours, GitHub releases)", isOn: $state.updateChecks)
+            // Credits: who made what, and under which license (LICENSE, LICENSE-CHARACTERS.md, NOTICE).
+            Text(verbatim: AppCredits.line)
+                .font(.system(size: 10.5)).foregroundColor(.secondary)
+                .textSelection(.enabled)
+                .fixedSize(horizontal: false, vertical: true)
         }
     }
+}
+
+/// The credits line shown under the version in Settings.
+enum AppCredits {
+    static let line = "Lumo © 2026 Wolfgang Welcomez (rouderz) · Characters Lumo, Bao, Pip, Nube and Tecla "
+        + "© Wolfgang Welcomez, CC BY 4.0 · Based on Coucou by Louis Raillé, MIT License"
 }

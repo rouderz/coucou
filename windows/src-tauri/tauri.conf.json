@@ -53,7 +53,7 @@
     "resources": {
       "../target/release/coucou-hook.exe": "coucou-hook.exe"
     },
-    "copyright": "© Louis Raille",
+    "copyright": "© 2026 Wolfgang Welcomez (rouderz). Based on Coucou © 2026 Louis Raillé (MIT).",
     "category": "DeveloperTool",
     "shortDescription": "Mochi lives at the top of your screen",
     "longDescription": "Lumo puts Mochi at the top of your screen: it shows your Claude Code sessions and a few integrations, and lets you approve, answer, chat and drop files without leaving what you are doing.",

@@ -1935,6 +1935,11 @@ async function main() {
       class: "hint",
       text: "No telemetry. Network requests only go to the services you configure yourself.",
     }),
+    // Credits: who made what, and under which license (LICENSE, LICENSE-CHARACTERS.md, NOTICE).
+    h("div", {
+      class: "hint",
+      text: "Lumo © 2026 Wolfgang Welcomez (rouderz) · Characters Lumo, Bao, Pip, Nube and Tecla © Wolfgang Welcomez, CC BY 4.0 · Based on Coucou by Louis Raillé, MIT License",
+    }),
   );
   show(current);
 

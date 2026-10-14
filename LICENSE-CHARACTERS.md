@@ -31,8 +31,11 @@ the store listing). Don't suggest that the author endorses your project.
 
 ## What this does not cover
 
-The name **“Coucou”**, the **Mochi** character, the app icon, the sounds and the media remain Louis Raillé's —
-see [LICENSE-ASSETS.md](LICENSE-ASSETS.md).
+- **Trademarks.** CC BY 4.0 does not license trademarks (section 2(b)(3)). "Lumo" as the name of an app,
+  product or service, Lumo's app icon, sounds and media are reserved — see [LICENSE-ASSETS.md](LICENSE-ASSETS.md).
+  You may draw and name the character Lumo with credit; you may not call your app "Lumo".
+- **Coucou and Mochi.** The name “Coucou”, the Mochi character and Coucou's icon, sounds and media belong to
+  Louis Raillé and are not part of these characters or of Lumo.
 
 ## Questions
 

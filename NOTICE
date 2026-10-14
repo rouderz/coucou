@@ -1,0 +1,18 @@
+Lumo
+Copyright (c) 2026 Wolfgang Welcomez (rouderz) — https://github.com/rouderz/coucou
+
+This product includes:
+
+- Source code from Coucou, Copyright (c) 2026 Louis Raillé — https://github.com/Louis-CFM/coucou —
+  used under the MIT License (see LICENSE). Lumo is not made, endorsed or supported by Louis Raillé;
+  the names "Coucou" and "Mochi" and Coucou's artwork belong to him and are not used as Lumo's.
+- Changes and new code by Wolfgang Welcomez (rouderz), under the MIT License (see LICENSE).
+- The characters Lumo, Bao, Pip, Nube and Tecla, Copyright (c) 2026 Wolfgang Welcomez (rouderz),
+  under CC BY 4.0 (see LICENSE-CHARACTERS.md).
+- Lumo's name, icon, sounds and media, Copyright (c) 2026 Wolfgang Welcomez (rouderz),
+  all rights reserved (see LICENSE-ASSETS.md).
+- On Windows and Linux, open-source libraries listed in windows/Cargo.lock and windows/package-lock.json,
+  each under its own license.
+
+If you redistribute Lumo or a work based on it, keep LICENSE and this NOTICE with it, and credit the
+characters as LICENSE-CHARACTERS.md asks.

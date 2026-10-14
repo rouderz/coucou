@@ -38,6 +38,8 @@
 	<string>To jump to your terminal, send emails and control Music and Spotify.</string>
 	<key>NSCalendarsFullAccessUsageDescription</key>
 	<string>Do not disturb: Lumo stays quiet while you're in a calendar event.</string>
+	<key>NSHumanReadableCopyright</key>
+	<string>© 2026 Wolfgang Welcomez (rouderz). Based on Coucou © 2026 Louis Raillé (MIT).</string>
 	<key>NSHighResolutionCapable</key>
 	<true/>
 	<key>NSMicrophoneUsageDescription</key>
