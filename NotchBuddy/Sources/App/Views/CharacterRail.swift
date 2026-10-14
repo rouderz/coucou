@@ -22,11 +22,18 @@ struct CharacterRail: View {
 
     var body: some View {
         VStack(spacing: 0) {
-            ScrollView(.vertical, showsIndicators: false) {
-                VStack(spacing: 4) {
-                    ForEach(ids, id: \.self) { id in item(id) }
+            ScrollViewReader { proxy in
+                ScrollView(.vertical, showsIndicators: false) {
+                    VStack(spacing: 4) {
+                        ForEach(ids, id: \.self) { id in item(id).id(id ?? "main") }
+                    }
+                    .padding(.vertical, 4)
                 }
-                .padding(.vertical, 4)
+                // The picked one is always in view, even with more characters than fit.
+                .onChange(of: state.soloTaskID) { _, id in
+                    withAnimation(.easeInOut(duration: 0.25)) { proxy.scrollTo(id ?? "main", anchor: .center) }
+                }
+                .onAppear { proxy.scrollTo(state.soloTaskID ?? "main", anchor: .center) }
             }
             // Settings at the bottom of the rail: opens the Settings window.
             Button {
@@ -172,7 +179,7 @@ struct RailHeader: View {
     private var inChat: Bool { ModeSwitch.chatViews.contains(state.view) }
 
     var body: some View {
-        HStack(spacing: 8) {
+        HStack(spacing: 10) {
             Text(verbatim: critter.displayName)
                 .font(.system(size: 15, weight: .bold, design: .rounded))
                 .foregroundColor(nameColor)
@@ -205,23 +212,23 @@ struct RailHeader: View {
                     }
                 }
             }
-            .padding(3)
-            .background(RoundedRectangle(cornerRadius: 11).fill(Color.white.opacity(0.06)))
+            .padding(2)
+            .background(RoundedRectangle(cornerRadius: 9).fill(Color.white.opacity(0.06)))
 
             // Drop a file, the inbox, Do not disturb and sound, in a matching capsule.
             HStack(spacing: 0) {
                 HeaderIcon(icon: "plus", help: L("Drop a file"), on: state.view == .upload) {
                     withAnimation(.spring(response: 0.3, dampingFraction: 0.8)) { state.view = .upload }
                 }
-                InboxButton().frame(width: 28, height: 24)
-                DoNotDisturbButton().frame(width: 28, height: 24)
+                InboxButton().frame(width: 26, height: 22)
+                DoNotDisturbButton().frame(width: 26, height: 22)
                 HeaderIcon(icon: state.soundEnabled ? "speaker.wave.2" : "speaker.slash",
                            help: state.soundEnabled ? L("Mute") : L("Sound on"), on: false) {
                     state.soundEnabled.toggle()
                 }
             }
-            .padding(3)
-            .background(RoundedRectangle(cornerRadius: 11).fill(Color.white.opacity(0.06)))
+            .padding(2)
+            .background(RoundedRectangle(cornerRadius: 9).fill(Color.white.opacity(0.06)))
         }
         .padding(.trailing, 10)
     }
@@ -252,8 +259,8 @@ private struct HeaderIcon: View {
             Image(systemName: icon)
                 .font(.system(size: 12, weight: .medium))
                 .foregroundColor(on || hovered ? Color(hex: "#F5F6F8") : Color(hex: "#9A9EA6"))
-                .frame(width: 28, height: 24)
-                .background(RoundedRectangle(cornerRadius: 8).fill(on ? Color(hex: "#34363D") : .clear))
+                .frame(width: 26, height: 22)
+                .background(RoundedRectangle(cornerRadius: 7).fill(on ? Color(hex: "#34363D") : .clear))
                 .contentShape(Rectangle())
         }
         .buttonStyle(.plain)
@@ -278,8 +285,8 @@ private struct LabeledSegment: View {
             }
             .foregroundColor(on ? Color(hex: "#F5F6F8") : hovered ? Color(hex: "#C5C8CD") : Color(hex: "#9A9EA6"))
             .padding(.horizontal, 10)
-            .frame(height: 24)
-            .background(RoundedRectangle(cornerRadius: 8).fill(on ? Color(hex: "#34363D") : .clear))
+            .frame(height: 22)
+            .background(RoundedRectangle(cornerRadius: 7).fill(on ? Color(hex: "#34363D") : .clear))
         }
         .buttonStyle(.plain)
         .onHover { hovered = $0 }

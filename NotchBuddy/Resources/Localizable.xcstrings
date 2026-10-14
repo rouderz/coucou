@@ -9231,6 +9231,16 @@
           }
         }
       }
+    },
+    "No tickets yet today": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Todavía no hay tickets hoy"
+          }
+        }
+      }
     }
   }
 }

@@ -59,7 +59,7 @@ export function selectCharacter(taskId: string | null) {
 }
 
 /** The island's height while the rail shows (design C). */
-export const RAIL_HEIGHT = 236;
+export const RAIL_HEIGHT = 244;
 
 /** The main character's base shows Claude Code unless one of its integrations was picked. */
 export function showsClaude(): boolean {

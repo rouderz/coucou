@@ -21,39 +21,50 @@ struct WhaTicketChart: View {
         let now = Calendar.current.component(.hour, from: .now)
         let hours = (0..<12).map { (now - 11 + $0 + 24) % 24 }
         let top = max(1, hours.map { max(s.hours[$0].arrived, s.hours[$0].accepted) }.max() ?? 1)
+        let empty = s.arrived == 0 && s.accepted == 0
+        let barH: CGFloat = 40
 
-        HStack(alignment: .bottom, spacing: 14) {
-            VStack(alignment: .leading, spacing: 6) {
-                stat(L("Arrived"), "\(s.arrived)", "#8E939C")
-                stat(L("Accepted"), "\(s.accepted)", "#25D366")
-                stat(L("Avg wait"), s.averageWait.map(Self.duration) ?? "–", "#F5A524")
+        VStack(alignment: .leading, spacing: 8) {
+            // Today's numbers as three small tiles.
+            HStack(spacing: 6) {
+                tile(L("Arrived"), "\(s.arrived)", "#9AA0A9")
+                tile(L("Accepted"), "\(s.accepted)", "#25D366")
+                tile(L("Avg wait"), s.averageWait.map(Self.duration) ?? "–", "#F5A524")
             }
-            .frame(width: 92, alignment: .leading)
 
+            // The last 12 hours: arrived (soft) with accepted (bright) inside, on a baseline.
             VStack(spacing: 3) {
-                HStack(alignment: .bottom, spacing: 5) {
-                    ForEach(Array(hours.enumerated()), id: \.offset) { i, h in
-                        let arrived = CGFloat(s.hours[h].arrived) / CGFloat(top)
-                        let accepted = CGFloat(s.hours[h].accepted) / CGFloat(top)
-                        ZStack(alignment: .bottom) {
-                            RoundedRectangle(cornerRadius: 3)
-                                .fill(Color.white.opacity(0.06))
-                            RoundedRectangle(cornerRadius: 3)
-                                .fill(Color(hex: "#25D366").opacity(0.28))
-                                .frame(height: grown ? max(2, 58 * arrived) : 2)
-                            RoundedRectangle(cornerRadius: 3)
-                                .fill(LinearGradient(colors: [Color(hex: "#6EE7A0"), Color(hex: "#25D366")],
-                                                     startPoint: .top, endPoint: .bottom))
-                                .frame(width: 6, height: grown ? max(accepted > 0 ? 3 : 0, 58 * accepted) : 0)
+                ZStack(alignment: .bottom) {
+                    Rectangle().fill(Color.white.opacity(0.08)).frame(height: 1)
+                    HStack(alignment: .bottom, spacing: 6) {
+                        ForEach(Array(hours.enumerated()), id: \.offset) { i, h in
+                            let arrived = CGFloat(s.hours[h].arrived) / CGFloat(top)
+                            let accepted = CGFloat(s.hours[h].accepted) / CGFloat(top)
+                            ZStack(alignment: .bottom) {
+                                RoundedRectangle(cornerRadius: 3)
+                                    .fill(Color(hex: "#25D366").opacity(0.25))
+                                    .frame(height: grown && arrived > 0 ? max(3, barH * arrived) : 0)
+                                RoundedRectangle(cornerRadius: 2)
+                                    .fill(LinearGradient(colors: [Color(hex: "#6EE7A0"), Color(hex: "#25D366")],
+                                                         startPoint: .top, endPoint: .bottom))
+                                    .frame(width: 5, height: grown && accepted > 0 ? max(3, barH * accepted) : 0)
+                            }
+                            .frame(maxWidth: .infinity, maxHeight: barH, alignment: .bottom)
+                            .animation(.spring(response: 0.55, dampingFraction: 0.72).delay(Double(i) * 0.03), value: grown)
+                            .animation(.spring(response: 0.45, dampingFraction: 0.8), value: s.hours[h])
+                            .contentShape(Rectangle())
+                            .help(L("\(h):00 · ↓\(s.hours[h].arrived) ✓\(s.hours[h].accepted)"))
                         }
-                        .frame(height: 58)
-                        .frame(maxWidth: .infinity)
-                        .animation(.spring(response: 0.55, dampingFraction: 0.75).delay(Double(i) * 0.025), value: grown)
-                        .animation(.spring(response: 0.45, dampingFraction: 0.8), value: s.hours[h])
-                        .help(L("\(h):00 · ↓\(s.hours[h].arrived) ✓\(s.hours[h].accepted)"))
+                    }
+                    if empty {
+                        Text("No tickets yet today")
+                            .font(.system(size: 10.5))
+                            .foregroundColor(Color(hex: "#6B7079"))
+                            .frame(maxWidth: .infinity, maxHeight: barH)
                     }
                 }
-                HStack(spacing: 5) {
+                .frame(height: barH)
+                HStack(spacing: 6) {
                     ForEach(Array(hours.enumerated()), id: \.offset) { i, h in
                         Text(verbatim: i % 3 == 0 || i == 11 ? "\(h)h" : "")
                             .font(.system(size: 8.5).monospacedDigit())
@@ -67,15 +78,19 @@ struct WhaTicketChart: View {
         .onDisappear { grown = false }
     }
 
-    private func stat(_ label: String, _ value: String, _ color: String) -> some View {
-        HStack(spacing: 6) {
-            Circle().fill(Color(hex: color)).frame(width: 6, height: 6)
-            Text(verbatim: label).font(.system(size: 10.5)).foregroundColor(Color(hex: "#8E939C"))
-            Spacer(minLength: 2)
-            Text(verbatim: value).font(.system(size: 12, weight: .semibold).monospacedDigit())
+    private func tile(_ label: String, _ value: String, _ color: String) -> some View {
+        VStack(alignment: .leading, spacing: 1) {
+            HStack(spacing: 5) {
+                Circle().fill(Color(hex: color)).frame(width: 5, height: 5)
+                Text(verbatim: label).font(.system(size: 9.5)).foregroundColor(Color(hex: "#8E939C"))
+            }
+            Text(verbatim: value).font(.system(size: 13, weight: .semibold).monospacedDigit())
                 .foregroundColor(Color(hex: "#F5F6F8"))
                 .contentTransition(.numericText())
         }
+        .padding(.horizontal, 9).padding(.vertical, 5)
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .background(RoundedRectangle(cornerRadius: 8).fill(Color.white.opacity(0.045)))
     }
 
     static func duration(_ seconds: Int) -> String {
@@ -115,7 +130,7 @@ final class GitHubRepos: ObservableObject {
     func load() async {
         if let at = loadedAt, Date.now.timeIntervalSince(at) < 300 { return }
         loadedAt = .now
-        let path = "user/repos?sort=pushed&per_page=8&affiliation=owner,collaborator,organization_member"
+        let path = "user/repos?sort=pushed&per_page=15&affiliation=owner,collaborator,organization_member"
         var data = await Task.detached(priority: .utility) { GitHubCLI.raw(path, timeout: 20) }.value
         if data == nil, let token = Secrets.store.get("github-token"), !token.isEmpty,
            let url = URL(string: "https://api.github.com/" + path) {
@@ -141,13 +156,19 @@ final class GitHubRepos: ObservableObject {
 
 struct GitHubRepoList: View {
     @ObservedObject private var store = GitHubRepos.shared
+    private static let ago: RelativeDateTimeFormatter = {
+        let f = RelativeDateTimeFormatter()
+        f.unitsStyle = .abbreviated
+        return f
+    }()
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 3) {
+        ScrollView(.vertical, showsIndicators: false) {
+        VStack(alignment: .leading, spacing: 4) {
             if let error = store.error, store.repos.isEmpty {
                 Text(verbatim: error).font(.system(size: 11)).foregroundColor(Color(hex: "#8E939C"))
             }
-            ForEach(store.repos.prefix(5)) { r in
+            ForEach(store.repos) { r in
                 Button { AppLinks.open(r.htmlURL) } label: {
                     HStack(spacing: 7) {
                         Image(systemName: r.isPrivate ? "lock.fill" : "book.closed")
@@ -164,17 +185,20 @@ struct GitHubRepoList: View {
                             Text(verbatim: "★ \(r.stars)").font(.system(size: 10)).foregroundColor(Color(hex: "#F5C842"))
                         }
                         if let at = r.pushedAt {
-                            Text(at, style: .relative).font(.system(size: 10)).foregroundColor(Color(hex: "#6B7079"))
+                            Text(verbatim: Self.ago.localizedString(for: at, relativeTo: .now))
+                                .font(.system(size: 10)).foregroundColor(Color(hex: "#6B7079"))
                                 .lineLimit(1)
                         }
                     }
-                    .padding(.horizontal, 8).frame(height: 21)
-                    .background(RoundedRectangle(cornerRadius: 7).fill(Color.white.opacity(0.04)))
+                    .padding(.horizontal, 9).frame(height: 24)
+                    .background(RoundedRectangle(cornerRadius: 8).fill(Color.white.opacity(0.045)))
                     .contentShape(Rectangle())
                 }
                 .buttonStyle(.plain)
                 .help(r.fullName)
             }
+        }
+        .padding(.bottom, 4)
         }
         .task { await store.load() }
     }

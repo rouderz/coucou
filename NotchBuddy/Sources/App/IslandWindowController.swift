@@ -666,7 +666,8 @@ final class IslandWindowController: NSWindowController {
                 self.botHoverTimer?.cancel()
                 self.botHovering = false
                 // Drag only starts when clicking directly on the bot head
-                guard self.isBotHit(event.locationInWindow) else { return }
+                // Only a press on the island itself (a floating character handles its own clicks).
+                guard event.window === self.window, self.isBotHit(event.locationInWindow) else { return }
                 self.attachDragStart = NSEvent.mouseLocation
                 // Post slap only when expanded
                 guard self.state.mode == .expanded else { return }

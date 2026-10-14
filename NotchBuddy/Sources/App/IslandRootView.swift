@@ -489,6 +489,8 @@ struct IslandContentView: View {
             VStack(spacing: 0) {
                 IslandHeader(state: state)
                     .frame(height: 34)
+                    // Beside the rail: a clear gap between the header and the card under it.
+                    .padding(.bottom, state.railShown ? 8 : 0)
                     .opacity(state.view == .confused ? 0 : 1)
                     .animation(.easeInOut(duration: 0.2), value: state.view == .confused)
 

@@ -132,9 +132,11 @@ struct IntegrationCardView: View {
                 // Its own character's base has the room: the repositories pushed to last.
                 if appState.railShown {
                     GitHubRepoList()
+                        .frame(maxHeight: .infinity, alignment: .top)
                         .padding(.leading, botInset(108)).padding(.trailing, 12)
                 }
             }
+            .frame(maxHeight: .infinity, alignment: .topLeading)
             .transition(.opacity)
         } else if stripeHasData {
             StripeCardView()

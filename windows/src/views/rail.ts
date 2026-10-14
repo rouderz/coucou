@@ -44,6 +44,7 @@ export function buildRail(pick: (taskId: string | null) => void, tools: RailTool
   const el = h("div", { id: "rail" }, list, gearBtn);
   let items: Item[] = [];
   let ids = "";
+  let shownSelected: string | null | undefined;
 
   function make(taskId: string | null): Item {
     const canvas = h("canvas", {});
@@ -88,6 +89,11 @@ export function buildRail(pick: (taskId: string | null) => void, tools: RailTool
         const label = `${characterName(it.taskId)} · ${task?.name ?? "Claude Code"}`;
         it.button.title = label;
         it.button.setAttribute("aria-label", label);
+      }
+      // The picked one is always in view, even with more characters than fit.
+      if (shownSelected !== State.soloTaskId) {
+        shownSelected = State.soloTaskId;
+        items.find((it) => it.taskId === State.soloTaskId)?.button.scrollIntoView({ block: "nearest", behavior: "smooth" });
       }
     },
     tick(dt: number) {

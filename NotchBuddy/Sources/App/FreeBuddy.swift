@@ -128,7 +128,7 @@ final class FreeBuddyController {
 
     /// Only this character reacts to clicks, hovers, emotes and drops; the others carry on
     /// with their own task's state.
-    static private(set) var reactingKey: String = FreeBuddyController.mainKey
+    static var reactingKey: String = FreeBuddyController.mainKey
 
     /// Where a window was before it hopped onto the open island, to go back when it folds.
     private var perchedFrom: (key: String, origin: NSPoint)?
@@ -252,7 +252,12 @@ final class FreeBuddyController {
         p.isReleasedWhenClosed = false
 
         let drag = FreeBuddyDragView(frame: NSRect(origin: .zero, size: Self.size))
-        drag.onClick = { [weak self] in self?.onClick?(key) }
+        drag.onClick = { [weak self] in
+            // Every character reacts to its own click, whichever one the island belongs to.
+            Self.reactingKey = key
+            NotificationCenter.default.post(name: .triggerSlap, object: nil)
+            self?.onClick?(key)
+        }
         drag.onMoving = { frame in Self.centers[key] = NSPoint(x: frame.midX, y: frame.midY) }
         drag.onDropped = { [weak self] in
             guard let self, let panel = self.panels[key] else { return }

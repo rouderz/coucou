@@ -1,5 +1,5 @@
 <!doctype html><html><head><link rel="stylesheet" href="/src/style.css">
-<style>body{margin:0;background:#2a2d33;width:1400px;height:300px} #island{left:20px!important;transform:none!important;top:20px!important;width:640px;height:236px;border-radius:22px} #island2{left:700px!important}</style></head>
+<style>body{margin:0;background:#2a2d33;width:1400px;height:300px} #island{left:20px!important;transform:none!important;top:20px!important;width:640px;height:244px;border-radius:22px} #island2{left:700px!important}</style></head>
 <body>
 <script type="module">
 import { State } from "/src/core/state.ts";
@@ -22,7 +22,19 @@ State.sessions = [
 ];
 State.pendingApproval = { id: "x" };
 State.planUsage = { fiveHour: { percent: 100, resetsAt: Date.now() + 32 * 60000 }, sevenDay: { percent: 32, resetsAt: Date.now() + 4 * 86400000 }, context: null, model: null };
-State.settings.critterAssignments = { integration_gmail: "pip", integration_whaticket: "bao" };
+State.settings.critterAssignments = { integration_gmail: "pip", integration_whaticket: "bao", integration_github: "lumo" };
+const rnow = Date.now();
+State.integrations = {
+  integration_github: { loaded: true, configured: true, error: null, data: { totalRepos: 13, totalStars: 1, repos: [
+    { name: "coucou", fullName: "rouderz/coucou", url: "", language: "Swift", stars: 0, pushedAt: new Date(rnow - 4 * 60000).toISOString(), private: false },
+    { name: "ioet-hub-backend", fullName: "x/y", url: "", language: "Python", stars: 0, pushedAt: new Date(rnow - 2 * 3600000).toISOString(), private: true },
+    { name: "ioet-hub-frontend", fullName: "x/y", url: "", language: "TypeScript", stars: 0, pushedAt: new Date(rnow - 7 * 3600000).toISOString(), private: true },
+    { name: "infra-terraform", fullName: "x/y", url: "", language: "HCL", stars: 1, pushedAt: new Date(rnow - 10 * 3600000).toISOString(), private: true },
+    { name: "birthday_slack_bot", fullName: "x/y", url: "", language: "Python", stars: 0, pushedAt: new Date(rnow - 8 * 86400000).toISOString(), private: false },
+    { name: "dotfiles", fullName: "x/y", url: "", language: "Shell", stars: 0, pushedAt: new Date(rnow - 20 * 86400000).toISOString(), private: false },
+  ] } },
+  integration_whaticket: { loaded: true, configured: true, error: null, data: { pending: [], mine: [], pendingCount: 0, mineCount: 0, autoAccept: true, seenAt: rnow, today: { arrived: 0, accepted: 0 } } },
+};
 State.settings.codeFolders = ["/home/me/code/coucou", "/home/me/code/shopit"]; State.settings.codeFolder = "/home/me/code/coucou";
 State.focusId = "integration_claude";
 const noop = () => {};
@@ -48,6 +60,8 @@ function mount(left, solo, view) {
 const c = params.get("c") || "main";
 if (c === "main") mount(20, null, "overview");
 else if (c === "pip") mount(20, "integration_gmail", "prompt");
+else if (c === "gh") mount(20, "integration_github", "overview");
+else if (c === "wt") mount(20, "integration_whaticket", "overview");
 else mount(20, "integration_gmail", "overview");
 document.body.dataset.done = "1";
 </script></body></html>
