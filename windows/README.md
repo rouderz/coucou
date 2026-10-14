@@ -142,7 +142,7 @@ folder. The path is declared once, in `SOUNDS_DIR` at the top of
 The app icon and the tray icon are drawn in code, like the characters:
 
 ```powershell
-npm run icons          # regenerates src-tauri/icons from scripts/gen-icons.mjs
+npm run icons          # renders every icon (Mac, Windows, Linux, website) from dev/icon.html
 ```
 
 ### Layout
