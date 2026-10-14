@@ -8,9 +8,9 @@ here, which are the property of Wolfgang Welcomez (rouderz):
 
 - the name **“Lumo”** as the name of an app, a product or a service, and its logo;
 - the **app icon** and the **menu bar / tray icon** (`NotchBuddy/Assets.xcassets/`, `windows/src-tauri/icons/`,
-  and the images `windows/scripts/gen-icons.mjs` draws);
+  drawn by `windows/dev/icon.html`);
 - the **sounds** (`NotchBuddy/Resources/sounds/`, made by `scripts/gen-sounds.py`);
-- the **images, GIFs and videos** in `docs/media/` and `design/`.
+- the **images, GIFs and videos** in `docs/media/`, `design/` and `windows/screenshots/`.
 
 ## What you can do
 

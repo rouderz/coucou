@@ -20,12 +20,11 @@ using your Claude Code subscription, no API key needed. On macOS, Windows and Li
 
 </div>
 
-> **Lumo** started as a fork of [Coucou](https://github.com/Louis-CFM/coucou) by Louis Raillé and is now
-> its own app, by rouderz: its own name, its own characters (Lumo, Bao, Pip, Nube and Tecla, under CC BY 4.0)
-> and its own island. Coucou's name, icon and sounds stay Louis Raillé's and are not covered by the MIT
-> license — the icon and sounds still used here are being replaced; see [License](#license-and-copyright).
-> Internally the app keeps Coucou's identifiers (bundle id, data folders, installer file names) so
-> existing installs keep their settings, permissions and updates.
+> **Lumo** started as a fork of [Coucou](https://github.com/Louis-CFM/coucou) by Louis Raillé, whose code it
+> uses under the MIT License. It is now its own app by Wolfgang Welcomez (rouderz), with its own name, characters,
+> icon, sounds and images — nothing of Coucou's brand (its name, Mochi, its icon, sounds or media) is shipped.
+> Lumo is not made or endorsed by Louis Raillé. Some internal identifiers keep their old names (bundle id, data
+> folders, the `coucou-hook` relay) so existing installs keep their settings and permissions.
 
 ---
 
@@ -205,13 +204,17 @@ The editor extension talks to Lumo over a local socket (named pipe on Windows) o
 
 ## License and copyright
 
-Lumo has three kinds of content, each with its own owner and terms:
+Lumo has three kinds of content, each with its own owner and terms (summed up in [NOTICE](NOTICE)):
 
 | What | Copyright | License | Details |
 |---|---|---|---|
-| **Source code** — the macOS, Windows and Linux apps, the hook relays, the scripts, the editor and browser extensions | © 2026 Louis Raillé (original project) · © 2026 rouderz / Wolfgang Welcomez (changes in this fork) | [MIT](LICENSE) | Use, change and share it, keeping the copyright notice and the license text. |
-| **Characters** — Lumo, Bao, Pip, Nube and Tecla: their names as characters, designs, palettes, faces, expressions and animations | © 2026 Wolfgang Welcomez (rouderz) | [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/) | Share and adapt them, commercially too, with credit: *"Lumo, Bao, Pip, Nube and Tecla © Wolfgang Welcomez (rouderz), CC BY 4.0"*. See [LICENSE-CHARACTERS.md](LICENSE-CHARACTERS.md). The code that draws them is MIT. |
-| **Brand and media** — the name "Coucou", the Mochi character, the app and menu bar icons (including the ones `windows/scripts/gen-icons.mjs` draws), the sounds and the images, GIFs and videos in `docs/media/` and `design/` | © 2026 Louis Raillé | All rights reserved | See [LICENSE-ASSETS.md](LICENSE-ASSETS.md). Running this fork for yourself is fine; publishing builds needs its own name, icon and sounds (tracked in #45). |
+| **Source code** — the macOS, Windows and Linux apps, the hook relays, the scripts, the editor and browser extensions | © 2026 Louis Raillé (original Coucou code) · © 2026 Wolfgang Welcomez (rouderz) (Lumo's changes and new code) | [MIT](LICENSE) | Use, change and share it, keeping both copyright notices and the license text. |
+| **Characters** — Lumo, Bao, Pip, Nube and Tecla: their names as characters, designs, palettes, faces, expressions and animations | © 2026 Wolfgang Welcomez (rouderz) | [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/) | Share and adapt them, commercially too, **with credit**: *"Lumo, Bao, Pip, Nube and Tecla © Wolfgang Welcomez (rouderz), CC BY 4.0"*. See [LICENSE-CHARACTERS.md](LICENSE-CHARACTERS.md). The code that draws them is MIT. |
+| **Brand and media** — the name "Lumo" as an app, the app and menu bar icons (`windows/dev/icon.html`), the sounds (`scripts/gen-sounds.py`), the images and GIFs in `docs/media/`, `design/` and `windows/screenshots/` | © 2026 Wolfgang Welcomez (rouderz) | All rights reserved | See [LICENSE-ASSETS.md](LICENSE-ASSETS.md). Running and forking Lumo is fine; publishing another app needs its own name, icon and sounds. |
+
+**Coucou.** The name "Coucou", the Mochi character and Coucou's icon, sounds and media belong to Louis Raillé
+([his terms](https://github.com/Louis-CFM/coucou/blob/main/LICENSE-ASSETS.md)). They are not part of Lumo; older
+commits in this repository still contain them under his terms.
 
 **Third-party code.** The macOS app has no dependencies. The Windows and Linux builds include open-source
 libraries — Tauri and its plugins, the `windows` crate, GTK / WebKitGTK bindings and the others listed in
@@ -222,4 +225,4 @@ under its own license (mostly MIT and/or Apache-2.0); their notices apply to the
 AliExpress, Proton VPN, Cloudflare WARP, Visual Studio Code and the other services Lumo connects to belong to
 their owners. Lumo is not affiliated with or endorsed by any of them.
 
-Original project: built by [Louis Raillé](https://louisraille.fr) with Claude Code. This fork: rouderz.
+Lumo: by Wolfgang Welcomez (rouderz). Based on [Coucou](https://github.com/Louis-CFM/coucou), built by [Louis Raillé](https://louisraille.fr) with Claude Code.
