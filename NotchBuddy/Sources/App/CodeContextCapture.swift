@@ -14,11 +14,18 @@ struct CodeContext: Equatable, Sendable, Codable {
     /// From the Lumo editor extension (#58): the cursor line and the file's problems.
     var cursorLine: Int? = nil
     var problems: [String]? = nil
+    /// From the Godot / Aseprite plugins: what the editor shows besides the text (the scene tree,
+    /// the selected node, the sprite's layers and palette…), already written as plain text.
+    var details: String? = nil
+    /// A PNG of what the user is looking at (the current frame in Aseprite), kept by Lumo in
+    /// `EditorBridge.snapshotsDir` so Claude Code can open it with Read.
+    var image: String? = nil
 
     /// Cursor line and the editor's errors/warnings, for both preambles.
     private var editorDetails: String {
         var text = ""
         if let cursorLine { text += "\n\nThe cursor is on line \(cursorLine)." }
+        if let details, !details.isEmpty { text += "\n\nWhat \(appName) shows right now:\n\(details)" }
         if let problems, !problems.isEmpty {
             text += "\n\nThe editor reports these problems in the file:\n" +
                     problems.map { "- \($0)" }.joined(separator: "\n")
@@ -44,6 +51,9 @@ struct CodeContext: Equatable, Sendable, Codable {
         if let selection {
             text += "\n\nThe user selected this text in the file:\n```\n\(selection)\n```"
         }
+        if let image {
+            text += "\n\nA snapshot of what the user sees is at `\(image)`: open it with Read to look at it."
+        }
         return text + editorDetails + "\n\n"
     }
 
@@ -54,6 +64,7 @@ struct CodeContext: Equatable, Sendable, Codable {
         if let selection {
             text += "\n\nThe user selected this text in the file:\n```\n\(selection)\n```"
         }
+        if image != nil { text += "\n\nA snapshot of what the user sees is attached too." }
         return text + editorDetails + "\n\n"
     }
 

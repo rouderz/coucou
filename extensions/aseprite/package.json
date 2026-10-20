@@ -1,0 +1,14 @@
+{
+  "name": "lumo",
+  "displayName": "Lumo",
+  "description": "Ask Lumo about your sprite: the frame you're on (as an image), the layers, tags, palette and selection go with your question. Talks to Lumo on this computer only.",
+  "version": "0.1.0",
+  "author": { "name": "rouderz", "url": "https://github.com/rouderz/coucou" },
+  "publisher": "rouderz",
+  "license": "MIT",
+  "categories": [ "Scripts" ],
+  "contributes": {
+    "scripts": [ { "path": "./lumo.lua" } ],
+    "keys": [ { "id": "lumo-keys", "path": "./lumo.aseprite-keys" } ]
+  }
+}

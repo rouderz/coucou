@@ -202,6 +202,20 @@ final class EditorContextPreambleTests: XCTestCase {
         let context = try JSONDecoder().decode(CodeContext.self, from: Data(json.utf8))
         XCTAssertNil(context.cursorLine)
         XCTAssertNil(context.problems)
+        XCTAssertNil(context.details)
+        XCTAssertNil(context.image)
+    }
+
+    /// Godot / Aseprite: what the editor shows and the snapshot reach both preambles.
+    func testPluginDetailsAndSnapshotReachThePrompt() {
+        let context = CodeContext(appName: "Aseprite", file: "/g/art/hero.aseprite", project: "/g", selection: nil,
+                                  cursorLine: 3, details: "Layers (top first):\n  Head  ← active",
+                                  image: "/Users/me/Library/Application Support/NotchBuddy/snapshots/1-a.png")
+        XCTAssertTrue(context.promptPreamble.contains("What Aseprite shows right now"))
+        XCTAssertTrue(context.promptPreamble.contains("Head  ← active"))
+        XCTAssertTrue(context.promptPreamble.contains("snapshots/1-a.png"), "Claude Code is told where the image is")
+        XCTAssertTrue(context.inlinePreamble.contains("snapshot of what the user sees is attached"))
+        XCTAssertEqual(context.relativePath, "art/hero.aseprite")
     }
 }
 

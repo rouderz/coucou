@@ -10,6 +10,10 @@ struct EditorReport: Sendable {
     let cursorLine: Int?
     let selection: String?
     let problems: [String]
+    /// Godot / Aseprite: the scene, the node, the sprite… as text.
+    var details: String? = nil
+    /// Godot / Aseprite: a PNG snapshot, copied into `EditorBridge.snapshotsDir`.
+    var image: String? = nil
     let receivedAt: Date
 }
 
@@ -37,10 +41,15 @@ final class EditorBridge {
         let selection = (payload["selection"] as? String)
             .map { $0.count > 8_000 ? String($0.prefix(8_000)) + "\n…" : $0 }
             .flatMap { $0.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty ? nil : $0 }
+        let details = (payload["details"] as? String)
+            .map { $0.count > 12_000 ? String($0.prefix(12_000)) + "\n…" : $0 }
+            .flatMap { $0.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty ? nil : $0 }
+        // Only "Ask Lumo" brings a snapshot: the context sent on every change stays light.
+        let image = event == "EditorAsk" ? (payload["image"] as? String).flatMap { Self.keepSnapshot($0) } : nil
         last = EditorReport(appName: payload["appName"] as? String ?? "Editor", file: file,
                             workspace: payload["workspace"] as? String, language: payload["language"] as? String,
                             cursorLine: payload["line"] as? Int, selection: selection,
-                            problems: Array(problems), receivedAt: .now)
+                            problems: Array(problems), details: details, image: image, receivedAt: .now)
 
         if event == "EditorAsk", let context = codeContext() {
             log.info("ask: from the editor extension (\(context.fileName, privacy: .public))")
@@ -66,7 +75,38 @@ final class EditorBridge {
             ?? CodeContextCapture.projectRoot(for: report.file, sessionFolder: session)
         return CodeContext(appName: report.appName, file: report.file, project: project,
                            selection: report.selection, cursorLine: report.cursorLine,
-                           problems: report.problems.isEmpty ? nil : report.problems)
+                           problems: report.problems.isEmpty ? nil : report.problems,
+                           details: report.details, image: report.image)
+    }
+
+    // MARK: - Snapshots (Godot / Aseprite)
+
+    /// Lumo's own folder for snapshots. The chat's Claude Code gets it with `--add-dir`, so it
+    /// can open them without reaching anywhere else on the disk.
+    nonisolated static var snapshotsDir: URL { HookServer.supportDir.appendingPathComponent("snapshots", isDirectory: true) }
+    private static let maxSnapshotBytes = 8 << 20
+    private static let keptSnapshots = 20
+
+    /// Copies the plugin's PNG into `snapshotsDir` (never reads it in place: the plugin's temp
+    /// file may go away) and returns the copy's path. Anything but a reasonable PNG is ignored.
+    private static func keepSnapshot(_ path: String) -> String? {
+        let source = URL(fileURLWithPath: path)
+        guard path.hasPrefix("/"), source.pathExtension.lowercased() == "png",
+              let values = try? source.resourceValues(forKeys: [.fileSizeKey, .isRegularFileKey]),
+              values.isRegularFile == true, let size = values.fileSize, size > 0, size <= maxSnapshotBytes,
+              let data = try? Data(contentsOf: source), data.starts(with: [0x89, 0x50, 0x4E, 0x47]) else { return nil }
+        let fm = FileManager.default
+        try? fm.createDirectory(at: snapshotsDir, withIntermediateDirectories: true)
+        let dest = snapshotsDir.appendingPathComponent("\(Int(Date.now.timeIntervalSince1970))-\(UUID().uuidString.prefix(8)).png")
+        guard (try? data.write(to: dest, options: .atomic)) != nil else { return nil }
+        // Keep the newest few.
+        if let all = try? fm.contentsOfDirectory(at: snapshotsDir, includingPropertiesForKeys: nil) {
+            for old in all.filter({ $0.pathExtension == "png" }).sorted(by: { $0.lastPathComponent > $1.lastPathComponent })
+                .dropFirst(keptSnapshots) {
+                try? fm.removeItem(at: old)
+            }
+        }
+        return dest.path
     }
 }
 

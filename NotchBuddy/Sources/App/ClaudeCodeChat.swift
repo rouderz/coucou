@@ -44,6 +44,8 @@ final class ClaudeCodeChat {
     private var workDir: URL?
     /// The user's project when the chat is about their code (never deleted by reset()).
     private var projectDir: URL?
+    /// The conversation started with a Godot / Aseprite snapshot: keep Lumo's snapshot folder readable.
+    private var snapshotsAllowed = false
     private var running: Process?
 
     var hasSession: Bool { sessionID != nil }
@@ -85,6 +87,7 @@ final class ClaudeCodeChat {
         sessionID = nil
         workDir = nil
         projectDir = nil
+        snapshotsAllowed = false
     }
 
     /// What ChatStore keeps to resume this conversation later.
@@ -166,6 +169,13 @@ final class ClaudeCodeChat {
                 $0 != dir.path && FileManager.default.fileExists(atPath: $0)
             }
             if !extra.isEmpty { args += ["--add-dir"] + extra }
+        }
+        // A snapshot from the Godot / Aseprite plugins lives in Lumo's own folder: let Read reach it.
+        if case .code(let c)? = context, c.image != nil {
+            snapshotsAllowed = true
+        }
+        if snapshotsAllowed, FileManager.default.fileExists(atPath: EditorBridge.snapshotsDir.path) {
+            args += ["--add-dir", EditorBridge.snapshotsDir.path]
         }
         if let sessionID { args += ["--resume", sessionID] }
 

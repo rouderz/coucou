@@ -46,6 +46,11 @@ final class AnthropicAPIChat: ChatProvider {
                 if let block = ClaudeService.shared.readFileAsBlock(url: URL(fileURLWithPath: code.file)) {
                     content.append(block)
                 }
+                // Godot / Aseprite: the snapshot of what the user sees.
+                if let image = code.image,
+                   let block = ClaudeService.shared.readFileAsBlock(url: URL(fileURLWithPath: image)) {
+                    content.append(block)
+                }
                 content.append(["type": "text", "text": code.inlinePreamble])
             }
         }

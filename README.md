@@ -66,6 +66,7 @@ has the details for Windows and Linux.
   On Windows and Linux the chat can also use OpenAI, Gemini, OpenRouter, Ollama, LM Studio or any OpenAI-compatible server.
 - **Ask about the file you're editing** (⌃⌥M) in Chat — reads the project, never edits unless you turn on "Edits on"; every change is approved in the island.
 - **Editor extension** for VS Code, Cursor, Windsurf and VSCodium — exact file, cursor, selection and errors. See [`extensions/vscode`](extensions/vscode).
+- **Godot and Aseprite plugins** — *Ask Lumo about this* from the editor: in Godot the script, its errors, the scene tree, the selected node and a snapshot of the editor; in Aseprite the frame (or the animation as a grid) as an image, with layers, tags, palette and selection. Lumo's chat runs in the game's folder, so it sees the code around the art. They talk to Lumo over a local WebSocket with a private token. See [`extensions/godot`](extensions/godot) and [`extensions/aseprite`](extensions/aseprite); `scripts/pack-editor-plugins.sh` builds both packages.
 - **Push-to-talk** (hold ⌃⌥V) — speak, your character answers and reads it aloud. On-device transcription when the Mac supports it.
   Windows: the 🎙 in the chat. Linux: replies read aloud only (no built-in speech recognition).
 - **Chat history** — the last 50 conversations, resumable.

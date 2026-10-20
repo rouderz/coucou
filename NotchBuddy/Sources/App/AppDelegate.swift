@@ -103,6 +103,8 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         DoNotDisturb.shared.start()
         DanceController.shared.start()
         HookServer.shared.start()
+        // The Godot / Aseprite plugins talk to Lumo over a local WebSocket.
+        EditorSocketServer.shared.start()
         for source in Integrations.all { source.start() }
         // WhaTicket credentials from earlier builds: the browser extension needs none.
         for key in ["whaticket-url", "whaticket-web-url", "whaticket-email", "whaticket-password", "whaticket-token"]

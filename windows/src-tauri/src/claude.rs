@@ -84,16 +84,29 @@ pub enum ChatContext {
         line: Option<u32>,
         selection: Option<String>,
         diagnostics: Option<Vec<Value>>,
+        /// From the Godot / Aseprite plugins: the scene, the node, the sprite… as text.
+        #[serde(default)]
+        details: Option<String>,
+        #[serde(default, rename = "appName")]
+        app_name: Option<String>,
+        /// A PNG snapshot kept in editor_socket::snapshots_dir().
+        #[serde(default)]
+        image: Option<String>,
     },
 }
 
 /// The editor context as text. `inline_file` adds the file's content (servers
 /// that take text only); the API engine sends the file as its own block instead.
 pub(crate) fn code_preamble(context: &ChatContext, inline_file: bool) -> String {
-    let ChatContext::Code { file, workspace, language, line, selection, diagnostics } = context else {
+    let ChatContext::Code { file, workspace, language, line, selection, diagnostics, details, app_name, image } =
+        context
+    else {
         return String::new();
     };
-    let mut t = format!("Code context — file: {file}");
+    let mut t = match app_name.as_deref().filter(|a| !a.is_empty()) {
+        Some(app) => format!("Code context ({app}) — file: {file}"),
+        None => format!("Code context — file: {file}"),
+    };
     if let Some(l) = language {
         t.push_str(&format!(" ({l})"));
     }
@@ -106,6 +119,16 @@ pub(crate) fn code_preamble(context: &ChatContext, inline_file: bool) -> String 
     t.push('\n');
     if let Some(sel) = selection.as_deref().filter(|s| !s.is_empty()) {
         t.push_str(&format!("Selected text:\n```\n{sel}\n```\n"));
+    }
+    if let Some(d) = details.as_deref().filter(|d| !d.is_empty()) {
+        t.push_str(&format!("What the editor shows right now:\n{d}\n"));
+    }
+    if let Some(img) = image {
+        if inline_file {
+            t.push_str("(A snapshot of what the user sees was taken, but this engine can't look at images.)\n");
+        } else {
+            t.push_str(&format!("A snapshot of what the user sees: {img} (open it with Read, or see it attached).\n"));
+        }
     }
     if let Some(list) = diagnostics.as_ref().filter(|d| !d.is_empty()) {
         t.push_str("Problems the editor reports:\n");
@@ -162,8 +185,12 @@ pub async fn send(
                 }
                 content.push(json!({ "type": "text", "text": text }));
             }
-            Some(ctx @ ChatContext::Code { file, .. }) => {
+            Some(ctx @ ChatContext::Code { file, image, .. }) => {
                 if let Some(block) = file_block(file) {
+                    content.push(block);
+                }
+                // Godot / Aseprite: the snapshot of what the user sees.
+                if let Some(block) = image.as_deref().and_then(file_block) {
                     content.push(block);
                 }
                 content.push(json!({ "type": "text", "text": code_preamble(ctx, false) }));

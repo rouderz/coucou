@@ -6,6 +6,7 @@ mod ci;
 mod cli_chat;
 mod claude_code;
 mod codex;
+mod editor_socket;
 mod editors;
 mod files;
 mod google;
@@ -1227,6 +1228,8 @@ pub fn run() {
             hooks::ensure_hook_exe(&handle);
             secrets::forget_retired();
             pipe::start(handle.clone());
+            // The Godot / Aseprite plugins talk to Lumo over a local WebSocket.
+            editor_socket::start(handle.clone());
             integrations::start(handle.clone());
             inbox::start(handle.clone());
             apply_capture_shortcut(&handle, &loaded.capture_shortcut);
