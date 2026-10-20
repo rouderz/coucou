@@ -265,6 +265,10 @@ export interface CodeContext {
   selection?: string;
   diagnostics?: { line: number; severity: string; message: string; source?: string }[];
   appName?: string;
+  /** Godot / Aseprite plugins: the scene, the node, the sprite… as text. */
+  details?: string;
+  /** Godot / Aseprite plugins: a PNG snapshot kept by Lumo (editor_socket.rs). */
+  image?: string;
 }
 
 export interface SkillInfo {

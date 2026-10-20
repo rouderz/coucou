@@ -261,7 +261,15 @@ pub async fn send(
     }
     prompt.push_str(&query);
 
-    let args = arguments(model, session.as_deref(), project.is_some());
+    let mut args = arguments(model, session.as_deref(), project.is_some());
+    // A Godot / Aseprite snapshot lives in Lumo's own folder: let Read reach it.
+    if let Some(ChatContext::Code { image: Some(_), .. }) = &context {
+        let snaps = crate::editor_socket::snapshots_dir();
+        if snaps.is_dir() {
+            args.push("--add-dir".into());
+            args.push(snaps.display().to_string());
+        }
+    }
     run_turn(chat, &program, args, &dir, prompt).await
 }
 
