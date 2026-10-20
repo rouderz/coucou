@@ -1203,6 +1203,8 @@ pub fn run() {
         .setup(move |app| {
             let handle = app.handle().clone();
             tray::build(&handle)?;
+            // Before the settings page loads (it reads whether the relay is in place).
+            hooks::ensure_hook_exe(&handle);
             // Before the island: see create_settings_window.
             create_settings_window(&handle);
             buddy::create(&handle, BROWSER_ARGS, loaded.placement == "free");
@@ -1224,7 +1226,6 @@ pub fn run() {
             buddy::sync(&handle);
 
             log::line(format!("--- Lumo {} started ---", env!("CARGO_PKG_VERSION")));
-            hooks::ensure_hook_exe(&handle);
             secrets::forget_retired();
             pipe::start(handle.clone());
             integrations::start(handle.clone());
