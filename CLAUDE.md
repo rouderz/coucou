@@ -7,6 +7,7 @@ Lumo (started as a fork of Coucou by Louis Raillé) is a native macOS app, with 
 - `docs/SPEC.md`, `docs/INTEGRATIONS.md` — behaviour, views, states, integrations (in French).
 - `design/captures/` — target screenshots, rendered from the code by the pages in `windows/dev/` (see `design/README.md`). Icons: `windows/dev/icon.html` + `npm run icons`.
 - `docs/*.html` — the GitHub Pages site (privacy, terms, support, legal notice).
+- `.claude/skills/` — how-to skills for agents: `lumo-macos-swift`, `lumo-tauri-desktop`, `lumo-editor-plugins`, `lumo-add-integration`.
 
 ## Build
 ```
