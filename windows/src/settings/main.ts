@@ -1945,6 +1945,16 @@ async function main() {
 
   startTranslating(document.body);
 
+  // The page loads hidden at launch and is shown later: when it comes back, what it read then
+  // (the relay, Claude Code on PATH) may have changed — if so, read everything again.
+  const seen = JSON.stringify([status.installed, status.hookReady, claudeCode.installed]);
+  window.addEventListener("focus", async () => {
+    const st = await Bridge.hooksStatus();
+    const cc = await Bridge.claudeCodeStatus();
+    if (!st || !cc) return;
+    if (JSON.stringify([st.installed, st.hookReady, cc.installed]) !== seen) location.reload();
+  });
+
   void onEvent<Settings>("settings-changed", (s) => {
     settings = { ...settings, ...s };
     setCurrentCritter(isCritter(settings.critter) ? settings.critter : DEFAULT_CRITTER);

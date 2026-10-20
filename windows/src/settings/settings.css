@@ -479,6 +479,8 @@ button.small {
 
 .wt-table td {
   padding: 2px 18px 2px 0;
+}
+
 /* Settings → Time (#114) */
 .time-row {
   display: flex;
